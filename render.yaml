@@ -1,0 +1,19 @@
+# Render Blueprint — chạy bot Telegram 24/7 (Background Worker)
+# Deploy: Render Dashboard → New → Blueprint → chọn repo này.
+# Sau khi tạo, vào service → Environment, điền TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID.
+services:
+  - type: worker
+    name: btc-alert-bot
+    runtime: node
+    plan: starter # Background Worker cần gói trả phí (~$7/tháng); free tier không hỗ trợ worker always-on
+    region: singapore # gần Binance, ít rủi ro chặn hơn
+    branch: main
+    buildCommand: npm install --include=dev # ép cài cả devDeps (ts-node, typescript)
+    startCommand: npm start # ts-node btc-alert-bot.ts
+    envVars:
+      - key: BINANCE_PUBLIC
+        value: "1" # dùng dữ liệu .vision để tránh Binance chặn IP cloud (451)
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false # tự điền trong dashboard (không commit secret)
+      - key: TELEGRAM_CHAT_ID
+        sync: false

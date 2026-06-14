@@ -6,7 +6,7 @@
 
 import "./load-env";
 import WebSocket from "ws";
-import axios from "axios";
+import { fetchKlinesPaged } from "./backtest";
 import {
   Candle,
   CONFIG,
@@ -18,6 +18,13 @@ import {
   htfClosedCount,
   EntrySignal,
 } from "./strategy";
+
+// Trên host cloud (Render), Binance Futures bị chặn 451. Đặt BINANCE_PUBLIC=1
+// để dùng dữ liệu công khai .vision (spot, KHÔNG bị chặn). Local thì để trống → futures.
+const USE_PUBLIC = process.env.BINANCE_PUBLIC === "1" || process.env.BINANCE_PUBLIC === "true";
+const WS_BASE = USE_PUBLIC
+  ? "wss://data-stream.binance.vision/ws" // spot public stream
+  : "wss://fstream.binance.com/ws"; // futures (local)
 import {
   buildArmMessage,
   buildEntryMessage,
@@ -240,31 +247,20 @@ async function onCandleClose(candle: Candle): Promise<void> {
 }
 
 async function prefetchHistory(): Promise<void> {
-  const url = "https://fapi.binance.com/fapi/v1/klines";
   console.log("[Init] Tải lịch sử 15m để warmup...");
-  const res = await axios.get(url, {
-    params: { symbol: CONFIG.symbol.toUpperCase(), interval: CONFIG.entryTf, limit: BUFFER_SIZE },
-  });
-  const candles: Candle[] = (res.data as any[]).map((k: any[]) => ({
-    openTime: k[0],
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
-    close: parseFloat(k[4]),
-    volume: parseFloat(k[5]),
-    quoteVolume: parseFloat(k[7]),
-    takerBuyVolume: parseFloat(k[9]),
-  }));
-  candles.pop();
+  const candles = await fetchKlinesPaged(CONFIG.symbol, CONFIG.entryTf, BUFFER_SIZE);
+  candles.pop(); // bỏ nến hiện tại (chưa đóng)
   buffer.push(...candles);
   console.log(`[Init] OK — ${buffer.length} nến (tới ${formatTimeVn(buffer[buffer.length - 1].openTime)})`);
 }
 
 function connect(): void {
-  const url = `wss://fstream.binance.com/ws/${CONFIG.symbol}@kline_${CONFIG.entryTf}`;
+  const url = `${WS_BASE}/${CONFIG.symbol}@kline_${CONFIG.entryTf}`;
   const ws = new WebSocket(url);
 
-  ws.on("open", () => console.log(`[WS] ✅ Đã kết nối ${CONFIG.symbol} ${CONFIG.entryTf} (Futures)`));
+  ws.on("open", () =>
+    console.log(`[WS] ✅ Đã kết nối ${CONFIG.symbol} ${CONFIG.entryTf} (${USE_PUBLIC ? "Spot .vision" : "Futures"})`)
+  );
 
   ws.on("message", async (raw: Buffer) => {
     try {
