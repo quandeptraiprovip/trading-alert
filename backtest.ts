@@ -30,17 +30,30 @@ import {
 
 const FUNDING_INTERVAL_MS = 8 * 60 * 60 * 1000;
 
-// ─── FETCH 15m CÓ PHÂN TRANG ─────────────────────────────────
-export async function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
-  const url = "https://fapi.binance.com/fapi/v1/klines";
+// ─── NGUỒN KLINE (có fallback khi bị chặn địa lý 451) ─────────
+// Binance Futures (fapi) bị chặn IP datacenter (Vercel/AWS) -> HTTP 451.
+// data-api.binance.vision là endpoint dữ liệu công khai KHÔNG bị chặn (spot,
+// định dạng mảng giống hệt futures, nhưng limit tối đa 1000/req).
+type KlineSource = { url: string; maxLimit: number };
+const KLINE_SOURCES: KlineSource[] = [
+  { url: "https://fapi.binance.com/fapi/v1/klines", maxLimit: 1500 }, // futures (local)
+  { url: "https://data-api.binance.vision/api/v3/klines", maxLimit: 1000 }, // spot mirror (cloud)
+];
+
+async function fetchKlinesFromSource(
+  src: KlineSource,
+  symbol: string,
+  tf: string,
+  totalBars: number,
+): Promise<Candle[]> {
   const all: Candle[] = [];
   let endTime = Date.now();
-  const limitPer = 1500;
 
   while (all.length < totalBars) {
-    const need = Math.min(limitPer, totalBars - all.length);
-    const res = await axios.get(url, {
+    const need = Math.min(src.maxLimit, totalBars - all.length);
+    const res = await axios.get(src.url, {
       params: { symbol: symbol.toUpperCase(), interval: tf, limit: need, endTime },
+      timeout: 15000, // fail nhanh thay vì treo cả function
     });
     const batch: Candle[] = (res.data as any[]).map((k: any[]) => ({
       openTime: k[0],
@@ -62,6 +75,21 @@ export async function fetchKlinesPaged(symbol: string, tf: string, totalBars: nu
   const map = new Map<number, Candle>();
   for (const c of all) map.set(c.openTime, c);
   return [...map.values()].sort((a, b) => a.openTime - b.openTime);
+}
+
+// ─── FETCH 15m CÓ PHÂN TRANG (thử lần lượt các nguồn) ────────
+export async function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  let lastErr: unknown;
+  for (const src of KLINE_SOURCES) {
+    try {
+      return await fetchKlinesFromSource(src, symbol, tf, totalBars);
+    } catch (err: any) {
+      lastErr = err;
+      const status = err?.response?.status;
+      console.warn(`[Fetch] ${src.url} lỗi${status ? ` (HTTP ${status})` : ""}, thử nguồn kế tiếp...`);
+    }
+  }
+  throw lastErr; // hết nguồn vẫn lỗi
 }
 
 // ─── TRADE TYPES ─────────────────────────────────────────────
