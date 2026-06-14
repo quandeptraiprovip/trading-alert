@@ -5,7 +5,7 @@
  */
 
 import "./load-env";
-import WebSocket from "ws";
+import axios from "axios";
 import { fetchKlinesPaged } from "./backtest";
 import {
   Candle,
@@ -19,12 +19,11 @@ import {
   EntrySignal,
 } from "./strategy";
 
-// Trên host cloud (Render), Binance Futures bị chặn 451. Đặt BINANCE_PUBLIC=1
-// để dùng dữ liệu công khai .vision (spot, KHÔNG bị chặn). Local thì để trống → futures.
-const USE_PUBLIC = process.env.BINANCE_PUBLIC === "1" || process.env.BINANCE_PUBLIC === "true";
-const WS_BASE = USE_PUBLIC
-  ? "wss://data-stream.binance.vision/ws" // spot public stream
-  : "wss://fstream.binance.com/ws"; // futures (local)
+// Live data = POLL REST Futures (fapi). Trên nhiều IP cloud, WebSocket Futures bị chặn
+// luồng data (handshake mở nhưng 0 message) trong khi REST fapi vẫn trả 200. Bot chỉ
+// xử lý nến ĐÓNG nên poll fapi cho ĐÚNG dữ liệu Perpetual (volume/delta khớp backtest).
+const FAPI_KLINES = "https://fapi.binance.com/fapi/v1/klines";
+const POLL_INTERVAL_MS = 12_000; // nến 15m → poll 12s thừa sức bắt nến vừa đóng
 import {
   buildArmMessage,
   buildEntryMessage,
@@ -254,38 +253,47 @@ async function prefetchHistory(): Promise<void> {
   console.log(`[Init] OK — ${buffer.length} nến (tới ${formatTimeVn(buffer[buffer.length - 1].openTime)})`);
 }
 
-function connect(): void {
-  const url = `${WS_BASE}/${CONFIG.symbol}@kline_${CONFIG.entryTf}`;
-  const ws = new WebSocket(url);
+// Lấy nến 15m ĐÓNG gần nhất từ Futures REST. limit:2 → phần tử cuối là nến đang chạy,
+// phần tử kế cuối là nến vừa đóng.
+async function fetchLatestClosedCandle(): Promise<Candle | null> {
+  const res = await axios.get(FAPI_KLINES, {
+    params: { symbol: CONFIG.symbol.toUpperCase(), interval: CONFIG.entryTf, limit: 2 },
+    timeout: 15000,
+  });
+  const arr = res.data as any[];
+  if (!Array.isArray(arr) || arr.length < 2) return null;
+  const k = arr[arr.length - 2]; // nến đã đóng
+  return {
+    openTime: k[0],
+    open: parseFloat(k[1]),
+    high: parseFloat(k[2]),
+    low: parseFloat(k[3]),
+    close: parseFloat(k[4]),
+    volume: parseFloat(k[5]),
+    quoteVolume: parseFloat(k[7]), // dollar volume
+    takerBuyVolume: parseFloat(k[9]), // taker-buy base (cho delta/CVD)
+  };
+}
 
-  ws.on("open", () =>
-    console.log(`[WS] ✅ Đã kết nối ${CONFIG.symbol} ${CONFIG.entryTf} (${USE_PUBLIC ? "Spot .vision" : "Futures"})`)
+function startPolling(): void {
+  let lastOpenTime = buffer.length ? buffer[buffer.length - 1].openTime : 0;
+  console.log(
+    `[Poll] ✅ Theo dõi ${CONFIG.symbol.toUpperCase()} ${CONFIG.entryTf} (Futures REST, mỗi ${POLL_INTERVAL_MS / 1000}s)`
   );
-
-  ws.on("message", async (raw: Buffer) => {
+  const tick = async (): Promise<void> => {
     try {
-      const k = JSON.parse(raw.toString()).k;
-      if (k.x !== true) return;
-      await onCandleClose({
-        openTime: k.t,
-        open: parseFloat(k.o),
-        high: parseFloat(k.h),
-        low: parseFloat(k.l),
-        close: parseFloat(k.c),
-        volume: parseFloat(k.v),
-        quoteVolume: parseFloat(k.q),
-        takerBuyVolume: parseFloat(k.V),
-      });
+      const c = await fetchLatestClosedCandle();
+      if (c && c.openTime > lastOpenTime) {
+        lastOpenTime = c.openTime;
+        await onCandleClose(c);
+      }
     } catch (err) {
-      console.error("[WS] Parse error:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Poll] Lỗi fetch:", msg);
     }
-  });
-
-  ws.on("error", (err) => console.error("[WS] Error:", err.message));
-  ws.on("close", () => {
-    console.log("[WS] Mất kết nối, thử lại sau 5s...");
-    setTimeout(connect, 5000);
-  });
+  };
+  void tick(); // chạy ngay 1 lần
+  setInterval(() => void tick(), POLL_INTERVAL_MS);
 }
 
 async function main(): Promise<void> {
@@ -297,7 +305,7 @@ async function main(): Promise<void> {
 
   await prefetchHistory();
   await sendTelegram(telegram, buildStartupMessage());
-  connect();
+  startPolling();
 
   process.on("SIGINT", () => {
     console.log("\n⛔ Tắt bot...");
