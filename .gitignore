@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets (TELEGRAM_*, API keys, tokens)
+.env
+.env.*
+!.env.example
+
+# Credentials & keys
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+*.secret
+
+# Local editor / agent settings
+.claude/settings.local.json
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & runtime
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript build output (if you add outDir later)
+dist/
+build/

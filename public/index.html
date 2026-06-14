@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BTCUSDT — Vào / Ra lệnh (Backtest)</title>
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --long: #3fb950;
+      --short: #f85149;
+      --exit-win: #58a6ff;
+      --exit-loss: #ffa657;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 20px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    header h1 span { color: var(--muted); font-weight: 400; }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    label { font-size: 0.85rem; color: var(--muted); }
+    select, button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+    button {
+      cursor: pointer;
+      background: #238636;
+      border-color: #238636;
+      font-weight: 500;
+    }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    .stats {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      height: calc(100vh - 90px);
+    }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }
+    }
+    #chart-panel {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      min-height: 280px;
+    }
+    #price-chart { flex: 1 1 68%; min-height: 180px; width: 100%; }
+    #volume-chart { flex: 0 0 32%; min-height: 100px; width: 100%; border-top: 1px solid var(--border); }
+    .vol-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      padding: 4px 8px 0;
+      flex-shrink: 0;
+    }
+    aside {
+      border-left: 1px solid var(--border);
+      overflow: auto;
+      background: var(--panel);
+    }
+    aside h2 {
+      margin: 0;
+      padding: 12px 14px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 10px 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .trade-list { list-style: none; margin: 0; padding: 0; }
+    .trade-list li {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: background 0.15s;
+    }
+    .trade-list li:hover, .trade-list li.active { background: rgba(88, 166, 255, 0.08); }
+    .trade-list .dir-long { color: var(--long); }
+    .trade-list .dir-short { color: var(--short); }
+    .trade-list .r-pos { color: var(--long); }
+    .trade-list .r-neg { color: var(--short); }
+    .trade-list .meta { color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
+    #status {
+      padding: 8px 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    #status.error { color: var(--short); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BTCUSDT Perp <span>· marker vào / ra (backtest 15m)</span></h1>
+    <div class="controls">
+      <label for="days">Khoảng:</label>
+      <select id="days">
+        <option value="60">60 ngày</option>
+        <option value="120" selected>120 ngày</option>
+        <option value="180">180 ngày</option>
+        <option value="250">250 ngày</option>
+      </select>
+      <button id="reload" type="button">Tải lại</button>
+    </div>
+    <div class="stats" id="stats">—</div>
+  </header>
+  <div id="status">Đang tải dữ liệu từ Binance + chạy backtest…</div>
+  <div class="layout">
+    <div id="chart-panel">
+      <div id="price-chart"></div>
+      <div class="vol-label">Volume quote USDT · Binance BTCUSDT Perpetual · khớp màu nến</div>
+      <div id="volume-chart"></div>
+    </div>
+    <aside>
+      <h2>Lệnh trong khoảng</h2>
+      <div class="legend">
+        <span><i style="background:var(--long)"></i>Vào LONG</span>
+        <span><i style="background:var(--short)"></i>Vào SHORT</span>
+        <span><i style="background:var(--exit-win)"></i>Ra (lãi)</span>
+        <span><i style="background:var(--exit-loss)"></i>Ra (lỗ)</span>
+        <span><i style="background:#3fb950;opacity:0.7"></i>Vol ↑ nến</span>
+        <span><i style="background:#f85149;opacity:0.7"></i>Vol ↓ nến</span>
+      </div>
+      <ul class="trade-list" id="trades"></ul>
+    </aside>
+  </div>
+
+  <script>
+    const { createChart, CrosshairMode } = LightweightCharts;
+
+    const priceEl = document.getElementById("price-chart");
+    const volumeEl = document.getElementById("volume-chart");
+    const statusEl = document.getElementById("status");
+    const statsEl = document.getElementById("stats");
+    const tradesEl = document.getElementById("trades");
+    const daysSelect = document.getElementById("days");
+    const reloadBtn = document.getElementById("reload");
+
+    let priceChart;
+    let volumeChart;
+    let candleSeries;
+    let volumeSeries;
+    let pathSeries;
+    let lastTrades = [];
+    let syncing = false;
+
+    function fmtTime(ms) {
+      return new Date(ms).toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    function fmtPrice(n) {
+      return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    }
+
+    function toChartTime(ms) {
+      return Math.floor(ms / 1000);
+    }
+
+    function fmtVolQuote(q) {
+      if (q >= 1e9) return (q / 1e9).toFixed(2) + "B";
+      if (q >= 1e6) return (q / 1e6).toFixed(1) + "M";
+      if (q >= 1e3) return (q / 1e3).toFixed(0) + "K";
+      return String(Math.round(q));
+    }
+
+    const chartBaseOpts = {
+      layout: { background: { color: "#0d1117" }, textColor: "#8b949e" },
+      grid: { vertLines: { color: "#21262d" }, horzLines: { color: "#21262d" } },
+      crosshair: { mode: CrosshairMode.Normal },
+      rightPriceScale: { borderColor: "#30363d" },
+      timeScale: { borderColor: "#30363d", timeVisible: true, secondsVisible: false },
+    };
+
+    function syncTimeRanges(source, target) {
+      if (syncing) return;
+      syncing = true;
+      const r = source.timeScale().getVisibleLogicalRange();
+      if (r) target.timeScale().setVisibleLogicalRange(r);
+      syncing = false;
+    }
+
+    function initCharts() {
+      if (priceChart) priceChart.remove();
+      if (volumeChart) volumeChart.remove();
+
+      priceChart = createChart(priceEl, { ...chartBaseOpts, width: priceEl.clientWidth, height: priceEl.clientHeight });
+      volumeChart = createChart(volumeEl, {
+        ...chartBaseOpts,
+        width: volumeEl.clientWidth,
+        height: volumeEl.clientHeight,
+        timeScale: { ...chartBaseOpts.timeScale, visible: true },
+      });
+
+      candleSeries = priceChart.addCandlestickSeries({
+        upColor: "#3fb950",
+        downColor: "#f85149",
+        borderUpColor: "#3fb950",
+        borderDownColor: "#f85149",
+        wickUpColor: "#3fb950",
+        wickDownColor: "#f85149",
+      });
+      pathSeries = priceChart.addLineSeries({
+        color: "rgba(88, 166, 255, 0.45)",
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+
+      volumeSeries = volumeChart.addHistogramSeries({
+        priceFormat: { type: "custom", formatter: (v) => fmtVolQuote(v) + " USDT" },
+      });
+
+      priceChart.timeScale().subscribeVisibleLogicalRangeChange(() => syncTimeRanges(priceChart, volumeChart));
+      volumeChart.timeScale().subscribeVisibleLogicalRangeChange(() => syncTimeRanges(volumeChart, priceChart));
+
+      const panel = document.getElementById("chart-panel");
+      new ResizeObserver(() => {
+        const ph = priceEl.clientHeight;
+        const vh = volumeEl.clientHeight;
+        priceChart.applyOptions({ width: priceEl.clientWidth, height: ph });
+        volumeChart.applyOptions({ width: volumeEl.clientWidth, height: vh });
+      }).observe(panel);
+    }
+
+    function buildMarkers(trades) {
+      const markers = [];
+      for (const t of trades) {
+        const entryTime = toChartTime(t.entryTime);
+        const exitTime = toChartTime(t.exitTime);
+        const isLong = t.dir === "long";
+        markers.push({
+          time: entryTime,
+          position: isLong ? "belowBar" : "aboveBar",
+          color: isLong ? "#3fb950" : "#f85149",
+          shape: isLong ? "arrowUp" : "arrowDown",
+          text: isLong ? "VÀO L" : "VÀO S",
+        });
+        const win = t.netR > 0;
+        markers.push({
+          time: exitTime,
+          position: isLong ? "aboveBar" : "belowBar",
+          color: win ? "#58a6ff" : "#ffa657",
+          shape: "circle",
+          text: `RA ${t.netR >= 0 ? "+" : ""}${t.netR.toFixed(2)}R`,
+        });
+      }
+      markers.sort((a, b) => a.time - b.time);
+      return markers;
+    }
+
+    function focusTrade(idx) {
+      const t = lastTrades[idx];
+      if (!t || !priceChart) return;
+      document.querySelectorAll(".trade-list li").forEach((el, i) => {
+        el.classList.toggle("active", i === idx);
+      });
+      pathSeries.setData([
+        { time: toChartTime(t.entryTime), value: t.entryPrice },
+        { time: toChartTime(t.exitTime), value: t.exitPrice },
+      ]);
+      const from = toChartTime(t.entryTime) - 86400;
+      const to = toChartTime(t.exitTime) + 86400;
+      priceChart.timeScale().setVisibleRange({ from, to });
+      volumeChart.timeScale().setVisibleRange({ from, to });
+    }
+
+    function renderTradeList(trades) {
+      tradesEl.innerHTML = "";
+      if (!trades.length) {
+        tradesEl.innerHTML = "<li style='cursor:default;color:var(--muted)'>Không có lệnh trong khoảng này.</li>";
+        return;
+      }
+      trades.forEach((t, idx) => {
+        const li = document.createElement("li");
+        li.dataset.idx = String(idx);
+        const dirCls = t.dir === "long" ? "dir-long" : "dir-short";
+        const rCls = t.netR > 0 ? "r-pos" : "r-neg";
+        li.innerHTML =
+          `<div><span class="${dirCls}">${t.dir === "long" ? "LONG" : "SHORT"}</span> ` +
+          `<span class="${rCls}">${t.netR >= 0 ? "+" : ""}${t.netR.toFixed(2)}R</span> · ${t.exitReason}</div>` +
+          `<div class="meta">${fmtTime(t.entryTime)} $${fmtPrice(t.entryPrice)} → ${fmtTime(t.exitTime)} $${fmtPrice(t.exitPrice)}</div>`;
+        li.addEventListener("click", () => focusTrade(idx));
+        tradesEl.appendChild(li);
+      });
+    }
+
+    async function loadData() {
+      const days = daysSelect.value;
+      reloadBtn.disabled = true;
+      statusEl.className = "";
+      statusEl.textContent = `Đang tải ~${days} ngày nến + chạy backtest (có thể 10–30s)…`;
+
+      try {
+        const res = await fetch(`/api/chart?days=${days}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+
+        document.querySelector("header h1 span").textContent =
+          `· marker vào / ra (backtest ${data.timeframe})`;
+
+        initCharts();
+
+        const candles = data.candles.map((c) => ({
+          time: toChartTime(c.t),
+          open: c.o,
+          high: c.h,
+          low: c.l,
+          close: c.c,
+        }));
+        candleSeries.setData(candles);
+
+        const volumes = data.candles.map((c) => {
+          const q = c.q ?? c.v * c.c;
+          const bullish = c.c >= c.o;
+          return {
+            time: toChartTime(c.t),
+            value: q,
+            color: bullish ? "rgba(63, 185, 80, 0.55)" : "rgba(248, 81, 73, 0.55)",
+          };
+        });
+        volumeSeries.setData(volumes);
+
+        const sampleQ = volumes.length ? volumes[volumes.length - 1].value : 0;
+        lastTrades = data.trades || [];
+        candleSeries.setMarkers(buildMarkers(lastTrades));
+        pathSeries.setData([]);
+
+        renderTradeList(lastTrades);
+
+        const netR = lastTrades.reduce((s, t) => s + t.netR, 0);
+        statsEl.textContent =
+          `${data.candleCount} nến · Vol ~${fmtVolQuote(sampleQ)} USDT/nến · ${lastTrades.length} lệnh · NET ${netR >= 0 ? "+" : ""}${netR.toFixed(2)}R`;
+
+        statusEl.textContent =
+          "Pane dưới = volume USDT (Binance Perp). Zoom/pan trên giá cũng sync volume.";
+        priceChart.timeScale().fitContent();
+        volumeChart.timeScale().fitContent();
+      } catch (e) {
+        statusEl.className = "error";
+        statusEl.textContent = "Lỗi: " + (e.message || e);
+      } finally {
+        reloadBtn.disabled = false;
+      }
+    }
+
+    reloadBtn.addEventListener("click", loadData);
+    daysSelect.addEventListener("change", loadData);
+    loadData();
+  </script>
+</body>
+</html>
