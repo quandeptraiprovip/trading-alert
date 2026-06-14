@@ -357,7 +357,16 @@
 
       try {
         const res = await fetch(`/api/chart?days=${days}`);
-        const data = await res.json();
+        const raw = await res.text();
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          const hint = raw.trim().startsWith("<") || raw.includes("The page")
+            ? "API /api/chart không chạy (thường do chưa deploy serverless hoặc timeout Vercel)."
+            : raw.slice(0, 120);
+          throw new Error(hint);
+        }
         if (!res.ok) throw new Error(data.error || res.statusText);
 
         document.querySelector("header h1 span").textContent =

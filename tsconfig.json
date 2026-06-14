@@ -12,5 +12,5 @@
   "ts-node": {
     "transpileOnly": true
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "api/**/*.ts"]
 }

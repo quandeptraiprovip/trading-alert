@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/chart.ts": {
+      "maxDuration": 60
+    }
+  }
+}
