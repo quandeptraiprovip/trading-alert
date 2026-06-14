@@ -34,3 +34,4 @@ yarn-error.log*
 # TypeScript build output (if you add outDir later)
 dist/
 build/
+.next/

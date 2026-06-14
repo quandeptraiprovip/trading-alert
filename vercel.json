@@ -1,22 +1,7 @@
 {
-  "version": 2,
-  "installCommand": "npm install",
-  "builds": [
-    {
-      "src": "api/chart.ts",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 60
-      }
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
+  "functions": {
+    "pages/api/chart.ts": {
+      "maxDuration": 60
     }
-  ],
-  "routes": [
-    { "src": "/api/chart", "dest": "api/chart.ts" },
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+  }
 }
