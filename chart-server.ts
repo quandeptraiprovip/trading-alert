@@ -54,8 +54,9 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && req.url?.startsWith("/api/chart")) {
     const q = new URL(req.url, `http://127.0.0.1:${PORT}`);
     const days = Math.min(400, Math.max(30, parseInt(q.searchParams.get("days") ?? "120", 10) || 120));
+    const symbol = (q.searchParams.get("symbol") ?? "btcusdt").trim().toLowerCase();
     try {
-      const payload = await buildChartPayload(days);
+      const payload = await buildChartPayload(days, symbol);
       sendJson(res, 200, payload);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -68,6 +69,6 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n📈 Chart UI: http://localhost:${PORT}`);
-  console.log(`   API:      http://localhost:${PORT}/api/chart?days=120`);
+  console.log(`   API:      http://localhost:${PORT}/api/chart?days=120&symbol=solusdt`);
   console.log(`   (Lần đầu tải nến từ Binance có thể mất vài giây)\n`);
 });

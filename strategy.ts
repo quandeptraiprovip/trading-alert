@@ -64,9 +64,10 @@ export interface EntrySignal {
 // ─────────────────────────────────────────────
 export const CONFIG = {
   symbol: "btcusdt",
-  // (F) Danh sách symbol cho backtest. Chỉ trade BTCUSDT.
-  // (Có thể tạm bật thêm coin để kiểm định độ bền: override qua arg, vd `... 250 1 btcusdt,ethusdt`)
-  symbols: ["btcusdt"],
+  // (F) Danh sách symbol cho backtest. Rổ NET dương + corr P&L ≈ 0 (breadth thật ~3.3):
+  // BTC+SOL+XRP+DOGE → 46 lệnh, +44.79R, Sharpe ngày 4.16 (vs BTC-only 3.28).
+  // (Override qua arg, vd `... 250 1 btcusdt` để test riêng 1 coin.)
+  symbols: ["btcusdt", "solusdt", "xrpusdt", "dogeusdt"],
 
   // Khung entry (LTF) và các khung xác định bias/vùng (HTF)
   entryTf: "15m",
@@ -100,16 +101,28 @@ export const CONFIG = {
   targetRR: 2.5, // target ban đầu = 2.5R (để tham chiếu/fallback)
 
   // Quản lý lệnh (đơn vị: số nến 15m, 96 nến = 1 ngày)
-  maxHoldBars: 96 * 6, // giữ tối đa ~6 ngày
+  maxHoldBars: 96 * 7, // giữ tối đa ~7 ngày (gate 250d: +NET vs 6d — time-exit ít cắt winner)
   cooldownBars: 48, // sau khi đóng lệnh chờ ~12h mới tìm lệnh mới (đánh chậm)
   trailEnabled: true,
   breakevenEnabled: false, // (D) MẶC ĐỊNH TẮT — nghiên cứu cho thấy dời BE theo R cố định giảm EV
   breakevenAtR: 1.0, // chỉ dùng khi breakevenEnabled = true
-  trailStartR: 1.5, // sau +1.5R mới bắt đầu trail theo swing HTF
+  trailStartR: 2.0, // sau +2R mới trail swing 1h (gate 250d BTC: +NET vs 1.5R)
 
   // Entry 2 bước (ARM tap vùng -> CONFIRM bằng BOS)
   setupExpiryBars: 24, // pending setup hết hạn sau ~6h (24 nến 15m) nếu chưa confirm
   zoneInvalidationPct: 0.004, // đóng cửa thủng vùng quá 0.4% -> huỷ setup
+  zoneInvalidationUseWick: false, // true = huỷ khi wick thủng vùng (không chỉ close)
+  minBarsAfterArm: 3, // tối thiểu số nến 15m sau ARM trước CONFIRM (gate 250d: +NET vs 0)
+  bosSwingMinPivotAfterArm: false, // BOS chỉ dùng swing có pivot >= armedIndex
+  confirmCloseLocationMin: 0, // CLV tối thiểu (long: close ở nửa trên); 0 = tắt
+  confirmRequireWickRejection: false,
+  confirmRejectHighVolLowBody: false, // vol cao + body nhỏ -> bỏ (trap)
+  confirmMaxExtensionAboveZonePct: 0, // long: entry không quá xa trên zone (0 = tắt)
+  confirmMaxExtensionBelowZonePct: 0, // short: entry không quá xa dưới zone
+  requirePullbackRetestZone: false, // pullback phải chạm lại vùng sau ARM
+  minPullbackRiskFrac: 0, // độ sâu pullback tối thiểu tính theo R (0 = tắt)
+  minEntryRR: 0, // bỏ tín hiệu nếu RR tới target < ngưỡng (0 = tắt)
+  deltaStrict: false, // true = thiếu taker-buy data thì không pass delta
 
   // ── Chi phí giao dịch (B) — dùng trong backtest để ra con số NET ──
   costs: {
@@ -199,11 +212,11 @@ export function candleBuyRatio(c: Candle): number | null {
   return Math.min(1, Math.max(0, r));
 }
 
-/** Kiểm tra delta có cùng hướng không. true nếu thiếu dữ liệu (không chặn). */
+/** Kiểm tra delta có cùng hướng không. Thiếu dữ liệu: pass trừ khi deltaStrict. */
 function deltaAligned(c: Candle, dir: "demand" | "supply"): boolean {
   if (!CONFIG.useDelta) return true;
   const r = candleBuyRatio(c);
-  if (r == null) return true; // thiếu dữ liệu -> không chặn
+  if (r == null) return !CONFIG.deltaStrict;
   return dir === "demand" ? r >= CONFIG.deltaBuyMin : r <= 1 - CONFIG.deltaBuyMin;
 }
 
@@ -281,10 +294,11 @@ export function lastConfirmedSwing(
   type: "high" | "low",
   left = CONFIG.pivotLeft,
   right = CONFIG.pivotRight,
-  window = 40
+  window = 40,
+  minPivotIndex = 0
 ): { index: number; price: number } | null {
   // pivot tại p chỉ xác nhận khi p + right <= i  => quét p từ (i-right) trở về
-  for (let p = i - right; p >= Math.max(left, i - window); p--) {
+  for (let p = i - right; p >= Math.max(left, i - window, minPivotIndex); p--) {
     const ref = type === "high" ? candles[p].high : candles[p].low;
     let ok = true;
     for (let k = 1; k <= left && ok; k++) {
@@ -442,6 +456,83 @@ function pickSupply(zones: Zone[], tapHigh: number, tapClose: number): Zone | un
     .filter((z) => z.mitigations <= CONFIG.maxZoneMitigations) // (A) ưu tiên FRESH
     .filter((z) => tapHigh >= z.low * (1 - tol) && tapClose < z.high)
     .sort((a, b) => a.mitigations - b.mitigations || a.mid - b.mid)[0];
+}
+
+function confirmCandleQuality(c: Candle, direction: "long" | "short", volRatio: number): boolean {
+  const range = c.high - c.low;
+  if (range <= 0) return false;
+  const closePos = (c.close - c.low) / range;
+  const body = Math.abs(c.close - c.open);
+  const lowerWick = Math.min(c.open, c.close) - c.low;
+  const upperWick = c.high - Math.max(c.open, c.close);
+
+  const clvMin = CONFIG.confirmCloseLocationMin;
+  if (clvMin > 0) {
+    if (direction === "long" && closePos < clvMin) return false;
+    if (direction === "short" && closePos > 1 - clvMin) return false;
+  }
+  if (CONFIG.confirmRequireWickRejection) {
+    if (direction === "long" && lowerWick <= upperWick) return false;
+    if (direction === "short" && upperWick <= lowerWick) return false;
+  }
+  if (CONFIG.confirmRejectHighVolLowBody && volRatio >= CONFIG.ltfConfirmVolMult) {
+    if (body / range <= 0.35) return false;
+  }
+  return true;
+}
+
+function zoneInvalidated(c: Candle, p: PendingSetup): boolean {
+  const pct = CONFIG.zoneInvalidationPct;
+  if (p.direction === "long") {
+    const level = p.zone.low * (1 - pct);
+    return CONFIG.zoneInvalidationUseWick ? c.low < level : c.close < level;
+  }
+  const level = p.zone.high * (1 + pct);
+  return CONFIG.zoneInvalidationUseWick ? c.high > level : c.close > level;
+}
+
+function pullbackRetestedZone(ltf: Candle[], p: PendingSetup, i: number): boolean {
+  if (!CONFIG.requirePullbackRetestZone) return true;
+  const tol = CONFIG.zoneTapTolPct;
+  for (let k = p.armedIndex + 1; k <= i; k++) {
+    const bar = ltf[k];
+    if (p.direction === "long") {
+      if (bar.low <= p.zone.high * (1 + tol) && bar.low >= p.zone.low * (1 - CONFIG.zoneInvalidationPct)) return true;
+    } else if (bar.high >= p.zone.low * (1 - tol) && bar.high <= p.zone.high * (1 + CONFIG.zoneInvalidationPct)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function minPullbackDepthOk(ltf: Candle[], p: PendingSetup, i: number, entry: number): boolean {
+  const frac = CONFIG.minPullbackRiskFrac;
+  if (frac <= 0) return true;
+  const sl =
+    p.direction === "long"
+      ? Math.min(p.zone.low, p.extreme) * (1 - CONFIG.slBufferPct)
+      : Math.max(p.zone.high, p.extreme) * (1 + CONFIG.slBufferPct);
+  const risk = p.direction === "long" ? entry - sl : sl - entry;
+  if (risk <= 0) return false;
+  if (p.direction === "long") {
+    let peak = -Infinity;
+    for (let k = p.armedIndex; k < i; k++) peak = Math.max(peak, ltf[k].high);
+    return peak - p.extreme >= frac * risk;
+  }
+  let trough = Infinity;
+  for (let k = p.armedIndex; k < i; k++) trough = Math.min(trough, ltf[k].low);
+  return p.extreme - trough >= frac * risk;
+}
+
+function confirmExtensionOk(entry: number, p: PendingSetup): boolean {
+  if (p.direction === "long") {
+    const maxPct = CONFIG.confirmMaxExtensionAboveZonePct;
+    if (maxPct > 0 && entry > p.zone.high * (1 + maxPct)) return false;
+  } else {
+    const maxPct = CONFIG.confirmMaxExtensionBelowZonePct;
+    if (maxPct > 0 && entry < p.zone.low * (1 - maxPct)) return false;
+  }
+  return true;
 }
 
 // ─────────────────────────────────────────────
@@ -621,23 +712,28 @@ export class SetupTracker {
         p.extreme = c.low;
         p.extremeIndex = i;
       }
-      // huỷ nếu đóng cửa thủng vùng
-      if (c.close < p.zone.low * (1 - CONFIG.zoneInvalidationPct)) {
+      if (zoneInvalidated(c, p)) {
         this.pending = null;
         return null;
       }
-      // CONFIRM: nến tăng, vừa phá (fresh break) đỉnh swing 15m gần nhất, có volume + delta MUA
-      const trig = lastConfirmedSwing(ltf, i, "high");
+      if (CONFIG.minBarsAfterArm > 0 && i - p.armedIndex < CONFIG.minBarsAfterArm) return null;
+      if (!pullbackRetestedZone(ltf, p, i)) return null;
+
+      const minPivot = CONFIG.bosSwingMinPivotAfterArm ? p.armedIndex : 0;
+      const trig = lastConfirmedSwing(ltf, i, "high", CONFIG.pivotLeft, CONFIG.pivotRight, 40, minPivot);
       const fresh = trig && prev.close <= trig.price && c.close > trig.price;
       if (
         trig &&
         fresh &&
         c.close > c.open &&
         volRatio >= CONFIG.ltfConfirmVolMult &&
-        deltaAligned(c, "demand")
+        deltaAligned(c, "demand") &&
+        confirmCandleQuality(c, "long", volRatio) &&
+        confirmExtensionOk(c.close, p) &&
+        minPullbackDepthOk(ltf, p, i, c.close)
       ) {
         const sig = this.buildLong(c, p, volRatio, trig.price, ctx);
-        this.pending = null;
+        if (sig) this.pending = null;
         return sig;
       }
       return null;
@@ -646,21 +742,28 @@ export class SetupTracker {
         p.extreme = c.high;
         p.extremeIndex = i;
       }
-      if (c.close > p.zone.high * (1 + CONFIG.zoneInvalidationPct)) {
+      if (zoneInvalidated(c, p)) {
         this.pending = null;
         return null;
       }
-      const trig = lastConfirmedSwing(ltf, i, "low");
+      if (CONFIG.minBarsAfterArm > 0 && i - p.armedIndex < CONFIG.minBarsAfterArm) return null;
+      if (!pullbackRetestedZone(ltf, p, i)) return null;
+
+      const minPivot = CONFIG.bosSwingMinPivotAfterArm ? p.armedIndex : 0;
+      const trig = lastConfirmedSwing(ltf, i, "low", CONFIG.pivotLeft, CONFIG.pivotRight, 40, minPivot);
       const fresh = trig && prev.close >= trig.price && c.close < trig.price;
       if (
         trig &&
         fresh &&
         c.close < c.open &&
         volRatio >= CONFIG.ltfConfirmVolMult &&
-        deltaAligned(c, "supply")
+        deltaAligned(c, "supply") &&
+        confirmCandleQuality(c, "short", volRatio) &&
+        confirmExtensionOk(c.close, p) &&
+        minPullbackDepthOk(ltf, p, i, c.close)
       ) {
         const sig = this.buildShort(c, p, volRatio, trig.price, ctx);
-        this.pending = null;
+        if (sig) this.pending = null;
         return sig;
       }
       return null;
@@ -693,13 +796,15 @@ export class SetupTracker {
     const supplyAbove = ctx.zones.filter((z) => z.type === "supply" && z.low > entry).sort((a, b) => a.low - b.low)[0];
     const rrTarget = entry + CONFIG.targetRR * (entry - initialSL);
     const initialTarget = supplyAbove ? Math.max(supplyAbove.low, entry + (entry - initialSL)) : rrTarget;
+    const rr = (initialTarget - entry) / (entry - initialSL);
+    if (CONFIG.minEntryRR > 0 && rr < CONFIG.minEntryRR) return null;
     return {
       direction: "long",
       entry,
       initialSL,
       initialTarget,
       riskPct,
-      rr: (initialTarget - entry) / (entry - initialSL),
+      rr,
       zone: p.zone,
       htfBias: ctx.bias,
       reason: `Tap demand FRESH $${p.zone.low.toFixed(0)}-${p.zone.high.toFixed(0)} (mitig ${p.zone.mitigations}) → pullback đáy $${p.extreme.toFixed(0)} → BOS phá $${bosLevel.toFixed(0)} +vol ${volRatio.toFixed(1)}x; HTF bull`,
@@ -714,13 +819,15 @@ export class SetupTracker {
     const demandBelow = ctx.zones.filter((z) => z.type === "demand" && z.high < entry).sort((a, b) => b.high - a.high)[0];
     const rrTarget = entry - CONFIG.targetRR * (initialSL - entry);
     const initialTarget = demandBelow ? Math.min(demandBelow.high, entry - (initialSL - entry)) : rrTarget;
+    const rr = (entry - initialTarget) / (initialSL - entry);
+    if (CONFIG.minEntryRR > 0 && rr < CONFIG.minEntryRR) return null;
     return {
       direction: "short",
       entry,
       initialSL,
       initialTarget,
       riskPct,
-      rr: (entry - initialTarget) / (initialSL - entry),
+      rr,
       zone: p.zone,
       htfBias: ctx.bias,
       reason: `Tap supply FRESH $${p.zone.low.toFixed(0)}-${p.zone.high.toFixed(0)} (mitig ${p.zone.mitigations}) → pullback đỉnh $${p.extreme.toFixed(0)} → BOS phá $${bosLevel.toFixed(0)} +vol ${volRatio.toFixed(1)}x; HTF bear`,

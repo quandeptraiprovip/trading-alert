@@ -27,6 +27,12 @@ export function fmtPrice(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
+/** "btcusdt" -> "BTC/USDT" (nhãn hiển thị trong alert). */
+export function formatSymbol(sym: string): string {
+  const s = sym.toUpperCase();
+  return s.endsWith("USDT") ? `${s.slice(0, -4)}/USDT` : s;
+}
+
 export function formatTimeVn(ms: number): string {
   return new Date(ms).toLocaleString("vi-VN", {
     timeZone: "Asia/Ho_Chi_Minh",
@@ -60,11 +66,35 @@ export async function sendTelegram(
   }
 }
 
-export function buildStartupMessage(): string {
+/** Đọc tin nhắn đến (lệnh) từ Telegram. Trả [] nếu chưa cấu hình / lỗi. */
+export async function getTelegramUpdates(
+  cfg: TelegramConfig,
+  offset: number
+): Promise<{ id: number; text: string; chatId: string }[]> {
+  if (!cfg.enabled) return [];
+  try {
+    const res = await axios.get(`https://api.telegram.org/bot${cfg.botToken}/getUpdates`, {
+      params: { offset, timeout: 0, allowed_updates: JSON.stringify(["message"]) },
+      timeout: 15000,
+    });
+    const result = (res.data?.result ?? []) as any[];
+    return result.map((u) => ({
+      id: u.update_id as number,
+      text: (u.message?.text ?? "") as string,
+      chatId: String(u.message?.chat?.id ?? ""),
+    }));
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[Telegram] getUpdates lỗi:", msg);
+    return [];
+  }
+}
+
+export function buildStartupMessage(symbols: string[]): string {
   return [
-    `🤖 *BTC Swing Bot* đã chạy`,
+    `🤖 *Swing Bot* đã chạy`,
     ``,
-    `📈 *${CONFIG.symbol.toUpperCase()}* Perpetual (Binance Futures)`,
+    `📈 *${symbols.map(formatSymbol).join(", ")}* Perpetual (Binance Futures)`,
     `⏱ Entry *${CONFIG.entryTf}* · Bias *${CONFIG.htfBiasTf}* / Vùng *${CONFIG.htfZoneTf}*`,
     ``,
     `*Luồng alert:*`,
@@ -72,16 +102,18 @@ export function buildStartupMessage(): string {
     `2️⃣ *MỞ LỆNH* — xác nhận BOS + volume/delta`,
     `3️⃣ *RA LỆNH* — chạm SL / TP / trail / hết hạn giữ`,
     ``,
+    `💬 Gõ */status* để xem lệnh đang giữ.`,
+    ``,
     `_Thời gian: ${formatTimeVn(Date.now())}_`,
   ].join("\n");
 }
 
-export function buildArmMessage(setup: PendingSetup, candle: Candle): string {
+export function buildArmMessage(setup: PendingSetup, candle: Candle, symbol: string): string {
   const dir = setup.direction === "long" ? "🟡 *CHỜ LONG*" : "🟠 *CHỜ SHORT*";
   const z = setup.zone;
   const zoneLabel = z.type === "demand" ? "Demand" : "Supply";
   return [
-    `${dir}  *BTC/USDT* Perp`,
+    `${dir}  *${formatSymbol(symbol)}* Perp`,
     ``,
     `📍 *Bước 1 — ARM* (tap vùng)`,
     `${zoneLabel} FRESH $${fmtPrice(z.low)}-${fmtPrice(z.high)} (mitig ${z.mitigations})`,
@@ -93,14 +125,14 @@ export function buildArmMessage(setup: PendingSetup, candle: Candle): string {
   ].join("\n");
 }
 
-export function buildEntryMessage(sig: EntrySignal, candle: Candle): string {
+export function buildEntryMessage(sig: EntrySignal, candle: Candle, symbol: string): string {
   const dir = sig.direction === "long" ? "🟢 *MỞ LONG*" : "🔴 *MỞ SHORT*";
   const slPct = (Math.abs(sig.entry - sig.initialSL) / sig.entry) * 100;
   const tpPct = (Math.abs(sig.initialTarget - sig.entry) / sig.entry) * 100;
   const qv = candle.quoteVolume ?? 0;
   const volLine = qv > 0 ? `📊 Vol nến: $${(qv / 1e6).toFixed(1)}M USDT` : "";
   const lines = [
-    `${dir}  *BTC/USDT* Perp`,
+    `${dir}  *${formatSymbol(symbol)}* Perp`,
     ``,
     `✅ *Bước 2 — MỞ LỆNH* (confirm)`,
     `🎯 Entry : $${fmtPrice(sig.entry)}`,
@@ -126,8 +158,9 @@ export function buildExitMessage(params: {
   grossR: number;
   holdBars: number;
   exitTime: number;
+  symbol: string;
 }): string {
-  const { dir, entryPrice, initialSL, exitPrice, exitReason, grossR, holdBars, exitTime } = params;
+  const { dir, entryPrice, initialSL, exitPrice, exitReason, grossR, holdBars, exitTime, symbol } = params;
   const win = grossR > 0;
   const head =
     dir === "long"
@@ -146,7 +179,7 @@ export function buildExitMessage(params: {
   const holdDays = ((holdBars * TF_MS[CONFIG.entryTf]) / TF_MS["1d"]).toFixed(1);
   const rStr = `${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R`;
   return [
-    `${head}  *BTC/USDT* Perp`,
+    `${head}  *${formatSymbol(symbol)}* Perp`,
     ``,
     `📤 *Bước 3 — RA LỆNH*`,
     `Vào: $${fmtPrice(entryPrice)} → Ra: $${fmtPrice(exitPrice)}`,

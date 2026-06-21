@@ -13,12 +13,15 @@ export type ChartTrade = {
   zoneDesc: string;
 };
 
-export async function buildChartPayload(days: number): Promise<object> {
-  const symbol = "btcusdt";
+export async function buildChartPayload(days: number, symbol = "btcusdt"): Promise<object> {
+  const sym = symbol.trim().toLowerCase();
+  if (!/^[a-z0-9]+$/.test(sym)) {
+    throw new Error("Symbol không hợp lệ");
+  }
   const barsPerDay = TF_MS["1d"] / TF_MS[CONFIG.entryTf];
   const totalBars = Math.ceil(days * barsPerDay) + 400;
-  const ltf = await fetchKlinesPaged(symbol, CONFIG.entryTf, totalBars);
-  const trades = runBacktest(symbol, ltf);
+  const ltf = await fetchKlinesPaged(sym, CONFIG.entryTf, totalBars);
+  const trades = runBacktest(sym, ltf);
 
   const displayStart =
     ltf.length > 0 ? ltf[Math.max(0, ltf.length - Math.ceil(days * barsPerDay))].openTime : 0;
@@ -50,7 +53,7 @@ export async function buildChartPayload(days: number): Promise<object> {
     }));
 
   return {
-    symbol: symbol.toUpperCase(),
+    symbol: sym.toUpperCase(),
     timeframe: CONFIG.entryTf,
     days,
     candleCount: candles.length,

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BTCUSDT — Vào / Ra lệnh (Backtest)</title>
+  <title>Perp chart — Vào / Ra lệnh (Backtest)</title>
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root {
@@ -149,8 +149,15 @@
 </head>
 <body>
   <header>
-    <h1>BTCUSDT Perp <span>· marker vào / ra (backtest 15m)</span></h1>
+    <h1 id="symbol-title">BTCUSDT Perp <span>· marker vào / ra (backtest 15m)</span></h1>
     <div class="controls">
+      <label for="symbol">Symbol:</label>
+      <select id="symbol">
+        <option value="btcusdt">BTCUSDT</option>
+        <option value="solusdt">SOLUSDT</option>
+        <option value="ethusdt">ETHUSDT</option>
+        <option value="bnbusdt">BNBUSDT</option>
+      </select>
       <label for="days">Khoảng:</label>
       <select id="days">
         <option value="60">60 ngày</option>
@@ -166,7 +173,7 @@
   <div class="layout">
     <div id="chart-panel">
       <div id="price-chart"></div>
-      <div class="vol-label">Volume quote USDT · Binance BTCUSDT Perpetual · khớp màu nến</div>
+      <div class="vol-label" id="vol-label">Volume quote USDT · Binance Perpetual · khớp màu nến</div>
       <div id="volume-chart"></div>
     </div>
     <aside>
@@ -192,7 +199,20 @@
     const statsEl = document.getElementById("stats");
     const tradesEl = document.getElementById("trades");
     const daysSelect = document.getElementById("days");
+    const symbolSelect = document.getElementById("symbol");
     const reloadBtn = document.getElementById("reload");
+    const volLabelEl = document.getElementById("vol-label");
+    const symbolTitleEl = document.getElementById("symbol-title");
+
+    const urlParams = new URLSearchParams(location.search);
+    const urlSymbol = urlParams.get("symbol")?.toLowerCase();
+    if (urlSymbol && [...symbolSelect.options].some((o) => o.value === urlSymbol)) {
+      symbolSelect.value = urlSymbol;
+    }
+    const urlDays = urlParams.get("days");
+    if (urlDays && [...daysSelect.options].some((o) => o.value === urlDays)) {
+      daysSelect.value = urlDays;
+    }
 
     let priceChart;
     let volumeChart;
@@ -351,12 +371,13 @@
 
     async function loadData() {
       const days = daysSelect.value;
+      const symbol = symbolSelect.value;
       reloadBtn.disabled = true;
       statusEl.className = "";
-      statusEl.textContent = `Đang tải ~${days} ngày nến + chạy backtest (có thể 10–30s)…`;
+      statusEl.textContent = `Đang tải ${symbol.toUpperCase()} ~${days} ngày + backtest (10–30s)…`;
 
       try {
-        const res = await fetch(`/api/chart?days=${days}`);
+        const res = await fetch(`/api/chart?days=${days}&symbol=${encodeURIComponent(symbol)}`);
         const raw = await res.text();
         let data;
         try {
@@ -369,8 +390,12 @@
         }
         if (!res.ok) throw new Error(data.error || res.statusText);
 
-        document.querySelector("header h1 span").textContent =
+        document.querySelector("#symbol-title span").textContent =
           `· marker vào / ra (backtest ${data.timeframe})`;
+        symbolTitleEl.firstChild.textContent = `${data.symbol} Perp `;
+        volLabelEl.textContent =
+          `Volume quote USDT · Binance ${data.symbol} Perpetual · khớp màu nến`;
+        history.replaceState(null, "", `?symbol=${symbol}&days=${days}`);
 
         initCharts();
 
@@ -419,6 +444,7 @@
 
     reloadBtn.addEventListener("click", loadData);
     daysSelect.addEventListener("change", loadData);
+    symbolSelect.addEventListener("change", loadData);
     loadData();
   </script>
 </body>

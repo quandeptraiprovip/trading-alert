@@ -1,7 +1,8 @@
 /**
- * BTC Alert Bot — Swing setup (SMC đa khung)
+ * Swing Alert Bot — Swing setup (SMC đa khung), ĐA SYMBOL
  *
- * Luồng Telegram: startup → ARM → MỞ LỆNH → RA LỆNH (SL/TP/trail/time).
+ * Mỗi symbol trong CONFIG.symbols chạy ĐỘC LẬP: buffer + tracker + vị thế + cooldown riêng,
+ * cùng một logic ARM → MỞ LỆNH → RA LỆNH (SL/TP/trail/time) khớp backtest.
  */
 
 import "./load-env";
@@ -32,6 +33,8 @@ import {
   ExitReason,
   formatTimeVn,
   fmtPrice,
+  formatSymbol,
+  getTelegramUpdates,
   loadTelegramConfig,
   sendTelegram,
 } from "./telegram";
@@ -39,15 +42,11 @@ import {
 const telegram = loadTelegramConfig();
 
 const BUFFER_SIZE = 1500;
-const ENTRY_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 const ARM_COOLDOWN_MS = 3 * 60 * 60 * 1000;
+const COMMAND_POLL_MS = 5_000;
 const ltfMs = TF_MS[CONFIG.entryTf];
 
-const buffer: Candle[] = [];
-let lastEntryAlertAt = 0;
-let lastArmAlertAt = 0;
-let cooldownUntilTime = 0;
-const tracker = new SetupTracker();
+const SYMBOLS = (CONFIG.symbols.length ? CONFIG.symbols : [CONFIG.symbol]).map((s) => s.toLowerCase());
 
 type LivePosition = {
   dir: "long" | "short";
@@ -59,7 +58,31 @@ type LivePosition = {
   zoneDesc: string;
 };
 
-let livePos: LivePosition | null = null;
+// State ĐỘC LẬP cho từng symbol (tránh dùng biến toàn cục dùng chung).
+type SymbolState = {
+  symbol: string;
+  buffer: Candle[];
+  lastArmAlertAt: number;
+  cooldownUntilTime: number;
+  tracker: SetupTracker;
+  livePos: LivePosition | null;
+  lastOpenTime: number;
+};
+
+// Tất cả state symbol — module-level để command listener (/status) đọc được.
+const states: SymbolState[] = [];
+
+function createState(symbol: string): SymbolState {
+  return {
+    symbol,
+    buffer: [],
+    lastArmAlertAt: 0,
+    cooldownUntilTime: 0,
+    tracker: new SetupTracker(),
+    livePos: null,
+    lastOpenTime: 0,
+  };
+}
 
 function heldBarsSinceEntry(candle: Candle, entryTime: number): number {
   return Math.round((candle.openTime - entryTime) / ltfMs);
@@ -141,8 +164,8 @@ function tryExitAndTrail(
   return null;
 }
 
-function openLivePosition(sig: EntrySignal, candle: Candle): void {
-  livePos = {
+function openLivePosition(st: SymbolState, sig: EntrySignal, candle: Candle): void {
+  st.livePos = {
     dir: sig.direction,
     entryTime: candle.openTime,
     entry: sig.entry,
@@ -153,55 +176,56 @@ function openLivePosition(sig: EntrySignal, candle: Candle): void {
   };
 }
 
-function evaluateNewEntry(candle: Candle): EntrySignal | null {
-  if (buffer.length < 400) return null;
-  if (candle.openTime < cooldownUntilTime) return null;
+function evaluateNewEntry(st: SymbolState, candle: Candle): EntrySignal | null {
+  if (st.buffer.length < 400) return null;
+  if (candle.openTime < st.cooldownUntilTime) return null;
 
-  const biasTf = aggregate(buffer, CONFIG.htfBiasTf, CONFIG.entryTf);
-  const zoneTf = aggregate(buffer, CONFIG.htfZoneTf, CONFIG.entryTf);
+  const biasTf = aggregate(st.buffer, CONFIG.htfBiasTf, CONFIG.entryTf);
+  const zoneTf = aggregate(st.buffer, CONFIG.htfZoneTf, CONFIG.entryTf);
   const biasSwings = findSwings(biasTf);
   const zoneSwings = findSwings(zoneTf);
 
-  const i = buffer.length - 1;
+  const i = st.buffer.length - 1;
   const closeTime = candle.openTime + ltfMs;
   const biasCount = htfClosedCount(biasTf, closeTime);
   const zoneCount = htfClosedCount(zoneTf, closeTime);
   if (biasCount < 5 || zoneCount < CONFIG.volAvgPeriod) return null;
 
   const ctx = buildHtfContext(biasTf, zoneTf, biasSwings, zoneSwings, biasCount - 1, zoneCount - 1);
-  const hadPending = tracker.pending !== null;
-  const sig = tracker.update(buffer, i, ctx);
+  const hadPending = st.tracker.pending !== null;
+  const sig = st.tracker.update(st.buffer, i, ctx);
 
-  if (!sig && !hadPending && tracker.pending) {
-    void maybeSendArmAlert(tracker.pending, candle);
+  if (!sig && !hadPending && st.tracker.pending) {
+    void maybeSendArmAlert(st, st.tracker.pending, candle);
   }
 
   return sig;
 }
 
-async function maybeSendArmAlert(setup: NonNullable<SetupTracker["pending"]>, candle: Candle): Promise<void> {
-  if (Date.now() - lastArmAlertAt < ARM_COOLDOWN_MS) {
-    console.log(`[${formatTimeVn(candle.openTime)}] ARM ${setup.direction} nhưng đang cooldown ARM, bỏ qua Telegram.`);
+async function maybeSendArmAlert(
+  st: SymbolState,
+  setup: NonNullable<SetupTracker["pending"]>,
+  candle: Candle
+): Promise<void> {
+  const tag = formatSymbol(st.symbol);
+  if (Date.now() - st.lastArmAlertAt < ARM_COOLDOWN_MS) {
+    console.log(`[${formatTimeVn(candle.openTime)}] ${tag} ARM ${setup.direction} nhưng đang cooldown ARM, bỏ qua Telegram.`);
     return;
   }
-  lastArmAlertAt = Date.now();
-  const msg = buildArmMessage(setup, candle);
-  console.log(`\n[ARM] ${setup.direction.toUpperCase()} tap vùng @ $${fmtPrice(candle.close)}`);
+  st.lastArmAlertAt = Date.now();
+  const msg = buildArmMessage(setup, candle, st.symbol);
+  console.log(`\n[ARM] ${tag} ${setup.direction.toUpperCase()} tap vùng @ $${fmtPrice(candle.close)}`);
   await sendTelegram(telegram, msg);
 }
 
-async function notifyEntry(sig: EntrySignal, candle: Candle): Promise<void> {
-  if (Date.now() - lastEntryAlertAt < ENTRY_COOLDOWN_MS) {
-    console.log(`[${formatTimeVn(candle.openTime)}] Mở ${sig.direction} — Telegram entry cooldown, vẫn theo dõi ra lệnh.`);
-    return;
-  }
-  lastEntryAlertAt = Date.now();
-  const msg = buildEntryMessage(sig, candle);
-  console.log(`\n[ENTRY] ${sig.direction.toUpperCase()} @ $${fmtPrice(sig.entry)}`);
+async function notifyEntry(st: SymbolState, sig: EntrySignal, candle: Candle): Promise<void> {
+  // Vào lệnh là sự kiện quan trọng → LUÔN báo (không cooldown).
+  const msg = buildEntryMessage(sig, candle, st.symbol);
+  console.log(`\n[ENTRY] ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} @ $${fmtPrice(sig.entry)}`);
   await sendTelegram(telegram, msg);
 }
 
-async function notifyExit(pos: LivePosition, c: Candle, exitPrice: number, reason: ExitReason): Promise<void> {
+async function notifyExit(st: SymbolState, pos: LivePosition, c: Candle, exitPrice: number, reason: ExitReason): Promise<void> {
   const risk = Math.abs(pos.entry - pos.initialSL);
   const pnl = pos.dir === "long" ? exitPrice - pos.entry : pos.entry - exitPrice;
   const grossR = risk > 0 ? pnl / risk : 0;
@@ -215,49 +239,51 @@ async function notifyExit(pos: LivePosition, c: Candle, exitPrice: number, reaso
     grossR,
     holdBars,
     exitTime: c.openTime,
+    symbol: st.symbol,
   });
-  console.log(`\n[EXIT] ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R)`);
+  console.log(`\n[EXIT] ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R)`);
   await sendTelegram(telegram, msg);
 }
 
-async function onCandleClose(candle: Candle): Promise<void> {
-  buffer.push(candle);
-  if (buffer.length > BUFFER_SIZE) buffer.shift();
+async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
+  st.buffer.push(candle);
+  if (st.buffer.length > BUFFER_SIZE) st.buffer.shift();
 
-  const zoneTf = aggregate(buffer, CONFIG.htfZoneTf, CONFIG.entryTf);
+  const zoneTf = aggregate(st.buffer, CONFIG.htfZoneTf, CONFIG.entryTf);
   const zoneSwings = findSwings(zoneTf);
 
-  if (livePos) {
-    const exit = tryExitAndTrail(livePos, candle, zoneTf, zoneSwings);
+  if (st.livePos) {
+    const exit = tryExitAndTrail(st.livePos, candle, zoneTf, zoneSwings);
     if (exit) {
-      await notifyExit(livePos, candle, exit.exitPrice, exit.reason);
-      cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
-      livePos = null;
-      tracker.reset();
+      await notifyExit(st, st.livePos, candle, exit.exitPrice, exit.reason);
+      st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
+      st.livePos = null;
+      st.tracker.reset();
     }
     return;
   }
 
-  const sig = evaluateNewEntry(candle);
+  const sig = evaluateNewEntry(st, candle);
   if (!sig) return;
 
-  openLivePosition(sig, candle);
-  await notifyEntry(sig, candle);
+  openLivePosition(st, sig, candle);
+  await notifyEntry(st, sig, candle);
 }
 
-async function prefetchHistory(): Promise<void> {
-  console.log("[Init] Tải lịch sử 15m để warmup...");
-  const candles = await fetchKlinesPaged(CONFIG.symbol, CONFIG.entryTf, BUFFER_SIZE);
+async function prefetchHistory(st: SymbolState): Promise<void> {
+  console.log(`[Init] ${formatSymbol(st.symbol)} — tải lịch sử 15m để warmup...`);
+  const candles = await fetchKlinesPaged(st.symbol, CONFIG.entryTf, BUFFER_SIZE);
   candles.pop(); // bỏ nến hiện tại (chưa đóng)
-  buffer.push(...candles);
-  console.log(`[Init] OK — ${buffer.length} nến (tới ${formatTimeVn(buffer[buffer.length - 1].openTime)})`);
+  st.buffer.push(...candles);
+  st.lastOpenTime = st.buffer.length ? st.buffer[st.buffer.length - 1].openTime : 0;
+  console.log(`[Init] ${formatSymbol(st.symbol)} OK — ${st.buffer.length} nến (tới ${formatTimeVn(st.buffer[st.buffer.length - 1].openTime)})`);
 }
 
 // Lấy nến 15m ĐÓNG gần nhất từ Futures REST. limit:2 → phần tử cuối là nến đang chạy,
 // phần tử kế cuối là nến vừa đóng.
-async function fetchLatestClosedCandle(): Promise<Candle | null> {
+async function fetchLatestClosedCandle(symbol: string): Promise<Candle | null> {
   const res = await axios.get(FAPI_KLINES, {
-    params: { symbol: CONFIG.symbol.toUpperCase(), interval: CONFIG.entryTf, limit: 2 },
+    params: { symbol: symbol.toUpperCase(), interval: CONFIG.entryTf, limit: 2 },
     timeout: 15000,
   });
   const arr = res.data as any[];
@@ -275,37 +301,99 @@ async function fetchLatestClosedCandle(): Promise<Candle | null> {
   };
 }
 
-function startPolling(): void {
-  let lastOpenTime = buffer.length ? buffer[buffer.length - 1].openTime : 0;
+function startPolling(st: SymbolState): void {
   console.log(
-    `[Poll] ✅ Theo dõi ${CONFIG.symbol.toUpperCase()} ${CONFIG.entryTf} (Futures REST, mỗi ${POLL_INTERVAL_MS / 1000}s)`
+    `[Poll] ✅ Theo dõi ${formatSymbol(st.symbol)} ${CONFIG.entryTf} (Futures REST, mỗi ${POLL_INTERVAL_MS / 1000}s)`
   );
   const tick = async (): Promise<void> => {
     try {
-      const c = await fetchLatestClosedCandle();
-      if (c && c.openTime > lastOpenTime) {
-        lastOpenTime = c.openTime;
-        await onCandleClose(c);
+      const c = await fetchLatestClosedCandle(st.symbol);
+      if (c && c.openTime > st.lastOpenTime) {
+        st.lastOpenTime = c.openTime;
+        await onCandleClose(st, c);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[Poll] Lỗi fetch:", msg);
+      console.error(`[Poll] ${formatSymbol(st.symbol)} Lỗi fetch:`, msg);
     }
   };
   void tick(); // chạy ngay 1 lần
   setInterval(() => void tick(), POLL_INTERVAL_MS);
 }
 
+// ── Lệnh /status: liệt kê lệnh đang giữ / chờ trên từng symbol ──
+function buildStatusMessage(): string {
+  const lines = [`📊 *Trạng thái bot* — ${states.length} symbol`, ``];
+  let open = 0;
+  for (const st of states) {
+    const tag = formatSymbol(st.symbol);
+    const last = st.buffer[st.buffer.length - 1];
+    const cur = last ? last.close : 0;
+    if (st.livePos) {
+      open++;
+      const p = st.livePos;
+      const risk = Math.abs(p.entry - p.initialSL);
+      const r = risk > 0 ? (p.dir === "long" ? cur - p.entry : p.entry - cur) / risk : 0;
+      const heldDays = ((Date.now() - p.entryTime) / TF_MS["1d"]).toFixed(1);
+      const icon = p.dir === "long" ? "🟢 LONG" : "🔴 SHORT";
+      lines.push(
+        `${icon} *${tag}*`,
+        `Entry $${fmtPrice(p.entry)} · SL $${fmtPrice(p.sl)} · TP $${fmtPrice(p.target)}`,
+        `Hiện $${fmtPrice(cur)} (${r >= 0 ? "+" : ""}${r.toFixed(2)}R) · giữ ${heldDays}d`,
+        ``,
+      );
+    } else if (st.tracker.pending) {
+      const dir = st.tracker.pending.direction === "long" ? "CHỜ LONG" : "CHỜ SHORT";
+      lines.push(`🟡 *${tag}* — ARM ${dir} (đã tap vùng, chờ BOS)`, ``);
+    } else {
+      const cd = st.cooldownUntilTime > Date.now() ? " · cooldown" : "";
+      lines.push(`⚪ *${tag}* — flat${cd}`, ``);
+    }
+  }
+  lines.push(`_Đang mở: ${open}/${states.length} · ${formatTimeVn(Date.now())}_`);
+  return lines.join("\n");
+}
+
+function startCommandListener(): void {
+  if (!telegram.enabled) return;
+  let offset = 0;
+  let drained = false;
+
+  const tick = async (): Promise<void> => {
+    const updates = await getTelegramUpdates(telegram, offset);
+    for (const u of updates) {
+      offset = Math.max(offset, u.id + 1);
+      if (drained === false) continue; // bỏ qua backlog cũ ở lần đầu (chỉ để set offset)
+      if (u.chatId !== telegram.chatId) continue; // chỉ trả lời chủ kênh
+      const cmd = u.text.trim().toLowerCase().split(/[\s@]/)[0];
+      if (["/status", "/positions", "/start", "/help"].includes(cmd)) {
+        await sendTelegram(telegram, buildStatusMessage());
+      }
+    }
+    drained = true;
+  };
+
+  void tick();
+  setInterval(() => void tick(), COMMAND_POLL_MS);
+  console.log(`[Cmd] ✅ Lắng nghe lệnh Telegram (/status) mỗi ${COMMAND_POLL_MS / 1000}s`);
+}
+
 async function main(): Promise<void> {
-  console.log("🤖 BTC Swing Alert Bot khởi động...");
-  console.log(`📈 ${CONFIG.symbol.toUpperCase()} | entry ${CONFIG.entryTf} | bias ${CONFIG.htfBiasTf}/${CONFIG.htfZoneTf}`);
+  console.log("🤖 Swing Alert Bot khởi động...");
+  console.log(`📈 ${SYMBOLS.map(formatSymbol).join(", ")} | entry ${CONFIG.entryTf} | bias ${CONFIG.htfBiasTf}/${CONFIG.htfZoneTf}`);
   console.log(`📬 Telegram: ${telegram.enabled ? "Đã cấu hình ✅" : "Chưa cấu hình (log ra console)"}`);
   console.log(`   Luồng: ARM → MỞ LỆNH → RA LỆNH (logic thoát = backtest)`);
   console.log("");
 
-  await prefetchHistory();
-  await sendTelegram(telegram, buildStartupMessage());
-  startPolling();
+  states.push(...SYMBOLS.map(createState));
+  for (const st of states) {
+    await prefetchHistory(st);
+  }
+  await sendTelegram(telegram, buildStartupMessage(SYMBOLS));
+  startCommandListener();
+  for (const st of states) {
+    startPolling(st);
+  }
 
   process.on("SIGINT", () => {
     console.log("\n⛔ Tắt bot...");
