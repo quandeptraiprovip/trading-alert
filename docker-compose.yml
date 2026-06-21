@@ -12,7 +12,7 @@ services:
     build: .
     image: swing-alert-bot
     container_name: swing-bot
-    command: npm start
+    command: node bot.js
     env_file: .env.local
     environment:
       TZ: Asia/Ho_Chi_Minh
@@ -22,7 +22,7 @@ services:
     build: .
     image: swing-alert-bot
     container_name: swing-chart
-    command: npm run chart
+    command: node chart.js
     environment:
       TZ: Asia/Ho_Chi_Minh
     ports:
