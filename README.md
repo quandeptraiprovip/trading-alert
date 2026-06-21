@@ -184,14 +184,27 @@ Hiện $68,100 (+1.1R) · giữ 1.2d
 
 > Lưu ý: alert mặc định **không** dời SL về hoà vốn (breakeven tắt) — trail theo swing 1h sau **+2R** (`trailStartR`).
 
-### Chạy 24/7 (VM Oracle, pm2)
+### Chạy 24/7 (VM Oracle, pm2) — bot + chart
+Dùng `ecosystem.config.js` để chạy **cả bot alert và chart perpetual** cùng lúc:
 ```bash
 npm install -g pm2
-pm2 start "npx ts-node btc-alert-bot.ts" --name swing-bot
+pm2 start ecosystem.config.js   # swing-bot + swing-chart
 pm2 save
-pm2 startup           # in ra lệnh để bot tự chạy lại sau reboot VM (copy & chạy theo hướng dẫn)
-pm2 logs swing-bot    # xem log; pm2 restart swing-bot sau khi đổi CONFIG
+pm2 startup                     # copy & chạy lệnh in ra để tự bật lại sau reboot VM
+pm2 logs                        # xem log cả 2; pm2 restart swing-bot sau khi đổi CONFIG
 ```
+
+**Chart perpetual** phục vụ tại `http://<IP-VM>:3847` (nến **Binance Futures / fapi = perpetual**).
+Trên Oracle Cloud cần mở cổng 3847 ở **2 nơi**:
+```bash
+# 1) VCN → Security List → Ingress: cho phép TCP 3847 từ 0.0.0.0/0 (hoặc IP của bạn)
+# 2) Firewall OS trên VM (Oracle Linux/Ubuntu):
+sudo iptables -I INPUT -p tcp --dport 3847 -j ACCEPT       # Oracle Linux
+sudo netfilter-persistent save 2>/dev/null || true
+# hoặc Ubuntu ufw:  sudo ufw allow 3847/tcp
+```
+> Kiểm tra chart đúng **perpetual**: `pm2 logs swing-chart` **không** có dòng `[Fetch] ... thử nguồn kế tiếp`
+> (dòng đó nghĩa là fapi bị chặn 451 → fallback sang **spot mirror**, không còn là perpetual).
 
 ---
 
