@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log*
+.git
+.gitignore
+.next
+dist
+build
+.DS_Store
+*.log
+logs
+.claude
+.vscode
+.idea
+# Secrets KHÔNG đưa vào image — truyền lúc run qua --env-file / env_file.
+.env
+.env.*
+!.env.example

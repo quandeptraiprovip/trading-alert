@@ -1,0 +1,30 @@
+# Chạy cả BOT alert đa-symbol + CHART perpetual bằng Docker.
+#
+#   docker compose up -d --build      # build + chạy nền
+#   docker compose logs -f swing-bot  # xem log bot (tìm dòng "Lắng nghe lệnh Telegram")
+#   docker compose down               # dừng
+#
+# CẦN: file .env.local chứa TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID (xem .env.example).
+# LƯU Ý: KHÔNG chạy đồng thời bot này với pm2 swing-bot trên VM cùng 1 token
+#        — getUpdates giao mỗi update đúng 1 lần, hai bên sẽ giành /status.
+services:
+  swing-bot:
+    build: .
+    image: swing-alert-bot
+    container_name: swing-bot
+    command: npm start
+    env_file: .env.local
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    restart: unless-stopped
+
+  swing-chart:
+    build: .
+    image: swing-alert-bot
+    container_name: swing-chart
+    command: npm run chart
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3847:3847"
+    restart: unless-stopped
