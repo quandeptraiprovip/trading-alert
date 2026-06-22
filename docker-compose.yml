@@ -16,6 +16,9 @@ services:
     env_file: .env.local
     environment:
       TZ: Asia/Ho_Chi_Minh
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
 
   swing-chart:
@@ -25,6 +28,9 @@ services:
     command: node chart.js
     environment:
       TZ: Asia/Ho_Chi_Minh
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "3847:3847"
     restart: unless-stopped

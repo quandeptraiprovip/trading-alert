@@ -51,6 +51,11 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === "GET" && req.url === "/api/symbols") {
+    const { CONFIG } = await import("./strategy");
+    sendJson(res, 200, { symbols: CONFIG.symbols });
+    return;
+  }
   if (req.method === "GET" && req.url?.startsWith("/api/chart")) {
     const q = new URL(req.url, `http://127.0.0.1:${PORT}`);
     const days = Math.min(400, Math.max(30, parseInt(q.searchParams.get("days") ?? "120", 10) || 120));

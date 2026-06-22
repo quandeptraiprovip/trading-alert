@@ -152,12 +152,7 @@
     <h1 id="symbol-title">BTCUSDT Perp <span>· marker vào / ra (backtest 15m)</span></h1>
     <div class="controls">
       <label for="symbol">Symbol:</label>
-      <select id="symbol">
-        <option value="btcusdt">BTCUSDT</option>
-        <option value="solusdt">SOLUSDT</option>
-        <option value="ethusdt">ETHUSDT</option>
-        <option value="bnbusdt">BNBUSDT</option>
-      </select>
+      <select id="symbol"></select>
       <label for="days">Khoảng:</label>
       <select id="days">
         <option value="60">60 ngày</option>
@@ -206,12 +201,21 @@
 
     const urlParams = new URLSearchParams(location.search);
     const urlSymbol = urlParams.get("symbol")?.toLowerCase();
-    if (urlSymbol && [...symbolSelect.options].some((o) => o.value === urlSymbol)) {
-      symbolSelect.value = urlSymbol;
-    }
     const urlDays = urlParams.get("days");
     if (urlDays && [...daysSelect.options].some((o) => o.value === urlDays)) {
       daysSelect.value = urlDays;
+    }
+
+    async function initSymbols() {
+      const res = await fetch("/api/symbols");
+      const { symbols } = await res.json();
+      symbolSelect.innerHTML = symbols
+        .map((s) => `<option value="${s}">${s.toUpperCase()}</option>`)
+        .join("");
+      if (urlSymbol && [...symbolSelect.options].some((o) => o.value === urlSymbol)) {
+        symbolSelect.value = urlSymbol;
+      }
+      loadData();
     }
 
     let priceChart;
@@ -445,7 +449,7 @@
     reloadBtn.addEventListener("click", loadData);
     daysSelect.addEventListener("change", loadData);
     symbolSelect.addEventListener("change", loadData);
-    loadData();
+    initSymbols();
   </script>
 </body>
 </html>

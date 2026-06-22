@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-BASELINE_NET="${BASELINE_NET_R:-19.83}"
+BASELINE_NET="${BASELINE_NET_R:-21.50}"
 DAYS="${1:-250}"
 RISK="${2:-1}"
 SYMBOL="${3:-btcusdt}"

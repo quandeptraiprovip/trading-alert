@@ -45,6 +45,7 @@ export interface Zone {
   baseVolRatio: number; // volume khi tạo vùng / avg
   mitigations: number; // số lần giá QUAY LẠI chạm vùng sau origin (càng nhiều -> càng YẾU)
   lastTouchIndex: number;
+  displAtr: number; // độ mạnh cú rời vùng (displacement) tính theo ATR — dấu chân MM
 }
 
 export interface EntrySignal {
@@ -101,7 +102,8 @@ export const CONFIG = {
   targetRR: 2.5, // target ban đầu = 2.5R (để tham chiếu/fallback)
 
   // Quản lý lệnh (đơn vị: số nến 15m, 96 nến = 1 ngày)
-  maxHoldBars: 96 * 7, // giữ tối đa ~7 ngày (gate 250d: +NET vs 6d — time-exit ít cắt winner)
+  maxHoldBars: 96 * 10, // giữ tối đa ~10 ngày. Gate rổ 250d +47.51R & 500d +65.90R (vs 7d +44.79/+63.50);
+  // plateau trơn 9-14d, đỉnh ở 10d trên CẢ 2 cửa sổ, dương cả nửa cũ/mới → để winner swing chạy, ít cắt non.
   cooldownBars: 48, // sau khi đóng lệnh chờ ~12h mới tìm lệnh mới (đánh chậm)
   trailEnabled: true,
   breakevenEnabled: false, // (D) MẶC ĐỊNH TẮT — nghiên cứu cho thấy dời BE theo R cố định giảm EV
@@ -123,6 +125,29 @@ export const CONFIG = {
   minPullbackRiskFrac: 0, // độ sâu pullback tối thiểu tính theo R (0 = tắt)
   minEntryRR: 0, // bỏ tín hiệu nếu RR tới target < ngưỡng (0 = tắt)
   deltaStrict: false, // true = thiếu taker-buy data thì không pass delta
+
+  // ── Thanh khoản (liquidity / stop-hunt) — thử nghiệm, mặc định TẮT ──
+  // (#1) Chỉ ARM khi trước đó có cú QUÉT thanh khoản: giá thủng 1 swing 15m đã
+  //      xác nhận (gom stop) rồi ĐÓNG CỬA hồi lại qua nó (reclaim). Lọc tap thụ động.
+  requireLiquiditySweep: false,
+  sweepLookbackBars: 20, // cửa sổ 15m tìm swing bị quét
+  // (#4) Chỉ long ở nửa DƯỚI (discount) range HTF, short ở nửa TRÊN (premium).
+  requireDiscountPremium: false,
+  // (#2) Target = pool thanh khoản đối diện (swing 1h chưa bị lấy) thay vì vùng OB/RR.
+  targetOppositeLiquidity: false,
+
+  // ── FTR (Kudakwashe — Failure to Return) — thử nghiệm, mặc định TẮT ──
+  // (FTR-a) Vùng chỉ hợp lệ nếu cú RỜI vùng là impulsive (displacement) — đặc trưng
+  //         "phá mạnh + không quay lại". Lọc order block rác → chỉ giữ FTR thật.
+  requireDisplacement: false,
+  displacementWindow: 3, // số nến HTF sau origin để đo cú bứt phá
+  displacementMult: 1.0, // biên độ rời vùng >= mult × range nến origin
+
+  // ── Fair Value Gap (FVG / imbalance) — dấu chân MM, mặc định TẮT ──
+  // FVG 3-nến: bullish nếu high[k-2] < low[k] (gap chưa lấp) → vùng demand.
+  // fvgMode: "off" = chỉ OB | "add" = OB + FVG | "only" = chỉ FVG.
+  fvgMode: "off" as "off" | "add" | "only",
+  fvgMinAtrFrac: 0, // bỏ FVG có gap < frac × ATR (0 = lấy hết)
 
   // ── Chi phí giao dịch (B) — dùng trong backtest để ra con số NET ──
   costs: {
@@ -346,6 +371,36 @@ export function structureBias(
  * - Nến bearish + volume cao + delta BÁN  -> vùng cung (supply)
  * - `mitigations` = số lần giá QUAY LẠI chạm vùng sau khi tạo. Càng ít -> vùng càng FRESH/mạnh.
  */
+/**
+ * (FTR-a) Cú RỜI vùng có phải impulsive không? — đặc trưng "Failure to Return":
+ * sau nến origin, trong `displacementWindow` nến, giá đẩy theo hướng vùng một đoạn
+ * >= `displacementMult` × range nến origin. Chỉ dùng nến <= atIndex (không lookahead).
+ */
+/** Độ mạnh cú rời vùng (displacement) theo bội số ATR. 0 nếu thiếu dữ liệu. */
+function displacementAtr(htf: Candle[], j: number, type: ZoneType, atIndex: number): number {
+  // ATR (biên độ TB) của volAvgPeriod nến trước origin — chuẩn "biến động bình thường"
+  const s = Math.max(0, j - CONFIG.volAvgPeriod);
+  let atr = 0, n = 0;
+  for (let k = s; k < j; k++) { atr += htf[k].high - htf[k].low; n++; }
+  atr = n > 0 ? atr / n : 0;
+  if (atr <= 0) return 0;
+  const end = Math.min(atIndex, j + CONFIG.displacementWindow, htf.length - 1);
+  if (end <= j) return 0;
+  const origin = htf[j];
+  if (type === "demand") {
+    let maxHigh = -Infinity;
+    for (let k = j + 1; k <= end; k++) maxHigh = Math.max(maxHigh, htf[k].high);
+    return (maxHigh - origin.high) / atr;
+  }
+  let minLow = Infinity;
+  for (let k = j + 1; k <= end; k++) minLow = Math.min(minLow, htf[k].low);
+  return (origin.low - minLow) / atr;
+}
+
+function hasDisplacement(htf: Candle[], j: number, type: ZoneType, atIndex: number): boolean {
+  return displacementAtr(htf, j, type, atIndex) >= CONFIG.displacementMult;
+}
+
 export function buildZones(htf: Candle[], atIndex: number): Zone[] {
   const start = Math.max(CONFIG.volAvgPeriod, atIndex - CONFIG.zoneLookbackBars);
   const raw: Zone[] = [];
@@ -361,6 +416,8 @@ export function buildZones(htf: Candle[], atIndex: number): Zone[] {
     const type: ZoneType = bullish ? "demand" : "supply";
     // (C) delta phải cùng hướng với loại vùng
     if (!deltaAligned(c, type)) continue;
+    // (FTR-a) chỉ giữ vùng có cú rời impulsive (displacement)
+    if (CONFIG.requireDisplacement && !hasDisplacement(htf, j, type, atIndex)) continue;
 
     raw.push({
       type,
@@ -371,6 +428,7 @@ export function buildZones(htf: Candle[], atIndex: number): Zone[] {
       baseVolRatio: ratio,
       mitigations: 0,
       lastTouchIndex: j,
+      displAtr: displacementAtr(htf, j, type, atIndex),
     });
   }
 
@@ -385,6 +443,7 @@ export function buildZones(htf: Candle[], atIndex: number): Zone[] {
       hit.high = Math.max(hit.high, z.high);
       hit.mid = (hit.low + hit.high) / 2;
       hit.baseVolRatio = Math.max(hit.baseVolRatio, z.baseVolRatio);
+      hit.displAtr = Math.max(hit.displAtr, z.displAtr);
       hit.originIndex = Math.max(hit.originIndex, z.originIndex); // vùng "tươi" tính từ spike mới nhất
       hit.lastTouchIndex = Math.max(hit.lastTouchIndex, z.lastTouchIndex);
     } else {
@@ -412,6 +471,55 @@ export function buildZones(htf: Candle[], atIndex: number): Zone[] {
   return merged.filter((z) => atIndex - z.lastTouchIndex <= CONFIG.maxZoneAgeBars);
 }
 
+/**
+ * (MM) Dựng vùng từ Fair Value Gap (imbalance) 3 nến — dấu chân nhà tạo lập.
+ *  - Bullish FVG (demand): high[k-2] < low[k] (gap chưa lấp), nến giữa k-1 displacement tăng.
+ *  - Bearish FVG (supply): low[k-2]  > high[k], nến giữa k-1 displacement giảm.
+ * `mitigations` đếm số lần giá quay lại lấp gap (càng ít càng fresh) — như order block.
+ */
+export function buildFvgZones(htf: Candle[], atIndex: number): Zone[] {
+  const start = Math.max(CONFIG.volAvgPeriod, atIndex - CONFIG.zoneLookbackBars);
+  const out: Zone[] = [];
+  for (let k = start; k <= atIndex && k < htf.length; k++) {
+    if (k < 2) continue;
+    const a = htf[k - 2], b = htf[k - 1], c = htf[k];
+    const avg = avgVol(htf, k - 1);
+    const volRatio = avg > 0 ? candleVol(b) / avg : 0;
+
+    let zone: Zone | null = null;
+    if (a.high < c.low && b.close >= b.open) {
+      zone = mkFvgZone("demand", a.high, c.low, k - 1, volRatio);
+    } else if (a.low > c.high && b.close <= b.open) {
+      zone = mkFvgZone("supply", c.high, a.low, k - 1, volRatio);
+    }
+    if (!zone) continue;
+
+    // ATR để lọc gap nhỏ + đo độ mạnh imbalance (gap/ATR)
+    const s = Math.max(0, (k - 1) - CONFIG.volAvgPeriod);
+    let atr = 0, n = 0;
+    for (let t = s; t < k - 1; t++) { atr += htf[t].high - htf[t].low; n++; }
+    atr = n > 0 ? atr / n : 0;
+    const gap = zone.high - zone.low;
+    if (CONFIG.fvgMinAtrFrac > 0 && atr > 0 && gap < CONFIG.fvgMinAtrFrac * atr) continue;
+    zone.displAtr = atr > 0 ? gap / atr : 0;
+
+    // mitigations: số lần giá QUAY LẠI lấp gap sau khi gap hình thành (origin = k)
+    let prevInside = true, mit = 0;
+    for (let t = k + 1; t <= atIndex && t < htf.length; t++) {
+      const overlaps = htf[t].low <= zone.high && htf[t].high >= zone.low;
+      if (overlaps) { if (!prevInside) mit++; zone.lastTouchIndex = t; }
+      prevInside = overlaps;
+    }
+    zone.mitigations = mit;
+    out.push(zone);
+  }
+  return out.filter((z) => atIndex - z.lastTouchIndex <= CONFIG.maxZoneAgeBars);
+}
+
+function mkFvgZone(type: ZoneType, low: number, high: number, originIndex: number, volRatio: number): Zone {
+  return { type, low, high, mid: (low + high) / 2, originIndex, baseVolRatio: volRatio, mitigations: 0, lastTouchIndex: originIndex + 1, displAtr: 0 };
+}
+
 // ─────────────────────────────────────────────
 // HTF CONTEXT — gói gọn bias + vùng tại 1 thời điểm
 // ─────────────────────────────────────────────
@@ -421,6 +529,8 @@ export interface HtfContext {
   zones: Zone[];
   lastSwingHigh?: Swing;
   lastSwingLow?: Swing;
+  zoneHighs: number[]; // giá swing-high 1h đã xác nhận (pool thanh khoản phía trên)
+  zoneLows: number[]; // giá swing-low 1h đã xác nhận (pool thanh khoản phía dưới)
 }
 
 export function buildHtfContext(
@@ -433,8 +543,63 @@ export function buildHtfContext(
 ): HtfContext {
   const { bias, lastHigh, lastLow } = structureBias(biasSwings, biasIdx);
   const zb = structureBias(zoneSwings, zoneIdx);
-  const zones = zoneIdx >= 0 ? buildZones(zoneTf, zoneIdx) : [];
-  return { bias, zoneBias: zb.bias, zones, lastSwingHigh: lastHigh, lastSwingLow: lastLow };
+  let zones = zoneIdx >= 0 && CONFIG.fvgMode !== "only" ? buildZones(zoneTf, zoneIdx) : [];
+  if (zoneIdx >= 0 && CONFIG.fvgMode !== "off") zones = zones.concat(buildFvgZones(zoneTf, zoneIdx));
+  const confirmed = zoneSwings.filter((s) => s.confirmIndex <= zoneIdx);
+  const zoneHighs = confirmed.filter((s) => s.type === "high").map((s) => s.price);
+  const zoneLows = confirmed.filter((s) => s.type === "low").map((s) => s.price);
+  return { bias, zoneBias: zb.bias, zones, lastSwingHigh: lastHigh, lastSwingLow: lastLow, zoneHighs, zoneLows };
+}
+
+// ─────────────────────────────────────────────
+// LIQUIDITY HELPERS (thử nghiệm) — sweep+reclaim, discount/premium
+// ─────────────────────────────────────────────
+/**
+ * (#1) Có cú QUÉT thanh khoản rồi reclaim không?
+ *  - long : tồn tại swing-low 15m đã xác nhận trong cửa sổ, sau đó giá THỦNG xuống dưới nó
+ *           (gom sell-side liquidity) và nến hiện tại ĐÓNG CỬA hồi lên trên lại.
+ *  - short: đối xứng (quét buy-side phía trên rồi đóng cửa lại xuống dưới).
+ * Thuần, không lookahead: swing chỉ tính khi pivot đã xác nhận (p + right <= i).
+ */
+function sweptAndReclaimed(ltf: Candle[], i: number, dir: "long" | "short", window: number): boolean {
+  const L = CONFIG.pivotLeft;
+  const R = CONFIG.pivotRight;
+  const close = ltf[i].close;
+  for (let p = i - R; p >= Math.max(L, i - window); p--) {
+    const ref = dir === "long" ? ltf[p].low : ltf[p].high;
+    let isPivot = true;
+    for (let k = 1; k <= L && isPivot; k++) {
+      const v = dir === "long" ? ltf[p - k].low : ltf[p - k].high;
+      if (dir === "long" ? v <= ref : v >= ref) isPivot = false;
+    }
+    for (let k = 1; k <= R && isPivot; k++) {
+      const v = dir === "long" ? ltf[p + k].low : ltf[p + k].high;
+      if (dir === "long" ? v < ref : v > ref) isPivot = false;
+    }
+    if (!isPivot) continue;
+    // đã bị quét sau khi hình thành?
+    let swept = false;
+    for (let k = p + 1; k <= i; k++) {
+      const v = dir === "long" ? ltf[k].low : ltf[k].high;
+      if (dir === "long" ? v < ref : v > ref) {
+        swept = true;
+        break;
+      }
+    }
+    if (!swept) continue;
+    // reclaim: nến hiện tại đóng cửa quay lại đúng phía
+    if (dir === "long" ? close > ref : close < ref) return true;
+  }
+  return false;
+}
+
+/** (#4) Giá đang ở discount (long) / premium (short) của range HTF (swing 4h gần nhất)? */
+function inDiscountPremium(ctx: HtfContext, dir: "long" | "short", price: number): boolean {
+  const hi = ctx.lastSwingHigh?.price;
+  const lo = ctx.lastSwingLow?.price;
+  if (hi == null || lo == null || hi <= lo) return true; // thiếu range -> không chặn
+  const mid = (hi + lo) / 2;
+  return dir === "long" ? price <= mid : price >= mid;
 }
 
 /** Lọc + xếp hạng vùng demand hợp lệ để LONG: fresh nhất + gần giá nhất. */
@@ -778,13 +943,19 @@ export class SetupTracker {
         .filter((z) => z.type === "demand" && z.mitigations <= CONFIG.maxZoneMitigations) // (A) FRESH
         .filter((z) => c.low <= z.high * (1 + tol) && c.close > z.low * (1 - CONFIG.zoneInvalidationPct))
         .sort((a, b) => a.mitigations - b.mitigations || b.mid - a.mid)[0];
-      if (zone) this.pending = { direction: "long", zone, armedIndex: i, extreme: c.low, extremeIndex: i };
+      if (!zone) return;
+      if (CONFIG.requireLiquiditySweep && !sweptAndReclaimed(ltf, i, "long", CONFIG.sweepLookbackBars)) return;
+      if (CONFIG.requireDiscountPremium && !inDiscountPremium(ctx, "long", c.close)) return;
+      this.pending = { direction: "long", zone, armedIndex: i, extreme: c.low, extremeIndex: i };
     } else if (ctx.bias === "bear") {
       const zone = ctx.zones
         .filter((z) => z.type === "supply" && z.mitigations <= CONFIG.maxZoneMitigations) // (A) FRESH
         .filter((z) => c.high >= z.low * (1 - tol) && c.close < z.high * (1 + CONFIG.zoneInvalidationPct))
         .sort((a, b) => a.mitigations - b.mitigations || a.mid - b.mid)[0];
-      if (zone) this.pending = { direction: "short", zone, armedIndex: i, extreme: c.high, extremeIndex: i };
+      if (!zone) return;
+      if (CONFIG.requireLiquiditySweep && !sweptAndReclaimed(ltf, i, "short", CONFIG.sweepLookbackBars)) return;
+      if (CONFIG.requireDiscountPremium && !inDiscountPremium(ctx, "short", c.close)) return;
+      this.pending = { direction: "short", zone, armedIndex: i, extreme: c.high, extremeIndex: i };
     }
   }
 
@@ -795,7 +966,12 @@ export class SetupTracker {
     if (riskPct <= 0 || riskPct > CONFIG.maxStopPct) return null;
     const supplyAbove = ctx.zones.filter((z) => z.type === "supply" && z.low > entry).sort((a, b) => a.low - b.low)[0];
     const rrTarget = entry + CONFIG.targetRR * (entry - initialSL);
-    const initialTarget = supplyAbove ? Math.max(supplyAbove.low, entry + (entry - initialSL)) : rrTarget;
+    let initialTarget = supplyAbove ? Math.max(supplyAbove.low, entry + (entry - initialSL)) : rrTarget;
+    if (CONFIG.targetOppositeLiquidity) {
+      // (#2) target = pool thanh khoản phía trên (swing-high 1h chưa lấy), tối thiểu 1R
+      const liq = ctx.zoneHighs.filter((h) => h > entry + (entry - initialSL)).sort((a, b) => a - b)[0];
+      if (liq) initialTarget = liq;
+    }
     const rr = (initialTarget - entry) / (entry - initialSL);
     if (CONFIG.minEntryRR > 0 && rr < CONFIG.minEntryRR) return null;
     return {
@@ -818,7 +994,12 @@ export class SetupTracker {
     if (riskPct <= 0 || riskPct > CONFIG.maxStopPct) return null;
     const demandBelow = ctx.zones.filter((z) => z.type === "demand" && z.high < entry).sort((a, b) => b.high - a.high)[0];
     const rrTarget = entry - CONFIG.targetRR * (initialSL - entry);
-    const initialTarget = demandBelow ? Math.min(demandBelow.high, entry - (initialSL - entry)) : rrTarget;
+    let initialTarget = demandBelow ? Math.min(demandBelow.high, entry - (initialSL - entry)) : rrTarget;
+    if (CONFIG.targetOppositeLiquidity) {
+      // (#2) target = pool thanh khoản phía dưới (swing-low 1h chưa lấy), tối thiểu 1R
+      const liq = ctx.zoneLows.filter((l) => l < entry - (initialSL - entry)).sort((a, b) => b - a)[0];
+      if (liq) initialTarget = liq;
+    }
     const rr = (entry - initialTarget) / (initialSL - entry);
     if (CONFIG.minEntryRR > 0 && rr < CONFIG.minEntryRR) return null;
     return {

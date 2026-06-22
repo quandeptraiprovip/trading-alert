@@ -35,3 +35,8 @@ yarn-error.log*
 dist/
 build/
 .next/
+
+# Bot live runtime (state persistence + trade journal)
+bot-state.json
+bot-state.json.tmp
+trades-live.jsonl

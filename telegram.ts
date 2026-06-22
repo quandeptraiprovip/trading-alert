@@ -1,6 +1,6 @@
 /**
  * Telegram — gửi thông báo bot (startup, ARM setup, vào lệnh).
- * Cấu hình qua .env: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+ * Cấu hình qua .env: TELEGRAM_ENABLED, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
  */
 
 import axios from "axios";
@@ -14,12 +14,13 @@ export type TelegramConfig = {
 };
 
 export function loadTelegramConfig(): TelegramConfig {
+  const enabled = process.env.TELEGRAM_ENABLED?.trim().toLowerCase() === "true";
   const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? "";
   const chatId = process.env.TELEGRAM_CHAT_ID?.trim() ?? "";
   return {
     botToken,
     chatId,
-    enabled: Boolean(botToken && chatId),
+    enabled: enabled && Boolean(botToken && chatId),
   };
 }
 
@@ -50,20 +51,30 @@ export async function sendTelegram(
     console.log("\n" + "=".repeat(54) + "\n[Telegram — chưa cấu hình, log console]\n" + message + "\n" + "=".repeat(54) + "\n");
     return false;
   }
-  try {
-    await axios.post(`https://api.telegram.org/bot${cfg.botToken}/sendMessage`, {
-      chat_id: cfg.chatId,
-      text: message,
-      parse_mode: parseMode,
-      disable_web_page_preview: true,
-    });
-    return true;
-  } catch (err: unknown) {
-    const data = axios.isAxiosError(err) ? err.response?.data : undefined;
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[Telegram] Lỗi:", data ?? msg);
-    return false;
+  // Retry vì entry/exit là sự kiện quan trọng: mất alert do mạng chập chờn = state lệch ngầm
+  // (bot tracking lệnh user không hề biết). 3 lần, backoff 2s/4s.
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await axios.post(`https://api.telegram.org/bot${cfg.botToken}/sendMessage`, {
+        chat_id: cfg.chatId,
+        text: message,
+        parse_mode: parseMode,
+        disable_web_page_preview: true,
+      }, { timeout: 15000 });
+      return true;
+    } catch (err: unknown) {
+      lastErr = err;
+      // 4xx (vd sai chat_id, markdown lỗi) thì retry vô ích — dừng ngay
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+      if (status && status >= 400 && status < 500) break;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+    }
   }
+  const data = axios.isAxiosError(lastErr) ? lastErr.response?.data : undefined;
+  const msg = lastErr instanceof Error ? lastErr.message : String(lastErr);
+  console.error("[Telegram] Lỗi (đã thử 3 lần):", data ?? msg);
+  return false;
 }
 
 /** Đọc tin nhắn đến (lệnh) từ Telegram. Trả [] nếu chưa cấu hình / lỗi. */

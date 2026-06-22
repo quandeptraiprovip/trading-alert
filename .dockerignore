@@ -8,6 +8,9 @@ build
 .DS_Store
 *.log
 logs
+bot-state.json
+bot-state.json.tmp
+trades-live.jsonl
 .claude
 .vscode
 .idea

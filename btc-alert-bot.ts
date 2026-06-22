@@ -38,12 +38,18 @@ import {
   loadTelegramConfig,
   sendTelegram,
 } from "./telegram";
+import { loadState, saveState, appendJournal, PersistedSymbol } from "./live-state";
 
 const telegram = loadTelegramConfig();
 
 const BUFFER_SIZE = 1500;
 const ARM_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 const COMMAND_POLL_MS = 5_000;
+// Cảnh báo nếu KHÔNG nhận được phản hồi data nào quá ngưỡng này (vd fapi bị chặn 451).
+// Bot poll fapi-only để giữ ĐÚNG dữ liệu Perpetual (volume/delta) — không tự ngầm fallback
+// sang spot (sẽ làm lệch tín hiệu); thay vào đó báo Telegram để user xử lý.
+const HEALTH_TIMEOUT_MS = 6 * 60 * 1000; // ~6 phút không có data → cảnh báo
+const MAX_CATCHUP_BARS = 120; // số nến tối đa fetch để bù gap (~30h nến 15m)
 const ltfMs = TF_MS[CONFIG.entryTf];
 
 const SYMBOLS = (CONFIG.symbols.length ? CONFIG.symbols : [CONFIG.symbol]).map((s) => s.toLowerCase());
@@ -72,16 +78,29 @@ type SymbolState = {
 // Tất cả state symbol — module-level để command listener (/status) đọc được.
 const states: SymbolState[] = [];
 
-function createState(symbol: string): SymbolState {
+function createState(symbol: string, saved?: PersistedSymbol): SymbolState {
   return {
     symbol,
     buffer: [],
-    lastArmAlertAt: 0,
-    cooldownUntilTime: 0,
+    lastArmAlertAt: saved?.lastArmAlertAt ?? 0,
+    cooldownUntilTime: saved?.cooldownUntilTime ?? 0,
     tracker: new SetupTracker(),
-    livePos: null,
-    lastOpenTime: 0,
+    livePos: saved?.livePos ? { ...saved.livePos } : null,
+    lastOpenTime: saved?.lastOpenTime ?? 0,
   };
+}
+
+/** Lưu toàn bộ state (atomic) — gọi sau mỗi thay đổi (entry/exit/cooldown/nến mới). */
+function persist(): void {
+  saveState(
+    states.map((st) => ({
+      symbol: st.symbol,
+      lastOpenTime: st.lastOpenTime,
+      cooldownUntilTime: st.cooldownUntilTime,
+      lastArmAlertAt: st.lastArmAlertAt,
+      livePos: st.livePos,
+    }))
+  );
 }
 
 function heldBarsSinceEntry(candle: Candle, entryTime: number): number {
@@ -222,6 +241,18 @@ async function notifyEntry(st: SymbolState, sig: EntrySignal, candle: Candle): P
   // Vào lệnh là sự kiện quan trọng → LUÔN báo (không cooldown).
   const msg = buildEntryMessage(sig, candle, st.symbol);
   console.log(`\n[ENTRY] ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} @ $${fmtPrice(sig.entry)}`);
+  appendJournal({
+    event: "entry",
+    symbol: st.symbol,
+    dir: sig.direction,
+    time: candle.openTime,
+    timeVn: formatTimeVn(candle.openTime),
+    entry: sig.entry,
+    initialSL: sig.initialSL,
+    target: sig.initialTarget,
+    rr: sig.rr,
+    reason: sig.reason,
+  });
   await sendTelegram(telegram, msg);
 }
 
@@ -242,10 +273,24 @@ async function notifyExit(st: SymbolState, pos: LivePosition, c: Candle, exitPri
     symbol: st.symbol,
   });
   console.log(`\n[EXIT] ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R)`);
+  appendJournal({
+    event: "exit",
+    symbol: st.symbol,
+    dir: pos.dir,
+    time: c.openTime,
+    timeVn: formatTimeVn(c.openTime),
+    entry: pos.entry,
+    initialSL: pos.initialSL,
+    exitPrice,
+    reason,
+    grossR,
+    holdBars,
+  });
   await sendTelegram(telegram, msg);
 }
 
 async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
+  st.lastOpenTime = candle.openTime;
   st.buffer.push(candle);
   if (st.buffer.length > BUFFER_SIZE) st.buffer.shift();
 
@@ -260,65 +305,139 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
       st.livePos = null;
       st.tracker.reset();
     }
+    persist(); // sl/trail có thể đã dời (tryExitAndTrail mutate pos.sl) hoặc vừa đóng lệnh
     return;
   }
 
   const sig = evaluateNewEntry(st, candle);
-  if (!sig) return;
+  if (!sig) {
+    persist(); // lưu lastOpenTime tiến lên (để resume đúng sau restart)
+    return;
+  }
 
   openLivePosition(st, sig, candle);
   await notifyEntry(st, sig, candle);
+  persist();
 }
 
-async function prefetchHistory(st: SymbolState): Promise<void> {
+// Tải lịch sử warmup. Nếu resumeFrom hữu hạn (rehydrate sau restart): nến <= resumeFrom là
+// warmup tĩnh, nến > resumeFrom được REPLAY qua onCandleClose để bắt exit/entry đã xảy ra
+// trong lúc bot tắt (downtime). resumeFrom = Infinity → khởi động sạch (toàn bộ là warmup).
+async function prefetchHistory(st: SymbolState, resumeFrom: number): Promise<void> {
   console.log(`[Init] ${formatSymbol(st.symbol)} — tải lịch sử 15m để warmup...`);
   const candles = await fetchKlinesPaged(st.symbol, CONFIG.entryTf, BUFFER_SIZE);
   candles.pop(); // bỏ nến hiện tại (chưa đóng)
-  st.buffer.push(...candles);
-  st.lastOpenTime = st.buffer.length ? st.buffer[st.buffer.length - 1].openTime : 0;
-  console.log(`[Init] ${formatSymbol(st.symbol)} OK — ${st.buffer.length} nến (tới ${formatTimeVn(st.buffer[st.buffer.length - 1].openTime)})`);
+  if (candles.length === 0) {
+    console.warn(`[Init] ${formatSymbol(st.symbol)} không tải được nến nào.`);
+    return;
+  }
+
+  let from = resumeFrom;
+  // Downtime dài hơn cửa sổ buffer → không replay trung thực được; resync về hiện tại.
+  // Vị thế rehydrate (nếu có) vẫn giữ và được poll quản lý tiếp từ giờ.
+  if (from !== Infinity && from < candles[0].openTime) {
+    console.warn(`[Init] ${formatSymbol(st.symbol)} downtime > ${BUFFER_SIZE} nến — resync hiện tại, KHÔNG replay.`);
+    from = Infinity;
+  }
+
+  const warmup = from === Infinity ? candles : candles.filter((c) => c.openTime <= from);
+  const replay = from === Infinity ? [] : candles.filter((c) => c.openTime > from);
+
+  st.buffer.push(...warmup);
+  if (warmup.length) st.lastOpenTime = warmup[warmup.length - 1].openTime;
+
+  if (replay.length) {
+    console.log(`[Init] ${formatSymbol(st.symbol)} replay ${replay.length} nến downtime (bắt exit/entry đã lỡ)...`);
+    for (const c of replay) await onCandleClose(st, c); // tự advance lastOpenTime + persist
+  }
+  const tail = st.buffer[st.buffer.length - 1];
+  const holding = st.livePos ? ` · ĐANG GIỮ ${st.livePos.dir.toUpperCase()} (entry $${fmtPrice(st.livePos.entry)})` : "";
+  console.log(`[Init] ${formatSymbol(st.symbol)} OK — ${st.buffer.length} nến (tới ${tail ? formatTimeVn(tail.openTime) : "?"})${holding}`);
 }
 
-// Lấy nến 15m ĐÓNG gần nhất từ Futures REST. limit:2 → phần tử cuối là nến đang chạy,
-// phần tử kế cuối là nến vừa đóng.
-async function fetchLatestClosedCandle(symbol: string): Promise<Candle | null> {
+// Lấy MỌI nến 15m đã ĐÓNG mới hơn `since` từ Futures REST (sắp xếp tăng dần). limit lớn để
+// bù gap khi bot lỡ vài nến (mạng chập / 429 / downtime ngắn) — backtest xử lý mọi nến nên
+// live cũng phải replay đủ, tránh bỏ sót exit/entry trong nến bị nhỡ.
+async function fetchClosedSince(symbol: string, since: number): Promise<Candle[]> {
   const res = await axios.get(FAPI_KLINES, {
-    params: { symbol: symbol.toUpperCase(), interval: CONFIG.entryTf, limit: 2 },
+    params: { symbol: symbol.toUpperCase(), interval: CONFIG.entryTf, limit: MAX_CATCHUP_BARS },
     timeout: 15000,
   });
   const arr = res.data as any[];
-  if (!Array.isArray(arr) || arr.length < 2) return null;
-  const k = arr[arr.length - 2]; // nến đã đóng
-  return {
-    openTime: k[0],
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
-    close: parseFloat(k[4]),
-    volume: parseFloat(k[5]),
-    quoteVolume: parseFloat(k[7]), // dollar volume
-    takerBuyVolume: parseFloat(k[9]), // taker-buy base (cho delta/CVD)
-  };
+  if (!Array.isArray(arr)) return [];
+  const nowMs = Date.now();
+  return arr
+    .map((k: any[]) => ({
+      openTime: k[0],
+      open: parseFloat(k[1]),
+      high: parseFloat(k[2]),
+      low: parseFloat(k[3]),
+      close: parseFloat(k[4]),
+      volume: parseFloat(k[5]),
+      quoteVolume: parseFloat(k[7]), // dollar volume
+      takerBuyVolume: parseFloat(k[9]), // taker-buy base (cho delta/CVD)
+    }))
+    .filter((c) => c.openTime + ltfMs <= nowMs) // chỉ nến ĐÃ đóng hoàn toàn
+    .filter((c) => c.openTime > since) // chỉ nến mới hơn lần xử lý cuối
+    .sort((a, b) => a.openTime - b.openTime);
 }
 
-function startPolling(st: SymbolState): void {
+// ── Health monitor: cảnh báo nếu mất luồng data quá lâu (fapi 451 / mất mạng) ──
+let lastDataAt = Date.now();
+let healthAlerted = false;
+
+function markData(): void {
+  lastDataAt = Date.now();
+  if (healthAlerted) {
+    healthAlerted = false;
+    void sendTelegram(telegram, `✅ *Bot phục hồi* — đã nhận lại dữ liệu nến.\n🕐 ${formatTimeVn(Date.now())}`);
+  }
+}
+
+function startHealthMonitor(): void {
+  setInterval(() => {
+    if (healthAlerted || Date.now() - lastDataAt <= HEALTH_TIMEOUT_MS) return;
+    healthAlerted = true;
+    const mins = Math.round((Date.now() - lastDataAt) / 60_000);
+    console.error(`[Health] ⚠️ Không nhận được data ~${mins} phút.`);
+    void sendTelegram(
+      telegram,
+      `⚠️ *Bot mất dữ liệu* — không có nến mới ~${mins} phút.\nCó thể fapi bị chặn (451) hoặc mất mạng. Kiểm tra \`pm2 logs\`.\n🕐 ${formatTimeVn(Date.now())}`
+    );
+  }, 60_000);
+}
+
+function startPolling(st: SymbolState, initialDelayMs = 0): void {
   console.log(
     `[Poll] ✅ Theo dõi ${formatSymbol(st.symbol)} ${CONFIG.entryTf} (Futures REST, mỗi ${POLL_INTERVAL_MS / 1000}s)`
   );
   const tick = async (): Promise<void> => {
-    try {
-      const c = await fetchLatestClosedCandle(st.symbol);
-      if (c && c.openTime > st.lastOpenTime) {
-        st.lastOpenTime = c.openTime;
-        await onCandleClose(st, c);
+    let retryDelay = 5_000;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const candles = await fetchClosedSince(st.symbol, st.lastOpenTime);
+        markData(); // phản hồi 200 = luồng data còn sống
+        for (const c of candles) await onCandleClose(st, c); // replay TUẦN TỰ mọi nến đã đóng bị lỡ
+        return;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (status === 429 && attempt < 2) {
+          console.warn(`[Poll] ${formatSymbol(st.symbol)} 429 — thử lại sau ${retryDelay / 1000}s`);
+          await new Promise((r) => setTimeout(r, retryDelay));
+          retryDelay *= 2;
+        } else {
+          console.error(`[Poll] ${formatSymbol(st.symbol)} Lỗi fetch:`, msg);
+          return;
+        }
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[Poll] ${formatSymbol(st.symbol)} Lỗi fetch:`, msg);
     }
   };
-  void tick(); // chạy ngay 1 lần
-  setInterval(() => void tick(), POLL_INTERVAL_MS);
+  // Stagger: delay khởi động để các symbol không poll cùng lúc
+  setTimeout(() => {
+    void tick();
+    setInterval(() => void tick(), POLL_INTERVAL_MS);
+  }, initialDelayMs);
 }
 
 // ── Lệnh /status: liệt kê lệnh đang giữ / chờ trên từng symbol ──
@@ -371,10 +490,10 @@ function startCommandListener(): void {
       }
     }
     drained = true;
+    setTimeout(() => void tick(), COMMAND_POLL_MS);
   };
 
   void tick();
-  setInterval(() => void tick(), COMMAND_POLL_MS);
   console.log(`[Cmd] ✅ Lắng nghe lệnh Telegram (/status) mỗi ${COMMAND_POLL_MS / 1000}s`);
 }
 
@@ -385,14 +504,25 @@ async function main(): Promise<void> {
   console.log(`   Luồng: ARM → MỞ LỆNH → RA LỆNH (logic thoát = backtest)`);
   console.log("");
 
-  states.push(...SYMBOLS.map(createState));
-  for (const st of states) {
-    await prefetchHistory(st);
+  // Rehydrate state đã lưu (vị thế/cooldown/lastOpenTime) để không mất lệnh đang giữ khi restart.
+  const saved = loadState();
+  const rehydrated = SYMBOLS.filter((s) => saved[s]?.livePos);
+  if (rehydrated.length) {
+    console.log(`[State] Khôi phục ${rehydrated.length} vị thế đang giữ: ${rehydrated.map(formatSymbol).join(", ")}`);
   }
+  states.push(...SYMBOLS.map((s) => createState(s, saved[s])));
+
   await sendTelegram(telegram, buildStartupMessage(SYMBOLS));
-  startCommandListener();
   for (const st of states) {
-    startPolling(st);
+    // resumeFrom = lastOpenTime đã lưu → replay nến downtime; chưa có state → Infinity (khởi động sạch)
+    const resumeFrom = saved[st.symbol]?.lastOpenTime ?? Infinity;
+    await prefetchHistory(st, resumeFrom);
+  }
+  persist(); // ghi ngay lastOpenTime/vị thế sau warmup để restart nhanh resume đúng (chưa cần đợi nến mới)
+  startCommandListener();
+  startHealthMonitor();
+  for (let i = 0; i < states.length; i++) {
+    startPolling(states[i], i * 3_000); // stagger 3s/symbol tránh 429
   }
 
   process.on("SIGINT", () => {

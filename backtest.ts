@@ -107,6 +107,10 @@ export interface Trade {
   netR: number; // R sau chi phí
   holdBars: number;
   zoneDesc: string;
+  // Feature dấu chân MM tại entry (cho các script thử nghiệm) — không lookahead
+  baseVolRatio: number;
+  mitigations: number;
+  displAtr: number;
 }
 
 function fmtTime(ms: number): string {
@@ -152,6 +156,9 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
     sl: number;
     target: number;
     zoneDesc: string;
+    baseVolRatio: number;
+    mitigations: number;
+    displAtr: number;
   } | null = null;
   let cooldownUntil = -1;
 
@@ -218,6 +225,9 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
           netR: grossR - costR,
           holdBars: heldBars,
           zoneDesc: pos.zoneDesc,
+          baseVolRatio: pos.baseVolRatio,
+          mitigations: pos.mitigations,
+          displAtr: pos.displAtr,
         });
         cooldownUntil = i + CONFIG.cooldownBars;
         pos = null;
@@ -285,6 +295,9 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
         sl: signal.initialSL,
         target: signal.initialTarget,
         zoneDesc: signal.reason,
+        baseVolRatio: signal.zone.baseVolRatio,
+        mitigations: signal.zone.mitigations,
+        displAtr: signal.zone.displAtr,
       };
     }
   }
