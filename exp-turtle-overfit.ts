@@ -24,7 +24,7 @@ function stats(ts: Trade[]) {
 
 async function main() {
   // chốt cấu hình đã chọn
-  T.entryDays = 15;
+  T.entryDays = 20;
   T.chandelierMult = 3.0;
 
   const DAYS = parseInt(process.argv[2] ?? "1050", 10);

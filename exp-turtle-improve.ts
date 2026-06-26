@@ -59,13 +59,14 @@ async function main() {
     return { full, eras };
   }
 
+  // Nới tần suất xuống ~0.5/ngày (1 lệnh/2 ngày OK) → mở khóa breakout dài expectancy cao hơn.
+  // Long-only đã LOẠI (Era C gần đây âm, regime-dependent). Chỉ so các breakout dài, long+short.
   const variants: Variant[] = [
-    { label: "baseline 7d (long+short)", entryDays: 7, allowShort: true },
-    { label: "10d (long+short)", entryDays: 10, allowShort: true },
-    { label: "15d (long+short)", entryDays: 15, allowShort: true },
-    { label: "7d LONG-ONLY", entryDays: 7, allowShort: false },
-    { label: "10d LONG-ONLY", entryDays: 10, allowShort: false },
-    { label: "15d LONG-ONLY", entryDays: 15, allowShort: false },
+    { label: "7d (baseline)", entryDays: 7, allowShort: true },
+    { label: "15d", entryDays: 15, allowShort: true },
+    { label: "20d", entryDays: 20, allowShort: true },
+    { label: "25d", entryDays: 25, allowShort: true },
+    { label: "30d", entryDays: 30, allowShort: true },
   ];
 
   console.log("\n" + "=".repeat(96));

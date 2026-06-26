@@ -33,8 +33,8 @@ import { fetchKlinesPaged } from "./backtest";
 // ─────────────────────────────────────────────
 export const T = {
   tf: "4h", // khung vào lệnh — 4h: cân bằng giữa "daily-proven" của Turtle và tần suất ~1/ngày
-  entryDays: 15, // VÀO khi phá đỉnh/đáy N NGÀY gần nhất. 15d: expectancy cao & ỔN ĐỊNH qua 3 era
-  // OOS (0.137/0.115/0.115) > 7d (0.089/0.071/0.158, dồn era gần đây). Đạt ~1 lệnh/ngày bằng rổ ~13 coin.
+  entryDays: 20, // VÀO khi phá đỉnh/đáy N NGÀY gần nhất. 20d: expectancy cao nhất ở Era A (OOS cũ
+  // nhất, 0.180) + cả 3 era dương, KHÔNG dồn regime gần đây → bền nhất. ~0.54 lệnh/ngày (1 lệnh/~2 ngày).
   chandelierMult: 3.0, // THOÁT: chandelier — stop trail = đỉnh-từ-entry − mult×ATR (rộng → winner chạy)
   atrPeriod: 20, // ATR theo nến TF
   trendLen: 50, // EMA lọc xu hướng (50 nến 4h ≈ 8 ngày) — chỉ long khi trên, short khi dưới
