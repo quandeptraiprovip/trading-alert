@@ -31,7 +31,7 @@ import { fetchKlinesPaged } from "./backtest";
 // ─────────────────────────────────────────────
 // CONFIG riêng cho Turtle (tách khỏi CONFIG SMC)
 // ─────────────────────────────────────────────
-const T = {
+export const T = {
   tf: "4h", // khung vào lệnh — 4h: cân bằng giữa "daily-proven" của Turtle và tần suất ~1/ngày
   entryDays: 5, // VÀO khi phá đỉnh/đáy N NGÀY gần nhất (Turtle gốc 20-NGÀY; rút ngắn để ~1 lệnh/ngày)
   chandelierMult: 3.0, // THOÁT: chandelier — stop trail = đỉnh-từ-entry − mult×ATR (rộng → winner chạy)
@@ -100,7 +100,7 @@ function tradeCostR(entry: number, initialSL: number, entryTime: number, exitTim
 // ─────────────────────────────────────────────
 // TRADE
 // ─────────────────────────────────────────────
-interface Trade {
+export interface Trade {
   symbol: string;
   dir: "long" | "short";
   entryTime: number;
@@ -118,7 +118,7 @@ interface Trade {
 // ─────────────────────────────────────────────
 // BACKTEST 1 symbol
 // ─────────────────────────────────────────────
-function runTurtle(symbol: string, c: Candle[], p = T): Trade[] {
+export function runTurtle(symbol: string, c: Candle[], p = T): Trade[] {
   const closes = c.map((x) => x.close);
   const emaArr = ema(closes, p.trendLen);
   const atr = atrSeries(c, p.atrPeriod);
