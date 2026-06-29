@@ -30,5 +30,14 @@ module.exports = {
       max_restarts: 50,
       env: { TZ: "Asia/Ho_Chi_Minh" },
     },
+    {
+      // Dashboard giao dịch (port 3848). Chỉ truy cập nội bộ/SSH tunnel — KHÔNG mở ra Internet.
+      name: "swing-dashboard",
+      script: "npm",
+      args: "run dashboard",
+      autorestart: true,
+      max_restarts: 50,
+      env: { TZ: "Asia/Ho_Chi_Minh" },
+    },
   ],
 };

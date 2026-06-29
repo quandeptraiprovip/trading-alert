@@ -111,6 +111,7 @@ export interface Trade {
   baseVolRatio: number;
   mitigations: number;
   displAtr: number;
+  sizeMult: number; // (#2) bội số risk theo chất lượng setup
 }
 
 function fmtTime(ms: number): string {
@@ -159,6 +160,7 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
     baseVolRatio: number;
     mitigations: number;
     displAtr: number;
+    sizeMult: number;
   } | null = null;
   let cooldownUntil = -1;
 
@@ -228,6 +230,7 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
           baseVolRatio: pos.baseVolRatio,
           mitigations: pos.mitigations,
           displAtr: pos.displAtr,
+          sizeMult: pos.sizeMult,
         });
         cooldownUntil = i + CONFIG.cooldownBars;
         pos = null;
@@ -298,6 +301,7 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
         baseVolRatio: signal.zone.baseVolRatio,
         mitigations: signal.zone.mitigations,
         displAtr: signal.zone.displAtr,
+        sizeMult: signal.sizeMult,
       };
     }
   }
@@ -460,6 +464,10 @@ function report(
   console.log(`Gross R     : ${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R`);
   console.log(`Chi phí     : -${costR.toFixed(2)}R  (${(costR / trades.length).toFixed(3)}R/lệnh)`);
   console.log(`NET R       : ${netR >= 0 ? "+" : ""}${netR.toFixed(2)}R   | NET R TB/lệnh: ${(netR / trades.length).toFixed(3)}R`);
+  // (#2) NET R chuẩn-hoá rủi ro TB=1: phân bổ risk theo chất lượng setup (displacement vùng)
+  const meanM = trades.reduce((s, t) => s + t.sizeMult, 0) / trades.length;
+  const wNetR = meanM > 0 ? trades.reduce((s, t) => s + (t.sizeMult / meanM) * t.netR, 0) : netR;
+  console.log(`NET R (quality-weighted, risk TB=1): ${wNetR >= 0 ? "+" : ""}${wNetR.toFixed(2)}R   (Δ ${(wNetR - netR >= 0 ? "+" : "")}${(wNetR - netR).toFixed(2)}R vs equal-weight)`);
   console.log(`Giữ lệnh TB : ${avgHoldDays.toFixed(1)} ngày`);
   console.log(`\n[Risk ${riskPct}%/lệnh, compounding NET từ 100 đơn vị]`);
   console.log(`Equity cuối : ${equity.toFixed(1)}  (${equity >= 100 ? "+" : ""}${(equity - 100).toFixed(1)}%)`);

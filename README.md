@@ -298,12 +298,58 @@ sudo netfilter-persistent save 2>/dev/null || true
 
 ---
 
+## Giao dịch THẬT trên Binance Futures (tuỳ chọn)
+
+Mặc định bot **alert-only**. Bật `TRADING_ENABLED=true` để bot **đặt lệnh thật** theo đúng tín hiệu baseline.
+
+**Sizing theo rủi ro:** risk mỗi lệnh = `equity × RISK_PCT × sizeMult` (sizeMult 0.6/1.0/1.5 theo chất
+lượng setup). Khối lượng = `risk / |entry − SL|`. Tổng risk các vị thế mở bị chặn ở `MAX_PORTFOLIO_RISK_PCT`
+(lệnh mới vượt trần sẽ bị **bỏ qua** + báo Telegram).
+
+**SL/TP đặt TRÊN SÀN** (`STOP_MARKET` + `TAKE_PROFIT_MARKET`, `closePosition=true`) → vẫn hiệu lực kể cả
+khi bot tắt. Bot dời SL khi trail (re-place trên sàn) và đóng bằng `MARKET` khi hết thời gian giữ. Mỗi nến,
+bot **đối soát** vị thế thật trên sàn (lưới an toàn nếu SL/TP khớp lúc bot offline).
+
+### Chạy thử trên TESTNET trước (khuyến nghị)
+1. Vào https://testnet.binancefuture.com → đăng nhập (GitHub) → **API Key** → tạo key.
+2. Điền vào `.env.local`:
+   ```bash
+   TRADING_ENABLED=true
+   BINANCE_TESTNET=true
+   BINANCE_API_KEY=...        # key testnet
+   BINANCE_API_SECRET=...
+   RISK_PCT=5                 # 5% equity/lệnh (trước sizeMult)
+   MAX_PORTFOLIO_RISK_PCT=20  # trần tổng risk các vị thế mở
+   LEVERAGE=10                # ISOLATED 10x mặc định
+   ```
+   > Nếu testnet báo lỗi domain, đặt `BINANCE_BASE_URL=https://demo-fapi.binance.com`.
+   > Giữ tài khoản ở chế độ **One-way** (không Hedge mode).
+3. Chạy bot — log `[Trade] ✅ THỰC THI BẬT (TESTNET) · equity $… · risk 5%×sizeMult · trần 20% · ISOLATED 10x`.
+4. Verify vài lệnh khớp đúng SL/TP trên testnet rồi mới chuyển **mainnet** (`BINANCE_TESTNET=false` + key thật
+   đã bật quyền *Enable Futures*, nên giới hạn IP của VM).
+
+### Dashboard theo dõi
+```bash
+npm run dashboard        # http://localhost:3848  (hoặc service swing-dashboard trong docker-compose)
+```
+Hiển thị: **tài khoản** (equity, unrealized PnL, khả dụng, exposure, margin ratio, % risk vs trần);
+**hiệu suất** (win rate, tổng/avg R, profit factor, avg W/L, best/worst, max drawdown, avg hold, streak);
+**đường cong vốn** (R tích luỹ), phân tích **theo lý do thoát / Long-Short / theo symbol**; **vị thế thật**
+(R, PnL, notional, liq, thanh tiến độ SL→TP, thời gian giữ) đối soát từ sàn; và **nhật ký lệnh**.
+⚠️ Cổng 3848 **chỉ bind localhost** — xem từ xa qua SSH tunnel: `ssh -L 3848:localhost:3848 user@vm`
+(KHÔNG mở ra Internet vì lộ số dư/vị thế).
+
+---
+
 ## File
 
 - `strategy.ts` — logic chiến lược dùng chung (`CONFIG`, `SetupTracker`, HTF zones)
 - `backtest.ts` — engine backtest + báo cáo
 - `btc-alert-bot.ts` — bot live đa-symbol (alert vào/ra lệnh + lệnh `/status`); gap replay + khôi phục vị thế
 - `live-state.ts` — persist vị thế qua restart (`bot-state.json`) + nhật ký lệnh (`trades-live.jsonl`)
+- `binance-futures.ts` — client REST ký HMAC cho Binance USDⓈ-M Futures (đặt/huỷ lệnh, số dư, vị thế)
+- `live-trade.ts` — lớp thực thi: sizing theo risk, đặt SL/TP trên sàn, trail, đối soát (dùng khi `TRADING_ENABLED`)
+- `dashboard-server.ts` — dashboard web theo dõi giao dịch (port 3848, chỉ đọc)
 - `scripts/baseline-gate.sh` — so NET 250d BTC với baseline trước khi merge thay đổi strategy
 - `scripts/confirm-quality-gate.ts`, `scripts/pullback-zone-gate.ts` — sweep filter CONFIRM / pullback
 - `scripts/exit-sweep.ts`, `scripts/maxhold-validate.ts` — sweep tham số EXIT/target + validate maxHold (OOS)

@@ -26,13 +26,17 @@ export type PersistedLivePos = {
   sl: number;
   target: number;
   zoneDesc: string;
+  sizeMult?: number; // (#2) chất lượng setup — optional cho state cũ
+  quality?: string;
+  qty?: number; // khối lượng thật đã khớp (khi TRADING_ENABLED)
+  realEntry?: number; // giá khớp thật
+  riskUsd?: number; // USD rủi ro của lệnh
 };
 
 export type PersistedSymbol = {
   symbol: string;
   lastOpenTime: number;
   cooldownUntilTime: number;
-  lastArmAlertAt: number;
   livePos: PersistedLivePos | null;
 };
 
@@ -51,9 +55,7 @@ export function loadState(): Record<string, PersistedSymbol> {
 
 export function saveState(states: PersistedSymbol[]): void {
   try {
-    const tmp = STATE_FILE + ".tmp";
-    fs.writeFileSync(tmp, JSON.stringify(states, null, 2));
-    fs.renameSync(tmp, STATE_FILE); // ghi atomic (tránh file rách nếu crash giữa chừng)
+    fs.writeFileSync(STATE_FILE, JSON.stringify(states, null, 2));
   } catch (e) {
     console.error("[State] ghi bot-state.json lỗi:", e instanceof Error ? e.message : e);
   }

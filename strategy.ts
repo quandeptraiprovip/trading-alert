@@ -58,6 +58,8 @@ export interface EntrySignal {
   zone: Zone;
   reason: string;
   htfBias: Bias;
+  sizeMult: number; // (#2) bội số risk ĐỀ XUẤT theo chất lượng setup (displacement vùng)
+  quality: "MẠNH" | "KHÁ" | "YẾU";
 }
 
 // ─────────────────────────────────────────────
@@ -98,7 +100,8 @@ export const CONFIG = {
 
   // Rủi ro
   slBufferPct: 0.0025, // đệm SL ngoài biên vùng 0.25%
-  maxStopPct: 0.05, // SL xa hơn 5% thì bỏ qua (setup xấu)
+  maxStopPct: 0.065, // SL xa hơn 6.5% thì bỏ qua. Gate sweep 250d+500d: nới 5%→6.5% thêm
+  // ~+5-6R NET (plateau trơn 6.5-10%, dương cả 2 cửa sổ) — 5% cũ cắt nhầm một số setup tốt.
   targetRR: 2.5, // target ban đầu = 2.5R (để tham chiếu/fallback)
 
   // Quản lý lệnh (đơn vị: số nến 15m, 96 nến = 1 ngày)
@@ -125,6 +128,11 @@ export const CONFIG = {
   minPullbackRiskFrac: 0, // độ sâu pullback tối thiểu tính theo R (0 = tắt)
   minEntryRR: 0, // bỏ tín hiệu nếu RR tới target < ngưỡng (0 = tắt)
   deltaStrict: false, // true = thiếu taker-buy data thì không pass delta
+
+  // ── (#2) Position sizing theo CHẤT LƯỢNG setup (displacement vùng = conviction MM) ──
+  // Gate sweep 250d+500d: +~6-7R NET (chuẩn-hoá risk TB=1), robust qua nhiều ngưỡng lân cận
+  // (2-lvl/3-lvl/linear đều dương cả 2 cửa sổ) → ít rủi ro overfit. Chỉ ĐỀ XUẤT size trong alert.
+  qualitySizing: true,
 
   // ── Thanh khoản (liquidity / stop-hunt) — thử nghiệm, mặc định TẮT ──
   // (#1) Chỉ ARM khi trước đó có cú QUÉT thanh khoản: giá thủng 1 swing 15m đã
@@ -701,6 +709,20 @@ function confirmExtensionOk(entry: number, p: PendingSetup): boolean {
 }
 
 // ─────────────────────────────────────────────
+// (#2) SIZING THEO CHẤT LƯỢNG — displacement vùng = độ "conviction" của cú tạo vùng
+// ─────────────────────────────────────────────
+/** Bội số risk đề xuất theo displAtr vùng. 1 = giữ nguyên (khi tắt). */
+export function qualitySizeMult(displAtr: number): number {
+  if (!CONFIG.qualitySizing) return 1;
+  if (displAtr >= 2) return 1.5;
+  if (displAtr >= 1) return 1.0;
+  return 0.6;
+}
+export function qualityTier(displAtr: number): EntrySignal["quality"] {
+  return displAtr >= 2 ? "MẠNH" : displAtr >= 1 ? "KHÁ" : "YẾU";
+}
+
+// ─────────────────────────────────────────────
 // ENTRY — đánh giá tín hiệu trên nến LTF (15m)
 // ─────────────────────────────────────────────
 /**
@@ -770,6 +792,8 @@ export function evaluateEntry(ltf: Candle[], i: number, ctx: HtfContext): EntryS
       rr,
       zone,
       htfBias: ctx.bias,
+      sizeMult: qualitySizeMult(zone.displAtr),
+      quality: qualityTier(zone.displAtr),
       reason: `Demand FRESH $${zone.low.toFixed(0)}-${zone.high.toFixed(0)} (vol gốc ${zone.baseVolRatio.toFixed(1)}x, mitig ${zone.mitigations}); nến 15m hồi +vol ${volRatio.toFixed(1)}x; HTF bull`,
     };
   }
@@ -806,6 +830,8 @@ export function evaluateEntry(ltf: Candle[], i: number, ctx: HtfContext): EntryS
       rr,
       zone,
       htfBias: ctx.bias,
+      sizeMult: qualitySizeMult(zone.displAtr),
+      quality: qualityTier(zone.displAtr),
       reason: `Supply FRESH $${zone.low.toFixed(0)}-${zone.high.toFixed(0)} (vol gốc ${zone.baseVolRatio.toFixed(1)}x, mitig ${zone.mitigations}); nến 15m rejection +vol ${volRatio.toFixed(1)}x; HTF bear`,
     };
   }
@@ -983,6 +1009,8 @@ export class SetupTracker {
       rr,
       zone: p.zone,
       htfBias: ctx.bias,
+      sizeMult: qualitySizeMult(p.zone.displAtr),
+      quality: qualityTier(p.zone.displAtr),
       reason: `Tap demand FRESH $${p.zone.low.toFixed(0)}-${p.zone.high.toFixed(0)} (mitig ${p.zone.mitigations}) → pullback đáy $${p.extreme.toFixed(0)} → BOS phá $${bosLevel.toFixed(0)} +vol ${volRatio.toFixed(1)}x; HTF bull`,
     };
   }
@@ -1011,6 +1039,8 @@ export class SetupTracker {
       rr,
       zone: p.zone,
       htfBias: ctx.bias,
+      sizeMult: qualitySizeMult(p.zone.displAtr),
+      quality: qualityTier(p.zone.displAtr),
       reason: `Tap supply FRESH $${p.zone.low.toFixed(0)}-${p.zone.high.toFixed(0)} (mitig ${p.zone.mitigations}) → pullback đỉnh $${p.extreme.toFixed(0)} → BOS phá $${bosLevel.toFixed(0)} +vol ${volRatio.toFixed(1)}x; HTF bear`,
     };
   }

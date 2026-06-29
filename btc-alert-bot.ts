@@ -6,6 +6,7 @@
  */
 
 import "./load-env";
+import https from "https";
 import axios from "axios";
 import { fetchKlinesPaged } from "./backtest";
 import {
@@ -24,11 +25,18 @@ import {
 // luồng data (handshake mở nhưng 0 message) trong khi REST fapi vẫn trả 200. Bot chỉ
 // xử lý nến ĐÓNG nên poll fapi cho ĐÚNG dữ liệu Perpetual (volume/delta khớp backtest).
 const FAPI_KLINES = "https://fapi.binance.com/fapi/v1/klines";
-const POLL_INTERVAL_MS = 12_000; // nến 15m → poll 12s thừa sức bắt nến vừa đóng
+// Nhịp poll nến (giây) — cấu hình qua env POLL_INTERVAL_SEC. Mặc định 12s (bắt nến vừa đóng gần
+// như tức thì). Tăng lên giảm số request nhưng vào lệnh TRỄ tới ngần ấy (lệch giá so với giá đóng
+// nến); SL/TP trên sàn không bị ảnh hưởng. Khuyến nghị ≤ 60s. Chặn ở [5s, 600s].
+const POLL_INTERVAL_MS = Math.min(600, Math.max(5, parseInt(process.env.POLL_INTERVAL_SEC ?? "12", 10) || 12)) * 1000;
+// keepAlive tái dùng TCP/TLS connection — tránh lỗi "socket disconnected before TLS" trong Docker
+const httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30_000 });
+const fapiAxios = axios.create({ httpsAgent }); // nến 15m → poll 12s thừa sức bắt nến vừa đóng
 import {
   buildArmMessage,
   buildEntryMessage,
   buildExitMessage,
+  buildOfflineEntryMessage,
   buildStartupMessage,
   ExitReason,
   formatTimeVn,
@@ -39,16 +47,35 @@ import {
   sendTelegram,
 } from "./telegram";
 import { loadState, saveState, appendJournal, PersistedSymbol } from "./live-state";
+import { createBinanceFromEnv } from "./binance-futures";
+import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 
 const telegram = loadTelegramConfig();
 
+// ── Lớp THỰC THI lệnh thật (tùy chọn) ──────────────────────────────────────
+// TRADING_ENABLED=false (mặc định) hoặc thiếu API key → bot chạy ALERT-ONLY y như cũ.
+const TRADING_ENABLED = (process.env.TRADING_ENABLED ?? "false").toLowerCase() === "true";
+const execCfg = loadExecConfig();
+const binance = TRADING_ENABLED ? createBinanceFromEnv() : null;
+const trader = binance ? new LiveTrader(binance, execCfg) : null;
+let tradingReady = false; // chỉ true sau khi init() (margin/đòn bẩy/filters) thành công
+
+// Tiền tố MỌI log bằng giờ Việt Nam (kèm giây) để truy vết sự kiện theo thời gian khi đọc
+// `docker logs`. Bọc console 1 lần thay vì sửa từng dòng log.
+const logTimeVn = (): string =>
+  new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour12: false });
+for (const level of ["log", "warn", "error"] as const) {
+  const orig = console[level].bind(console);
+  console[level] = (...args: unknown[]) => orig(`[${logTimeVn()}]`, ...args);
+}
+
 const BUFFER_SIZE = 1500;
-const ARM_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 const COMMAND_POLL_MS = 5_000;
 // Cảnh báo nếu KHÔNG nhận được phản hồi data nào quá ngưỡng này (vd fapi bị chặn 451).
 // Bot poll fapi-only để giữ ĐÚNG dữ liệu Perpetual (volume/delta) — không tự ngầm fallback
 // sang spot (sẽ làm lệch tín hiệu); thay vào đó báo Telegram để user xử lý.
-const HEALTH_TIMEOUT_MS = 6 * 60 * 1000; // ~6 phút không có data → cảnh báo
+// ~6 phút không có data → cảnh báo; nhưng luôn ≥ 2 nhịp poll + 1 phút để poll chậm không báo nhầm.
+const HEALTH_TIMEOUT_MS = Math.max(6 * 60 * 1000, POLL_INTERVAL_MS * 2 + 60_000);
 const MAX_CATCHUP_BARS = 120; // số nến tối đa fetch để bù gap (~30h nến 15m)
 const ltfMs = TF_MS[CONFIG.entryTf];
 
@@ -62,17 +89,24 @@ type LivePosition = {
   sl: number;
   target: number;
   zoneDesc: string;
+  sizeMult?: number; // (#2) optional: state cũ rehydrate có thể thiếu
+  quality?: string; // EntrySignal["quality"] khi mở mới; string khi rehydrate từ state cũ
+  qty?: number; // khối lượng thật đã khớp (chỉ khi TRADING_ENABLED)
+  realEntry?: number; // giá khớp thật (có thể lệch close do slippage)
+  riskUsd?: number; // số USD rủi ro của lệnh này
+  tpPlaced?: boolean; // false = TP algo không đặt được (SL vẫn bảo vệ, nhưng cần để ý)
 };
 
 // State ĐỘC LẬP cho từng symbol (tránh dùng biến toàn cục dùng chung).
 type SymbolState = {
   symbol: string;
   buffer: Candle[];
-  lastArmAlertAt: number;
   cooldownUntilTime: number;
   tracker: SetupTracker;
   livePos: LivePosition | null;
   lastOpenTime: number;
+  silentMode: boolean; // true khi đang scan detect vị thế — không gửi Telegram
+  ticking: boolean; // khoá chống tái-nhập: ngăn 2 tick xử lý song song 1 symbol (tránh double-open)
 };
 
 // Tất cả state symbol — module-level để command listener (/status) đọc được.
@@ -82,11 +116,12 @@ function createState(symbol: string, saved?: PersistedSymbol): SymbolState {
   return {
     symbol,
     buffer: [],
-    lastArmAlertAt: saved?.lastArmAlertAt ?? 0,
     cooldownUntilTime: saved?.cooldownUntilTime ?? 0,
     tracker: new SetupTracker(),
     livePos: saved?.livePos ? { ...saved.livePos } : null,
     lastOpenTime: saved?.lastOpenTime ?? 0,
+    silentMode: false,
+    ticking: false,
   };
 }
 
@@ -97,7 +132,6 @@ function persist(): void {
       symbol: st.symbol,
       lastOpenTime: st.lastOpenTime,
       cooldownUntilTime: st.cooldownUntilTime,
-      lastArmAlertAt: st.lastArmAlertAt,
       livePos: st.livePos,
     }))
   );
@@ -192,6 +226,8 @@ function openLivePosition(st: SymbolState, sig: EntrySignal, candle: Candle): vo
     sl: sig.initialSL,
     target: sig.initialTarget,
     zoneDesc: sig.reason,
+    sizeMult: sig.sizeMult,
+    quality: sig.quality,
   };
 }
 
@@ -227,22 +263,31 @@ async function maybeSendArmAlert(
   candle: Candle
 ): Promise<void> {
   const tag = formatSymbol(st.symbol);
-  if (Date.now() - st.lastArmAlertAt < ARM_COOLDOWN_MS) {
-    console.log(`[${formatTimeVn(candle.openTime)}] ${tag} ARM ${setup.direction} nhưng đang cooldown ARM, bỏ qua Telegram.`);
-    return;
-  }
-  st.lastArmAlertAt = Date.now();
+  if (st.silentMode) return;
   const msg = buildArmMessage(setup, candle, st.symbol);
   console.log(`\n[ARM] ${tag} ${setup.direction.toUpperCase()} tap vùng @ $${fmtPrice(candle.close)}`);
   await sendTelegram(telegram, msg);
 }
 
 async function notifyEntry(st: SymbolState, sig: EntrySignal, candle: Candle): Promise<void> {
+  if (st.silentMode) {
+    console.log(`[Scan] ${formatSymbol(st.symbol)} ENTRY ${sig.direction.toUpperCase()} @ $${fmtPrice(sig.entry)} — ${formatTimeVn(candle.openTime)}`);
+    return;
+  }
   // Vào lệnh là sự kiện quan trọng → LUÔN báo (không cooldown).
-  const msg = buildEntryMessage(sig, candle, st.symbol);
-  console.log(`\n[ENTRY] ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} @ $${fmtPrice(sig.entry)}`);
+  let msg = buildEntryMessage(sig, candle, st.symbol);
+  const p = st.livePos;
+  if (p?.qty != null) {
+    // Đã đặt lệnh THẬT — kèm khối lượng/giá khớp/risk/SL/TP
+    msg += `\n\n💵 *Đã vào lệnh thật*: ${p.qty} @ $${fmtPrice(p.realEntry ?? sig.entry)}`;
+    msg += `\n🛡 SL $${fmtPrice(sig.initialSL)} · 🎯 TP $${fmtPrice(sig.initialTarget)}`;
+    if (p.riskUsd != null) msg += ` · risk $${p.riskUsd.toFixed(2)}`;
+    if (p.tpPlaced === false) msg += `\n⚠️ *TP chưa đặt được trên sàn* — SL vẫn bảo vệ, nhưng hãy đặt TP thủ công.`;
+  }
+  console.log(`\n[ENTRY] ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} @ $${fmtPrice(sig.entry)}${p?.qty != null ? ` · qty ${p.qty}` : ""}`);
   appendJournal({
     event: "entry",
+    real: isTrading(), // true = lệnh THẬT đã đặt trên sàn; false = alert-only (paper)
     symbol: st.symbol,
     dir: sig.direction,
     time: candle.openTime,
@@ -257,6 +302,13 @@ async function notifyEntry(st: SymbolState, sig: EntrySignal, candle: Candle): P
 }
 
 async function notifyExit(st: SymbolState, pos: LivePosition, c: Candle, exitPrice: number, reason: ExitReason): Promise<void> {
+  if (st.silentMode) {
+    const risk = Math.abs(pos.entry - pos.initialSL);
+    const pnl = pos.dir === "long" ? exitPrice - pos.entry : pos.entry - exitPrice;
+    const r = risk > 0 ? pnl / risk : 0;
+    console.log(`[Scan] ${formatSymbol(st.symbol)} EXIT ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${r >= 0 ? "+" : ""}${r.toFixed(2)}R) — ${formatTimeVn(c.openTime)}`);
+    return;
+  }
   const risk = Math.abs(pos.entry - pos.initialSL);
   const pnl = pos.dir === "long" ? exitPrice - pos.entry : pos.entry - exitPrice;
   const grossR = risk > 0 ? pnl / risk : 0;
@@ -275,6 +327,7 @@ async function notifyExit(st: SymbolState, pos: LivePosition, c: Candle, exitPri
   console.log(`\n[EXIT] ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R)`);
   appendJournal({
     event: "exit",
+    real: isTrading(), // true = lệnh THẬT trên sàn; false = alert-only (paper) → dashboard không tính
     symbol: st.symbol,
     dir: pos.dir,
     time: c.openTime,
@@ -289,6 +342,159 @@ async function notifyExit(st: SymbolState, pos: LivePosition, c: Candle, exitPri
   await sendTelegram(telegram, msg);
 }
 
+// ── Cầu nối THỰC THI: chỉ hoạt động khi có trader & KHÔNG ở chế độ silent (replay) ──
+/** Bot đang ở chế độ GIAO DỊCH THẬT (đã preflight OK)? Dùng để gắn cờ `real` cho journal. */
+function isTrading(): boolean {
+  return !!trader && tradingReady;
+}
+function tradingActive(st: SymbolState): boolean {
+  return isTrading() && !st.silentMode;
+}
+
+/** Tổng risk các vị thế ĐANG mở (trừ symbol đang xét) — để áp trần danh mục. */
+function openRiskFracExcluding(symbol: string): number {
+  if (!trader) return 0;
+  let sum = 0;
+  for (const s of states) {
+    if (s.symbol === symbol || !s.livePos) continue;
+    sum += trader.riskFracOf(s.livePos as PosInfo);
+  }
+  return sum;
+}
+
+/** Mở lệnh thật. Trả OpenResult (placed true/false) hoặc null nếu LỖI (đã báo Telegram). */
+async function execOpen(st: SymbolState, sig: EntrySignal): Promise<OpenResult | null> {
+  if (!trader || !st.livePos) return null;
+  try {
+    return await trader.open(st.symbol, sig.entry, st.livePos as PosInfo, openRiskFracExcluding(st.symbol));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Trade] ${formatSymbol(st.symbol)} LỖI mở lệnh:`, msg);
+    await sendTelegram(telegram, `❌ *Lỗi đặt lệnh* ${formatSymbol(st.symbol)} — ${msg}\nBot KHÔNG vào lệnh này.`);
+    return null;
+  }
+}
+
+async function execSyncStops(st: SymbolState): Promise<void> {
+  if (!trader || !st.livePos) return;
+  try {
+    await trader.syncStops(st.symbol, st.livePos as PosInfo);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Trade] ${formatSymbol(st.symbol)} LỖI dời SL:`, msg);
+    await sendTelegram(telegram, `⚠️ *Lỗi dời SL* ${formatSymbol(st.symbol)} — ${msg}\nKiểm tra lệnh chờ trên sàn.`);
+  }
+}
+
+async function execFlatten(st: SymbolState, dir: "long" | "short"): Promise<void> {
+  if (!trader) return;
+  try {
+    await trader.flatten(st.symbol, dir);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Trade] ${formatSymbol(st.symbol)} LỖI đóng lệnh:`, msg);
+    await sendTelegram(telegram, `⚠️ *Lỗi đóng lệnh* ${formatSymbol(st.symbol)} — ${msg}\nKIỂM TRA vị thế trên sàn thủ công!`);
+  }
+}
+
+/** Lưới an toàn: nếu sàn đã FLAT (SL/TP khớp lúc bot offline) mà bot tưởng còn giữ → chốt sổ. */
+async function reconcileFlat(st: SymbolState, candle: Candle): Promise<boolean> {
+  if (!trader || !st.livePos) return false;
+  try {
+    const p = await trader.reconcile(st.symbol);
+    if (Math.abs(p.positionAmt) > 0) return false; // vẫn còn mở trên sàn
+  } catch {
+    return false; // lỗi mạng → để lần sau xử lý
+  }
+  const pos = st.livePos;
+  const dTP = Math.abs(candle.close - pos.target);
+  const dSL = Math.abs(candle.close - pos.sl);
+  const reason: ExitReason = dTP < dSL ? "target" : pos.sl !== pos.initialSL ? "trail" : "sl";
+  const exitPrice = dTP < dSL ? pos.target : pos.sl;
+  console.log(`[Trade] ${formatSymbol(st.symbol)} sàn đã FLAT — chốt sổ (${reason} @ $${fmtPrice(exitPrice)})`);
+  await execFlatten(st, pos.dir); // huỷ lệnh chờ còn sót
+  await notifyExit(st, pos, candle, exitPrice, reason);
+  st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
+  st.livePos = null;
+  st.tracker.reset();
+  return true;
+}
+
+/** Đối soát LÚC KHỞI ĐỘNG: khớp state bot ↔ vị thế thật trên sàn (chống trần/orphan/desync). */
+async function reconcileStartup(): Promise<void> {
+  if (!trader) return;
+  for (const st of states) {
+    let p;
+    try {
+      p = await trader.reconcile(st.symbol);
+    } catch (e) {
+      console.warn(`[Reconcile] ${formatSymbol(st.symbol)} không đọc được vị thế: ${e instanceof Error ? e.message : e}`);
+      continue;
+    }
+    const exHas = Math.abs(p.positionAmt) > 0;
+    const exDir: "long" | "short" = p.positionAmt > 0 ? "long" : "short";
+
+    if (st.livePos && exHas) {
+      if (exDir !== st.livePos.dir) {
+        await sendTelegram(telegram, `⚠️ *Lệch hướng* ${formatSymbol(st.symbol)}: bot=${st.livePos.dir.toUpperCase()} nhưng sàn=${exDir.toUpperCase()}. KIỂM TRA THỦ CÔNG.`);
+        continue;
+      }
+      try {
+        const prot = await trader.ensureProtection(st.symbol, st.livePos as PosInfo);
+        console.log(`[Reconcile] ${formatSymbol(st.symbol)} khớp ${exDir} — SL ${prot.slPrice} TP ${prot.tpPrice}`);
+      } catch (e) {
+        console.warn(`[Reconcile] ${formatSymbol(st.symbol)} ensureProtection lỗi: ${e instanceof Error ? e.message : e}`);
+      }
+    } else if (st.livePos && !exHas) {
+      const last = st.buffer[st.buffer.length - 1];
+      if (last) await reconcileFlat(st, last); // bot giữ nhưng sàn đã flat → chốt sổ
+    } else if (!st.livePos && exHas) {
+      await adoptPosition(st, p); // sàn có vị thế mà bot không biết → nhận quản lý
+    }
+  }
+}
+
+/** Nhận quản lý vị thế "orphan" trên sàn (bot mất state). Đặt SL khẩn cấp nếu sàn thiếu SL. */
+async function adoptPosition(st: SymbolState, p: { positionAmt: number; entryPrice: number }): Promise<void> {
+  if (!trader) return;
+  const dir: "long" | "short" = p.positionAmt > 0 ? "long" : "short";
+  const entry = p.entryPrice;
+  let prot: { slPrice: number | null; tpPrice: number | null };
+  try {
+    prot = await trader.readProtection(st.symbol);
+  } catch {
+    prot = { slPrice: null, tpPrice: null };
+  }
+  let sl = prot.slPrice;
+  let emergency = false;
+  if (sl == null) {
+    try {
+      sl = await trader.placeEmergencyStop(st.symbol, dir, entry);
+      emergency = true;
+    } catch (e) {
+      await sendTelegram(telegram, `❌ *ORPHAN KHÔNG SL* ${formatSymbol(st.symbol)} ${dir.toUpperCase()} @ $${fmtPrice(entry)} — đặt SL khẩn cấp THẤT BẠI. ĐÓNG THỦ CÔNG NGAY (${e instanceof Error ? e.message : e}).`);
+      return;
+    }
+  }
+  // Không có TP thật trên sàn → đặt mốc KHÔNG VỚI TỚI (JSON-safe) để CHỈ SL + thời-gian-giữ quản lý
+  // orphan, tránh đóng nhầm tại một target bịa ra. (Dùng Infinity sẽ thành null khi lưu JSON → nguy hiểm.)
+  const target = prot.tpPrice ?? (dir === "long" ? entry * 100 : entry * 0.01);
+  const last = st.buffer[st.buffer.length - 1];
+  st.livePos = {
+    dir,
+    entryTime: last ? last.openTime : Date.now(),
+    entry,
+    initialSL: sl,
+    sl,
+    target,
+    zoneDesc: "adopted-on-restart",
+    quality: "?",
+    qty: Math.abs(p.positionAmt),
+  };
+  persist();
+  await sendTelegram(telegram, `🔁 *ADOPT vị thế orphan* ${formatSymbol(st.symbol)} ${dir.toUpperCase()} @ $${fmtPrice(entry)}\nSL $${fmtPrice(sl)}${emergency ? " (KHẨN CẤP — sàn thiếu SL)" : ""} · TP $${fmtPrice(target)} · qty ${Math.abs(p.positionAmt)}`);
+}
+
 async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
   st.lastOpenTime = candle.openTime;
   st.buffer.push(candle);
@@ -298,14 +504,25 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
   const zoneSwings = findSwings(zoneTf);
 
   if (st.livePos) {
+    const oldSL = st.livePos.sl;
     const exit = tryExitAndTrail(st.livePos, candle, zoneTf, zoneSwings);
     if (exit) {
+      if (tradingActive(st)) await execFlatten(st, st.livePos.dir);
       await notifyExit(st, st.livePos, candle, exit.exitPrice, exit.reason);
       st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
       st.livePos = null;
       st.tracker.reset();
+      persist();
+      return;
     }
-    persist(); // sl/trail có thể đã dời (tryExitAndTrail mutate pos.sl) hoặc vừa đóng lệnh
+    if (tradingActive(st)) {
+      if (await reconcileFlat(st, candle)) {
+        persist();
+        return;
+      }
+      if (st.livePos.sl !== oldSL) await execSyncStops(st); // trail dời SL → cập nhật trên sàn
+    }
+    persist(); // sl/trail có thể đã dời (tryExitAndTrail mutate pos.sl)
     return;
   }
 
@@ -316,6 +533,46 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
   }
 
   openLivePosition(st, sig, candle);
+  const pos = st.livePos!; // vừa được gán ở openLivePosition
+
+  if (tradingActive(st)) {
+    const res = await execOpen(st, sig);
+    if (!res || !res.placed) {
+      // KHÔNG vào lệnh thật (lỗi/trần danh mục/min) → bỏ setup, giữ flat & cooldown để bot khớp sàn
+      st.livePos = null;
+      st.tracker.reset();
+      st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
+      if (res && res.reason) {
+        await sendTelegram(telegram, `⏭️ *Bỏ qua lệnh* ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} — ${res.reason}`);
+      }
+      persist();
+      return;
+    }
+    pos.qty = res.qty;
+    pos.realEntry = res.avgPrice;
+    pos.riskUsd = res.riskUsd;
+    pos.tpPlaced = res.tpPlaced;
+
+    // Xác nhận ngay: sàn phải có positionAmt > 0 sau khi MARKET khớp
+    try {
+      const exchange = await trader!.reconcile(st.symbol);
+      if (!(Math.abs(exchange.positionAmt) > 0)) {
+        console.error(`[Trade] ${formatSymbol(st.symbol)} XÁC NHẬN THẤT BẠI — positionAmt=0 sau khi MARKET báo khớp`);
+        await sendTelegram(telegram, `❌ *Lỗi xác nhận vị thế* ${formatSymbol(st.symbol)} — MARKET báo khớp nhưng sàn positionAmt=0\\. KIỂM TRA TÀI KHOẢN NGAY\\!`);
+        st.livePos = null;
+        st.tracker.reset();
+        st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
+        persist();
+        return;
+      }
+    } catch (e) {
+      // Lỗi mạng khi xác nhận → cảnh báo nhưng không huỷ state (SL đã đặt trên sàn)
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn(`[Trade] ${formatSymbol(st.symbol)} không xác nhận được vị thế: ${msg}`);
+      await sendTelegram(telegram, `⚠️ *Không xác nhận được vị thế* ${formatSymbol(st.symbol)} — ${msg}\\nSL đã đặt\\. Bot tiếp tục theo dõi\\.`);
+    }
+  }
+
   await notifyEntry(st, sig, candle);
   persist();
 }
@@ -323,7 +580,7 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
 // Tải lịch sử warmup. Nếu resumeFrom hữu hạn (rehydrate sau restart): nến <= resumeFrom là
 // warmup tĩnh, nến > resumeFrom được REPLAY qua onCandleClose để bắt exit/entry đã xảy ra
 // trong lúc bot tắt (downtime). resumeFrom = Infinity → khởi động sạch (toàn bộ là warmup).
-async function prefetchHistory(st: SymbolState, resumeFrom: number): Promise<void> {
+async function prefetchHistory(st: SymbolState): Promise<void> {
   console.log(`[Init] ${formatSymbol(st.symbol)} — tải lịch sử 15m để warmup...`);
   const candles = await fetchKlinesPaged(st.symbol, CONFIG.entryTf, BUFFER_SIZE);
   candles.pop(); // bỏ nến hiện tại (chưa đóng)
@@ -332,26 +589,20 @@ async function prefetchHistory(st: SymbolState, resumeFrom: number): Promise<voi
     return;
   }
 
-  let from = resumeFrom;
-  // Downtime dài hơn cửa sổ buffer → không replay trung thực được; resync về hiện tại.
-  // Vị thế rehydrate (nếu có) vẫn giữ và được poll quản lý tiếp từ giờ.
-  if (from !== Infinity && from < candles[0].openTime) {
-    console.warn(`[Init] ${formatSymbol(st.symbol)} downtime > ${BUFFER_SIZE} nến — resync hiện tại, KHÔNG replay.`);
-    from = Infinity;
-  }
-
-  const warmup = from === Infinity ? candles : candles.filter((c) => c.openTime <= from);
-  const replay = from === Infinity ? [] : candles.filter((c) => c.openTime > from);
-
-  st.buffer.push(...warmup);
-  if (warmup.length) st.lastOpenTime = warmup[warmup.length - 1].openTime;
-
-  if (replay.length) {
-    console.log(`[Init] ${formatSymbol(st.symbol)} replay ${replay.length} nến downtime (bắt exit/entry đã lỡ)...`);
-    for (const c of replay) await onCandleClose(st, c); // tự advance lastOpenTime + persist
-  }
+  // Luôn chạy silent scan toàn bộ buffer — chart là source of truth, không phụ thuộc file.
+  // Reset livePos + tracker trước để strategy tự phát hiện lại từ đầu.
+  st.livePos = null;
+  st.tracker = new SetupTracker();
+  st.buffer = [];
+  console.log(`[Init] ${formatSymbol(st.symbol)} — silent scan ${candles.length} nến để phát hiện vị thế đang mở...`);
+  st.silentMode = true;
+  for (const c of candles) await onCandleClose(st, c);
+  st.silentMode = false;
   const tail = st.buffer[st.buffer.length - 1];
-  const holding = st.livePos ? ` · ĐANG GIỮ ${st.livePos.dir.toUpperCase()} (entry $${fmtPrice(st.livePos.entry)})` : "";
+  const lp = st.livePos as LivePosition | null;
+  const holding = lp
+    ? ` · PHÁT HIỆN vị thế ${lp.dir.toUpperCase()} (entry $${fmtPrice(lp.entry)})`
+    : " · flat";
   console.log(`[Init] ${formatSymbol(st.symbol)} OK — ${st.buffer.length} nến (tới ${tail ? formatTimeVn(tail.openTime) : "?"})${holding}`);
 }
 
@@ -359,9 +610,9 @@ async function prefetchHistory(st: SymbolState, resumeFrom: number): Promise<voi
 // bù gap khi bot lỡ vài nến (mạng chập / 429 / downtime ngắn) — backtest xử lý mọi nến nên
 // live cũng phải replay đủ, tránh bỏ sót exit/entry trong nến bị nhỡ.
 async function fetchClosedSince(symbol: string, since: number): Promise<Candle[]> {
-  const res = await axios.get(FAPI_KLINES, {
+  const res = await fapiAxios.get(FAPI_KLINES, {
     params: { symbol: symbol.toUpperCase(), interval: CONFIG.entryTf, limit: MAX_CATCHUP_BARS },
-    timeout: 15000,
+    timeout: 30000,
   });
   const arr = res.data as any[];
   if (!Array.isArray(arr)) return [];
@@ -407,11 +658,56 @@ function startHealthMonitor(): void {
   }, 60_000);
 }
 
+// ── Giám sát KẾT NỐI BINANCE (API ký) — ping read-only định kỳ ──
+// Bắt sớm trường hợp key/IP chết (đổi IP → -2015), mất mạng, 451… mà không cần đợi sự kiện trade.
+let binanceDown = false;
+const BINANCE_HEALTH_MS = 5 * 60 * 1000;
+
+function startBinanceHealthMonitor(): void {
+  if (!binance) return;
+  const check = async (): Promise<void> => {
+    try {
+      await binance.getEquity(); // signed read — xác thực kết nối + key + IP
+      if (binanceDown) {
+        binanceDown = false;
+        console.log("[Health] ✅ Kết nối Binance phục hồi.");
+        await sendTelegram(telegram, `✅ *Kết nối Binance phục hồi*\n🕐 ${formatTimeVn(Date.now())}`);
+      }
+    } catch (err: any) {
+      if (binanceDown) return; // đã báo rồi, không spam
+      binanceDown = true;
+      const code = err?.response?.data?.code;
+      const msg = err?.response?.data?.msg ?? (err instanceof Error ? err.message : String(err));
+      let hint = "";
+      if (code === -2015 || code === -2014) hint = "\n⚠️ IP máy có thể đã ĐỔI và không còn trong whitelist API, hoặc key thiếu quyền Futures.";
+      else if (code === -1021) hint = "\n⚠️ Lệch đồng hồ máy (timestamp).";
+      else if (!err?.response) hint = "\n⚠️ Mất mạng hoặc Binance bị chặn (451) từ IP này.";
+      console.error(`[Health] 🔌 Mất kết nối Binance${code ? ` (code ${code})` : ""}: ${msg}`);
+      await sendTelegram(
+        telegram,
+        `🔌 *MẤT KẾT NỐI BINANCE*${code ? ` (code ${code})` : ""} — ${msg}${hint}\n\n` +
+          `SL/TP đã đặt trên sàn VẪN bảo vệ vị thế, nhưng bot KHÔNG vào lệnh mới / trail / time-exit cho tới khi kết nối lại.\n🕐 ${formatTimeVn(Date.now())}`
+      );
+    }
+  };
+  setInterval(() => void check(), BINANCE_HEALTH_MS);
+  console.log(`[Health] ✅ Giám sát kết nối Binance mỗi ${BINANCE_HEALTH_MS / 60000} phút`);
+}
+
+// Cổng rate-limit TOÀN CỤC: 429/418 là giới hạn theo IP (mọi symbol chung 1 IP).
+// Khi dính, cho TẤT CẢ symbol cùng nghỉ tới mốc này — tránh thundering herd (4 symbol
+// cùng retry sẽ giữ IP bị giới hạn, thậm chí leo thang 429→418 ban IP).
+let rateLimitedUntil = 0;
+
 function startPolling(st: SymbolState, initialDelayMs = 0): void {
   console.log(
     `[Poll] ✅ Theo dõi ${formatSymbol(st.symbol)} ${CONFIG.entryTf} (Futures REST, mỗi ${POLL_INTERVAL_MS / 1000}s)`
   );
   const tick = async (): Promise<void> => {
+    if (Date.now() < rateLimitedUntil) return; // đang trong cửa sổ nghỉ rate-limit chung
+    if (st.ticking) return; // tick trước CHƯA xong (đặt lệnh/replay chậm) → bỏ nhịp, tránh DOUBLE-OPEN
+    st.ticking = true;
+    try {
     let retryDelay = 5_000;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
@@ -422,8 +718,17 @@ function startPolling(st: SymbolState, initialDelayMs = 0): void {
       } catch (err: any) {
         const status = err?.response?.status;
         const msg = err instanceof Error ? err.message : String(err);
-        if (status === 429 && attempt < 2) {
-          console.warn(`[Poll] ${formatSymbol(st.symbol)} 429 — thử lại sau ${retryDelay / 1000}s`);
+        if (status === 429 || status === 418) {
+          // Tôn trọng Retry-After của Binance; thiếu header thì backoff lũy thừa.
+          const ra = parseInt(err?.response?.headers?.["retry-after"] ?? "", 10);
+          const waitMs = Number.isFinite(ra) && ra > 0 ? ra * 1000 : retryDelay;
+          rateLimitedUntil = Date.now() + waitMs; // chặn MỌI symbol cùng nghỉ
+          console.warn(`[Poll] ${formatSymbol(st.symbol)} ${status} rate-limit IP — TẤT CẢ nghỉ ${Math.round(waitMs / 1000)}s`);
+          return; // không retry vòng trong: gate sẽ chặn các tick kế tiếp
+        }
+        const isRetryable = err?.code === "ECONNABORTED" || err?.code === "ETIMEDOUT" || err?.code === "ECONNRESET" || !status;
+        if (isRetryable && attempt < 2) {
+          console.warn(`[Poll] ${formatSymbol(st.symbol)} ${err?.code ?? "timeout"} — thử lại sau ${retryDelay / 1000}s`);
           await new Promise((r) => setTimeout(r, retryDelay));
           retryDelay *= 2;
         } else {
@@ -431,6 +736,9 @@ function startPolling(st: SymbolState, initialDelayMs = 0): void {
           return;
         }
       }
+    }
+    } finally {
+      st.ticking = false; // luôn mở khoá dù tick thành công/lỗi/return giữa chừng
     }
   };
   // Stagger: delay khởi động để các symbol không poll cùng lúc
@@ -477,15 +785,25 @@ function startCommandListener(): void {
   if (!telegram.enabled) return;
   let offset = 0;
   let drained = false;
+  let failStreak = 0;
 
   const tick = async (): Promise<void> => {
     const updates = await getTelegramUpdates(telegram, offset);
+    if (updates === null) {
+      // getTelegramUpdates trả null khi lỗi mạng — backoff theo streak
+      failStreak++;
+      const delay = Math.min(COMMAND_POLL_MS * Math.pow(2, failStreak - 1), 60_000);
+      setTimeout(() => void tick(), delay);
+      return;
+    }
+    failStreak = 0;
     for (const u of updates) {
       offset = Math.max(offset, u.id + 1);
       if (drained === false) continue; // bỏ qua backlog cũ ở lần đầu (chỉ để set offset)
       if (u.chatId !== telegram.chatId) continue; // chỉ trả lời chủ kênh
       const cmd = u.text.trim().toLowerCase().split(/[\s@]/)[0];
       if (["/status", "/positions", "/start", "/help"].includes(cmd)) {
+        console.log(`[Cmd] ${cmd} từ ${u.chatId}`);
         await sendTelegram(telegram, buildStatusMessage());
       }
     }
@@ -512,13 +830,56 @@ async function main(): Promise<void> {
   }
   states.push(...SYMBOLS.map((s) => createState(s, saved[s])));
 
-  await sendTelegram(telegram, buildStartupMessage(SYMBOLS));
   for (const st of states) {
-    // resumeFrom = lastOpenTime đã lưu → replay nến downtime; chưa có state → Infinity (khởi động sạch)
-    const resumeFrom = saved[st.symbol]?.lastOpenTime ?? Infinity;
-    await prefetchHistory(st, resumeFrom);
+    await prefetchHistory(st);
   }
   persist(); // ghi ngay lastOpenTime/vị thế sau warmup để restart nhanh resume đúng (chưa cần đợi nến mới)
+
+  // Khởi tạo lớp THỰC THI lệnh thật (nếu bật): preflight kết nối → đối soát vị thế → bật.
+  if (trader && binance) {
+    const testnet = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";
+    try {
+      const pf = await trader.preflight(SYMBOLS);
+      for (const w of pf.warnings) console.warn(`[Preflight] ⚠️ ${w}`);
+      if (!pf.ok) {
+        console.error(`[Preflight] ❌ ${pf.errors.join(" | ")} — chạy ALERT-ONLY.`);
+        await sendTelegram(telegram, `❌ *Không bật được giao dịch*\n${pf.errors.map((e) => "• " + e).join("\n")}\nBot chạy ALERT-ONLY.`);
+      } else {
+        tradingReady = true;
+        await reconcileStartup(); // khớp state bot ↔ sàn TRƯỚC khi nhận nến mới
+        console.log(`[Trade] ✅ THỰC THI BẬT (${testnet ? "TESTNET" : "MAINNET ⚠️"}) · equity $${pf.equity.toFixed(2)} · risk ${(execCfg.riskPct * 100).toFixed(1)}%×sizeMult · trần ${(execCfg.maxPortfolioRiskPct * 100).toFixed(0)}% · ${execCfg.marginType} ${execCfg.leverage}x`);
+        const warnTxt = pf.warnings.length ? `\n⚠️ ${pf.warnings.join("; ")}` : "";
+        await sendTelegram(
+          telegram,
+          `💰 *Giao dịch thật: BẬT* (${testnet ? "TESTNET" : "⚠️ MAINNET"})\nEquity $${pf.equity.toFixed(2)} · risk ${(execCfg.riskPct * 100).toFixed(1)}%×sizeMult/lệnh · trần ${(execCfg.maxPortfolioRiskPct * 100).toFixed(0)}%\n${execCfg.marginType} ${execCfg.leverage}x${warnTxt}`
+        );
+        // Đồng bộ lại giờ định kỳ — chống lệch đồng hồ VM tích luỹ theo ngày (lỗi -1021).
+        setInterval(() => void trader.syncTime().catch(() => {}), 30 * 60 * 1000);
+        startBinanceHealthMonitor(); // báo Telegram khi mất/khôi phục kết nối Binance
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Trade] ❌ preflight thất bại — chuyển ALERT-ONLY:", msg);
+      await sendTelegram(telegram, `❌ *Lỗi kết nối Binance* — ${msg}\nBot chạy ALERT-ONLY (không đặt lệnh).`);
+    }
+  } else {
+    console.log(`[Trade] Alert-only (TRADING_ENABLED=${TRADING_ENABLED}${TRADING_ENABLED && !binance ? ", thiếu API key" : ""}).`);
+  }
+
+  // Lệnh phát hiện từ chart MỚI HƠN lệnh đã lưu = vào trong lúc bot offline → silent scan
+  // đã nuốt alert "MỞ LỆNH", nên báo riêng để user không bị mất thông báo vào lệnh.
+  // So sánh entryTime để KHÔNG spam lại lệnh đã biết từ trước mỗi lần restart.
+  const openedWhileOffline = states.filter((st) => {
+    if (!st.livePos) return false;
+    const prev = saved[st.symbol]?.livePos;
+    return !prev || st.livePos.entryTime > prev.entryTime;
+  });
+
+  // Gửi startup message SAU khi đã replay chart — trạng thái vị thế đã chính xác
+  await sendTelegram(telegram, buildStartupMessage(SYMBOLS) + "\n\n" + buildStatusMessage());
+  for (const st of openedWhileOffline) {
+    await sendTelegram(telegram, buildOfflineEntryMessage(st.livePos!, st.symbol));
+  }
   startCommandListener();
   startHealthMonitor();
   for (let i = 0; i < states.length; i++) {

@@ -19,6 +19,9 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    volumes:
+      - ./bot-state.json:/app/bot-state.json
+      - ./trades-live.jsonl:/app/trades-live.jsonl
     restart: unless-stopped
 
   swing-chart:
@@ -33,4 +36,25 @@ services:
       - 1.1.1.1
     ports:
       - "3847:3847"
+    restart: unless-stopped
+
+  # Dashboard theo dõi giao dịch (đọc state + tài khoản Binance read-only).
+  # ⚠️ Cổng 3848 chỉ bind localhost — KHÔNG mở ra Internet (hiển thị số dư/vị thế).
+  #    Truy cập từ xa qua SSH tunnel: ssh -L 3848:localhost:3848 user@vm
+  swing-dashboard:
+    build: .
+    image: swing-alert-bot
+    container_name: swing-dashboard
+    command: node dashboard.js
+    env_file: .env.local
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    volumes:
+      - ./bot-state.json:/app/bot-state.json:ro
+      - ./trades-live.jsonl:/app/trades-live.jsonl:ro
+    ports:
+      - "127.0.0.1:3848:3848"
     restart: unless-stopped

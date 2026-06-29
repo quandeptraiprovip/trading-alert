@@ -4,6 +4,12 @@
  */
 
 import axios from "axios";
+import * as https from "https";
+import * as dns from "dns";
+
+// Force IPv4 — IPv6 bị block bởi Telegram API trên nhiều môi trường
+dns.setDefaultResultOrder("ipv4first");
+const httpsAgent = new https.Agent({ family: 4, keepAlive: true, keepAliveMsecs: 30_000 });
 import { CONFIG, TF_MS } from "./strategy";
 import type { Candle, EntrySignal, PendingSetup } from "./strategy";
 
@@ -61,7 +67,7 @@ export async function sendTelegram(
         text: message,
         parse_mode: parseMode,
         disable_web_page_preview: true,
-      }, { timeout: 15000 });
+      }, { timeout: 15000, httpsAgent });
       return true;
     } catch (err: unknown) {
       lastErr = err;
@@ -81,12 +87,13 @@ export async function sendTelegram(
 export async function getTelegramUpdates(
   cfg: TelegramConfig,
   offset: number
-): Promise<{ id: number; text: string; chatId: string }[]> {
+): Promise<{ id: number; text: string; chatId: string }[] | null> {
   if (!cfg.enabled) return [];
   try {
     const res = await axios.get(`https://api.telegram.org/bot${cfg.botToken}/getUpdates`, {
       params: { offset, timeout: 0, allowed_updates: JSON.stringify(["message"]) },
       timeout: 15000,
+      httpsAgent,
     });
     const result = (res.data?.result ?? []) as any[];
     return result.map((u) => ({
@@ -95,9 +102,14 @@ export async function getTelegramUpdates(
       chatId: String(u.message?.chat?.id ?? ""),
     }));
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[Telegram] getUpdates lỗi:", msg);
-    return [];
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      const data = err.response?.data;
+      console.error("[Telegram] getUpdates lỗi:", err.code ?? err.message, status ? `HTTP ${status}` : "", data ? JSON.stringify(data) : "");
+    } else {
+      console.error("[Telegram] getUpdates lỗi:", String(err));
+    }
+    return null;
   }
 }
 
@@ -112,8 +124,6 @@ export function buildStartupMessage(symbols: string[]): string {
     `1️⃣ *ARM* — giá tap vùng FRESH, chờ BOS 15m`,
     `2️⃣ *MỞ LỆNH* — xác nhận BOS + volume/delta`,
     `3️⃣ *RA LỆNH* — chạm SL / TP / trail / hết hạn giữ`,
-    ``,
-    `💬 Gõ */status* để xem lệnh đang giữ.`,
     ``,
     `_Thời gian: ${formatTimeVn(Date.now())}_`,
   ].join("\n");
@@ -151,10 +161,55 @@ export function buildEntryMessage(sig: EntrySignal, candle: Candle, symbol: stri
     `🎯 TP    : $${fmtPrice(sig.initialTarget)}  (${tpPct.toFixed(2)}%, ~${sig.rr.toFixed(1)}R)`,
   ];
   if (volLine) lines.push(volLine);
+  const qIcon = sig.quality === "MẠNH" ? "🟩" : sig.quality === "KHÁ" ? "🟨" : "🟧";
+  lines.push(`${qIcon} Chất lượng: *${sig.quality}* (displ ${sig.zone.displAtr.toFixed(1)} ATR) → size đề xuất *${sig.sizeMult}×*`);
   lines.push(``, `📐 ${sig.reason}`, `🕐 ${formatTimeVn(candle.openTime)}`, ``);
   lines.push(
     `_Quản lý: ${CONFIG.breakevenEnabled ? `dời SL về hoà vốn @ +${CONFIG.breakevenAtR}R, ` : ""}trail swing 1h sau +${CONFIG.trailStartR}R._`
   );
+  return lines.join("\n");
+}
+
+/**
+ * Báo lệnh được PHÁT HIỆN từ chart lúc khởi động (vào lệnh trong khi bot offline).
+ * Khác buildEntryMessage: dùng LivePosition (đã warmup, không còn EntrySignal/nến gốc) và
+ * nêu rõ SL có thể đã trail so với SL gốc.
+ */
+export function buildOfflineEntryMessage(
+  pos: {
+    dir: "long" | "short";
+    entryTime: number;
+    entry: number;
+    initialSL: number;
+    sl: number;
+    target: number;
+    zoneDesc: string;
+    sizeMult?: number;
+    quality?: string;
+  },
+  symbol: string
+): string {
+  const dir = pos.dir === "long" ? "🟢 *LONG*" : "🔴 *SHORT*";
+  const risk = Math.abs(pos.entry - pos.initialSL);
+  const slPct = (risk / pos.entry) * 100;
+  const tpPct = (Math.abs(pos.target - pos.entry) / pos.entry) * 100;
+  const rr = risk > 0 ? Math.abs(pos.target - pos.entry) / risk : 0;
+  const trailed = pos.sl !== pos.initialSL;
+  const lines = [
+    `${dir}  *${formatSymbol(symbol)}* Perp`,
+    ``,
+    `📌 *PHÁT HIỆN lệnh đang mở* (vào lúc bot offline)`,
+    `🎯 Entry : $${fmtPrice(pos.entry)}`,
+    trailed
+      ? `🛑 SL    : $${fmtPrice(pos.sl)}  (gốc $${fmtPrice(pos.initialSL)}, ${slPct.toFixed(2)}%)`
+      : `🛑 SL    : $${fmtPrice(pos.initialSL)}  (${slPct.toFixed(2)}%)`,
+    `🎯 TP    : $${fmtPrice(pos.target)}  (${tpPct.toFixed(2)}%, ~${rr.toFixed(1)}R)`,
+  ];
+  if (pos.quality && pos.sizeMult != null) {
+    const qIcon = pos.quality === "MẠNH" ? "🟩" : pos.quality === "KHÁ" ? "🟨" : "🟧";
+    lines.push(`${qIcon} Chất lượng: *${pos.quality}* → size đề xuất *${pos.sizeMult}×*`);
+  }
+  lines.push(``, `📐 ${pos.zoneDesc}`, `🕐 Vào lệnh: ${formatTimeVn(pos.entryTime)}`);
   return lines.join("\n");
 }
 

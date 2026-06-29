@@ -6,6 +6,7 @@
     "start": "ts-node btc-alert-bot.ts",
     "dev": "nodemon --exec ts-node btc-alert-bot.ts",
     "chart": "ts-node chart-server.ts",
+    "dashboard": "ts-node dashboard-server.ts",
     "telegram:test": "ts-node telegram-test.ts",
     "web": "next dev"
   },

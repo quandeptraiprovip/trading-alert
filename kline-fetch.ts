@@ -84,7 +84,7 @@ async function fetchOnePage(
   };
   if (endTime != null) params.endTime = endTime;
   if (startTime != null) params.startTime = startTime;
-  const res = await axios.get(src.url, { params, timeout: 15000 });
+  const res = await axios.get(src.url, { params, timeout: 30000 });
   return parseKlineBatch(res.data as unknown[]);
 }
 
