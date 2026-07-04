@@ -149,7 +149,13 @@ export class LiveTrader {
    * Mở vị thế thật: kiểm tra trần risk → tính khối lượng → MARKET vào lệnh → ĐẶT SL (bắt buộc) → TP.
    * Nếu SL không đặt được sau khi đã khớp MARKET: ĐÓNG KHẨN CẤP, trả placed=false (không để vị thế trần).
    */
-  async open(symbol: string, entry: number, pos: PosInfo, openRiskFrac: number): Promise<OpenResult> {
+  async open(
+    symbol: string,
+    entry: number,
+    pos: PosInfo,
+    openRiskFrac: number,
+    opts?: { noTp?: boolean } // noTp: chiến lược trailing thuần (Turtle) — không đặt TP
+  ): Promise<OpenResult> {
     const riskFrac = this.riskFracOf(pos);
     if (openRiskFrac + riskFrac > this.cfg.maxPortfolioRiskPct + 1e-9) {
       return { placed: false, reason: `trần danh mục (${((openRiskFrac + riskFrac) * 100).toFixed(0)}% > ${(this.cfg.maxPortfolioRiskPct * 100).toFixed(0)}%)` };
@@ -188,10 +194,12 @@ export class LiveTrader {
 
     // 3) TP (không bắt buộc — SL đã bảo vệ; bot/đối soát vẫn chốt target nếu thiếu TP)
     let tpPlaced = true;
-    try {
-      await this.retry(() => this.api.takeProfitMarketClose(symbol, closeSide, pos.target));
-    } catch {
-      tpPlaced = false;
+    if (!opts?.noTp) {
+      try {
+        await this.retry(() => this.api.takeProfitMarketClose(symbol, closeSide, pos.target));
+      } catch {
+        tpPlaced = false;
+      }
     }
 
     return { placed: true, qty: fill.executedQty, avgPrice, riskUsd, equity, tpPlaced };
@@ -201,7 +209,7 @@ export class LiveTrader {
    * Dời SL (trail/breakeven) AN TOÀN: đặt SL MỚI trước → huỷ các SL cũ → đảm bảo còn đúng 1 TP.
    * Không phụ thuộc orderId lưu RAM (đọc openOrders) → đúng cả sau restart.
    */
-  async syncStops(symbol: string, pos: PosInfo): Promise<void> {
+  async syncStops(symbol: string, pos: PosInfo, opts?: { noTp?: boolean }): Promise<void> {
     const closeSide = sideToClose(pos.dir);
     const newSlId = await this.api.stopMarketClose(symbol, closeSide, pos.sl); // đặt trước, không có cửa sổ trần
     const orders = await this.api.getOpenAlgoOrders(symbol);
@@ -213,7 +221,7 @@ export class LiveTrader {
         hasTp = true;
       }
     }
-    if (!hasTp) {
+    if (!hasTp && !opts?.noTp) {
       try {
         await this.api.takeProfitMarketClose(symbol, closeSide, pos.target);
       } catch {

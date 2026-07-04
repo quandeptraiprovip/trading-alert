@@ -49,6 +49,7 @@ import {
 import { loadState, saveState, appendJournal, PersistedSymbol } from "./live-state";
 import { createBinanceFromEnv } from "./binance-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
+import { TurtleLive } from "./turtle-live";
 
 const telegram = loadTelegramConfig();
 
@@ -111,6 +112,33 @@ type SymbolState = {
 
 // Tất cả state symbol — module-level để command listener (/status) đọc được.
 const states: SymbolState[] = [];
+
+// ── Lớp chiến lược TURTLE (turtle.ts) chạy song song — xem turtle-live.ts ──
+// Loại trừ theo symbol với SMC khi giao dịch thật (SL closePosition đóng cả symbol).
+const TURTLE_ENABLED = (process.env.TURTLE_ENABLED ?? "true").toLowerCase() === "true";
+const TURTLE_TRADING_ENABLED = (process.env.TURTLE_TRADING_ENABLED ?? "true").toLowerCase() === "true";
+const TURTLE_RISK_PCT = (() => {
+  const n = parseFloat(process.env.TURTLE_RISK_PCT ?? "1");
+  return (Number.isFinite(n) && n > 0 ? n : 1) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
+})();
+const TURTLE_SYMBOLS = (process.env.TURTLE_SYMBOLS ?? "btcusdt,ethusdt,solusdt,xrpusdt,dogeusdt,bnbusdt,adausdt,avaxusdt")
+  .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+const turtleTrader = binance && TURTLE_TRADING_ENABLED ? new LiveTrader(binance, { ...execCfg, riskPct: TURTLE_RISK_PCT }) : null;
+const turtle: TurtleLive | null = TURTLE_ENABLED
+  ? new TurtleLive({
+      symbols: TURTLE_SYMBOLS,
+      api: binance,
+      trader: turtleTrader,
+      telegram,
+      riskPct: TURTLE_RISK_PCT,
+      maxPortfolioRiskPct: execCfg.maxPortfolioRiskPct,
+      leverage: execCfg.leverage,
+      otherHoldsSymbol: (sym) => isTrading() && states.some((s) => s.symbol === sym && s.livePos),
+      otherOpenRiskFrac: () =>
+        trader ? states.reduce((sum, s) => sum + (s.livePos ? trader.riskFracOf(s.livePos as PosInfo) : 0), 0) : 0,
+      isTradingReady: () => tradingReady,
+    })
+  : null;
 
 function createState(symbol: string, saved?: PersistedSymbol): SymbolState {
   return {
@@ -351,7 +379,7 @@ function tradingActive(st: SymbolState): boolean {
   return isTrading() && !st.silentMode;
 }
 
-/** Tổng risk các vị thế ĐANG mở (trừ symbol đang xét) — để áp trần danh mục. */
+/** Tổng risk các vị thế ĐANG mở (trừ symbol đang xét) — để áp trần danh mục CHUNG với turtle. */
 function openRiskFracExcluding(symbol: string): number {
   if (!trader) return 0;
   let sum = 0;
@@ -359,7 +387,7 @@ function openRiskFracExcluding(symbol: string): number {
     if (s.symbol === symbol || !s.livePos) continue;
     sum += trader.riskFracOf(s.livePos as PosInfo);
   }
-  return sum;
+  return sum + (turtle?.openRiskFrac() ?? 0);
 }
 
 /** Mở lệnh thật. Trả OpenResult (placed true/false) hoặc null nếu LỖI (đã báo Telegram). */
@@ -529,6 +557,19 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
   const sig = evaluateNewEntry(st, candle);
   if (!sig) {
     persist(); // lưu lastOpenTime tiến lên (để resume đúng sau restart)
+    return;
+  }
+
+  // Loại trừ symbol với lớp Turtle: SL closePosition của 2 lớp trên cùng symbol đóng lẫn nhau.
+  // Chỉ chặn khi turtle giữ vị thế THẬT (vị thế "giấy" không chặn).
+  if (turtle?.hasRealPosition(st.symbol)) {
+    console.log(`[Entry] ${formatSymbol(st.symbol)} bỏ tín hiệu ${sig.direction.toUpperCase()} — Turtle đang giữ symbol`);
+    if (!st.silentMode) {
+      await sendTelegram(telegram, `⏭️ *Bỏ qua lệnh* ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} — lớp Turtle đang giữ symbol này.`);
+    }
+    st.tracker.reset();
+    st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
+    persist();
     return;
   }
 
@@ -777,7 +818,9 @@ function buildStatusMessage(): string {
       lines.push(`⚪ *${tag}* — flat${cd}`, ``);
     }
   }
-  lines.push(`_Đang mở: ${open}/${states.length} · ${formatTimeVn(Date.now())}_`);
+  const tLines = turtle?.statusLines() ?? [];
+  if (tLines.length) lines.push(`— 🐢 Turtle —`, ``, ...tLines);
+  lines.push(`_Đang mở: ${open}/${states.length} SMC + ${tLines.length ? Math.ceil(tLines.length / 3) : 0} turtle · ${formatTimeVn(Date.now())}_`);
   return lines.join("\n");
 }
 
@@ -817,7 +860,8 @@ function startCommandListener(): void {
 
 async function main(): Promise<void> {
   console.log("🤖 Swing Alert Bot khởi động...");
-  console.log(`📈 ${SYMBOLS.map(formatSymbol).join(", ")} | entry ${CONFIG.entryTf} | bias ${CONFIG.htfBiasTf}/${CONFIG.htfZoneTf}`);
+  console.log(`📈 SMC: ${SYMBOLS.map(formatSymbol).join(", ")} | entry ${CONFIG.entryTf} | bias ${CONFIG.htfBiasTf}/${CONFIG.htfZoneTf}`);
+  if (TURTLE_ENABLED) console.log(`🐢 Turtle: ${TURTLE_SYMBOLS.map(formatSymbol).join(", ")} | 4h | risk ${(TURTLE_RISK_PCT * 100).toFixed(1)}%/unit${TURTLE_TRADING_ENABLED ? "" : " | KHÔNG trade (alert-only)"}`);
   console.log(`📬 Telegram: ${telegram.enabled ? "Đã cấu hình ✅" : "Chưa cấu hình (log ra console)"}`);
   console.log(`   Luồng: ARM → MỞ LỆNH → RA LỆNH (logic thoát = backtest)`);
   console.log("");
@@ -839,7 +883,9 @@ async function main(): Promise<void> {
   if (trader && binance) {
     const testnet = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";
     try {
-      const pf = await trader.preflight(SYMBOLS);
+      // Preflight cả symbol turtle (nếu turtle trade thật) — set margin/đòn bẩy/filter một lần
+      const pfSymbols = [...new Set([...SYMBOLS, ...(turtle && turtleTrader ? TURTLE_SYMBOLS : [])])];
+      const pf = await trader.preflight(pfSymbols);
       for (const w of pf.warnings) console.warn(`[Preflight] ⚠️ ${w}`);
       if (!pf.ok) {
         console.error(`[Preflight] ❌ ${pf.errors.join(" | ")} — chạy ALERT-ONLY.`);
@@ -864,6 +910,19 @@ async function main(): Promise<void> {
     }
   } else {
     console.log(`[Trade] Alert-only (TRADING_ENABLED=${TRADING_ENABLED}${TRADING_ENABLED && !binance ? ", thiếu API key" : ""}).`);
+  }
+
+  // Khởi động lớp TURTLE sau khi lớp thực thi & đối soát SMC đã xong (turtle tự đối soát riêng).
+  if (turtle) {
+    try {
+      await turtle.start(SYMBOLS);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Turtle] ❌ khởi động thất bại — turtle tắt phiên này:", msg);
+      await sendTelegram(telegram, `🐢❌ *Turtle không khởi động được* — ${msg}\nLớp SMC vẫn chạy bình thường.`);
+    }
+  } else {
+    console.log("[Turtle] Tắt (TURTLE_ENABLED=false).");
   }
 
   // Lệnh phát hiện từ chart MỚI HƠN lệnh đã lưu = vào trong lúc bot offline → silent scan
