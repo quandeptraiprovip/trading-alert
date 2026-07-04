@@ -15,7 +15,12 @@
  *   3. Stop ban đầu: entry ∓ atrMult × ATR  → đơn vị risk (R) = atrMult×ATR (kiểu Turtle).
  *   4. Thoát: trailing theo ĐÁY/ĐỈNH Donchian `dcExit` nến (Turtle exit) — để trend chạy;
  *      hoặc time-stop maxHold. Không target cố định (right-tail là nguồn lợi nhuận).
- *   5. 1 lệnh / symbol tại một thời điểm. Tần suất ~1 lệnh/ngày đạt được nhờ rổ đa-symbol.
+ *   5. 1 VỊ THẾ / symbol, nhưng PYRAMIDING kiểu Turtle: thêm unit mỗi 0.5×ATR chạy có lợi
+ *      (tối đa 4 unit, mỗi unit có SL/R riêng, trail chandelier chung). Unit thêm có expectancy
+ *      CAO hơn lệnh mới (điều kiện = trend đang chạy) → tần suất ~1.1 lệnh/ngày mà R/lệnh tăng.
+ *   6. BTC REGIME GATE: chỉ vào LONG khi SMA10d>SMA100d trên BTC 4h (đại diện regime cả rổ);
+ *      short tự do. Audit 2026-07-04 (exp-turtle-levers.ts, 1015d): NET +233R vs +80R baseline,
+ *      exp 0.207 vs 0.142, era & perturbation đậu; mở rộng rổ >8 coin thì LOẠI (pha loãng exp).
  *
  * Chi phí (taker+slippage+funding) tái sử dụng CONFIG.costs → ra NET R như backtest.ts.
  *
@@ -41,14 +46,29 @@ export const T = {
   maxHoldDays: 60, // time-stop (trend dài có thể giữ lâu)
   cooldownBars: 0, // breakout re-enter nhanh
   allowShort: true,
+
+  // ── Đòn bẩy tùy chọn (0 = tắt) — audit 2026-07-04: exp-turtle-levers.ts ──
+  entryBufferAtr: 0, // vào lệnh cần close vượt kênh Donchian + buffer×ATR (đã test: +exp nhưng thừa khi có gate)
+  trendLen2: 0, // EMA lọc xu hướng THỨ HAI dài hơn (đã test: thừa khi có BTC gate)
+  confirmVolMult: 0, // volume nến breakout ≥ k × SMA20(volume) nến trước (đã test: cải thiện nhỏ, không giữ)
+  // PYRAMIDING kiểu Turtle — BẬT (audit 1015d: NET +79.6R→+233.3R, exp 0.142→0.207, ~1.1 lệnh/ngày,
+  // maxDD 20.2%→23.5% @1%/unit vì 1 vị thế chứa tối đa 4R risk; perturbation 30/30 thắng baseline):
+  pyramidStepAtr: 0.5, // thêm 1 unit mỗi khi giá chạy 0.5×ATR có lợi kể từ fill gần nhất
+  pyramidMaxUnits: 4, // tổng unit tối đa mỗi vị thế (kiểu Turtle cổ điển)
+  // BTC REGIME GATE cho LONG (mọi symbol): chỉ long khi SMA10d > SMA100d trên BTC 4h.
+  // Short KHÔNG gate (gate short đã test là hại). Cùng audit trên: exp +46%, era 0.19/0.20/0.24 phẳng.
+  btcGateFast: 60, // SMA nhanh, nến 4h (= 10 ngày)
+  btcGateSlow: 600, // SMA chậm, nến 4h (= 100 ngày); 0 = tắt gate
 };
+
+const VOL_SMA_LEN = 20;
 
 const FUNDING_INTERVAL_MS = 8 * 60 * 60 * 1000;
 
 // ─────────────────────────────────────────────
 // INDICATORS (forward-only, không lookahead)
 // ─────────────────────────────────────────────
-function ema(values: number[], len: number): number[] {
+export function ema(values: number[], len: number): number[] {
   const out = new Array(values.length).fill(0);
   const k = 2 / (len + 1);
   let prev = values[0];
@@ -61,7 +81,7 @@ function ema(values: number[], len: number): number[] {
 }
 
 /** ATR (Wilder) — atr[i] dùng dữ liệu tới nến i (đã đóng). */
-function atrSeries(c: Candle[], len: number): number[] {
+export function atrSeries(c: Candle[], len: number): number[] {
   const tr = new Array(c.length).fill(0);
   for (let i = 0; i < c.length; i++) {
     if (i === 0) tr[i] = c[i].high - c[i].low;
@@ -119,26 +139,76 @@ export interface Trade {
 // ─────────────────────────────────────────────
 // BACKTEST 1 symbol
 // ─────────────────────────────────────────────
-export function runTurtle(symbol: string, c: Candle[], p = T): Trade[] {
+/** Tham số runTurtle = T + hook tuỳ chọn cho thí nghiệm (gate entry theo thời điểm/hướng). */
+export type TurtleParams = typeof T & { gate?: (barOpenTime: number, dir: "long" | "short") => boolean };
+
+/**
+ * BTC regime gate cho LONG: chỉ cho vào lệnh LONG (mọi symbol) khi SMA(fast) > SMA(slow)
+ * trên nến BTC 4h ĐÃ ĐÓNG gần nhất trước thời điểm entry (không lookahead). SHORT tự do —
+ * gate short đã test là HẠI (short có lời của hệ nằm ở pha BTC còn bull/chop).
+ * Chưa đủ lịch sử cho SMA slow → cho qua (permissive).
+ */
+export function buildBtcGateLongs(btc: Candle[], fastLen: number, slowLen: number) {
+  const sma = (len: number) => {
+    const out = new Array(btc.length).fill(NaN);
+    let s = 0;
+    for (let i = 0; i < btc.length; i++) {
+      s += btc[i].close;
+      if (i >= len) s -= btc[i - len].close;
+      if (i >= len - 1) out[i] = s / len;
+    }
+    return out;
+  };
+  const fast = sma(fastLen), slow = sma(slowLen);
+  const times = btc.map((c) => c.openTime);
+  return (barOpenTime: number, dir: "long" | "short"): boolean => {
+    if (dir === "short") return true;
+    // nến BTC cuối cùng có openTime < barOpenTime (đã đóng khi bar hiện tại mở) — binary search
+    let lo = 0, hi = times.length - 1, idx = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (times[mid] < barOpenTime) { idx = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    if (idx < 0 || !Number.isFinite(fast[idx]) || !Number.isFinite(slow[idx])) return true;
+    return fast[idx] > slow[idx];
+  };
+}
+
+export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Trade[] {
   const closes = c.map((x) => x.close);
   const emaArr = ema(closes, p.trendLen);
+  const ema2Arr = p.trendLen2 > 0 ? ema(closes, p.trendLen2) : null;
   const atr = atrSeries(c, p.atrPeriod);
+  // SMA volume (không gồm nến i khi so sánh — dùng volSma[i-1]) — chỉ khi confirmVolMult bật
+  let volSma: number[] | null = null;
+  if (p.confirmVolMult > 0) {
+    volSma = new Array(c.length).fill(0);
+    let s = 0;
+    for (let i = 0; i < c.length; i++) {
+      s += c[i].volume;
+      if (i >= VOL_SMA_LEN) s -= c[i - VOL_SMA_LEN].volume;
+      volSma[i] = s / Math.min(i + 1, VOL_SMA_LEN);
+    }
+  }
   const trades: Trade[] = [];
   const barsPerDay = TF_MS["1d"] / TF_MS[p.tf];
   const dcEntry = Math.max(2, Math.round(p.entryDays * barsPerDay)); // lookback breakout theo NGÀY → nến
   const maxHoldBars = Math.round(p.maxHoldDays * barsPerDay);
 
-  // pos.extreme = đỉnh-cao-nhất (long) / đáy-thấp-nhất (short) KỂ TỪ entry → cho chandelier trailing
-  let pos: { dir: "long" | "short"; entryIndex: number; entry: number; initialSL: number; sl: number; extreme: number } | null = null;
+  // Vị thế = 1..maxUnits UNIT (pyramiding kiểu Turtle): mỗi unit có entry/SL-gốc/R riêng,
+  // trail chandelier CHUNG theo extreme của vị thế. extreme = đỉnh (long) / đáy (short) KỂ TỪ entry.
+  type Unit = { entryIndex: number; entry: number; initialSL: number };
+  let pos: { dir: "long" | "short"; units: Unit[]; sl: number; extreme: number } | null = null;
   let cooldownUntil = -1;
-  const warmup = Math.max(dcEntry, p.trendLen, p.atrPeriod) + 1;
+  const warmup = Math.max(dcEntry, p.trendLen, p.trendLen2, p.atrPeriod) + 1;
 
   for (let i = warmup; i < c.length; i++) {
     const bar = c[i];
 
     // ─── Quản lý lệnh mở ───
     if (pos) {
-      const held = i - pos.entryIndex;
+      const held = i - pos.units[0].entryIndex;
       let exitPrice: number | null = null;
       let reason: Trade["exitReason"] | null = null;
 
@@ -151,16 +221,18 @@ export function runTurtle(symbol: string, c: Candle[], p = T): Trade[] {
       }
 
       if (exitPrice !== null && reason !== null) {
-        const risk = Math.abs(pos.entry - pos.initialSL);
-        const pnl = pos.dir === "long" ? exitPrice - pos.entry : pos.entry - exitPrice;
-        const grossR = risk > 0 ? pnl / risk : 0;
-        const entryTime = c[pos.entryIndex].openTime;
         const exitTime = bar.openTime;
-        const costR = tradeCostR(pos.entry, pos.initialSL, entryTime, exitTime);
-        trades.push({
-          symbol, dir: pos.dir, entryTime, entryPrice: pos.entry, initialSL: pos.initialSL,
-          exitTime, exitPrice, exitReason: reason, grossR, costR, netR: grossR - costR, holdBars: held,
-        });
+        for (const u of pos.units) {
+          const risk = Math.abs(u.entry - u.initialSL);
+          const pnl = pos.dir === "long" ? exitPrice - u.entry : u.entry - exitPrice;
+          const grossR = risk > 0 ? pnl / risk : 0;
+          const entryTime = c[u.entryIndex].openTime;
+          const costR = tradeCostR(u.entry, u.initialSL, entryTime, exitTime);
+          trades.push({
+            symbol, dir: pos.dir, entryTime, entryPrice: u.entry, initialSL: u.initialSL,
+            exitTime, exitPrice, exitReason: reason, grossR, costR, netR: grossR - costR, holdBars: i - u.entryIndex,
+          });
+        }
         cooldownUntil = i + p.cooldownBars;
         pos = null;
         continue;
@@ -176,6 +248,17 @@ export function runTurtle(symbol: string, c: Candle[], p = T): Trade[] {
         const trail = pos.extreme + p.chandelierMult * atr[i];
         if (trail < pos.sl) pos.sl = trail;
       }
+
+      // ─── Pyramiding: thêm unit khi giá chạy pyramidStepAtr×ATR có lợi so với fill gần nhất ───
+      if (p.pyramidStepAtr > 0 && pos.units.length < p.pyramidMaxUnits && atr[i] > 0) {
+        const last = pos.units[pos.units.length - 1];
+        if (pos.dir === "long" && bar.close >= last.entry + p.pyramidStepAtr * atr[i]) {
+          const initialSL = bar.close - p.chandelierMult * atr[i];
+          if (initialSL > 0) pos.units.push({ entryIndex: i, entry: bar.close, initialSL });
+        } else if (pos.dir === "short" && bar.close <= last.entry - p.pyramidStepAtr * atr[i]) {
+          pos.units.push({ entryIndex: i, entry: bar.close, initialSL: bar.close + p.chandelierMult * atr[i] });
+        }
+      }
       continue;
     }
 
@@ -186,20 +269,22 @@ export function runTurtle(symbol: string, c: Candle[], p = T): Trade[] {
     let hh = -Infinity, ll = Infinity;
     for (let k = i - dcEntry; k < i; k++) { hh = Math.max(hh, c[k].high); ll = Math.min(ll, c[k].low); }
 
-    const uptrend = bar.close > emaArr[i];
-    const downtrend = bar.close < emaArr[i];
+    const uptrend = bar.close > emaArr[i] && (!ema2Arr || bar.close > ema2Arr[i]);
+    const downtrend = bar.close < emaArr[i] && (!ema2Arr || bar.close < ema2Arr[i]);
+    const buf = p.entryBufferAtr > 0 ? p.entryBufferAtr * atr[i] : 0;
+    const volOk = !volSma || (i > 0 && volSma[i - 1] > 0 && bar.volume >= p.confirmVolMult * volSma[i - 1]);
 
-    if (uptrend && bar.close > hh) {
+    if (uptrend && volOk && (!p.gate || p.gate(bar.openTime, "long")) && bar.close > hh + buf) {
       const entry = bar.close;
       const initialSL = entry - p.chandelierMult * atr[i];
       if (initialSL > 0 && initialSL < entry) {
-        pos = { dir: "long", entryIndex: i, entry, initialSL, sl: initialSL, extreme: bar.high };
+        pos = { dir: "long", units: [{ entryIndex: i, entry, initialSL }], sl: initialSL, extreme: bar.high };
       }
-    } else if (p.allowShort && downtrend && bar.close < ll) {
+    } else if (p.allowShort && downtrend && volOk && (!p.gate || p.gate(bar.openTime, "short")) && bar.close < ll - buf) {
       const entry = bar.close;
       const initialSL = entry + p.chandelierMult * atr[i];
       if (initialSL > entry) {
-        pos = { dir: "short", entryIndex: i, entry, initialSL, sl: initialSL, extreme: bar.low };
+        pos = { dir: "short", units: [{ entryIndex: i, entry, initialSL }], sl: initialSL, extreme: bar.low };
       }
     }
   }
@@ -258,6 +343,7 @@ function report(trades: Trade[], data: Map<string, Candle[]>, riskPct: number, t
 
   console.log("=".repeat(72));
   console.log(`  TURTLE / DONCHIAN TREND-FOLLOWING — tf ${T.tf} | breakout ${T.entryDays}d | chandelier ${T.chandelierMult}×ATR | EMA${T.trendLen}`);
+  console.log(`  Pyramid: ${T.pyramidStepAtr > 0 ? `+1 unit / ${T.pyramidStepAtr}×ATR, tối đa ${T.pyramidMaxUnits} (mỗi unit = 1 lệnh)` : "TẮT"} | BTC gate LONG: ${T.btcGateSlow > 0 ? `SMA ${T.btcGateFast / 6}d>${T.btcGateSlow / 6}d` : "TẮT"}`);
   console.log(`  Symbols: ${[...data.keys()].map((x) => x.toUpperCase()).join(", ")}`);
   console.log(`  Chi phí: ${CONFIG.costs.enabled ? `taker ${CONFIG.costs.takerFeePct}%+slip ${CONFIG.costs.slippagePct}%/chiều + funding ${CONFIG.costs.fundingPer8hPct}%/8h` : "TẮT"}`);
   console.log("=".repeat(72));
@@ -336,6 +422,17 @@ async function main() {
   }
   if (data.size === 0) { console.log("Không tải được symbol nào."); return; }
 
+  // BTC regime gate cho LONG — cần nến BTC kể cả khi rổ không chứa BTC
+  let gate: TurtleParams["gate"];
+  if (T.btcGateSlow > 0) {
+    let btcC = data.get("btcusdt");
+    if (!btcC) {
+      if (T.tf === "1h") btcC = await fetchKlinesPaged("btcusdt", "1h", totalBars);
+      else { const ltf = await fetchKlinesPaged("btcusdt", "15m", totalBars * (TF_MS[T.tf] / TF_MS["15m"]) + 400); btcC = aggregate(ltf, T.tf, "15m"); }
+    }
+    gate = buildBtcGateLongs(btcC, T.btcGateFast, T.btcGateSlow);
+  }
+
   const periodDays = (t1 - t0) / TF_MS["1d"];
 
   // ── SWEEP breakout lookback (NGÀY) × chandelier: tìm ~1 lệnh/ngày & xem NET R ──
@@ -349,7 +446,7 @@ async function main() {
   let best: { p: typeof T; trades: Trade[]; freq: number } | null = null;
   for (const ch of chandCands) {
     for (const ed of entryDayCands) {
-      const p = { ...T, entryDays: ed, chandelierMult: ch };
+      const p: TurtleParams = { ...T, entryDays: ed, chandelierMult: ch, gate };
       const all: Trade[] = [];
       for (const [sym, c] of data) all.push(...runTurtle(sym, c, p));
       const s = summarize(all);
@@ -368,7 +465,7 @@ async function main() {
   if (!best) {
     console.log("⚠️  Không cấu hình nào NET R > 0 trong sweep. Báo cáo cấu hình mặc định.");
     const all: Trade[] = [];
-    for (const [sym, c] of data) all.push(...runTurtle(sym, c, T));
+    for (const [sym, c] of data) all.push(...runTurtle(sym, c, { ...T, gate }));
     report(all, data, riskPct, t0, t1);
     return;
   }

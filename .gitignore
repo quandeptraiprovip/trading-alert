@@ -40,3 +40,10 @@ build/
 bot-state.json
 bot-state.json.tmp
 trades-live.jsonl
+
+# Kline disk cache (kline-fetch.ts)
+.cache/
+
+# Turtle live runtime (state + journal)
+turtle-state.json
+turtle-trades.jsonl
