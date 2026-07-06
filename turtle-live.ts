@@ -46,6 +46,10 @@ type TurtleUnit = {
   qty?: number; // khối lượng thật đã khớp (undefined = paper)
   realEntry?: number; // giá khớp thật
   riskUsd?: number;
+  // risk HIỆU DỤNG/equity lúc fill — có thể > riskPct danh nghĩa khi qty bị nâng lên sàn
+  // minNotional (vd BTC min 100 USDT với equity nhỏ). Tổng riskFrac 1 vị thế luôn bị chặn
+  // bởi ngân sách maxUnits×riskPct → "giữ nguyên risk" ở cấp vị thế.
+  riskFrac?: number;
 };
 
 type TurtlePos = {
@@ -126,12 +130,25 @@ export class TurtleLive {
     return !!this.states.get(symbol.toLowerCase())?.pos?.real;
   }
 
-  /** Tổng risk frac các unit THẬT đang mở (paper không chiếm trần). */
+  /** Tổng risk frac HIỆU DỤNG các unit THẬT đang mở (paper không chiếm trần). */
   openRiskFrac(): number {
     let n = 0;
     for (const st of this.states.values()) {
-      if (st.pos?.real) n += st.pos.units.filter((u) => u.qty != null).length * this.o.riskPct;
+      if (!st.pos?.real) continue;
+      for (const u of st.pos.units) if (u.qty != null) n += u.riskFrac ?? this.o.riskPct;
     }
+    return n;
+  }
+
+  /** Ngân sách risk tối đa cho MỘT vị thế (bất biến với sàn minNotional): maxUnits × riskPct. */
+  private positionRiskBudget(): number {
+    return T.pyramidMaxUnits * this.o.riskPct;
+  }
+
+  /** Tổng risk frac hiệu dụng các unit thật của một vị thế. */
+  private positionRiskFrac(pos: TurtlePos): number {
+    let n = 0;
+    for (const u of pos.units) if (u.qty != null) n += u.riskFrac ?? this.o.riskPct;
     return n;
   }
 
@@ -214,7 +231,13 @@ export class TurtleLive {
       }
       let res;
       try {
-        res = await this.o.trader!.open(st.symbol, entry, this.posInfo(pos), this.totalOpenRiskFrac(), { noTp: true });
+        // minQtyFloor: nâng qty lên sàn minNotional (BTC min 100 USDT) thay vì bỏ lệnh;
+        // maxRiskFrac = ngân sách CẢ vị thế → risk hiệu dụng unit đầu không bao giờ vượt nó.
+        res = await this.o.trader!.open(st.symbol, entry, this.posInfo(pos), this.totalOpenRiskFrac(), {
+          noTp: true,
+          minQtyFloor: true,
+          maxRiskFrac: this.positionRiskBudget(),
+        });
       } catch (err) {
         const m = err instanceof Error ? err.message : String(err);
         console.error(`[Turtle] ${formatSymbol(st.symbol)} LỖI mở lệnh:`, m);
@@ -228,6 +251,7 @@ export class TurtleLive {
       unit.qty = res.qty;
       unit.realEntry = res.avgPrice;
       unit.riskUsd = res.riskUsd;
+      unit.riskFrac = res.equity ? (res.riskUsd ?? 0) / res.equity : this.o.riskPct;
       pos.real = true;
     }
 
@@ -257,10 +281,6 @@ export class TurtleLive {
     }
 
     if (pos.real && this.tradingLive()) {
-      if (this.totalOpenRiskFrac() + this.o.riskPct > this.o.maxPortfolioRiskPct + 1e-9) {
-        await this.tg(`🐢⏭️ *Turtle bỏ ADD* ${formatSymbol(st.symbol)} — chạm trần risk danh mục.`);
-        return;
-      }
       const slFrac = Math.abs(entry - initialSL) / entry;
       if (slFrac > 0.8 / this.o.leverage) return; // vol spike — bỏ add trong im lặng có log
       try {
@@ -269,17 +289,28 @@ export class TurtleLive {
         const slPrice = api.roundPrice(st.symbol, initialSL);
         const dist = Math.abs(entry - slPrice);
         if (dist <= 0) return;
-        const qty = api.roundQty(st.symbol, (equity * this.o.riskPct) / dist);
         const f = api.getFilters(st.symbol);
-        if (qty < f.minQty || qty <= 0 || qty * entry < f.minNotional) {
-          console.log(`[Turtle] ${formatSymbol(st.symbol)} ADD bỏ qua — qty ${qty} dưới min`);
+        let qty = api.roundQty(st.symbol, (equity * this.o.riskPct) / dist);
+        // Sàn minNotional/minQty (BTC min 100 USDT): nâng qty thay vì bỏ add
+        const needQty = Math.max(f.minQty, (f.minNotional * 1.01) / entry);
+        if (qty < needQty) qty = parseFloat((Math.ceil(needQty / f.stepSize) * f.stepSize).toFixed(f.qtyPrecision));
+        if (qty <= 0) return;
+        const effFrac = (qty * dist) / equity; // risk hiệu dụng của unit này
+        // Ngân sách risk CẢ vị thế bất biến: maxUnits × riskPct — vượt thì thôi add (giữ nguyên risk)
+        if (this.positionRiskFrac(pos) + effFrac > this.positionRiskBudget() + 1e-9) {
+          console.log(`[Turtle] ${formatSymbol(st.symbol)} ADD bỏ qua — vị thế đã dùng hết ngân sách risk ${(this.positionRiskBudget() * 100).toFixed(1)}%`);
+          return;
+        }
+        if (this.totalOpenRiskFrac() + effFrac > this.o.maxPortfolioRiskPct + 1e-9) {
+          await this.tg(`🐢⏭️ *Turtle bỏ ADD* ${formatSymbol(st.symbol)} — chạm trần risk danh mục.`);
           return;
         }
         const fill = await api.marketOrder(st.symbol, pos.dir === "long" ? "BUY" : "SELL", qty);
         if (!(fill.executedQty > 0)) return;
         unit.qty = fill.executedQty;
         unit.realEntry = fill.avgPrice || entry;
-        unit.riskUsd = equity * this.o.riskPct;
+        unit.riskUsd = qty * dist;
+        unit.riskFrac = effFrac;
         // Stop chung closePosition đã phủ khối lượng mới; đảm bảo nó còn trên sàn.
         await this.ensureStop(st.symbol, pos);
       } catch (err) {
@@ -298,7 +329,7 @@ export class TurtleLive {
     console.log(`[Turtle] ADD ${formatSymbol(st.symbol)} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : ""}`);
     await this.tg(
       `🐢➕ *TURTLE ADD* ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}\n` +
-        `SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}` : " · (giấy)"}`
+        `SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`
     );
   }
 

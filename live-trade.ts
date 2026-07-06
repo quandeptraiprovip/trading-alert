@@ -154,22 +154,43 @@ export class LiveTrader {
     entry: number,
     pos: PosInfo,
     openRiskFrac: number,
-    opts?: { noTp?: boolean } // noTp: chiến lược trailing thuần (Turtle) — không đặt TP
+    opts?: {
+      noTp?: boolean; // chiến lược trailing thuần (Turtle) — không đặt TP
+      // Nâng qty lên SÀN minNotional/minQty của sàn thay vì bỏ lệnh (cho equity nhỏ vs BTC
+      // min 100 USDT). Risk hiệu dụng có thể > riskPct danh nghĩa → caller giới hạn bằng
+      // maxRiskFrac (ngân sách risk cho lệnh này); trần danh mục check theo risk HIỆU DỤNG.
+      minQtyFloor?: boolean;
+      maxRiskFrac?: number;
+    }
   ): Promise<OpenResult> {
     const riskFrac = this.riskFracOf(pos);
-    if (openRiskFrac + riskFrac > this.cfg.maxPortfolioRiskPct + 1e-9) {
+    if (!opts?.minQtyFloor && openRiskFrac + riskFrac > this.cfg.maxPortfolioRiskPct + 1e-9) {
       return { placed: false, reason: `trần danh mục (${((openRiskFrac + riskFrac) * 100).toFixed(0)}% > ${(this.cfg.maxPortfolioRiskPct * 100).toFixed(0)}%)` };
     }
 
     const equity = (await this.api.getEquity()).walletBalance;
-    const riskUsd = equity * riskFrac;
+    let riskUsd = equity * riskFrac;
     // Tính slDist theo GIÁ SL ĐÃ LÀM TRÒN (đúng giá sẽ đặt lên sàn) → risk khớp cấu hình.
     const slPrice = this.api.roundPrice(symbol, pos.initialSL);
     const slDist = Math.abs(entry - slPrice);
     if (slDist <= 0) return { placed: false, reason: "khoảng cách SL = 0" };
 
-    const qty = this.api.roundQty(symbol, riskUsd / slDist);
+    let qty = this.api.roundQty(symbol, riskUsd / slDist);
     const f = this.api.getFilters(symbol);
+    if (opts?.minQtyFloor) {
+      const needQty = Math.max(f.minQty, (f.minNotional * 1.01) / entry); // +1% đệm giá khớp lệch
+      if (qty < needQty) {
+        qty = parseFloat((Math.ceil(needQty / f.stepSize) * f.stepSize).toFixed(f.qtyPrecision));
+        riskUsd = qty * slDist; // risk HIỆU DỤNG sau khi nâng sàn
+      }
+      const effFrac = riskUsd / equity;
+      if (opts.maxRiskFrac != null && effFrac > opts.maxRiskFrac + 1e-9) {
+        return { placed: false, reason: `risk sàn-min ${(effFrac * 100).toFixed(1)}% > ngân sách ${(opts.maxRiskFrac * 100).toFixed(1)}% (equity quá nhỏ cho ${symbol.toUpperCase()})` };
+      }
+      if (openRiskFrac + effFrac > this.cfg.maxPortfolioRiskPct + 1e-9) {
+        return { placed: false, reason: `trần danh mục (${((openRiskFrac + effFrac) * 100).toFixed(0)}% > ${(this.cfg.maxPortfolioRiskPct * 100).toFixed(0)}%)` };
+      }
+    }
     if (qty < f.minQty || qty <= 0) return { placed: false, reason: `qty ${qty} < minQty ${f.minQty}` };
     if (qty * entry < f.minNotional) {
       return { placed: false, reason: `notional ${(qty * entry).toFixed(2)} < min ${f.minNotional}` };
