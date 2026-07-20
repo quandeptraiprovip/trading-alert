@@ -251,7 +251,7 @@ mỗi ~12s, và khi nến 15m **đóng** sẽ đánh giá setup (ARM → CONFIRM
 
 **Độ bền live (khớp backtest dù mạng/restart):**
 - **Bù nến nhỡ (gap replay)** — mỗi tick lấy MỌI nến đã đóng mới hơn lần xử lý cuối và replay **tuần tự**, không chỉ nến gần nhất. Mạng chập / 429 / downtime ngắn không còn làm bỏ sót exit/entry như backtest.
-- **Giữ vị thế qua restart** — vị thế/cooldown lưu `bot-state.json` (atomic). pm2 restart / reboot VM khi đang giữ lệnh swing → bot **khôi phục** vị thế và **replay nến trong lúc tắt** để bắt SL/TP đã chạm (không quên báo exit).
+- **Giữ vị thế qua restart** — vị thế/cooldown lưu `bot-state.json` (atomic). Restart container / reboot máy khi đang giữ lệnh swing → bot **khôi phục** vị thế và **replay nến trong lúc tắt** để bắt SL/TP đã chạm (không quên báo exit).
 - **Nhật ký lệnh** — mỗi entry/exit ghi `trades-live.jsonl` để đối chiếu live vs backtest.
 - **Cảnh báo mất data** — không nhận nến mới > ~6 phút (vd fapi bị chặn 451) → bot gửi cảnh báo Telegram (bot **không** tự ngầm fallback sang spot để giữ đúng dữ liệu Perpetual).
 - **Retry alert** — gửi Telegram entry/exit retry 3 lần (tránh mất alert do mạng chập chờn).
@@ -274,27 +274,21 @@ Hiện $68,100 (+1.1R) · giữ 1.2d
 
 > Lưu ý: alert mặc định **không** dời SL về hoà vốn (breakeven tắt) — trail theo swing 1h sau **+2R** (`trailStartR`).
 
-### Chạy 24/7 (VM Oracle, pm2) — bot + chart
-Dùng `ecosystem.config.js` để chạy **cả bot alert và chart perpetual** cùng lúc:
-```bash
-npm install -g pm2
-pm2 start ecosystem.config.js   # swing-bot + swing-chart
-pm2 save
-pm2 startup                     # copy & chạy lệnh in ra để tự bật lại sau reboot VM
-pm2 logs                        # xem log cả 2; pm2 restart swing-bot sau khi đổi CONFIG
-```
+### Chạy 24/7 bằng Docker (local, trên máy của bạn)
+`docker-compose.yml` chạy **cả 3 service**: bot alert (`swing-bot`), chart perpetual (`swing-chart` — cổng 3847), dashboard (`swing-dashboard` — cổng 3848, chỉ localhost).
 
-**Chart perpetual** phục vụ tại `http://<IP-VM>:3847` (nến **Binance Futures / fapi = perpetual**).
-Trên Oracle Cloud cần mở cổng 3847 ở **2 nơi**:
 ```bash
-# 1) VCN → Security List → Ingress: cho phép TCP 3847 từ 0.0.0.0/0 (hoặc IP của bạn)
-# 2) Firewall OS trên VM (Oracle Linux/Ubuntu):
-sudo iptables -I INPUT -p tcp --dport 3847 -j ACCEPT       # Oracle Linux
-sudo netfilter-persistent save 2>/dev/null || true
-# hoặc Ubuntu ufw:  sudo ufw allow 3847/tcp
+# LẦN ĐẦU: tạo sẵn file state (bind-mount file chưa tồn tại → Docker tạo THƯ MỤC làm hỏng bot)
+touch bot-state.json trades-live.jsonl turtle-state.json turtle-trades.jsonl
+
+docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
+docker compose logs -f swing-bot  # xem log (tìm "🐢 Turtle:" và "THỰC THI BẬT")
+docker compose restart swing-bot  # sau khi đổi CONFIG/.env.local (kèm --build nếu đổi code)
+docker compose down               # dừng tất cả
 ```
-> Kiểm tra chart đúng **perpetual**: `pm2 logs swing-chart` **không** có dòng `[Fetch] ... thử nguồn kế tiếp`
-> (dòng đó nghĩa là fapi bị chặn 451 → fallback sang **spot mirror**, không còn là perpetual).
+`restart: unless-stopped` trong compose → container tự sống lại khi crash / khi Docker Desktop khởi động lại. Chart perpetual xem tại `http://localhost:3847`.
+
+> **Để chạy 24/7 trên máy local:** bật Docker Desktop **tự khởi động khi đăng nhập** (Settings → General → *Start Docker Desktop when you sign in*), và **tắt sleep** để máy không ngủ (macOS: `caffeinate -s`, hoặc System Settings → chống ngủ khi cắm điện). Máy ngủ = bot dừng nhận nến; khi thức dậy bot **replay nến nhỡ** nên không sai lệch, nhưng alert/lệnh sẽ trễ tới lúc thức.
 
 ---
 
@@ -326,7 +320,7 @@ bot **đối soát** vị thế thật trên sàn (lưới an toàn nếu SL/TP 
    > Giữ tài khoản ở chế độ **One-way** (không Hedge mode).
 3. Chạy bot — log `[Trade] ✅ THỰC THI BẬT (TESTNET) · equity $… · risk 5%×sizeMult · trần 20% · ISOLATED 10x`.
 4. Verify vài lệnh khớp đúng SL/TP trên testnet rồi mới chuyển **mainnet** (`BINANCE_TESTNET=false` + key thật
-   đã bật quyền *Enable Futures*, nên giới hạn IP của VM).
+   đã bật quyền *Enable Futures*; nên giới hạn IP của key theo IP nhà bạn).
 
 ### Dashboard theo dõi
 ```bash
@@ -336,7 +330,7 @@ Hiển thị: **tài khoản** (equity, unrealized PnL, khả dụng, exposure, 
 **hiệu suất** (win rate, tổng/avg R, profit factor, avg W/L, best/worst, max drawdown, avg hold, streak);
 **đường cong vốn** (R tích luỹ), phân tích **theo lý do thoát / Long-Short / theo symbol**; **vị thế thật**
 (R, PnL, notional, liq, thanh tiến độ SL→TP, thời gian giữ) đối soát từ sàn; và **nhật ký lệnh**.
-⚠️ Cổng 3848 **chỉ bind localhost** — xem từ xa qua SSH tunnel: `ssh -L 3848:localhost:3848 user@vm`
+⚠️ Cổng 3848 **chỉ bind localhost** — mở `http://localhost:3848` ngay trên máy chạy bot
 (KHÔNG mở ra Internet vì lộ số dư/vị thế).
 
 ---

@@ -14,7 +14,8 @@ import { Candle, TF_MS } from "./strategy";
 import { fetchKlinesPaged } from "./backtest";
 import { T, runTurtle, Trade } from "./turtle";
 
-const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "bnbusdt", "adausdt", "avaxusdt"];
+// Rổ hoán đổi chất lượng 2026-07: BỎ BNB (solvency risk) → THÊM DOT (robust). Giữ 8 coin. Xem btc-alert-bot.ts.
+const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "adausdt", "avaxusdt", "dotusdt"];
 
 function stats(ts: Trade[]) {
   const n = ts.length, net = ts.reduce((s, t) => s + t.netR, 0);
@@ -23,8 +24,8 @@ function stats(ts: Trade[]) {
 }
 
 async function main() {
-  // chốt cấu hình đã chọn
-  T.entryDays = 20;
+  // chốt cấu hình đã chọn (2026-07-19: core turtle 20→15d, xem turtle.ts)
+  T.entryDays = 15;
   T.chandelierMult = 3.0;
 
   const DAYS = parseInt(process.argv[2] ?? "1050", 10);

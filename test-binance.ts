@@ -1,25 +1,30 @@
 /**
  * test-binance.ts — Kiểm tra kết nối + đặt lệnh thử trên TESTNET.
- * Chạy: BINANCE_TESTNET=true ts-node test-binance.ts
- * (hoặc set trong .env.local rồi: ts-node -r dotenv/config test-binance.ts)
+ * Luôn chạy trên testnet.binancefuture.com, KHÔNG BAO GIỜ mainnet — bất kể
+ * .env.local đang set BINANCE_TESTNET gì (tránh lặp lại sự cố lỡ tay đặt lệnh mainnet).
+ * Chạy: ts-node -r ./load-env test-binance.ts
+ * Cần BINANCE_TESTNET_API_KEY/SECRET trong .env.local (key riêng cho testnet).
  */
-import "dotenv/config";
+import "./load-env";
 import axios from "axios";
-import { createBinanceFromEnv } from "./binance-futures";
+import { BinanceFutures } from "./binance-futures";
 
 const SYMBOL = "BTCUSDT";
+const TESTNET_BASE_URL = "https://testnet.binancefuture.com";
 
 async function main() {
-  const testnet = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";
   console.log(`\n=== Binance Futures Test ===`);
-  console.log(`Môi trường : ${testnet ? "TESTNET (testnet.binancefuture.com)" : "⚠️  MAINNET (fapi.binance.com)"}`);
-  console.log(`API key    : ${(process.env.BINANCE_API_KEY ?? "").slice(0, 8)}...`);
+  console.log(`Môi trường : TESTNET (${TESTNET_BASE_URL})`);
 
-  const api = createBinanceFromEnv();
-  if (!api) {
-    console.error("❌ Thiếu BINANCE_API_KEY hoặc BINANCE_API_SECRET trong .env.local");
+  const apiKey = process.env.BINANCE_TESTNET_API_KEY;
+  const apiSecret = process.env.BINANCE_TESTNET_API_SECRET;
+  if (!apiKey || !apiSecret) {
+    console.error("❌ Thiếu BINANCE_TESTNET_API_KEY hoặc BINANCE_TESTNET_API_SECRET trong .env.local");
     process.exit(1);
   }
+  console.log(`API key    : ${apiKey.slice(0, 8)}...`);
+
+  const api = new BinanceFutures({ apiKey, apiSecret, baseUrl: TESTNET_BASE_URL });
 
   // 1. Đồng bộ giờ
   console.log("\n[1] Đồng bộ giờ server...");
@@ -66,11 +71,10 @@ async function main() {
     return;
   }
 
-  // Lấy giá mark để tính qty thoả minNotional
-  const baseUrl = (process.env.BINANCE_TESTNET ?? "true") !== "false"
-    ? "https://testnet.binancefuture.com"
-    : "https://fapi.binance.com";
-  const ticker = await axios.get(`${baseUrl}/fapi/v1/ticker/price?symbol=${SYMBOL}`);
+  // Dọn lệnh chờ còn sót từ lần chạy test trước (tránh -4130 khi đặt SL mới)
+  await api.cancelAllOpenOrders(SYMBOL);
+
+  const ticker = await axios.get(`${TESTNET_BASE_URL}/fapi/v1/ticker/price?symbol=${SYMBOL}`);
   const markPrice = parseFloat(ticker.data.price);
   console.log(`\n    Mark price: $${markPrice.toFixed(2)}`);
   // qty >= minNotional / markPrice, +1 stepSize để chắc đủ notional
@@ -87,18 +91,24 @@ async function main() {
     console.log(`\n[7] Đặt STOP_MARKET SELL SL@${slPrice.toFixed(2)}...`);
     const slId = await api.stopMarketClose(SYMBOL, "SELL", slPrice, "sl-test-" + Date.now());
     console.log(`    ✅ SL orderId=${slId}`);
-
-    // 8. Đóng vị thế
-    console.log(`\n[8] Đóng vị thế bằng MARKET SELL ${order.executedQty}...`);
-    await api.cancelAllOpenOrders(SYMBOL);
-    const close = await api.marketClose(SYMBOL, "SELL", order.executedQty, "close-" + Date.now());
-    console.log(`    ✅ đóng tại avgPrice=${close.avgPrice}`);
   } catch (e: any) {
     const code = e?.response?.data?.code;
     const msg = e?.response?.data?.msg ?? e.message;
     console.error(`    ❌ Lỗi ${code}: ${msg}`);
     if (code === -2021) console.error("       → Giá SL sẽ kích hoạt ngay (would-immediately-trigger). Bình thường nếu thị trường biến động.");
     if (code === -1111) console.error("       → Sai precision qty/price.");
+  } finally {
+    // 8. Luôn dọn dẹp: huỷ lệnh chờ + đóng vị thế đang mở (nếu có), dù bước 6/7 lỗi
+    console.log(`\n[8] Dọn dẹp: huỷ lệnh chờ + đóng vị thế...`);
+    await api.cancelAllOpenOrders(SYMBOL);
+    const pos = await api.getPosition(SYMBOL);
+    if (pos.positionAmt !== 0) {
+      const side = pos.positionAmt > 0 ? "SELL" : "BUY";
+      const close = await api.marketClose(SYMBOL, side, Math.abs(pos.positionAmt), "close-" + Date.now());
+      console.log(`    ✅ đóng vị thế tại avgPrice=${close.avgPrice || markPrice}`);
+    } else {
+      console.log(`    ✅ không còn vị thế mở`);
+    }
   }
 
   console.log("\n=== Xong ===");

@@ -45,11 +45,15 @@ import {
   getTelegramUpdates,
   loadTelegramConfig,
   sendTelegram,
+  sendTelegramReliable,
+  flushPendingTelegram,
+  escapeMarkdown,
 } from "./telegram";
 import { loadState, saveState, appendJournal, PersistedSymbol } from "./live-state";
 import { createBinanceFromEnv } from "./binance-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 import { TurtleLive } from "./turtle-live";
+import { FastTrendLive } from "./fast-trend-live";
 
 const telegram = loadTelegramConfig();
 
@@ -113,6 +117,19 @@ type SymbolState = {
 // Tất cả state symbol — module-level để command listener (/status) đọc được.
 const states: SymbolState[] = [];
 
+// ── Chia sẻ trần risk danh mục + loại trừ symbol GIỮA 3 lớp (SMC/Turtle/Fast) ──
+// SL closePosition đóng CẢ vị thế symbol → 2 lớp không được giữ cùng symbol cùng lúc.
+function smcOpenRiskFrac(): number {
+  return trader ? states.reduce((sum, s) => sum + (s.livePos ? trader.riskFracOf(s.livePos as PosInfo) : 0), 0) : 0;
+}
+/** true nếu SMC hoặc lớp `exclude` KHÁC đang giữ THẬT symbol này (loại trừ chính lớp gọi). */
+function otherHoldsSymbolExcept(sym: string, exclude: "turtle" | "fast"): boolean {
+  if (isTrading() && states.some((s) => s.symbol === sym && s.livePos)) return true;
+  if (exclude !== "turtle" && turtle?.hasRealPosition(sym)) return true;
+  if (exclude !== "fast" && fastTrend?.hasRealPosition(sym)) return true;
+  return false;
+}
+
 // ── Lớp chiến lược TURTLE (turtle.ts) chạy song song — xem turtle-live.ts ──
 // Loại trừ theo symbol với SMC khi giao dịch thật (SL closePosition đóng cả symbol).
 const TURTLE_ENABLED = (process.env.TURTLE_ENABLED ?? "true").toLowerCase() === "true";
@@ -121,7 +138,11 @@ const TURTLE_RISK_PCT = (() => {
   const n = parseFloat(process.env.TURTLE_RISK_PCT ?? "1");
   return (Number.isFinite(n) && n > 0 ? n : 1) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
 })();
-const TURTLE_SYMBOLS = (process.env.TURTLE_SYMBOLS ?? "btcusdt,ethusdt,solusdt,xrpusdt,dogeusdt,bnbusdt,adausdt,avaxusdt")
+// Rổ turtle — HOÁN ĐỔI CHẤT LƯỢNG 2026-07 (giữ NGUYÊN 8 coin, KHÔNG mở rộng để tránh pha loãng
+// expectancy như audit exp-turtle-levers.ts đã cảnh báo): BỎ BNB (rủi ro solvency exchange-token +
+// đóng góp yếu, nửa OOS gần -4R) → THÊM DOT (robust cả 2 nửa OOS +9.7R). Audit 3-era + perturbation
+// đậu (Era A exp +0.083, cả 3 era dương, 30/30 seed). LTC KHÔNG thêm (thua turtle -25R cả 2 nửa).
+const TURTLE_SYMBOLS = (process.env.TURTLE_SYMBOLS ?? "btcusdt,ethusdt,solusdt,xrpusdt,dogeusdt,adausdt,avaxusdt,dotusdt")
   .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 const turtleTrader = binance && TURTLE_TRADING_ENABLED ? new LiveTrader(binance, { ...execCfg, riskPct: TURTLE_RISK_PCT }) : null;
 const turtle: TurtleLive | null = TURTLE_ENABLED
@@ -133,9 +154,39 @@ const turtle: TurtleLive | null = TURTLE_ENABLED
       riskPct: TURTLE_RISK_PCT,
       maxPortfolioRiskPct: execCfg.maxPortfolioRiskPct,
       leverage: execCfg.leverage,
-      otherHoldsSymbol: (sym) => isTrading() && states.some((s) => s.symbol === sym && s.livePos),
-      otherOpenRiskFrac: () =>
-        trader ? states.reduce((sum, s) => sum + (s.livePos ? trader.riskFracOf(s.livePos as PosInfo) : 0), 0) : 0,
+      otherHoldsSymbol: (sym) => otherHoldsSymbolExcept(sym, "turtle"),
+      otherOpenRiskFrac: () => smcOpenRiskFrac() + (fastTrend?.openRiskFrac() ?? 0),
+      isTradingReady: () => tradingReady,
+    })
+  : null;
+
+// ── Sleeve TREND NHANH (fast-trend-live.ts) — mirror cơ chế turtle (EMA50 + BTC gate +
+// chandelier + pyramiding) nhưng breakout ngắn hơn (mặc định 10d) → giao dịch cả lúc thị trường
+// đi ngang (turtle đứng ngoài). Loại trừ symbol lẫn nhau với SMC/Turtle khi giao dịch thật (SL
+// closePosition đóng cả symbol). Risk mặc định NHỎ hơn turtle (chiến lược mới/ngắn hơn, chưa có
+// track record dài) — xem FAST_TREND_RISK_PCT. Audit 3-era: scripts/fast-trend-audit.ts.
+const FAST_TREND_ENABLED = (process.env.FAST_TREND_ENABLED ?? "true").toLowerCase() === "true";
+const FAST_TREND_TRADING_ENABLED = (process.env.FAST_TREND_TRADING_ENABLED ?? "true").toLowerCase() === "true";
+const FAST_TREND_RISK_PCT = (() => {
+  const n = parseFloat(process.env.FAST_TREND_RISK_PCT ?? "0.5");
+  return (Number.isFinite(n) && n > 0 ? n : 0.5) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
+})();
+const FAST_TREND_ENTRY_DAYS = (() => { const n = parseInt(process.env.FAST_TREND_ENTRY_DAYS ?? "10", 10); return Number.isFinite(n) && n >= 2 ? n : 10; })();
+const FAST_TREND_SYMBOLS = (process.env.FAST_TREND_SYMBOLS ?? TURTLE_SYMBOLS.join(","))
+  .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+const fastTrendTrader = binance && FAST_TREND_TRADING_ENABLED ? new LiveTrader(binance, { ...execCfg, riskPct: FAST_TREND_RISK_PCT }) : null;
+const fastTrend: FastTrendLive | null = FAST_TREND_ENABLED
+  ? new FastTrendLive({
+      symbols: FAST_TREND_SYMBOLS,
+      entryDays: FAST_TREND_ENTRY_DAYS,
+      telegram,
+      api: binance,
+      trader: fastTrendTrader,
+      riskPct: FAST_TREND_RISK_PCT,
+      maxPortfolioRiskPct: execCfg.maxPortfolioRiskPct,
+      leverage: execCfg.leverage,
+      otherHoldsSymbol: (sym) => otherHoldsSymbolExcept(sym, "fast"),
+      otherOpenRiskFrac: () => smcOpenRiskFrac() + (turtle?.openRiskFrac() ?? 0),
       isTradingReady: () => tradingReady,
     })
   : null;
@@ -398,7 +449,7 @@ async function execOpen(st: SymbolState, sig: EntrySignal): Promise<OpenResult |
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[Trade] ${formatSymbol(st.symbol)} LỖI mở lệnh:`, msg);
-    await sendTelegram(telegram, `❌ *Lỗi đặt lệnh* ${formatSymbol(st.symbol)} — ${msg}\nBot KHÔNG vào lệnh này.`);
+    await sendTelegram(telegram, `❌ *Lỗi đặt lệnh* ${formatSymbol(st.symbol)} — ${escapeMarkdown(msg)}\nBot KHÔNG vào lệnh này.`);
     return null;
   }
 }
@@ -410,7 +461,7 @@ async function execSyncStops(st: SymbolState): Promise<void> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[Trade] ${formatSymbol(st.symbol)} LỖI dời SL:`, msg);
-    await sendTelegram(telegram, `⚠️ *Lỗi dời SL* ${formatSymbol(st.symbol)} — ${msg}\nKiểm tra lệnh chờ trên sàn.`);
+    await sendTelegram(telegram, `⚠️ *Lỗi dời SL* ${formatSymbol(st.symbol)} — ${escapeMarkdown(msg)}\nKiểm tra lệnh chờ trên sàn.`);
   }
 }
 
@@ -421,7 +472,7 @@ async function execFlatten(st: SymbolState, dir: "long" | "short"): Promise<void
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[Trade] ${formatSymbol(st.symbol)} LỖI đóng lệnh:`, msg);
-    await sendTelegram(telegram, `⚠️ *Lỗi đóng lệnh* ${formatSymbol(st.symbol)} — ${msg}\nKIỂM TRA vị thế trên sàn thủ công!`);
+    await sendTelegram(telegram, `⚠️ *Lỗi đóng lệnh* ${formatSymbol(st.symbol)} — ${escapeMarkdown(msg)}\nKIỂM TRA vị thế trên sàn thủ công!`);
   }
 }
 
@@ -500,7 +551,7 @@ async function adoptPosition(st: SymbolState, p: { positionAmt: number; entryPri
       sl = await trader.placeEmergencyStop(st.symbol, dir, entry);
       emergency = true;
     } catch (e) {
-      await sendTelegram(telegram, `❌ *ORPHAN KHÔNG SL* ${formatSymbol(st.symbol)} ${dir.toUpperCase()} @ $${fmtPrice(entry)} — đặt SL khẩn cấp THẤT BẠI. ĐÓNG THỦ CÔNG NGAY (${e instanceof Error ? e.message : e}).`);
+      await sendTelegram(telegram, `❌ *ORPHAN KHÔNG SL* ${formatSymbol(st.symbol)} ${dir.toUpperCase()} @ $${fmtPrice(entry)} — đặt SL khẩn cấp THẤT BẠI. ĐÓNG THỦ CÔNG NGAY (${escapeMarkdown(e instanceof Error ? e.message : String(e))}).`);
       return;
     }
   }
@@ -584,7 +635,7 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
       st.tracker.reset();
       st.cooldownUntilTime = candle.openTime + CONFIG.cooldownBars * ltfMs;
       if (res && res.reason) {
-        await sendTelegram(telegram, `⏭️ *Bỏ qua lệnh* ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} — ${res.reason}`);
+        await sendTelegram(telegram, `⏭️ *Bỏ qua lệnh* ${formatSymbol(st.symbol)} ${sig.direction.toUpperCase()} — ${escapeMarkdown(res.reason)}`);
       }
       persist();
       return;
@@ -610,7 +661,7 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
       // Lỗi mạng khi xác nhận → cảnh báo nhưng không huỷ state (SL đã đặt trên sàn)
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(`[Trade] ${formatSymbol(st.symbol)} không xác nhận được vị thế: ${msg}`);
-      await sendTelegram(telegram, `⚠️ *Không xác nhận được vị thế* ${formatSymbol(st.symbol)} — ${msg}\\nSL đã đặt\\. Bot tiếp tục theo dõi\\.`);
+      await sendTelegram(telegram, `⚠️ *Không xác nhận được vị thế* ${formatSymbol(st.symbol)} — ${escapeMarkdown(msg)}\\nSL đã đặt\\. Bot tiếp tục theo dõi\\.`);
     }
   }
 
@@ -682,17 +733,18 @@ function markData(): void {
   lastDataAt = Date.now();
   if (healthAlerted) {
     healthAlerted = false;
-    void sendTelegram(telegram, `✅ *Bot phục hồi* — đã nhận lại dữ liệu nến.\n🕐 ${formatTimeVn(Date.now())}`);
+    void sendTelegramReliable(telegram, `✅ *Bot phục hồi* — đã nhận lại dữ liệu nến.\n🕐 ${formatTimeVn(Date.now())}`);
   }
 }
 
 function startHealthMonitor(): void {
   setInterval(() => {
+    void flushPendingTelegram(telegram); // thử gửi lại alert kẹt từ lúc mất mạng
     if (healthAlerted || Date.now() - lastDataAt <= HEALTH_TIMEOUT_MS) return;
     healthAlerted = true;
     const mins = Math.round((Date.now() - lastDataAt) / 60_000);
     console.error(`[Health] ⚠️ Không nhận được data ~${mins} phút.`);
-    void sendTelegram(
+    void sendTelegramReliable(
       telegram,
       `⚠️ *Bot mất dữ liệu* — không có nến mới ~${mins} phút.\nCó thể fapi bị chặn (451) hoặc mất mạng. Kiểm tra \`pm2 logs\`.\n🕐 ${formatTimeVn(Date.now())}`
     );
@@ -707,26 +759,33 @@ const BINANCE_HEALTH_MS = 5 * 60 * 1000;
 function startBinanceHealthMonitor(): void {
   if (!binance) return;
   const check = async (): Promise<void> => {
+    void flushPendingTelegram(telegram); // thử gửi lại alert kẹt từ lúc mất mạng
     try {
       await binance.getEquity(); // signed read — xác thực kết nối + key + IP
       if (binanceDown) {
         binanceDown = false;
         console.log("[Health] ✅ Kết nối Binance phục hồi.");
-        await sendTelegram(telegram, `✅ *Kết nối Binance phục hồi*\n🕐 ${formatTimeVn(Date.now())}`);
+        await sendTelegramReliable(telegram, `✅ *Kết nối Binance phục hồi*\n🕐 ${formatTimeVn(Date.now())}`);
       }
     } catch (err: any) {
       if (binanceDown) return; // đã báo rồi, không spam
       binanceDown = true;
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.msg ?? (err instanceof Error ? err.message : String(err));
+      // Binance trả kèm "request ip: x.x.x.x" trong msg khi -2015 — bóc ra để chỉ thẳng IP cần whitelist
+      // (thấy đúng scenario này đêm 16→17/7: ISP đổi IP nhà, key mất quyền cho tới khi cập nhật whitelist).
+      const ipMatch = /request ip:\s*([\d.]+)/i.exec(String(msg));
       let hint = "";
-      if (code === -2015 || code === -2014) hint = "\n⚠️ IP máy có thể đã ĐỔI và không còn trong whitelist API, hoặc key thiếu quyền Futures.";
-      else if (code === -1021) hint = "\n⚠️ Lệch đồng hồ máy (timestamp).";
+      if (code === -2015 || code === -2014) {
+        hint = ipMatch
+          ? `\n⚠️ IP máy đã ĐỔI thành \`${ipMatch[1]}\` và chưa có trong whitelist API key. Vào Binance → API Management, thêm IP này.`
+          : "\n⚠️ IP máy có thể đã ĐỔI và không còn trong whitelist API, hoặc key thiếu quyền Futures.";
+      } else if (code === -1021) hint = "\n⚠️ Lệch đồng hồ máy (timestamp).";
       else if (!err?.response) hint = "\n⚠️ Mất mạng hoặc Binance bị chặn (451) từ IP này.";
       console.error(`[Health] 🔌 Mất kết nối Binance${code ? ` (code ${code})` : ""}: ${msg}`);
-      await sendTelegram(
+      await sendTelegramReliable(
         telegram,
-        `🔌 *MẤT KẾT NỐI BINANCE*${code ? ` (code ${code})` : ""} — ${msg}${hint}\n\n` +
+        `🔌 *MẤT KẾT NỐI BINANCE*${code ? ` (code ${code})` : ""} — ${escapeMarkdown(msg)}${hint}\n\n` +
           `SL/TP đã đặt trên sàn VẪN bảo vệ vị thế, nhưng bot KHÔNG vào lệnh mới / trail / time-exit cho tới khi kết nối lại.\n🕐 ${formatTimeVn(Date.now())}`
       );
     }
@@ -820,7 +879,9 @@ function buildStatusMessage(): string {
   }
   const tLines = turtle?.statusLines() ?? [];
   if (tLines.length) lines.push(`— 🐢 Turtle —`, ``, ...tLines);
-  lines.push(`_Đang mở: ${open}/${states.length} SMC + ${tLines.length ? Math.ceil(tLines.length / 3) : 0} turtle · ${formatTimeVn(Date.now())}_`);
+  const fLines = fastTrend?.statusLines() ?? [];
+  if (fLines.length) lines.push(`— ⚡ Fast-trend (giấy, forward-test) —`, ``, ...fLines, ``);
+  lines.push(`_Đang mở: ${open}/${states.length} SMC + ${tLines.length ? Math.ceil(tLines.length / 3) : 0} turtle + ${fLines.length} fast(giấy) · ${formatTimeVn(Date.now())}_`);
   return lines.join("\n");
 }
 
@@ -884,12 +945,12 @@ async function main(): Promise<void> {
     const testnet = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";
     try {
       // Preflight cả symbol turtle (nếu turtle trade thật) — set margin/đòn bẩy/filter một lần
-      const pfSymbols = [...new Set([...SYMBOLS, ...(turtle && turtleTrader ? TURTLE_SYMBOLS : [])])];
+      const pfSymbols = [...new Set([...SYMBOLS, ...(turtle && turtleTrader ? TURTLE_SYMBOLS : []), ...(fastTrend && fastTrendTrader ? FAST_TREND_SYMBOLS : [])])];
       const pf = await trader.preflight(pfSymbols);
       for (const w of pf.warnings) console.warn(`[Preflight] ⚠️ ${w}`);
       if (!pf.ok) {
         console.error(`[Preflight] ❌ ${pf.errors.join(" | ")} — chạy ALERT-ONLY.`);
-        await sendTelegram(telegram, `❌ *Không bật được giao dịch*\n${pf.errors.map((e) => "• " + e).join("\n")}\nBot chạy ALERT-ONLY.`);
+        await sendTelegram(telegram, `❌ *Không bật được giao dịch*\n${pf.errors.map((e) => "• " + escapeMarkdown(e)).join("\n")}\nBot chạy ALERT-ONLY.`);
       } else {
         tradingReady = true;
         await reconcileStartup(); // khớp state bot ↔ sàn TRƯỚC khi nhận nến mới
@@ -906,7 +967,7 @@ async function main(): Promise<void> {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[Trade] ❌ preflight thất bại — chuyển ALERT-ONLY:", msg);
-      await sendTelegram(telegram, `❌ *Lỗi kết nối Binance* — ${msg}\nBot chạy ALERT-ONLY (không đặt lệnh).`);
+      await sendTelegram(telegram, `❌ *Lỗi kết nối Binance* — ${escapeMarkdown(msg)}\nBot chạy ALERT-ONLY (không đặt lệnh).`);
     }
   } else {
     console.log(`[Trade] Alert-only (TRADING_ENABLED=${TRADING_ENABLED}${TRADING_ENABLED && !binance ? ", thiếu API key" : ""}).`);
@@ -919,10 +980,22 @@ async function main(): Promise<void> {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[Turtle] ❌ khởi động thất bại — turtle tắt phiên này:", msg);
-      await sendTelegram(telegram, `🐢❌ *Turtle không khởi động được* — ${msg}\nLớp SMC vẫn chạy bình thường.`);
+      await sendTelegram(telegram, `🐢❌ *Turtle không khởi động được* — ${escapeMarkdown(msg)}\nLớp SMC vẫn chạy bình thường.`);
     }
   } else {
     console.log("[Turtle] Tắt (TURTLE_ENABLED=false).");
+  }
+
+  // Khởi động sleeve TREND NHANH (alert-only forward-test) — độc lập, lỗi ở đây KHÔNG ảnh hưởng SMC/turtle.
+  if (fastTrend) {
+    try {
+      await fastTrend.start();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Fast] ❌ khởi động thất bại — sleeve nhanh tắt phiên này:", msg);
+    }
+  } else {
+    console.log("[Fast] Tắt (FAST_TREND_ENABLED=false).");
   }
 
   // Lệnh phát hiện từ chart MỚI HƠN lệnh đã lưu = vào trong lúc bot offline → silent scan

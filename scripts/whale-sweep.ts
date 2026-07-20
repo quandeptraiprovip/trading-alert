@@ -1,120 +1,97 @@
 /**
- * A/B dấu hiệu whale / MM (spring, sweep, upthrust, delta confirm) — 250d BTC 15m.
- * Chạy: npx ts-node scripts/whale-sweep.ts
+ * whale-sweep.ts — A/B các TỔ HỢP xác nhận "whale / MM" trên rổ CONFIG.symbols.
+ *
+ * LƯU Ý: bản cũ của file này bám vào một API CONFIG đã bị GỠ khi refactor (applyEntryTf,
+ * entryArmMinSpringWick, entryArmMinVolMult, entryArmRequireDelta, entryLiquiditySweepPct,
+ * entryConfirmMaxTrapWick, entryConfirmDeltaMin, entryConfirmMinBodyRatio, entryConfirmDeltaImproving)
+ * → không còn tồn tại nên KHÔNG test được nữa. File này chỉ giữ các tín hiệu MM mà strategy hiện
+ * hỗ trợ và tập trung vào TỔ HỢP (stack nhiều xác nhận) — thứ mà confirm-quality-gate / liquidity-soft
+ * test riêng lẻ. Không ghi đè strategy.ts.
+ *
+ * Tín hiệu dùng: requireLiquiditySweep (hard-gate sweep siết), sweepAsConfirm (SOFT), confirmCloseLocationMin
+ * (CLV), confirmRequireWickRejection (wick từ chối), confirmRejectHighVolLowBody (loại trap body nhỏ), deltaBuyMin.
+ *
+ * Run: npx ts-node scripts/whale-sweep.ts [soNgay] [symbols]
  */
 import "../load-env";
-import { CONFIG, applyEntryTf } from "../strategy";
-import { fetchKlinesPaged, runBacktest } from "../backtest";
-import { TF_MS } from "../strategy";
+import { Candle, CONFIG, TF_MS } from "../strategy";
+import { fetchKlinesPaged, runBacktest, Trade } from "../backtest";
 
-type O = Partial<typeof CONFIG>;
+type Overrides = Partial<typeof CONFIG>;
 
-const BASELINE_NET = 15.68;
+const VARIANTS: { name: string; o: Overrides }[] = [
+  { name: "baseline", o: {} },
+  { name: "sweep hard-gate", o: { requireLiquiditySweep: true } },
+  { name: "SOFT sweep=confirm", o: { sweepAsConfirm: true } },
+  { name: "wick rejection", o: { confirmRequireWickRejection: true } },
+  { name: "CLV0.55 + delta0.58", o: { confirmCloseLocationMin: 0.55, deltaBuyMin: 0.58 } },
+  { name: "reject trap body", o: { confirmRejectHighVolLowBody: true } },
+  { name: "sweep + wick", o: { requireLiquiditySweep: true, confirmRequireWickRejection: true } },
+  {
+    name: "MM stack (sweep+CLV+delta)",
+    o: { requireLiquiditySweep: true, confirmCloseLocationMin: 0.55, deltaBuyMin: 0.58 },
+  },
+  {
+    name: "SOFT MM stack (soft+wick+CLV)",
+    o: { sweepAsConfirm: true, confirmRequireWickRejection: true, confirmCloseLocationMin: 0.55 },
+  },
+];
 
-function whaleDefaults() {
-  return {
-    entryArmMinSpringWick: CONFIG.entryArmMinSpringWick,
-    entryArmMinVolMult: CONFIG.entryArmMinVolMult,
-    entryArmRequireDelta: CONFIG.entryArmRequireDelta,
-    entryRequireLiquiditySweep: CONFIG.entryRequireLiquiditySweep,
-    entryLiquiditySweepPct: CONFIG.entryLiquiditySweepPct,
-    entryConfirmMaxTrapWick: CONFIG.entryConfirmMaxTrapWick,
-    entryConfirmDeltaMin: CONFIG.entryConfirmDeltaMin,
-    entryConfirmCloseLocationMin: CONFIG.entryConfirmCloseLocationMin,
-    entryRejectHighVolLowBody: CONFIG.entryRejectHighVolLowBody,
-    entryConfirmMinBodyRatio: CONFIG.entryConfirmMinBodyRatio,
-    entryConfirmDeltaImproving: CONFIG.entryConfirmDeltaImproving,
-  };
-}
-
-function restoreWhale(w: ReturnType<typeof whaleDefaults>) {
-  Object.assign(CONFIG, w);
-}
+const netOf = (t: Trade[]): number => t.reduce((s, x) => s + x.netR, 0);
+const winOf = (t: Trade[]): number => (t.length ? t.filter((x) => x.netR > 0).length / t.length : 0);
 
 async function main() {
-  applyEntryTf("15m");
-  const days = 250;
-  const totalBars = Math.ceil(days * (TF_MS["1d"] / TF_MS["15m"])) + 400;
-  console.log("Tải nến một lần…");
-  const ltf = await fetchKlinesPaged("btcusdt", "15m", totalBars);
+  const days = parseInt(process.argv[2] ?? "250", 10);
+  const symbols = (process.argv[3] ? process.argv[3].split(",") : CONFIG.symbols).map((s) => s.trim().toLowerCase());
+  const totalBars = Math.ceil(days * (TF_MS["1d"] / TF_MS[CONFIG.entryTf])) + 400;
 
-  const variants: { name: string; o: O }[] = [
-    { name: "baseline", o: {} },
-    { name: "spring ARM wick≥0.35", o: { entryArmMinSpringWick: 0.35 } },
-    { name: "spring ARM wick≥0.45", o: { entryArmMinSpringWick: 0.45 } },
-    { name: "ARM vol ≥1.2x avg", o: { entryArmMinVolMult: 1.2 } },
-    { name: "ARM vol ≥1.5x avg", o: { entryArmMinVolMult: 1.5 } },
-    { name: "liquidity sweep bắt buộc", o: { entryRequireLiquiditySweep: true } },
-    { name: "sweep + spring0.35", o: { entryRequireLiquiditySweep: true, entryArmMinSpringWick: 0.35 } },
-    { name: "trap wick confirm ≤0.45", o: { entryConfirmMaxTrapWick: 0.45 } },
-    { name: "trap wick confirm ≤0.35", o: { entryConfirmMaxTrapWick: 0.35 } },
-    { name: "confirm delta ≥0.58", o: { entryConfirmDeltaMin: 0.58 } },
-    { name: "confirm delta ≥0.60", o: { entryConfirmDeltaMin: 0.6 } },
-    { name: "CLV0.55 + trap0.45", o: { entryConfirmCloseLocationMin: 0.55, entryConfirmMaxTrapWick: 0.45 } },
-    { name: "ARM delta bắt buộc", o: { entryArmRequireDelta: true } },
-    { name: "BOS body ≥0.40", o: { entryConfirmMinBodyRatio: 0.4 } },
-    { name: "BOS body ≥0.50", o: { entryConfirmMinBodyRatio: 0.5 } },
-    { name: "delta momentum confirm", o: { entryConfirmDeltaImproving: true } },
-    { name: "chặn vol cao body nhỏ", o: { entryRejectHighVolLowBody: true } },
-    { name: "spring0.30 + ARM delta", o: { entryArmMinSpringWick: 0.3, entryArmRequireDelta: true } },
-    { name: "trap0.50 + CLV0.55", o: { entryConfirmMaxTrapWick: 0.5, entryConfirmCloseLocationMin: 0.55 } },
-    { name: "sweep + delta momentum", o: { entryRequireLiquiditySweep: true, entryConfirmDeltaImproving: true } },
-    {
-      name: "sweep+spring0.35+trap0.45",
-      o: {
-        entryRequireLiquiditySweep: true,
-        entryArmMinSpringWick: 0.35,
-        entryConfirmMaxTrapWick: 0.45,
-      },
-    },
-    {
-      name: "full whale stack",
-      o: {
-        entryRequireLiquiditySweep: true,
-        entryArmMinSpringWick: 0.35,
-        entryArmMinVolMult: 1.2,
-        entryConfirmMaxTrapWick: 0.45,
-        entryConfirmCloseLocationMin: 0.55,
-        entryConfirmDeltaMin: 0.58,
-      },
-    },
-  ];
+  console.log(`Tải ~${days} ngày × ${symbols.length} symbol...\n`);
+  const data = new Map<string, Candle[]>();
+  for (const sym of symbols) {
+    const ltf = await fetchKlinesPaged(sym, CONFIG.entryTf, totalBars);
+    if (ltf.length < 500) { console.log(`[${sym}] thiếu data, bỏ.`); continue; }
+    data.set(sym, ltf);
+  }
+  console.log();
 
   const saved = { ...CONFIG };
-  const whale0 = whaleDefaults();
+  const syms = [...data.keys()];
+  const results: { name: string; net: number; trades: number; win: number }[] = [];
 
-  console.log("\nWhale / MM proxy variants     | Lệnh | NET R    | vs 15.68R");
-  console.log("-".repeat(68));
-
-  let best = { name: "baseline", net: -Infinity };
-
-  for (const v of variants) {
+  for (const v of VARIANTS) {
     Object.assign(CONFIG, saved);
-    restoreWhale(whale0);
     Object.assign(CONFIG, v.o);
+    let all: Trade[] = [];
+    for (const sym of syms) all = all.concat(runBacktest(sym, data.get(sym)!));
+    results.push({ name: v.name, net: netOf(all), trades: all.length, win: winOf(all) });
+  }
+  Object.assign(CONFIG, saved);
 
-    const trades = runBacktest("btcusdt", ltf);
-    const net = trades.reduce((s, t) => s + t.netR, 0);
-    if (net > best.net) best = { name: v.name, net };
-    const mark = net >= BASELINE_NET - 1e-9 ? "✓" : " ";
+  const base = results[0].net;
+  console.log("=".repeat(74));
+  console.log(`  TỔ HỢP XÁC NHẬN WHALE / MM — ${days} ngày — ${syms.map((s) => s.toUpperCase()).join(", ")}`);
+  console.log("=".repeat(74));
+  console.log(`${"Variant".padEnd(30)} ${"Lệnh".padStart(5)} ${"WR".padStart(5)} ${"NET R".padStart(9)} ${"Δ base".padStart(9)}`);
+  console.log("-".repeat(74));
+  for (const r of results) {
+    const d = r.net - base;
+    const mark = r.name === "baseline" ? "" : d > 0.01 ? "  ✅" : d < -0.01 ? "  ❌" : "  ≈";
     console.log(
-      `${v.name.padEnd(28)} | ${String(trades.length).padStart(4)} | ${(net >= 0 ? "+" : "") + net.toFixed(2).padStart(7)}R | ${(net - BASELINE_NET >= 0 ? "+" : "") + (net - BASELINE_NET).toFixed(2)}R ${mark}`,
+      `${r.name.padEnd(30)} ${String(r.trades).padStart(5)} ${(r.win * 100).toFixed(0).padStart(4)}% ${((r.net >= 0 ? "+" : "") + r.net.toFixed(2)).padStart(8)}R ${((d >= 0 ? "+" : "") + d.toFixed(2)).padStart(8)}R${mark}`
     );
   }
+  console.log("-".repeat(74));
 
-  Object.assign(CONFIG, saved);
-  restoreWhale(whale0);
-
-  console.log("-".repeat(68));
-  console.log(`Tốt nhất: ${best.name} → ${best.net.toFixed(2)}R`);
-  if (best.net <= BASELINE_NET + 1e-9) {
-    console.log("→ Giữ CONFIG mặc định (không bật whale filter).");
-  } else {
-    console.log(`→ Có thể bật: ${best.name}`);
-  }
+  const winners = results.slice(1).filter((r) => r.net > base + 0.01).sort((a, b) => b.net - a.net);
+  console.log(
+    winners.length
+      ? `👉 Vượt baseline (${base.toFixed(2)}R): ${winners.map((w) => `${w.name} (+${(w.net - base).toFixed(2)}R)`).join(", ")}`
+      : `👉 KHÔNG tổ hợp nào vượt baseline (${base.toFixed(2)}R).`
+  );
+  console.log();
 }
 
 main().catch((e) => {
-  console.error(e);
+  console.error("Lỗi:", e?.response?.data ?? e.message);
   process.exit(1);
 });

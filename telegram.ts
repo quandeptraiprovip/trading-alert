@@ -30,6 +30,16 @@ export function loadTelegramConfig(): TelegramConfig {
   };
 }
 
+/**
+ * Escape các ký tự đặc biệt của Telegram legacy Markdown (_ * ` [) trong text ĐỘNG/không kiểm
+ * soát được (message lỗi exception, msg trả về từ Binance API...) trước khi chèn vào template
+ * alert. Thiếu bước này: 1 ký tự lẻ (vd "MIN_NOTIONAL" chỉ có 1 dấu "_") khiến Telegram không
+ * tìm được entity đóng → toàn bộ tin nhắn bị từ chối với lỗi "can't parse entities".
+ */
+export function escapeMarkdown(text: string): string {
+  return text.replace(/([_*`[])/g, "\\$1");
+}
+
 export function fmtPrice(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
@@ -81,6 +91,30 @@ export async function sendTelegram(
   const msg = lastErr instanceof Error ? lastErr.message : String(lastErr);
   console.error("[Telegram] Lỗi (đã thử 3 lần):", data ?? msg);
   return false;
+}
+
+// ── Retry bền bỉ cho cảnh báo quan trọng (mất kết nối / phục hồi) ──
+// sendTelegram() chỉ thử 3 lần trong ~6s rồi bỏ — không đủ nếu đúng lúc đó mạng đang đứt
+// (trường hợp thực tế: cả 2 alert "mất kết nối" đêm 16/7 gửi thất bại và mất luôn, không ai biết
+// tới khi kiểm tra log thủ công). Các hàm dưới giữ lại tin thất bại, thử lại ở tick giám sát kế
+// tiếp cho tới khi gửi được — dùng cho alert sức khỏe kết nối, KHÔNG áp dụng cho alert vào/ra lệnh.
+const pendingAlerts: string[] = [];
+
+/** Gửi tin quan trọng; nếu thất bại thì giữ lại để flushPendingTelegram() thử lại sau. */
+export async function sendTelegramReliable(cfg: TelegramConfig, message: string): Promise<void> {
+  if (!cfg.enabled) return;
+  const ok = await sendTelegram(cfg, message);
+  if (!ok) pendingAlerts.push(message);
+}
+
+/** Gọi định kỳ (mỗi tick health-check) để thử gửi lại các tin đã kẹt vì mất mạng lúc gửi. */
+export async function flushPendingTelegram(cfg: TelegramConfig): Promise<void> {
+  if (!cfg.enabled || pendingAlerts.length === 0) return;
+  const queue = pendingAlerts.splice(0, pendingAlerts.length);
+  for (const msg of queue) {
+    const ok = await sendTelegram(cfg, msg);
+    if (!ok) pendingAlerts.push(msg); // vẫn chưa gửi được — giữ lại, thử tiếp lần sau
+  }
 }
 
 /** Đọc tin nhắn đến (lệnh) từ Telegram. Trả [] nếu chưa cấu hình / lỗi. */

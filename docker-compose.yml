@@ -1,11 +1,14 @@
 # Chạy cả BOT alert đa-symbol + CHART perpetual bằng Docker.
 #
-#   docker compose up -d --build      # build + chạy nền
-#   docker compose logs -f swing-bot  # xem log bot (tìm dòng "Lắng nghe lệnh Telegram")
+#   # LẦN ĐẦU: tạo sẵn file state (bind-mount file chưa tồn tại → Docker tạo THƯ MỤC làm hỏng bot)
+#   touch bot-state.json trades-live.jsonl turtle-state.json turtle-trades.jsonl fast-trend-state.json fast-trend-trades.jsonl
+#
+#   docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
+#   docker compose logs -f swing-bot  # xem log bot (tìm "🐢 Turtle:" và "THỰC THI BẬT")
 #   docker compose down               # dừng
 #
 # CẦN: file .env.local chứa TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID (xem .env.example).
-# LƯU Ý: KHÔNG chạy đồng thời bot này với pm2 swing-bot trên VM cùng 1 token
+# LƯU Ý: KHÔNG chạy đồng thời 2 instance bot cùng 1 Telegram token
 #        — getUpdates giao mỗi update đúng 1 lần, hai bên sẽ giành /status.
 services:
   swing-bot:
@@ -22,6 +25,10 @@ services:
     volumes:
       - ./bot-state.json:/app/bot-state.json
       - ./trades-live.jsonl:/app/trades-live.jsonl
+      - ./turtle-state.json:/app/turtle-state.json
+      - ./turtle-trades.jsonl:/app/turtle-trades.jsonl
+      - ./fast-trend-state.json:/app/fast-trend-state.json
+      - ./fast-trend-trades.jsonl:/app/fast-trend-trades.jsonl
     restart: unless-stopped
 
   swing-chart:

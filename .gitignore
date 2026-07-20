@@ -47,3 +47,7 @@ trades-live.jsonl
 # Turtle live runtime (state + journal)
 turtle-state.json
 turtle-trades.jsonl
+
+# Fast-trend sleeve runtime (alert-only state + journal)
+fast-trend-state.json
+fast-trend-trades.jsonl

@@ -38,8 +38,11 @@ import { fetchKlinesPaged } from "./backtest";
 // ─────────────────────────────────────────────
 export const T = {
   tf: "4h", // khung vào lệnh — 4h: cân bằng giữa "daily-proven" của Turtle và tần suất ~1/ngày
-  entryDays: 20, // VÀO khi phá đỉnh/đáy N NGÀY gần nhất. 20d: expectancy cao nhất ở Era A (OOS cũ
-  // nhất, 0.180) + cả 3 era dương, KHÔNG dồn regime gần đây → bền nhất. ~0.54 lệnh/ngày (1 lệnh/~2 ngày).
+  entryDays: 15, // VÀO khi phá đỉnh/đáy N NGÀY gần nhất. ĐỔI 20→15 (2026-07-19, user chọn "nhiều lệnh
+  // hơn"): audit 3-era CÓ BTC gate trên rổ mới (scripts/fast-trend-audit.ts, 1050d) → 15d Era-A exp
+  // +0.115 (>20d +0.067), CẢ 3 era dương, perturbation 30/30, tổng NET +278R (>20d +246R), ~+15% tần
+  // suất. Live MAINNET (dùng lại engine turtle-live.ts, không code lệnh mới). 10d bắt được cả đợt chop
+  // nhưng exp mỏng nhất (+0.037) → để 10d chạy ALERT-ONLY so sánh (fast-trend-live.ts).
   chandelierMult: 3.0, // THOÁT: chandelier — stop trail = đỉnh-từ-entry − mult×ATR (rộng → winner chạy)
   atrPeriod: 20, // ATR theo nến TF
   trendLen: 50, // EMA lọc xu hướng (50 nến 4h ≈ 8 ngày) — chỉ long khi trên, short khi dưới

@@ -139,6 +139,12 @@ export const CONFIG = {
   //      xác nhận (gom stop) rồi ĐÓNG CỬA hồi lại qua nó (reclaim). Lọc tap thụ động.
   requireLiquiditySweep: false,
   sweepLookbackBars: 20, // cửa sổ 15m tìm swing bị quét
+  // (siết) cú THỦNG thanh khoản phải xảy ra trong <= N nến TRƯỚC nến reclaim — để "sweep+reclaim"
+  //        là cú hồi TƯƠI ngay sau quét, không phải giá đã đứng trên pivot từ lâu (0 = ngay trong nến).
+  sweepReclaimWithin: 2,
+  // (SOFT) dùng sweep+reclaim THAY cho BOS làm tín hiệu confirm sau khi ARM (không hard-gate chồng
+  //        lên BOS). Chỉ nên bật MỘT: requireLiquiditySweep (hard-gate) HOẶC sweepAsConfirm.
+  sweepAsConfirm: false,
   // (#4) Chỉ long ở nửa DƯỚI (discount) range HTF, short ở nửa TRÊN (premium).
   requireDiscountPremium: false,
   // (#2) Target = pool thanh khoản đối diện (swing 1h chưa bị lấy) thay vì vùng OB/RR.
@@ -569,7 +575,13 @@ export function buildHtfContext(
  *  - short: đối xứng (quét buy-side phía trên rồi đóng cửa lại xuống dưới).
  * Thuần, không lookahead: swing chỉ tính khi pivot đã xác nhận (p + right <= i).
  */
-function sweptAndReclaimed(ltf: Candle[], i: number, dir: "long" | "short", window: number): boolean {
+function sweptAndReclaimed(
+  ltf: Candle[],
+  i: number,
+  dir: "long" | "short",
+  window: number,
+  reclaimWithin = CONFIG.sweepReclaimWithin
+): boolean {
   const L = CONFIG.pivotLeft;
   const R = CONFIG.pivotRight;
   const close = ltf[i].close;
@@ -585,17 +597,16 @@ function sweptAndReclaimed(ltf: Candle[], i: number, dir: "long" | "short", wind
       if (dir === "long" ? v < ref : v > ref) isPivot = false;
     }
     if (!isPivot) continue;
-    // đã bị quét sau khi hình thành?
-    let swept = false;
+    // Cú THỦNG (sweep) GẦN NHẤT qua pivot: phải TƯƠI — trong reclaimWithin nến trước i — nếu không
+    // thì đây chỉ là giá đã đứng trên/dưới pivot từ lâu, KHÔNG phải reclaim ngay sau quét.
+    let lastSwept = -1;
     for (let k = p + 1; k <= i; k++) {
       const v = dir === "long" ? ltf[k].low : ltf[k].high;
-      if (dir === "long" ? v < ref : v > ref) {
-        swept = true;
-        break;
-      }
+      if (dir === "long" ? v < ref : v > ref) lastSwept = k;
     }
-    if (!swept) continue;
-    // reclaim: nến hiện tại đóng cửa quay lại đúng phía
+    if (lastSwept < 0) continue; // chưa bị quét
+    if (i - lastSwept > reclaimWithin) continue; // cú quét quá cũ so với nến hiện tại
+    // reclaim: nến hiện tại đóng cửa quay lại đúng phía pivot
     if (dir === "long" ? close > ref : close < ref) return true;
   }
   return false;
@@ -912,10 +923,13 @@ export class SetupTracker {
 
       const minPivot = CONFIG.bosSwingMinPivotAfterArm ? p.armedIndex : 0;
       const trig = lastConfirmedSwing(ltf, i, "high", CONFIG.pivotLeft, CONFIG.pivotRight, 40, minPivot);
-      const fresh = trig && prev.close <= trig.price && c.close > trig.price;
+      const bosFresh = !!trig && prev.close <= trig.price && c.close > trig.price;
+      // (SOFT) sweep+reclaim thay BOS làm tín hiệu confirm; ngược lại: BOS phá swing 15m gần nhất.
+      const confirmTrig = CONFIG.sweepAsConfirm
+        ? sweptAndReclaimed(ltf, i, "long", CONFIG.sweepLookbackBars)
+        : bosFresh;
       if (
-        trig &&
-        fresh &&
+        confirmTrig &&
         c.close > c.open &&
         volRatio >= CONFIG.ltfConfirmVolMult &&
         deltaAligned(c, "demand") &&
@@ -923,7 +937,7 @@ export class SetupTracker {
         confirmExtensionOk(c.close, p) &&
         minPullbackDepthOk(ltf, p, i, c.close)
       ) {
-        const sig = this.buildLong(c, p, volRatio, trig.price, ctx);
+        const sig = this.buildLong(c, p, volRatio, trig ? trig.price : p.extreme, ctx);
         if (sig) this.pending = null;
         return sig;
       }
@@ -942,10 +956,13 @@ export class SetupTracker {
 
       const minPivot = CONFIG.bosSwingMinPivotAfterArm ? p.armedIndex : 0;
       const trig = lastConfirmedSwing(ltf, i, "low", CONFIG.pivotLeft, CONFIG.pivotRight, 40, minPivot);
-      const fresh = trig && prev.close >= trig.price && c.close < trig.price;
+      const bosFresh = !!trig && prev.close >= trig.price && c.close < trig.price;
+      // (SOFT) sweep+reclaim thay BOS làm tín hiệu confirm; ngược lại: BOS phá swing 15m gần nhất.
+      const confirmTrig = CONFIG.sweepAsConfirm
+        ? sweptAndReclaimed(ltf, i, "short", CONFIG.sweepLookbackBars)
+        : bosFresh;
       if (
-        trig &&
-        fresh &&
+        confirmTrig &&
         c.close < c.open &&
         volRatio >= CONFIG.ltfConfirmVolMult &&
         deltaAligned(c, "supply") &&
@@ -953,7 +970,7 @@ export class SetupTracker {
         confirmExtensionOk(c.close, p) &&
         minPullbackDepthOk(ltf, p, i, c.close)
       ) {
-        const sig = this.buildShort(c, p, volRatio, trig.price, ctx);
+        const sig = this.buildShort(c, p, volRatio, trig ? trig.price : p.extreme, ctx);
         if (sig) this.pending = null;
         return sig;
       }
