@@ -733,6 +733,13 @@ export class FastTrendLive {
           st.quarantined = reason;
           await this.tg(`⚡❓ *Vị thế lạ trên MEXC* ${formatSymbol(st.symbol)} ${exDir.toUpperCase()} qty ${Math.abs(p.positionAmt)} — Fast KHÔNG tự nhận/đóng. Kiểm tra thủ công.`);
         }
+      } else if (st.quarantined && !pos?.real) {
+        // State và sàn CÙNG flat: cờ quarantine cũ không còn đối tượng nào để kiểm tra. Phải xoá ở
+        // đây, vì mọi đường tự khỏi khác đều đi qua một entry/exit thành công — mà entry lại bị
+        // chính cờ này chặn (:316). Không xoá = symbol bị loại khỏi rổ vĩnh viễn, trong im lặng.
+        console.log(`[Fast] ${formatSymbol(st.symbol)} state+sàn đều flat — gỡ quarantine cũ: ${st.quarantined}`);
+        await this.tg(`⚡✅ *Gỡ quarantine* ${formatSymbol(st.symbol)} — state và MEXC đều flat, không còn gì để đối chiếu.\nLý do cũ: ${escapeMarkdown(st.quarantined)}`);
+        st.quarantined = undefined;
       }
     }
     this.persist();
