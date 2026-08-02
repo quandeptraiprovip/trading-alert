@@ -1,18 +1,19 @@
 /**
  * exp-turtle-overfit.ts — Audit overfit cho chiến lược Turtle (turtle.ts).
- *  (A) OUT-OF-SAMPLE theo THỜI GIAN: chia toàn bộ lịch sử thành 3 era không chồng lấn.
- *      Era cũ nhất = OOS thật (config 7d/3×ATR chọn từ ~386d gần đây). Metric chính =
- *      expectancy (NET R/lệnh) — bền với số lệnh khác nhau giữa era.
+ *  (A) ĐỘ BỀN THEO THỜI GIAN: chia toàn bộ lịch sử thành 3 era không chồng lấn.
+ *      Vì config hiện đã được xem trên toàn lịch sử, đây KHÔNG còn là OOS nguyên chất;
+ *      metric chính là expectancy (NET R/lệnh), bền với số lệnh khác nhau giữa era.
  *  (B) PERTURBATION: jitter ngẫu nhiên ±15% các tham số Turtle, xem edge có sống không
  *      (sụt mạnh = cliff/overfit; gần plateau = robust).
  *
- * Config audit = cấu hình đã chọn: rổ 8 large-cap, breakout 7d, chandelier 3×ATR.
+ * Config audit = đúng production: rổ 8 large-cap, LONG Hybrid close/mid 15d,
+ * SHORT close 30d/Chandelier, BTC gate LONG 10d/100d, pyramid tối đa 4 unit.
  *
  * Run: ./node_modules/.bin/ts-node exp-turtle-overfit.ts [soNgay]
  */
 import { Candle, TF_MS } from "./strategy";
 import { fetchKlinesPaged } from "./backtest";
-import { T, runTurtle, Trade } from "./turtle";
+import { T, runTurtle, Trade, TurtleParams, buildBtcGateLongs } from "./turtle";
 
 // Rổ hoán đổi chất lượng 2026-07: BỎ BNB (solvency risk) → THÊM DOT (robust). Giữ 8 coin. Xem btc-alert-bot.ts.
 const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "adausdt", "avaxusdt", "dotusdt"];
@@ -30,8 +31,8 @@ async function main() {
 
   const DAYS = parseInt(process.argv[2] ?? "1050", 10);
   const bpd = TF_MS["1d"] / TF_MS[T.tf]; // 4h → 6/ngày
-  const totalBars = Math.ceil(DAYS * bpd) + T.trendLen + 50;
-  console.log(`Fetch ~${DAYS}d × ${SYMBOLS.length} symbol @ ${T.tf} (breakout ${T.entryDays}d / chandelier ${T.chandelierMult}×ATR)...`);
+  const totalBars = Math.ceil(DAYS * bpd) + T.btcGateSlow + 50;
+  console.log(`Fetch ~${DAYS}d × ${SYMBOLS.length} symbol @ ${T.tf} (LONG ${T.entryDays}d / SHORT ${T.shortEntryDays || T.entryDays}d + BTC gate)...`);
 
   const data = new Map<string, Candle[]>();
   for (const s of SYMBOLS) {
@@ -40,19 +41,22 @@ async function main() {
     console.log(`  ${s.toUpperCase()} ${c.length} nến (~${Math.round(c.length / bpd)}d)`);
   }
   if (data.size === 0) { console.log("Không tải được symbol nào."); return; }
+  const btc = data.get("btcusdt");
+  if (!btc) { console.log("Thiếu BTCUSDT để dựng regime gate."); return; }
+  const gate = buildBtcGateLongs(btc, T.btcGateFast, T.btcGateSlow);
 
-  const warmup = Math.max(Math.round(T.entryDays * bpd), T.trendLen, T.atrPeriod) + 1;
+  const warmup = Math.max(Math.round(T.entryDays * bpd), Math.round((T.shortEntryDays || T.entryDays) * bpd), T.trendLen, T.atrPeriod, T.btcGateSlow) + 1;
 
   // ── (A) ERA theo thời gian: 3 phần ~đều, mỗi era kèm warmup phía trước ──
   const minLen = Math.min(...[...data.values()].map((d) => d.length));
   const eraLen = Math.floor((minLen - warmup) / 3);
   const eras = [
-    { name: "Era A (cũ nhất ~OOS)", lo: 0 },
+    { name: "Era A (cũ nhất)", lo: 0 },
     { name: "Era B (giữa)", lo: 1 },
     { name: "Era C (gần đây, in-sample)", lo: 2 },
   ];
   console.log("\n" + "=".repeat(78));
-  console.log("  (A) OUT-OF-SAMPLE THEO THỜI GIAN — expectancy (NET R/lệnh) phải ổn định & dương");
+  console.log("  (A) ĐỘ BỀN THEO THỜI GIAN — expectancy (NET R/lệnh) phải ổn định & dương");
   console.log("=".repeat(78));
   console.log("Era".padEnd(28) + "khoảng".padEnd(22) + "lệnh  WR%   NETR   R/lệnh");
   console.log("-".repeat(78));
@@ -64,7 +68,7 @@ async function main() {
       const sliceStart = Math.max(0, warmup + e.lo * eraLen - warmup); // kèm warmup phía trước
       const sliceEnd = warmup + (e.lo + 1) * eraLen;
       const slice = d.slice(sliceStart, sliceEnd);
-      const tr = runTurtle(sym, slice);
+      const tr = runTurtle(sym, slice, { ...T, gate });
       const eraStartTime = d[warmup + e.lo * eraLen]?.openTime ?? 0;
       const kept = tr.filter((t) => t.entryTime >= eraStartTime);
       all.push(...kept);
@@ -76,19 +80,37 @@ async function main() {
   }
 
   // ── (B) PERTURBATION: jitter tham số Turtle, chạy trên toàn bộ lịch sử ──
-  const base = { entryDays: T.entryDays, chandelierMult: T.chandelierMult, atrPeriod: T.atrPeriod, trendLen: T.trendLen, maxHoldDays: T.maxHoldDays };
-  const runFull = () => { const all: Trade[] = []; for (const [sym, d] of data) all.push(...runTurtle(sym, d)); return stats(all); };
-  const baseStats = runFull();
+  const base = { entryDays: T.entryDays, shortEntryDays: T.shortEntryDays, chandelierMult: T.chandelierMult, atrPeriod: T.atrPeriod, trendLen: T.trendLen, maxHoldDays: T.maxHoldDays };
+  const auditStart = btc[warmup]?.openTime ?? 0; // loại toàn bộ vùng warmup/gate permissive khỏi metric full
+  const runFull = (p: TurtleParams) => {
+    const all: Trade[] = [];
+    for (const [sym, d] of data) all.push(...runTurtle(sym, d, p).filter((t) => t.entryTime >= auditStart));
+    return stats(all);
+  };
+  const baseStats = runFull({ ...T, gate });
+  const previousStats = runFull({ ...T, shortEntryDays: 0, shortEntrySource: "low", shortExitMode: "chandelier", gate });
+  const legacyStats = runFull({
+    ...T, shortEntryDays: 0, initialStopObLookback: 0,
+    longEntrySource: "high", longExitMode: "chandelier",
+    shortEntrySource: "low", shortExitMode: "chandelier", gate,
+  });
+  const auditDays = Math.max(1, (btc[btc.length - 1].openTime - auditStart) / TF_MS["1d"]);
 
   const SEEDS = 30, jit = 0.15;
   const nets: number[] = [], exps: number[] = [];
   for (let s = 0; s < SEEDS; s++) {
-    T.entryDays = Math.max(2, Math.round(base.entryDays * (1 + (Math.random() * 2 - 1) * jit)));
-    T.chandelierMult = base.chandelierMult * (1 + (Math.random() * 2 - 1) * jit);
-    T.atrPeriod = Math.max(5, Math.round(base.atrPeriod * (1 + (Math.random() * 2 - 1) * jit)));
-    T.trendLen = Math.max(10, Math.round(base.trendLen * (1 + (Math.random() * 2 - 1) * jit)));
-    T.maxHoldDays = Math.max(5, Math.round(base.maxHoldDays * (1 + (Math.random() * 2 - 1) * jit)));
-    const st = runFull();
+    // PRNG cố định theo seed/salt để audit tái lập được giữa các lần chạy.
+    const factor = (salt: number): number => {
+      const x = (Math.imul(s + 1, 2654435761) + Math.imul(salt + 1, 1013904223)) >>> 0;
+      return 1 + ((x / 0x100000000) * 2 - 1) * jit;
+    };
+    T.entryDays = Math.max(2, Math.round(base.entryDays * factor(0)));
+    T.shortEntryDays = Math.max(2, Math.round(base.shortEntryDays * factor(5)));
+    T.chandelierMult = base.chandelierMult * factor(1);
+    T.atrPeriod = Math.max(5, Math.round(base.atrPeriod * factor(2)));
+    T.trendLen = Math.max(10, Math.round(base.trendLen * factor(3)));
+    T.maxHoldDays = Math.max(5, Math.round(base.maxHoldDays * factor(4)));
+    const st = runFull({ ...T, gate });
     nets.push(st.net); exps.push(st.exp);
   }
   // restore
@@ -100,9 +122,11 @@ async function main() {
   const pos = nets.filter((x) => x > 0).length;
   const posExp = exps.filter((x) => x > 0).length;
   console.log("\n" + "=".repeat(78));
-  console.log(`  (B) PERTURBATION — ${SEEDS} seed jitter ±${jit * 100}% tham số (toàn bộ ~${Math.round(minLen / bpd)}d)`);
+  console.log(`  (B) PERTURBATION — ${SEEDS} seed jitter ±${jit * 100}% tham số (sau warmup ~${Math.round(auditDays)}d)`);
   console.log("=".repeat(78));
-  console.log(`Baseline NET R          : ${baseStats.net.toFixed(1)}R (${baseStats.n} lệnh, exp ${baseStats.exp.toFixed(3)}R/lệnh)`);
+  console.log(`Baseline NET R          : ${baseStats.net.toFixed(1)}R (${baseStats.n} lệnh, ${(baseStats.n / auditDays).toFixed(2)}/ngày, exp ${baseStats.exp.toFixed(3)}R/lệnh)`);
+  console.log(`Production trước fix    : ${previousStats.net.toFixed(1)}R (${previousStats.n} lệnh, ${(previousStats.n / auditDays).toFixed(2)}/ngày, exp ${previousStats.exp.toFixed(3)}R/lệnh)`);
+  console.log(`Engine cũ cùng gate     : ${legacyStats.net.toFixed(1)}R (${legacyStats.n} lệnh, ${(legacyStats.n / auditDays).toFixed(2)}/ngày, exp ${legacyStats.exp.toFixed(3)}R/lệnh)`);
   console.log(`Jitter NET R phân bố    : min ${nets[0].toFixed(1)} | p25 ${q(nets, .25).toFixed(1)} | median ${q(nets, .5).toFixed(1)} | p75 ${q(nets, .75).toFixed(1)} | max ${nets[nets.length - 1].toFixed(1)}`);
   console.log(`Jitter exp phân bố      : min ${q(exps, 0).toFixed(3)} | median ${q(exps, .5).toFixed(3)} | max ${q(exps, 1).toFixed(3)}`);
   console.log(`Seed có NET R > 0       : ${pos}/${SEEDS} (${(pos / SEEDS * 100).toFixed(0)}%)  | exp>0: ${posExp}/${SEEDS}`);

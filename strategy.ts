@@ -81,11 +81,15 @@ export const CONFIG = {
   volAvgPeriod: 20,
   volSpikeMult: 2.0, // nến >= 2x avg => "kích volume" (tạo vùng)
   ltfConfirmVolMult: 1.3, // nến 15m confirm cần volume >= 1.3x avg
+  confirmVolumeWindowBars: 1, // gom volume N nến 15m tới nến confirm (1 = hành vi cũ)
   useQuoteVolume: true, // dùng dollar (quote) volume thay vì base volume
   useTimeOfDayRVOL: false, // chuẩn hoá volume theo giờ-trong-ngày (cần warmup nhiều ngày)
+  // null = kế thừa useTimeOfDayRVOL; boolean = chỉ override baseline volume của entry LTF.
+  ltfUseTimeOfDayRVOL: null as boolean | null,
   rvolLookbackDays: 20, // số ngày nhìn lại cho RVOL theo giờ
   useDelta: true, // yêu cầu CVD/volume delta cùng hướng (xác nhận HƯỚNG)
   deltaBuyMin: 0.55, // demand/long: taker-buy ratio >= 0.55 ; supply/short: <= 1 - 0.55
+  deltaWindowBars: 1, // taker-buy ratio gộp N nến 15m tới nến confirm (1 = hành vi cũ)
 
   // Swing pivot (market structure)
   pivotLeft: 3,
@@ -127,7 +131,8 @@ export const CONFIG = {
   requirePullbackRetestZone: false, // pullback phải chạm lại vùng sau ARM
   minPullbackRiskFrac: 0, // độ sâu pullback tối thiểu tính theo R (0 = tắt)
   minEntryRR: 0, // bỏ tín hiệu nếu RR tới target < ngưỡng (0 = tắt)
-  deltaStrict: false, // true = thiếu taker-buy data thì không pass delta
+  // Delta là lớp lọc tạo edge chính trong audit 1.200 ngày; thiếu dữ liệu phải fail-closed.
+  deltaStrict: true,
 
   // ── (#2) Position sizing theo CHẤT LƯỢNG setup (displacement vùng = conviction MM) ──
   // Gate sweep 250d+500d: +~6-7R NET (chuẩn-hoá risk TB=1), robust qua nhiều ngưỡng lân cận
@@ -182,6 +187,7 @@ export const TF_MS: Record<string, number> = {
   "1h": 60 * 60_000,
   "4h": 4 * 60 * 60_000,
   "1d": 24 * 60 * 60_000,
+  "1w": 7 * 24 * 60 * 60_000,
 };
 
 const DAY_MS = TF_MS["1d"];
@@ -195,7 +201,9 @@ export function aggregate(base: Candle[], targetTf: string, baseTf: string): Can
   const tfMs = TF_MS[targetTf];
   const buckets = new Map<number, Candle[]>();
   for (const c of base) {
-    const bucketStart = Math.floor(c.openTime / tfMs) * tfMs;
+    // Unix epoch bắt đầu vào thứ Năm; dịch 3 ngày để bucket tuần bắt đầu thứ Hai UTC.
+    const weekOffset = targetTf === "1w" ? 3 * TF_MS["1d"] : 0;
+    const bucketStart = Math.floor((c.openTime + weekOffset) / tfMs) * tfMs - weekOffset;
     if (!buckets.has(bucketStart)) buckets.set(bucketStart, []);
     buckets.get(bucketStart)!.push(c);
   }
@@ -259,6 +267,28 @@ function deltaAligned(c: Candle, dir: "demand" | "supply"): boolean {
   return dir === "demand" ? r >= CONFIG.deltaBuyMin : r <= 1 - CONFIG.deltaBuyMin;
 }
 
+/** Taker-buy ratio có trọng số volume trên cửa sổ kết thúc tại endIdx. */
+export function windowBuyRatio(candles: Candle[], endIdx: number, bars: number): number | null {
+  const start = Math.max(0, endIdx - Math.max(1, bars) + 1);
+  let buy = 0;
+  let volume = 0;
+  for (let k = start; k <= endIdx; k++) {
+    const c = candles[k];
+    if (c.takerBuyVolume == null || c.volume <= 0) return null;
+    buy += c.takerBuyVolume;
+    volume += c.volume;
+  }
+  if (volume <= 0) return null;
+  return Math.min(1, Math.max(0, buy / volume));
+}
+
+function deltaAlignedAt(candles: Candle[], endIdx: number, dir: "demand" | "supply"): boolean {
+  if (!CONFIG.useDelta) return true;
+  const r = windowBuyRatio(candles, endIdx, CONFIG.deltaWindowBars);
+  if (r == null) return !CONFIG.deltaStrict;
+  return dir === "demand" ? r >= CONFIG.deltaBuyMin : r <= 1 - CONFIG.deltaBuyMin;
+}
+
 function tfMsOf(candles: Candle[]): number {
   return candles.length > 1 ? candles[1].openTime - candles[0].openTime : TF_MS["1h"];
 }
@@ -292,6 +322,32 @@ export function avgVol(candles: Candle[], endIdx: number): number {
     if (r > 0) return r;
   }
   return rollingAvgVolume(candles, endIdx, CONFIG.volAvgPeriod);
+}
+
+/** Baseline volume dành riêng cho entry LTF; mặc định kế thừa hành vi cũ. */
+function ltfAvgVol(candles: Candle[], endIdx: number): number {
+  const useTimeOfDay = CONFIG.ltfUseTimeOfDayRVOL ?? CONFIG.useTimeOfDayRVOL;
+  if (useTimeOfDay) {
+    const r = rvolByTimeOfDay(candles, endIdx, CONFIG.rvolLookbackDays);
+    if (r > 0) return r;
+  }
+  return rollingAvgVolume(candles, endIdx, CONFIG.volAvgPeriod);
+}
+
+/**
+ * Volume thực / baseline trên N nến kết thúc tại endIdx.
+ * Mẫu số cộng baseline riêng từng slot để không trộn mùa vụ trong ngày.
+ */
+export function confirmVolumeRatio(candles: Candle[], endIdx: number): number {
+  const bars = Math.max(1, CONFIG.confirmVolumeWindowBars);
+  const start = Math.max(0, endIdx - bars + 1);
+  let actual = 0;
+  let expected = 0;
+  for (let k = start; k <= endIdx; k++) {
+    actual += candleVol(candles[k]);
+    expected += ltfAvgVol(candles, k);
+  }
+  return expected > 0 ? actual / expected : 0;
 }
 
 // ─────────────────────────────────────────────
@@ -752,9 +808,7 @@ export function evaluateEntry(ltf: Candle[], i: number, ctx: HtfContext): EntryS
   if (ctx.bias !== ctx.zoneBias) return null;
 
   const c = ltf[i];
-  const avgV = avgVol(ltf, i);
-  if (avgV === 0) return null;
-  const volRatio = candleVol(c) / avgV;
+  const volRatio = confirmVolumeRatio(ltf, i);
   if (volRatio < CONFIG.ltfConfirmVolMult) return null;
 
   const bullish = c.close > c.open;
@@ -773,7 +827,7 @@ export function evaluateEntry(ltf: Candle[], i: number, ctx: HtfContext): EntryS
     // nến confirm phải có wick từ chối phía dưới + đóng cửa nửa trên
     if (closePos < 0.55 || lowerWick <= upperWick) return null;
     // (C) delta MUA xác nhận
-    if (!deltaAligned(c, "demand")) return null;
+    if (!deltaAlignedAt(ltf, i, "demand")) return null;
     // micro-BOS: nến confirm phải phá đỉnh swing 15m gần nhất (cấu trúc đảo lên)
     if (!minorHigh || c.close <= minorHigh.price) return null;
 
@@ -813,7 +867,7 @@ export function evaluateEntry(ltf: Candle[], i: number, ctx: HtfContext): EntryS
     // nến confirm phải có wick từ chối phía trên + đóng cửa nửa dưới
     if (closePos > 0.45 || upperWick <= lowerWick) return null;
     // (C) delta BÁN xác nhận
-    if (!deltaAligned(c, "supply")) return null;
+    if (!deltaAlignedAt(ltf, i, "supply")) return null;
     // micro-BOS: nến confirm phải phá đáy swing 15m gần nhất (cấu trúc đảo xuống)
     if (!minorLow || c.close >= minorLow.price) return null;
 
@@ -905,8 +959,7 @@ export class SetupTracker {
       return null;
     }
 
-    const avgV = avgVol(ltf, i);
-    const volRatio = avgV > 0 ? candleVol(c) / avgV : 0;
+    const volRatio = confirmVolumeRatio(ltf, i);
     const prev = ltf[i - 1];
 
     if (p.direction === "long") {
@@ -932,7 +985,7 @@ export class SetupTracker {
         confirmTrig &&
         c.close > c.open &&
         volRatio >= CONFIG.ltfConfirmVolMult &&
-        deltaAligned(c, "demand") &&
+        deltaAlignedAt(ltf, i, "demand") &&
         confirmCandleQuality(c, "long", volRatio) &&
         confirmExtensionOk(c.close, p) &&
         minPullbackDepthOk(ltf, p, i, c.close)
@@ -965,7 +1018,7 @@ export class SetupTracker {
         confirmTrig &&
         c.close < c.open &&
         volRatio >= CONFIG.ltfConfirmVolMult &&
-        deltaAligned(c, "supply") &&
+        deltaAlignedAt(ltf, i, "supply") &&
         confirmCandleQuality(c, "short", volRatio) &&
         confirmExtensionOk(c.close, p) &&
         minPullbackDepthOk(ltf, p, i, c.close)

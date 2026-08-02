@@ -13,6 +13,10 @@ const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "bnbusd
 // Baseline cũ ghim cứng — KHÔNG trôi theo T mặc định
 const PINNED: TurtleParams = {
   ...T, entryDays: 20, chandelierMult: 3.0, atrPeriod: 20, trendLen: 50, maxHoldDays: 60,
+  shortEntryDays: 0,
+  initialStopObLookback: 0,
+  longEntrySource: "high", longExitMode: "chandelier",
+  shortEntrySource: "low", shortExitMode: "chandelier",
   cooldownBars: 0, allowShort: true, entryBufferAtr: 0, trendLen2: 0, confirmVolMult: 0,
   pyramidStepAtr: 0, pyramidMaxUnits: 1, btcGateSlow: 0, gate: undefined,
 };

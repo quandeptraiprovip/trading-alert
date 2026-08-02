@@ -39,7 +39,7 @@ async function main() {
 
   // chạy 1 variant trên toàn bộ + tách 3 era OOS
   function run(v: Variant) {
-    const p = { ...T, entryDays: v.entryDays, chandelierMult: 3.0, allowShort: v.allowShort };
+    const p = { ...T, entryDays: v.entryDays, shortEntryDays: v.entryDays, chandelierMult: 3.0, allowShort: v.allowShort };
     const warmup = Math.max(Math.round(v.entryDays * bpd), T.trendLen, T.atrPeriod) + 1;
     const eraLen = Math.floor((minLen - warmup) / 3);
 

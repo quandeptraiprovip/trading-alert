@@ -2,6 +2,7 @@
 #
 #   # LẦN ĐẦU: tạo sẵn file state (bind-mount file chưa tồn tại → Docker tạo THƯ MỤC làm hỏng bot)
 #   touch bot-state.json trades-live.jsonl turtle-state.json turtle-trades.jsonl fast-trend-state.json fast-trend-trades.jsonl
+#   mkdir -p fast-trend-mexc-runtime
 #
 #   docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
 #   docker compose logs -f swing-bot  # xem log bot (tìm "🐢 Turtle:" và "THỰC THI BẬT")
@@ -19,6 +20,7 @@ services:
     env_file: .env.local
     environment:
       TZ: Asia/Ho_Chi_Minh
+      FAST_TREND_DATA_DIR: /app/fast-trend-mexc-runtime
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -29,6 +31,8 @@ services:
       - ./turtle-trades.jsonl:/app/turtle-trades.jsonl
       - ./fast-trend-state.json:/app/fast-trend-state.json
       - ./fast-trend-trades.jsonl:/app/fast-trend-trades.jsonl
+      # Mount the directory, not each file: Fast persists with atomic temp+rename.
+      - ./fast-trend-mexc-runtime:/app/fast-trend-mexc-runtime
     restart: unless-stopped
 
   swing-chart:

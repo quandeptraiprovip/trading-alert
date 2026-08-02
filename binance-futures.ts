@@ -100,6 +100,11 @@ export class BinanceFutures {
           await this.syncTime();
           continue;
         }
+        const code = err?.response?.data?.code;
+        const message = err?.response?.data?.msg;
+        if (err instanceof Error && message) {
+          err.message = `Binance ${code ?? (err as any)?.response?.status ?? "API"}: ${message}`;
+        }
         throw err;
       }
     }

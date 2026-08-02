@@ -41,7 +41,7 @@ export function escapeMarkdown(text: string): string {
 }
 
 export function fmtPrice(n: number): string {
-  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  return n.toLocaleString("en-US", { maximumSignificantDigits: 8 });
 }
 
 /** "btcusdt" -> "BTC/USDT" (nhãn hiển thị trong alert). */

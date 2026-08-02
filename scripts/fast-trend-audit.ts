@@ -1,11 +1,11 @@
 /**
- * fast-trend-audit.ts — Audit overfit (kiểu exp-turtle-overfit.ts) cho SLEEVE TREND NHANH.
+ * fast-trend-audit.ts — Audit lookback LEGACY cho SLEEVE TREND NHANH.
  * So sánh breakout 20d (core turtle) vs 15d/10d (sleeve nhanh) trên rổ turtle hiện tại, CÓ BTC gate:
  *   (A) 3-ERA OOS — expectancy (NET R/lệnh) phải dương & ổn định cả 3 era (Era A = OOS cũ nhất).
  *   (B) PERTURBATION ±15% × 30 seed — edge sống qua nhiễu tham số (plateau, không cliff).
  *
- * Kết luận (2026-07): cả 3 lookback đậu (mọi era dương, 30/30 seed). 10d giao dịch cả lúc chop
- * (turtle 20d im) nhưng expectancy Era-A mỏng nhất → dùng ALERT-ONLY forward-test (fast-trend-live.ts).
+ * Lưu ý: Fast live hiện LONG high-10d nhưng SHORT close-30d + xác nhận thêm 1 nến 4h. Script này
+ * chỉ giữ lại phép audit engine high/low cũ để làm mốc so sánh, không đại diện chính xác production.
  *
  * Run: ./node_modules/.bin/ts-node scripts/fast-trend-audit.ts [soNgay]
  */
@@ -34,7 +34,13 @@ async function main() {
   const t1 = Math.max(...[...data.values()].map((c) => c[c.length - 1].openTime));
 
   for (const entryDays of CANDIDATES) {
-    const p: TurtleParams = { ...T, entryDays, gate };
+    // FastTrendLive vẫn dùng engine cũ: high/low breakout + Chandelier hai hướng.
+    const p: TurtleParams = {
+      ...T, entryDays, shortEntryDays: 0,
+      longEntrySource: "high", longExitMode: "chandelier",
+      shortEntrySource: "low", shortExitMode: "chandelier",
+      initialStopObLookback: 0, gate,
+    };
     console.log("\n" + "=".repeat(80));
     console.log(`  ${entryDays === 20 ? "CORE" : "SLEEVE NHANH"} — breakout ${entryDays}d / chandelier ${p.chandelierMult}×ATR`);
     console.log("=".repeat(80));
@@ -77,6 +83,6 @@ async function main() {
     console.log(`  (B) PERTURBATION ±15% (${SEEDS} seed): baseline NET ${baseFull.net.toFixed(0)}R exp ${baseFull.exp.toFixed(3)} | seed NET>0 ${pos}/${SEEDS} | median ${(median / baseFull.net * 100).toFixed(0)}% baseline`);
     console.log(`  → lệnh gần nhất: ${fmtD(last)} (${((t1 - last) / TF_MS["1d"]).toFixed(0)}d trước)  ·  VERDICT: Era-A ${eraAexp > 0 ? "✅" : "❌"} | cả-3-era-dương ${allPos ? "✅" : "❌"} | perturbation ${pos >= SEEDS * 0.8 ? "✅" : "⚠️"}`);
   }
-  console.log("\nLƯU Ý: 20d = core turtle (tiền thật). 10d = sleeve nhanh (fast-trend-live.ts, ALERT-ONLY).");
+  console.log("\nLƯU Ý: đây là baseline legacy high/low; Fast live SHORT dùng close-30d + xác nhận 1 nến 4h.");
 }
 main().catch((e) => { console.error("Lỗi:", e?.response?.data ?? e.message); process.exit(1); });

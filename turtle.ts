@@ -11,10 +11,12 @@
  * LUẬT (thuần price-action, mechanical, KHÔNG lookahead):
  *   1. Lọc xu hướng (HTF mindset): chỉ LONG khi close > EMA(trendLen); chỉ SHORT khi close < EMA.
  *      (Nghiên cứu khuyến nghị thêm trend filter cho crypto để né whipsaw range-bound.)
- *   2. Vào lệnh: close phá ĐỈNH Donchian `dcEntry` nến gần nhất (long) / phá ĐÁY (short).
- *   3. Stop ban đầu: entry ∓ atrMult × ATR  → đơn vị risk (R) = atrMult×ATR (kiểu Turtle).
- *   4. Thoát: trailing theo ĐÁY/ĐỈNH Donchian `dcExit` nến (Turtle exit) — để trend chạy;
- *      hoặc time-stop maxHold. Không target cố định (right-tail là nguồn lợi nhuận).
+ *   2. LONG Hybrid: close phá đỉnh CLOSE 15d; SHORT close phá đáy CLOSE 30d rồi giữ
+ *      Chandelier exit. Close-channel giảm nhiễu râu nến/short-squeeze giả.
+ *   3. Stop ban đầu: ngoài nến ngược hướng 4h gần nhất nếu cách entry 1.5-4×ATR;
+ *      ngoài envelope đó fallback 3×ATR. Mỗi unit dùng stop riêng làm mẫu số R.
+ *   4. LONG thoát khi nến đóng dưới midpoint của kênh close `dcEntry` (midpoint chỉ ratchet lên),
+ *      đồng thời giữ hard stop 3×ATR trên sàn. SHORT giữ Chandelier 3×ATR; cả hai có time-stop.
  *   5. 1 VỊ THẾ / symbol, nhưng PYRAMIDING kiểu Turtle: thêm unit mỗi 0.5×ATR chạy có lợi
  *      (tối đa 4 unit, mỗi unit có SL/R riêng, trail chandelier chung). Unit thêm có expectancy
  *      CAO hơn lệnh mới (điều kiện = trend đang chạy) → tần suất ~1.1 lệnh/ngày mà R/lệnh tăng.
@@ -38,12 +40,22 @@ import { fetchKlinesPaged } from "./backtest";
 // ─────────────────────────────────────────────
 export const T = {
   tf: "4h", // khung vào lệnh — 4h: cân bằng giữa "daily-proven" của Turtle và tần suất ~1/ngày
-  entryDays: 15, // VÀO khi phá đỉnh/đáy N NGÀY gần nhất. ĐỔI 20→15 (2026-07-19, user chọn "nhiều lệnh
-  // hơn"): audit 3-era CÓ BTC gate trên rổ mới (scripts/fast-trend-audit.ts, 1050d) → 15d Era-A exp
-  // +0.115 (>20d +0.067), CẢ 3 era dương, perturbation 30/30, tổng NET +278R (>20d +246R), ~+15% tần
-  // suất. Live MAINNET (dùng lại engine turtle-live.ts, không code lệnh mới). 10d bắt được cả đợt chop
-  // nhưng exp mỏng nhất (+0.037) → để 10d chạy ALERT-ONLY so sánh (fast-trend-live.ts).
-  chandelierMult: 3.0, // THOÁT: chandelier — stop trail = đỉnh-từ-entry − mult×ATR (rộng → winner chạy)
+  entryDays: 15, // Hybrid LONG dùng close-channel 15 ngày.
+  shortEntryDays: 30, // SHORT dùng close-channel chậm hơn để lọc wick/squeeze; 0 = dùng entryDays.
+  chandelierMult: 3.0, // fallback initial SL; SHORT/legacy LONG còn dùng làm Chandelier trail
+  initialStopObLookback: 6, // tìm nến ngược hướng gần nhất trong 6 nến 4h đã đóng
+  initialStopObPadAtr: 0.1, // đệm SL ngoài wick của nến đó
+  initialStopObMinAtr: 1.5, // stop cấu trúc quá gần → fallback 3×ATR
+  initialStopObMaxAtr: 4.0, // stop cấu trúc quá xa → fallback 3×ATR
+  // Audit 2026-07-22: short close 20/25/30d tạo plateau; chọn 30d vì cùng tăng NET và exp
+  // trên 1.050d lẫn 2.000d. Bản 1.050d: 1.038,8R / 0,800R-unit, Era C 112,9R;
+  // perturbation ±15% dương 30/30. Đây là backtest, không phải cam kết lợi nhuận tương lai.
+  // Hai cờ explicit để script regression/Fast-trend vẫn có thể ghim đúng engine cũ.
+  longEntrySource: "close" as "close" | "high",
+  longExitMode: "mid" as "mid" | "chandelier",
+  // SHORT chỉ đổi entry sang close-low 30d; midpoint exit đã audit là hại nên vẫn Chandelier.
+  shortEntrySource: "close" as "close" | "low",
+  shortExitMode: "chandelier" as "mid" | "chandelier",
   atrPeriod: 20, // ATR theo nến TF
   trendLen: 50, // EMA lọc xu hướng (50 nến 4h ≈ 8 ngày) — chỉ long khi trên, short khi dưới
   maxHoldDays: 60, // time-stop (trend dài có thể giữ lâu)
@@ -132,7 +144,7 @@ export interface Trade {
   initialSL: number;
   exitTime: number;
   exitPrice: number;
-  exitReason: "trail" | "time";
+  exitReason: "trail" | "mid" | "time";
   grossR: number;
   costR: number;
   netR: number;
@@ -178,6 +190,65 @@ export function buildBtcGateLongs(btc: Candle[], fastLen: number, slowLen: numbe
   };
 }
 
+/** Kênh của đúng `len` nến trước `i`; loại nến i nên không có lookahead. */
+export function priorDonchian(c: Candle[], i: number, len: number): {
+  high: number;
+  low: number;
+  closeHigh: number;
+  closeLow: number;
+} {
+  let high = -Infinity, low = Infinity, closeHigh = -Infinity, closeLow = Infinity;
+  for (let k = i - len; k < i; k++) {
+    high = Math.max(high, c[k].high);
+    low = Math.min(low, c[k].low);
+    closeHigh = Math.max(closeHigh, c[k].close);
+    closeLow = Math.min(closeLow, c[k].close);
+  }
+  return { high, low, closeHigh, closeLow };
+}
+
+export type TurtleInitialStop = {
+  price: number;
+  source: "ob" | "atr";
+  distanceAtr: number;
+};
+
+/**
+ * Initial SL khách quan, không lookahead: dùng wick xa của nến ngược hướng gần nhất trước entry,
+ * thêm ATR buffer. Chỉ nhận cấu trúc trong ATR envelope; ngoài ra giữ fallback Chandelier.
+ */
+export function turtleInitialStop(
+  c: Candle[],
+  i: number,
+  dir: "long" | "short",
+  entry: number,
+  atr: number,
+  p: TurtleParams = T,
+): TurtleInitialStop {
+  const fallback = dir === "long" ? entry - p.chandelierMult * atr : entry + p.chandelierMult * atr;
+  if (!(atr > 0)) return { price: fallback, source: "atr", distanceAtr: p.chandelierMult };
+
+  let origin: Candle | null = null;
+  for (let k = i - 1; k >= Math.max(0, i - p.initialStopObLookback); k--) {
+    const opposite = dir === "long" ? c[k].close < c[k].open : c[k].close > c[k].open;
+    if (opposite) {
+      origin = c[k];
+      break;
+    }
+  }
+  if (!origin) return { price: fallback, source: "atr", distanceAtr: p.chandelierMult };
+
+  const structural = dir === "long"
+    ? origin.low - p.initialStopObPadAtr * atr
+    : origin.high + p.initialStopObPadAtr * atr;
+  const distanceAtr = Math.abs(entry - structural) / atr;
+  const validSide = dir === "long" ? structural > 0 && structural < entry : structural > entry;
+  const inEnvelope = distanceAtr >= p.initialStopObMinAtr && distanceAtr <= p.initialStopObMaxAtr;
+  return validSide && inEnvelope
+    ? { price: structural, source: "ob", distanceAtr }
+    : { price: fallback, source: "atr", distanceAtr: p.chandelierMult };
+}
+
 export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Trade[] {
   const closes = c.map((x) => x.close);
   const emaArr = ema(closes, p.trendLen);
@@ -196,18 +267,25 @@ export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Tra
   }
   const trades: Trade[] = [];
   const barsPerDay = TF_MS["1d"] / TF_MS[p.tf];
-  const dcEntry = Math.max(2, Math.round(p.entryDays * barsPerDay)); // lookback breakout theo NGÀY → nến
+  const dcEntry = Math.max(2, Math.round(p.entryDays * barsPerDay)); // lookback LONG theo NGÀY → nến
+  const dcShortEntry = p.shortEntryDays > 0
+    ? Math.max(2, Math.round(p.shortEntryDays * barsPerDay))
+    : dcEntry;
   const maxHoldBars = Math.round(p.maxHoldDays * barsPerDay);
 
   // Vị thế = 1..maxUnits UNIT (pyramiding kiểu Turtle): mỗi unit có entry/SL-gốc/R riêng,
-  // trail chandelier CHUNG theo extreme của vị thế. extreme = đỉnh (long) / đáy (short) KỂ TỪ entry.
+  // SHORT/legacy LONG: trail chandelier chung. Hybrid LONG: hard SL chung + midTrail close-based.
   type Unit = { entryIndex: number; entry: number; initialSL: number };
-  let pos: { dir: "long" | "short"; units: Unit[]; sl: number; extreme: number } | null = null;
+  let pos: { dir: "long" | "short"; units: Unit[]; sl: number; extreme: number; midTrail: number | null } | null = null;
   let cooldownUntil = -1;
-  const warmup = Math.max(dcEntry, p.trendLen, p.trendLen2, p.atrPeriod) + 1;
+  const warmup = Math.max(dcEntry, dcShortEntry, p.trendLen, p.trendLen2, p.atrPeriod) + 1;
 
   for (let i = warmup; i < c.length; i++) {
     const bar = c[i];
+    const longChannel = priorDonchian(c, i, dcEntry);
+    const shortChannel = dcShortEntry === dcEntry ? longChannel : priorDonchian(c, i, dcShortEntry);
+    const longMidClose = (longChannel.closeHigh + longChannel.closeLow) / 2;
+    const shortMidClose = (shortChannel.closeHigh + shortChannel.closeLow) / 2;
 
     // ─── Quản lý lệnh mở ───
     if (pos) {
@@ -217,9 +295,17 @@ export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Tra
 
       if (pos.dir === "long") {
         if (bar.low <= pos.sl) { exitPrice = pos.sl; reason = "trail"; }
+        else if (p.longExitMode === "mid" && pos.midTrail !== null && bar.close <= pos.midTrail) {
+          exitPrice = bar.close;
+          reason = "mid";
+        }
         else if (held >= maxHoldBars) { exitPrice = bar.close; reason = "time"; }
       } else {
         if (bar.high >= pos.sl) { exitPrice = pos.sl; reason = "trail"; }
+        else if (p.shortExitMode === "mid" && pos.midTrail !== null && bar.close >= pos.midTrail) {
+          exitPrice = bar.close;
+          reason = "mid";
+        }
         else if (held >= maxHoldBars) { exitPrice = bar.close; reason = "time"; }
       }
 
@@ -241,25 +327,39 @@ export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Tra
         continue;
       }
 
-      // ─── Chandelier trailing (Turtle "để winner chạy") — ratchet theo đỉnh kể từ entry ───
+      // ─── Trailing ratchet: Hybrid LONG theo midpoint close; SHORT/legacy theo Chandelier ───
       if (pos.dir === "long") {
-        pos.extreme = Math.max(pos.extreme, bar.high);
-        const trail = pos.extreme - p.chandelierMult * atr[i];
-        if (trail > pos.sl) pos.sl = trail;
+        if (p.longExitMode === "mid") {
+          pos.midTrail = Math.max(pos.midTrail ?? pos.sl, longMidClose);
+        } else {
+          pos.extreme = Math.max(pos.extreme, bar.high);
+          const trail = pos.extreme - p.chandelierMult * atr[i];
+          if (trail > pos.sl) pos.sl = trail;
+        }
       } else {
-        pos.extreme = Math.min(pos.extreme, bar.low);
-        const trail = pos.extreme + p.chandelierMult * atr[i];
-        if (trail < pos.sl) pos.sl = trail;
+        if (p.shortExitMode === "mid") {
+          pos.midTrail = Math.min(pos.midTrail ?? pos.sl, shortMidClose);
+        } else {
+          pos.extreme = Math.min(pos.extreme, bar.low);
+          const trail = pos.extreme + p.chandelierMult * atr[i];
+          if (trail < pos.sl) pos.sl = trail;
+        }
       }
 
       // ─── Pyramiding: thêm unit khi giá chạy pyramidStepAtr×ATR có lợi so với fill gần nhất ───
       if (p.pyramidStepAtr > 0 && pos.units.length < p.pyramidMaxUnits && atr[i] > 0) {
         const last = pos.units[pos.units.length - 1];
         if (pos.dir === "long" && bar.close >= last.entry + p.pyramidStepAtr * atr[i]) {
-          const initialSL = bar.close - p.chandelierMult * atr[i];
-          if (initialSL > 0) pos.units.push({ entryIndex: i, entry: bar.close, initialSL });
+          const initialSL = turtleInitialStop(c, i, "long", bar.close, atr[i], p).price;
+          if (initialSL > 0) {
+            pos.units.push({ entryIndex: i, entry: bar.close, initialSL });
+            // Unit mới không được làm tổng vị thế rủi ro hơn hard stop danh nghĩa của chính unit đó.
+            if (p.longExitMode === "mid") pos.sl = Math.max(pos.sl, initialSL);
+          }
         } else if (pos.dir === "short" && bar.close <= last.entry - p.pyramidStepAtr * atr[i]) {
-          pos.units.push({ entryIndex: i, entry: bar.close, initialSL: bar.close + p.chandelierMult * atr[i] });
+          const initialSL = turtleInitialStop(c, i, "short", bar.close, atr[i], p).price;
+          pos.units.push({ entryIndex: i, entry: bar.close, initialSL });
+          if (p.shortExitMode === "mid") pos.sl = Math.min(pos.sl, initialSL);
         }
       }
       continue;
@@ -268,26 +368,36 @@ export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Tra
     // ─── Tìm lệnh mới ───
     if (i < cooldownUntil) continue;
 
-    // Đỉnh/đáy của dcEntry nến TRƯỚC nến hiện tại (loại nến i → không lookahead)
-    let hh = -Infinity, ll = Infinity;
-    for (let k = i - dcEntry; k < i; k++) { hh = Math.max(hh, c[k].high); ll = Math.min(ll, c[k].low); }
-
     const uptrend = bar.close > emaArr[i] && (!ema2Arr || bar.close > ema2Arr[i]);
     const downtrend = bar.close < emaArr[i] && (!ema2Arr || bar.close < ema2Arr[i]);
     const buf = p.entryBufferAtr > 0 ? p.entryBufferAtr * atr[i] : 0;
     const volOk = !volSma || (i > 0 && volSma[i - 1] > 0 && bar.volume >= p.confirmVolMult * volSma[i - 1]);
 
-    if (uptrend && volOk && (!p.gate || p.gate(bar.openTime, "long")) && bar.close > hh + buf) {
+    const longBreakout = p.longEntrySource === "close" ? longChannel.closeHigh : longChannel.high;
+    const shortBreakout = p.shortEntrySource === "close" ? shortChannel.closeLow : shortChannel.low;
+    if (uptrend && volOk && (!p.gate || p.gate(bar.openTime, "long")) && bar.close > longBreakout + buf) {
       const entry = bar.close;
-      const initialSL = entry - p.chandelierMult * atr[i];
+      const initialSL = turtleInitialStop(c, i, "long", entry, atr[i], p).price;
       if (initialSL > 0 && initialSL < entry) {
-        pos = { dir: "long", units: [{ entryIndex: i, entry, initialSL }], sl: initialSL, extreme: bar.high };
+        pos = {
+          dir: "long",
+          units: [{ entryIndex: i, entry, initialSL }],
+          sl: initialSL,
+          extreme: bar.high,
+          midTrail: p.longExitMode === "mid" ? Math.max(initialSL, longMidClose) : null,
+        };
       }
-    } else if (p.allowShort && downtrend && volOk && (!p.gate || p.gate(bar.openTime, "short")) && bar.close < ll - buf) {
+    } else if (p.allowShort && downtrend && volOk && (!p.gate || p.gate(bar.openTime, "short")) && bar.close < shortBreakout - buf) {
       const entry = bar.close;
-      const initialSL = entry + p.chandelierMult * atr[i];
+      const initialSL = turtleInitialStop(c, i, "short", entry, atr[i], p).price;
       if (initialSL > entry) {
-        pos = { dir: "short", units: [{ entryIndex: i, entry, initialSL }], sl: initialSL, extreme: bar.low };
+        pos = {
+          dir: "short",
+          units: [{ entryIndex: i, entry, initialSL }],
+          sl: initialSL,
+          extreme: bar.low,
+          midTrail: p.shortExitMode === "mid" ? Math.min(initialSL, shortMidClose) : null,
+        };
       }
     }
   }
@@ -345,7 +455,7 @@ function report(trades: Trade[], data: Map<string, Candle[]>, riskPct: number, t
   const avgHoldDays = s.n ? (trades.reduce((a, t) => a + t.holdBars, 0) / s.n) * (TF_MS[T.tf] / TF_MS["1d"]) : 0;
 
   console.log("=".repeat(72));
-  console.log(`  TURTLE / DONCHIAN TREND-FOLLOWING — tf ${T.tf} | breakout ${T.entryDays}d | chandelier ${T.chandelierMult}×ATR | EMA${T.trendLen}`);
+  console.log(`  TURTLE HYBRID — tf ${T.tf} | initial SL OB${T.initialStopObLookback} trong ${T.initialStopObMinAtr}-${T.initialStopObMaxAtr}ATR, fallback ${T.chandelierMult}ATR | LONG close/mid ${T.entryDays}d | SHORT close ${T.shortEntryDays || T.entryDays}d/Chandelier | EMA${T.trendLen}`);
   console.log(`  Pyramid: ${T.pyramidStepAtr > 0 ? `+1 unit / ${T.pyramidStepAtr}×ATR, tối đa ${T.pyramidMaxUnits} (mỗi unit = 1 lệnh)` : "TẮT"} | BTC gate LONG: ${T.btcGateSlow > 0 ? `SMA ${T.btcGateFast / 6}d>${T.btcGateSlow / 6}d` : "TẮT"}`);
   console.log(`  Symbols: ${[...data.keys()].map((x) => x.toUpperCase()).join(", ")}`);
   console.log(`  Chi phí: ${CONFIG.costs.enabled ? `taker ${CONFIG.costs.takerFeePct}%+slip ${CONFIG.costs.slippagePct}%/chiều + funding ${CONFIG.costs.fundingPer8hPct}%/8h` : "TẮT"}`);

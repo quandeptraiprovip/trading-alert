@@ -51,3 +51,7 @@ turtle-trades.jsonl
 # Fast-trend sleeve runtime (alert-only state + journal)
 fast-trend-state.json
 fast-trend-trades.jsonl
+fast-trend-mexc-state.json
+fast-trend-mexc-state.json.tmp
+fast-trend-mexc-trades.jsonl
+fast-trend-mexc-runtime/

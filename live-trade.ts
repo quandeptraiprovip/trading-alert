@@ -227,21 +227,72 @@ export class LiveTrader {
   }
 
   /**
-   * Dời SL (trail/breakeven) AN TOÀN: đặt SL MỚI trước → huỷ các SL cũ → đảm bảo còn đúng 1 TP.
-   * Không phụ thuộc orderId lưu RAM (đọc openOrders) → đúng cả sau restart.
+   * Dời SL (trail/breakeven): Binance không cho tồn tại hai STOP_MARKET closePosition cùng phía,
+   * nên phải hủy stop cũ rồi đặt stop mới. Nếu đặt mới lỗi, khôi phục stop cũ; nếu cả khôi phục
+   * cũng lỗi thì đóng khẩn cấp để không để vị thế trần.
    */
   async syncStops(symbol: string, pos: PosInfo, opts?: { noTp?: boolean }): Promise<void> {
     const closeSide = sideToClose(pos.dir);
-    const newSlId = await this.api.stopMarketClose(symbol, closeSide, pos.sl); // đặt trước, không có cửa sổ trần
     const orders = await this.api.getOpenAlgoOrders(symbol);
-    let hasTp = false;
-    for (const o of orders) {
-      if (o.orderType === "STOP_MARKET" && o.algoId !== newSlId) {
-        await this.api.cancelAlgoOrder(o.algoId); // dọn SL cũ
-      } else if (o.orderType === "TAKE_PROFIT_MARKET") {
-        hasTp = true;
-      }
+    const stops = orders.filter((o) => o.orderType === "STOP_MARKET");
+    if (stops.length > 1) {
+      throw new Error(`${symbol}: có ${stops.length} STOP_MARKET; không tự thay khi ownership không rõ`);
     }
+
+    const oldStop = stops[0];
+    const desired = this.api.roundPrice(symbol, pos.sl);
+    const oldPrice = oldStop ? parseFloat(oldStop.triggerPrice) : null;
+    if (oldStop && oldPrice !== desired) {
+      const venuePos = await this.api.getPosition(symbol);
+      const fallbackQty = this.api.roundQty(symbol, Math.abs(venuePos.positionAmt));
+      try {
+        await this.api.cancelAlgoOrder(oldStop.algoId);
+      } catch {
+        // Cancel may have reached Binance before the connection failed; the create/read-back below
+        // determines whether the old stop still exists.
+      }
+      try {
+        await this.api.stopMarketClose(symbol, closeSide, desired);
+      } catch (newStopError) {
+        let activeAfter: any[] | null = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            activeAfter = (await this.api.getOpenAlgoOrders(symbol))
+              .filter((o) => o.orderType === "STOP_MARKET");
+            break;
+          } catch {
+            if (attempt < 2) await sleep(150);
+          }
+        }
+        if (activeAfter?.length === 1 && parseFloat(activeAfter[0].triggerPrice) === desired) {
+          // POST response was ambiguous but read-back proves the desired stop is active.
+        } else if (activeAfter?.length) {
+          throw new Error(`${symbol}: đặt SL mới lỗi (${errMsg(newStopError)}); SL cũ vẫn active $${oldPrice}`);
+        } else {
+          try {
+            await this.api.stopMarketClose(symbol, closeSide, oldPrice!);
+          } catch (restoreError) {
+            try {
+              await this.emergencyClose(symbol, pos.dir, fallbackQty);
+            } catch (closeError) {
+              throw new Error(
+                `${symbol}: đặt SL mới lỗi (${errMsg(newStopError)}), khôi phục SL cũ lỗi ` +
+                `(${errMsg(restoreError)}), đóng khẩn cấp lỗi (${errMsg(closeError)})`,
+              );
+            }
+            throw new Error(
+              `${symbol}: đặt SL mới lỗi (${errMsg(newStopError)}), khôi phục SL cũ lỗi ` +
+              `(${errMsg(restoreError)}) → ĐÃ ĐÓNG KHẨN CẤP`,
+            );
+          }
+          throw new Error(`${symbol}: đặt SL mới lỗi (${errMsg(newStopError)}); đã khôi phục SL cũ $${oldPrice}`);
+        }
+      }
+    } else if (!oldStop) {
+      await this.api.stopMarketClose(symbol, closeSide, desired);
+    }
+
+    const hasTp = orders.some((o) => o.orderType === "TAKE_PROFIT_MARKET");
     if (!hasTp && !opts?.noTp) {
       try {
         await this.api.takeProfitMarketClose(symbol, closeSide, pos.target);

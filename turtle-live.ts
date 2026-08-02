@@ -2,9 +2,10 @@
  * turtle-live.ts — Turtle/Donchian (turtle.ts) chạy LIVE trong bot chính, song song lớp SMC.
  *
  * Nguyên tắc:
- *   - Tín hiệu = ĐÚNG engine backtest (turtle.ts) trên nến 4h ĐÃ ĐÓNG: breakout Donchian 20d
- *     + EMA50 + BTC regime gate cho LONG (SMA 10d/100d), chandelier trail 3×ATR CHUNG cho cả
- *     vị thế, pyramiding ≤4 unit (thêm mỗi 0.5×ATR có lợi, mỗi unit R riêng), time-stop 60d.
+ *   - Tín hiệu = ĐÚNG engine backtest (turtle.ts) trên nến 4h ĐÃ ĐÓNG. Hybrid LONG phá đỉnh
+ *     close 15d, thoát khi close dưới midpoint close-channel đã ratchet; SHORT phá đáy close 30d
+ *     + Chandelier 3×ATR. Initial SL dùng opposite-candle OB trong envelope 1.5-4×ATR,
+ *     fallback 3×ATR. Cả hai dùng EMA50, BTC gate LONG, pyramid ≤4 unit và time-stop 60d.
  *   - THỰC THI tái dùng LiveTrader: MARKET vào lệnh, SL = STOP_MARKET closePosition trên sàn
  *     (1 stop chung cho mọi unit — khớp thiết kế trail chung), KHÔNG đặt TP (noTp: trailing thuần).
  *   - LOẠI TRỪ THEO SYMBOL với SMC: SL closePosition đóng CẢ vị thế symbol → 2 chiến lược không
@@ -18,7 +19,7 @@ import fs from "fs";
 import path from "path";
 import { fetchKlinesPaged } from "./backtest";
 import { Candle, TF_MS } from "./strategy";
-import { T, buildBtcGateLongs, ema, atrSeries } from "./turtle";
+import { T, buildBtcGateLongs, ema, atrSeries, priorDonchian, turtleInitialStop } from "./turtle";
 import { BinanceFutures } from "./binance-futures";
 import { LiveTrader, PosInfo } from "./live-trade";
 import { TelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn } from "./telegram";
@@ -29,19 +30,22 @@ const JOURNAL_FILE = path.join(process.cwd(), "turtle-trades.jsonl");
 const TF = T.tf; // 4h
 const tfMs = TF_MS[TF];
 const BARS_PER_DAY = TF_MS["1d"] / tfMs;
-const DC_ENTRY = Math.max(2, Math.round(T.entryDays * BARS_PER_DAY)); // 120 nến
+const DC_ENTRY = Math.max(2, Math.round(T.entryDays * BARS_PER_DAY)); // 90 nến
+const DC_SHORT_ENTRY = T.shortEntryDays > 0
+  ? Math.max(2, Math.round(T.shortEntryDays * BARS_PER_DAY))
+  : DC_ENTRY;
 const MAX_HOLD_BARS = Math.round(T.maxHoldDays * BARS_PER_DAY); // 360 nến
 // Fetch đủ: warmup gate SMA100d (600) + replay tối đa ~80 ngày (> maxHold 60d) → phát hiện được
 // mọi vị thế đang mở kể cả cold-start.
 const FETCH_BARS = 1100;
-const WARMUP_BARS = Math.max(DC_ENTRY, T.trendLen, T.atrPeriod, T.btcGateSlow) + 1;
+const WARMUP_BARS = Math.max(DC_ENTRY, DC_SHORT_ENTRY, T.trendLen, T.atrPeriod, T.btcGateSlow) + 1;
 const SETTLE_MS = 90_000; // đợi nến 4h chốt hẳn trên sàn rồi mới xử lý
 const CHECK_MS = 60_000; // nhịp kiểm tra mốc 4h
 const RECONCILE_MS = 10 * 60_000; // lưới an toàn: đối soát vị thế thật với sàn
 
 type TurtleUnit = {
   entry: number; // giá tín hiệu (close nến) — dùng cho R, khớp backtest
-  initialSL: number; // entry ∓ 3×ATR tại thời điểm vào — mẫu số R của unit
+  initialSL: number; // stop OB+ATR hoặc fallback 3×ATR — mẫu số R của unit
   entryTime: number; // openTime nến vào
   qty?: number; // khối lượng thật đã khớp (undefined = paper)
   realEntry?: number; // giá khớp thật
@@ -52,12 +56,16 @@ type TurtleUnit = {
   riskFrac?: number;
 };
 
+type TurtleExitReason = "trail" | "mid" | "time" | "reconcile";
+
 type TurtlePos = {
   dir: "long" | "short";
   units: TurtleUnit[];
-  sl: number; // stop chung hiện tại (chandelier ratchet)
+  sl: number; // hard stop chung đang đặt trên sàn
+  midTrail?: number; // close-based exit khi mode midpoint; optional để migrate state engine cũ
   extreme: number; // đỉnh/đáy kể từ entry — cho chandelier
   real: boolean; // true = có lệnh thật trên sàn
+  pendingExit?: { exitPrice: number; reason: TurtleExitReason; exitTime: number };
 };
 
 type TurtleSymbolState = {
@@ -130,6 +138,12 @@ export class TurtleLive {
     return !!this.states.get(symbol.toLowerCase())?.pos?.real;
   }
 
+  /** Hướng của vị thế THẬT đang giữ; null nếu flat hoặc chỉ là vị thế giấy. */
+  realPositionDir(symbol: string): "long" | "short" | null {
+    const pos = this.states.get(symbol.toLowerCase())?.pos;
+    return pos?.real ? pos.dir : null;
+  }
+
   /** Tổng risk frac HIỆU DỤNG các unit THẬT đang mở (paper không chiếm trần). */
   openRiskFrac(): number {
     let n = 0;
@@ -161,7 +175,7 @@ export class TurtleLive {
       const heldD = ((Date.now() - p.units[0].entryTime) / TF_MS["1d"]).toFixed(1);
       lines.push(
         `${icon} *${formatSymbol(st.symbol)}*${p.real ? "" : " (giấy)"} — ${p.units.length}/${T.pyramidMaxUnits} unit`,
-        `Entry₁ $${fmtPrice(p.units[0].entry)} · SL $${fmtPrice(p.sl)} · giữ ${heldD}d`,
+        `Entry₁ $${fmtPrice(p.units[0].entry)} · hard SL $${fmtPrice(p.sl)}${Number.isFinite(p.midTrail) ? ` · mid-close $${fmtPrice(p.midTrail!)}` : ""}${p.pendingExit ? " · ⚠️ chờ đóng" : ""} · giữ ${heldD}d`,
         ``
       );
     }
@@ -200,14 +214,35 @@ export class TurtleLive {
   }
 
   // ── Sự kiện: entry / add / exit ─────────────────────────────────────────
-  private async openPosition(st: TurtleSymbolState, bar: Candle, dir: "long" | "short", atrNow: number, silent: boolean): Promise<void> {
+  private async openPosition(
+    st: TurtleSymbolState,
+    candles: Candle[],
+    i: number,
+    dir: "long" | "short",
+    atrNow: number,
+    midClose: number,
+    silent: boolean
+  ): Promise<void> {
+    const bar = candles[i];
     const entry = bar.close;
-    const initialSL = dir === "long" ? entry - T.chandelierMult * atrNow : entry + T.chandelierMult * atrNow;
+    const initialStop = turtleInitialStop(candles, i, dir, entry, atrNow);
+    const initialSL = initialStop.price;
     if (dir === "long" && !(initialSL > 0 && initialSL < entry)) return;
     if (dir === "short" && !(initialSL > entry)) return;
 
     const unit: TurtleUnit = { entry, initialSL, entryTime: bar.openTime };
-    const pos: TurtlePos = { dir, units: [unit], sl: initialSL, extreme: dir === "long" ? bar.high : bar.low, real: false };
+    const pos: TurtlePos = {
+      dir,
+      units: [unit],
+      sl: initialSL,
+      midTrail: dir === "long" && T.longExitMode === "mid"
+        ? Math.max(initialSL, midClose)
+        : dir === "short" && T.shortExitMode === "mid"
+          ? Math.min(initialSL, midClose)
+          : undefined,
+      extreme: dir === "long" ? bar.high : bar.low,
+      real: false,
+    };
 
     if (silent) {
       st.pos = pos; // dựng lại lịch sử (paper) — không lệnh, không alert
@@ -223,7 +258,7 @@ export class TurtleLive {
     }
 
     if (this.tradingLive()) {
-      // Guard SL rộng hơn vùng thanh lý (3×ATR có thể > 1/leverage khi vol spike)
+      // Guard SL rộng hơn vùng thanh lý (OB/ATR stop có thể > 1/leverage khi vol spike)
       const slFrac = Math.abs(entry - initialSL) / entry;
       if (slFrac > 0.8 / this.o.leverage) {
         await this.tg(`🐢⏭️ *Turtle bỏ entry* ${formatSymbol(st.symbol)} ${dir.toUpperCase()} — SL ${(slFrac * 100).toFixed(1)}% quá gần vùng thanh lý (${this.o.leverage}x).`);
@@ -258,31 +293,49 @@ export class TurtleLive {
     st.pos = pos;
     this.journal({
       event: "entry", real: pos.real, symbol: st.symbol, dir, time: bar.openTime, timeVn: formatTimeVn(bar.openTime),
-      entry, initialSL, unit: 1, qty: unit.qty, riskUsd: unit.riskUsd,
+      entry, initialSL, initialStopSource: initialStop.source, initialStopAtr: +initialStop.distanceAtr.toFixed(3),
+      midTrail: pos.midTrail, unit: 1, qty: unit.qty, riskUsd: unit.riskUsd,
     });
     console.log(`[Turtle] ENTRY ${formatSymbol(st.symbol)} ${dir.toUpperCase()} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : " (giấy)"}`);
     let msg = `🐢${dir === "long" ? "🟢" : "🔴"} *TURTLE ${dir.toUpperCase()}* ${formatSymbol(st.symbol)} @ $${fmtPrice(entry)}\n` +
-      `Breakout ${T.entryDays}d · SL $${fmtPrice(initialSL)} (${T.chandelierMult}×ATR trail) · unit 1/${T.pyramidMaxUnits}`;
+      (dir === "long" && T.longExitMode === "mid"
+        ? `Hybrid close-breakout ${T.entryDays}d · hard SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · mid-close $${fmtPrice(pos.midTrail!)} · unit 1/${T.pyramidMaxUnits}`
+        : `Breakout ${dir === "short" ? (T.shortEntryDays || T.entryDays) : T.entryDays}d · SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · unit 1/${T.pyramidMaxUnits}`);
     if (unit.qty != null) msg += `\n💵 Lệnh thật: ${unit.qty} @ $${fmtPrice(unit.realEntry ?? entry)}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}`;
     else msg += `\n📋 Alert-only (không đặt lệnh)`;
     await this.tg(msg);
   }
 
-  private async addUnit(st: TurtleSymbolState, pos: TurtlePos, bar: Candle, atrNow: number, silent: boolean): Promise<void> {
+  private async addUnit(st: TurtleSymbolState, pos: TurtlePos, candles: Candle[], i: number, atrNow: number, silent: boolean): Promise<void> {
+    const bar = candles[i];
     const entry = bar.close;
-    const initialSL = pos.dir === "long" ? entry - T.chandelierMult * atrNow : entry + T.chandelierMult * atrNow;
+    const initialStop = turtleInitialStop(candles, i, pos.dir, entry, atrNow);
+    const initialSL = initialStop.price;
     if (pos.dir === "long" && !(initialSL > 0)) return;
 
     const unit: TurtleUnit = { entry, initialSL, entryTime: bar.openTime };
+    const nextSharedSl = pos.dir === "long" && T.longExitMode === "mid"
+      ? Math.max(pos.sl, initialSL)
+      : pos.dir === "short" && T.shortExitMode === "mid"
+        ? Math.min(pos.sl, initialSL)
+        : pos.sl;
 
     if (silent) {
+      pos.sl = nextSharedSl;
       pos.units.push(unit);
+      return;
+    }
+
+    if (pos.real && !this.tradingLive()) {
+      console.warn(`[Turtle] ${formatSymbol(st.symbol)} bỏ ADD — lớp thực thi chưa sẵn sàng.`);
       return;
     }
 
     if (pos.real && this.tradingLive()) {
       const slFrac = Math.abs(entry - initialSL) / entry;
       if (slFrac > 0.8 / this.o.leverage) return; // vol spike — bỏ add trong im lặng có log
+      let filled = false;
+      const oldSl = pos.sl;
       try {
         const api = this.o.api!;
         const equity = (await api.getEquity()).walletBalance;
@@ -307,29 +360,36 @@ export class TurtleLive {
         }
         const fill = await api.marketOrder(st.symbol, pos.dir === "long" ? "BUY" : "SELL", qty);
         if (!(fill.executedQty > 0)) return;
+        filled = true;
         unit.qty = fill.executedQty;
         unit.realEntry = fill.avgPrice || entry;
         unit.riskUsd = qty * dist;
         unit.riskFrac = effFrac;
-        // Stop chung closePosition đã phủ khối lượng mới; đảm bảo nó còn trên sàn.
+        // Hybrid LONG siết hard stop lên initialSL của unit mới; không bao giờ nới stop cũ.
+        pos.sl = nextSharedSl;
         await this.ensureStop(st.symbol, pos);
       } catch (err) {
         const m = err instanceof Error ? err.message : String(err);
         console.error(`[Turtle] ${formatSymbol(st.symbol)} LỖI add unit:`, m);
         await this.tg(`🐢⚠️ *Lỗi ADD Turtle* ${formatSymbol(st.symbol)} — ${m}\nVị thế hiện tại vẫn được SL bảo vệ.`);
-        return;
+        if (!filled) return;
+        // MARKET đã khớp nhưng sync stop lỗi: vẫn ghi nhận unit; state giữ stop cũ chắc chắn đã có.
+        pos.sl = oldSl;
       }
+    } else {
+      pos.sl = nextSharedSl;
     }
 
     pos.units.push(unit);
     this.journal({
       event: "add", real: unit.qty != null, symbol: st.symbol, dir: pos.dir, time: bar.openTime, timeVn: formatTimeVn(bar.openTime),
-      entry, initialSL, unit: pos.units.length, qty: unit.qty, riskUsd: unit.riskUsd,
+      entry, initialSL, initialStopSource: initialStop.source, initialStopAtr: +initialStop.distanceAtr.toFixed(3),
+      unit: pos.units.length, qty: unit.qty, riskUsd: unit.riskUsd,
     });
     console.log(`[Turtle] ADD ${formatSymbol(st.symbol)} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : ""}`);
     await this.tg(
       `🐢➕ *TURTLE ADD* ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}\n` +
-        `SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`
+        `Initial SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`
     );
   }
 
@@ -337,18 +397,29 @@ export class TurtleLive {
     st: TurtleSymbolState,
     pos: TurtlePos,
     exitPrice: number,
-    reason: "trail" | "time" | "reconcile",
+    reason: TurtleExitReason,
     exitTime: number,
     silent: boolean,
     opts?: { flatten?: boolean }
   ): Promise<void> {
-    if (!silent && pos.real && this.tradingLive() && opts?.flatten !== false) {
+    if (!silent && pos.real && opts?.flatten !== false) {
+      if (!this.tradingLive()) {
+        if (!pos.pendingExit) {
+          await this.tg(`🐢⚠️ *Chưa thể đóng Turtle* ${formatSymbol(st.symbol)} (${reason}) — kết nối/thực thi Binance chưa sẵn sàng. Bot sẽ tự thử lại.`);
+        }
+        pos.pendingExit = { exitPrice, reason, exitTime };
+        return;
+      }
       try {
         await this.o.trader!.flatten(st.symbol, pos.dir); // huỷ stop còn sót + đóng phần còn lại (nếu có)
       } catch (err) {
         const m = err instanceof Error ? err.message : String(err);
         console.error(`[Turtle] ${formatSymbol(st.symbol)} LỖI đóng vị thế:`, m);
-        await this.tg(`🐢⚠️ *Lỗi đóng lệnh Turtle* ${formatSymbol(st.symbol)} — ${m}\nKIỂM TRA vị thế trên sàn!`);
+        if (!pos.pendingExit) {
+          await this.tg(`🐢⚠️ *Lỗi đóng lệnh Turtle* ${formatSymbol(st.symbol)} — ${m}\nBot sẽ tự thử lại; nếu lỗi kéo dài, KIỂM TRA vị thế trên sàn!`);
+        }
+        pos.pendingExit = { exitPrice, reason, exitTime };
+        return; // không xoá state khi chưa xác nhận đóng được vị thế thật
       }
     }
 
@@ -387,10 +458,27 @@ export class TurtleLive {
     silent: boolean
   ): Promise<void> {
     const bar = candles[i];
+    const longChannel = priorDonchian(candles, i, DC_ENTRY);
+    const shortChannel = DC_SHORT_ENTRY === DC_ENTRY ? longChannel : priorDonchian(candles, i, DC_SHORT_ENTRY);
+    const longMidClose = (longChannel.closeHigh + longChannel.closeLow) / 2;
+    const shortMidClose = (shortChannel.closeHigh + shortChannel.closeLow) / 2;
     const pos = st.pos;
 
     if (pos) {
       const heldBars = Math.round((bar.openTime - pos.units[0].entryTime) / tfMs);
+
+      if (pos.pendingExit) {
+        const x = pos.pendingExit;
+        await this.exitPosition(st, pos, x.exitPrice, x.reason, x.exitTime, silent);
+        return;
+      }
+
+      // Migration state cũ: khởi tạo midTrail từ kênh hiện tại nhưng không bao giờ nới hard SL.
+      if (pos.dir === "long" && T.longExitMode === "mid" && !Number.isFinite(pos.midTrail)) {
+        pos.midTrail = Math.max(pos.sl, longMidClose);
+      } else if (pos.dir === "short" && T.shortExitMode === "mid" && !Number.isFinite(pos.midTrail)) {
+        pos.midTrail = Math.min(pos.sl, shortMidClose);
+      }
 
       // 1) Exit theo nến (stop sàn đã khớp intra-bar với vị thế thật; giấy thì mô phỏng)
       const hitStop = pos.dir === "long" ? bar.low <= pos.sl : bar.high >= pos.sl;
@@ -398,21 +486,37 @@ export class TurtleLive {
         await this.exitPosition(st, pos, pos.sl, "trail", bar.openTime, silent);
         return;
       }
+      if (pos.dir === "long" && T.longExitMode === "mid" && bar.close <= pos.midTrail!) {
+        await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent);
+        return;
+      }
+      if (pos.dir === "short" && T.shortExitMode === "mid" && bar.close >= pos.midTrail!) {
+        await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent);
+        return;
+      }
       if (heldBars >= MAX_HOLD_BARS) {
         await this.exitPosition(st, pos, bar.close, "time", bar.openTime, silent);
         return;
       }
 
-      // 2) Chandelier trail (ratchet)
+      // 2) Hybrid LONG ratchet midpoint close; SHORT/legacy LONG ratchet Chandelier hard stop.
       const oldSl = pos.sl;
       if (pos.dir === "long") {
-        pos.extreme = Math.max(pos.extreme, bar.high);
-        const trail = pos.extreme - T.chandelierMult * atr[i];
-        if (trail > pos.sl) pos.sl = trail;
+        if (T.longExitMode === "mid") {
+          pos.midTrail = Math.max(pos.midTrail!, longMidClose);
+        } else {
+          pos.extreme = Math.max(pos.extreme, bar.high);
+          const trail = pos.extreme - T.chandelierMult * atr[i];
+          if (trail > pos.sl) pos.sl = trail;
+        }
       } else {
-        pos.extreme = Math.min(pos.extreme, bar.low);
-        const trail = pos.extreme + T.chandelierMult * atr[i];
-        if (trail < pos.sl) pos.sl = trail;
+        if (T.shortExitMode === "mid") {
+          pos.midTrail = Math.min(pos.midTrail!, shortMidClose);
+        } else {
+          pos.extreme = Math.min(pos.extreme, bar.low);
+          const trail = pos.extreme + T.chandelierMult * atr[i];
+          if (trail < pos.sl) pos.sl = trail;
+        }
       }
       if (!silent && pos.real && pos.sl !== oldSl && this.tradingLive()) {
         try {
@@ -421,6 +525,7 @@ export class TurtleLive {
           const m = err instanceof Error ? err.message : String(err);
           console.error(`[Turtle] ${formatSymbol(st.symbol)} LỖI dời SL:`, m);
           await this.tg(`🐢⚠️ *Lỗi dời SL Turtle* ${formatSymbol(st.symbol)} — ${m}`);
+          pos.sl = oldSl; // state phải phản ánh stop cũ vẫn chắc chắn tồn tại trên sàn
         }
       }
 
@@ -429,24 +534,21 @@ export class TurtleLive {
         const last = pos.units[pos.units.length - 1];
         const trigger =
           pos.dir === "long" ? bar.close >= last.entry + T.pyramidStepAtr * atr[i] : bar.close <= last.entry - T.pyramidStepAtr * atr[i];
-        if (trigger) await this.addUnit(st, pos, bar, atr[i], silent);
+        if (trigger) await this.addUnit(st, pos, candles, i, atr[i], silent);
       }
       return;
     }
 
     // ── Tìm entry mới ──
-    let hh = -Infinity, ll = Infinity;
-    for (let k = i - DC_ENTRY; k < i; k++) {
-      hh = Math.max(hh, candles[k].high);
-      ll = Math.min(ll, candles[k].low);
-    }
     const uptrend = bar.close > emaArr[i];
     const downtrend = bar.close < emaArr[i];
+    const longBreakout = T.longEntrySource === "close" ? longChannel.closeHigh : longChannel.high;
+    const shortBreakout = T.shortEntrySource === "close" ? shortChannel.closeLow : shortChannel.low;
 
-    if (uptrend && gate(bar.openTime, "long") && bar.close > hh) {
-      await this.openPosition(st, bar, "long", atr[i], silent);
-    } else if (T.allowShort && downtrend && gate(bar.openTime, "short") && bar.close < ll) {
-      await this.openPosition(st, bar, "short", atr[i], silent);
+    if (uptrend && gate(bar.openTime, "long") && bar.close > longBreakout) {
+      await this.openPosition(st, candles, i, "long", atr[i], longMidClose, silent);
+    } else if (T.allowShort && downtrend && gate(bar.openTime, "short") && bar.close < shortBreakout) {
+      await this.openPosition(st, candles, i, "short", atr[i], shortMidClose, silent);
     }
   }
 
@@ -485,9 +587,17 @@ export class TurtleLive {
         continue; // lỗi mạng → lần sau
       }
       if (st.pos !== pos) continue; // cycle vừa xử lý xong vị thế này trong lúc await
-      if (Math.abs(p.positionAmt) > 0) continue;
-      console.log(`[Turtle] ${formatSymbol(st.symbol)} sàn đã FLAT — chốt sổ tại SL $${fmtPrice(pos.sl)}`);
-      await this.exitPosition(st, pos, pos.sl, "reconcile", Date.now(), false, { flatten: true });
+      if (Math.abs(p.positionAmt) > 0) {
+        if (pos.pendingExit) {
+          const x = pos.pendingExit;
+          await this.exitPosition(st, pos, x.exitPrice, x.reason, x.exitTime, false);
+          this.persist();
+        }
+        continue;
+      }
+      const x = pos.pendingExit;
+      console.log(`[Turtle] ${formatSymbol(st.symbol)} sàn đã FLAT — chốt sổ tại $${fmtPrice(x?.exitPrice ?? pos.sl)}`);
+      await this.exitPosition(st, pos, x?.exitPrice ?? pos.sl, x?.reason ?? "reconcile", x?.exitTime ?? Date.now(), false, { flatten: false });
       this.persist();
     }
   }
@@ -528,7 +638,8 @@ export class TurtleLive {
         }
       } else if (pos?.real && !exHas) {
         console.log(`[Turtle] ${formatSymbol(st.symbol)} state giữ nhưng sàn flat — chốt sổ.`);
-        await this.exitPosition(st, pos, pos.sl, "reconcile", Date.now(), false); // flatten dọn stop mồ côi
+        const x = pos.pendingExit;
+        await this.exitPosition(st, pos, x?.exitPrice ?? pos.sl, x?.reason ?? "reconcile", x?.exitTime ?? Date.now(), false, { flatten: false });
       } else if (!pos && exHas && !smcSymbols.has(st.symbol)) {
         // Orphan trên symbol CHỈ turtle quản lý (SMC không adopt) → nhận + SL khẩn cấp nếu thiếu
         const entry = p.entryPrice;
@@ -599,7 +710,7 @@ export class TurtleLive {
       console.log(`[Turtle] Khôi phục ${held.length} vị thế: ${held.map((s) => formatSymbol(s.symbol)).join(", ")}`);
     }
 
-    console.log(`[Turtle] 🐢 Khởi động — ${this.o.symbols.length} symbol @ ${TF} | breakout ${T.entryDays}d | pyramid ${T.pyramidStepAtr}×ATR max${T.pyramidMaxUnits} | BTC gate ${T.btcGateFast / BARS_PER_DAY}d/${T.btcGateSlow / BARS_PER_DAY}d | ${this.o.trader ? `risk ${(this.o.riskPct * 100).toFixed(1)}%/unit` : "ALERT-ONLY"}`);
+    console.log(`[Turtle] 🐢 Khởi động Hybrid — ${this.o.symbols.length} symbol @ ${TF} | initial SL OB${T.initialStopObLookback} +${T.initialStopObPadAtr}ATR trong ${T.initialStopObMinAtr}-${T.initialStopObMaxAtr}ATR, fallback ${T.chandelierMult}ATR | long close/mid ${T.entryDays}d | short close ${T.shortEntryDays || T.entryDays}d/Chandelier | pyramid ${T.pyramidStepAtr}×ATR max${T.pyramidMaxUnits} | BTC gate ${T.btcGateFast / BARS_PER_DAY}d/${T.btcGateSlow / BARS_PER_DAY}d | ${this.o.trader ? `risk ${(this.o.riskPct * 100).toFixed(1)}%/unit` : "ALERT-ONLY"}`);
     // Thứ tự an toàn: (1) chốt sổ vị thế thật đã bị đóng trong lúc offline → (2) replay nến lỡ
     // trên state đã đúng → (3) đối soát cold-start/orphan với sàn.
     await this.reconcileHeld();

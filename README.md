@@ -1,5 +1,8 @@
 # BTC Swing Alert Bot + Backtest
 
+> **Production:** SMC đang tắt (`SMC_ENABLED=false`) do độ nhạy tham số/overfit cao. Mã SMC được giữ
+> để backtest; bot live chỉ drain vị thế SMC cũ nếu có và không mở lệnh SMC mới. Turtle vẫn hoạt động.
+
 Bot báo tín hiệu **swing** (giữ lệnh 1-2 ngày+) cho **rổ Perpetual** trên Binance
 (**BTC + SOL + XRP + DOGE**, chỉnh tại `CONFIG.symbols`), theo phong cách
 **SMC / price-action đa khung**, kèm **backtest** để kiểm chứng lợi nhuận.
@@ -36,6 +39,44 @@ Bot báo tín hiệu **swing** (giữ lệnh 1-2 ngày+) cho **rổ Perpetual** 
 Toàn bộ tham số nằm ở `CONFIG` trong `strategy.ts`. Bot live và backtest **dùng chung** logic này → alert khớp với kết quả backtest.
 
 > 🔬 **Nghiên cứu dấu chân nhà tạo lập, overfit & domain coin** — đã thử nhiều ý tưởng SMC/MM nâng cao, **không cái nào tăng NET bền** + đã audit overfit. Tóm tắt + cách tái lập ở mục **[Nghiên cứu đã làm & giới hạn](#nghiên-cứu-đã-làm--giới-hạn-overfit--domain-coin)** bên dưới. Đọc trước khi định thêm tính năng mới.
+
+### Key Volume — phương pháp nghiên cứu độc lập
+
+`key-volume.ts` có hai pipeline không-lookahead, không trộn các setup khác nhau của kênh:
+
+1. **`volume-retest` (mặc định, phần công khai có thể lượng hoá):** chuỗi Daily chỉ xác lập bias
+   khi phá cực trị nến ngược màu gần nhất → H1 key có volume/displacement → M15 quay lại key
+   với volume đúng vị trí → sweep/reclaim cuối → phá cấu trúc → vào ở open kế tiếp, SL sau
+   cực trị sweep. Sau TP1 `2R`, chốt 1/2 và bảo vệ phần còn lại; stop sau đó bám swing M5 đã
+   xác nhận. Chỉ tái vào cùng key sau stop dương và một cú sweep sâu hơn.
+2. **`document-v1`:** tái lập đúng pipeline ban đầu trong
+   `planning/fxdream-keyvolume-method.md`: H1/H4 hợp lưu → M15 sweep + hai BOS → M5 OB/FTR
+   trùng cạnh HVN proxy.
+
+Model mặc định bám trực tiếp video
+[Phân tích kèo LiveTrade +50R](https://www.youtube.com/watch?v=aPu9ojfAJY0). Video mới
+[FTR × OB × Bulltrap × Volume](https://www.youtube.com/watch?v=b-zNRg90nQw) được dùng để audit,
+nhưng không bị nhập chung thành hard gate vì đó là một entry model FTR/RSI riêng.
+
+Đây là **research/backtest-only**, chưa nối vào bot live và không được gọi là bản sao đầy đủ phương pháp.
+Kline Binance không có volume-at-price Forex/Gold nên HVN chỉ là proxy OHLCV; lớp macro/session và phần
+chọn key discretionary không được giả lập. Chạy test, ablation và bảng so sánh cùng kỳ:
+
+```bash
+npm run test:key-volume
+npx ts-node scripts/key-volume-ablation.ts 500 btcusdt,solusdt,xrpusdt,dogeusdt
+npm run backtest:key-volume -- 500 1 btcusdt,solusdt,xrpusdt,dogeusdt
+npm run backtest:key-volume -- 500 1 btcusdt,solusdt,xrpusdt,dogeusdt document-v1
+```
+
+Script so sánh Key Volume với SMC, Turtle và Fast Trend trên cùng dữ liệu, cùng kỳ, cùng mô hình
+chi phí và cùng giới hạn đòn bẩy (mặc định `10x`). Funnel tách số setup khỏi số entry: một BOS
+không được vào nếu vùng đối diện gần nhất không còn tối thiểu `3R`, đúng điều kiện “dư địa”.
+
+Benchmark là kiểm tra **technical subset trên bốn crypto**, không phải phép đo hiệu quả giao dịch
+tay của FX Dream. Lớp chọn key từ lịch sử, chất lượng phản ứng/trap, macro, session và Gold/Forex
+chưa thể hiện đầy đủ trong OHLCV Binance; vì thế không được dùng NET của model này để kết luận
+phương pháp thủ công không hiệu quả.
 
 ---
 
@@ -161,6 +202,93 @@ Sweep phía thoát lệnh trên **rổ 4 coin** (gate +44.79R): targetRR, trailS
 - Walk-forward 4 cửa sổ **đều dương** (W4 +14.61R, WR 80%); p-value <0.001; maxDD −4.2%.
 - Bản chất: **nới ràng buộc thoát** (không phải thêm filter) → để winner swing chạy hết thay vì bị cắt non bởi time-exit. Hiệu ứng tập trung ở BTC (+1.7R) & DOGE (+1.1R); SOL/XRP không có lệnh chạm cửa sổ này.
 
+### A3. Audit entry/volume 15m — 1.200 ngày, rổ 4 coin
+
+Chạy `scripts/entry-volume-audit.ts` trên cùng snapshot Binance Perpetual từ **2023-04-05 → 2026-07-22**,
+đã trừ phí/slippage/funding. Báo cáo 3 era, 365 ngày gần nhất và paired bootstrap theo tuần:
+
+| Biến thể | Lệnh | NET R | exp/lệnh | Kết luận |
+|---|---:|---:|---:|---|
+| Baseline: volume 1.3× + taker delta 0.55 | 213 | **+75.8** | 0.356 | Mốc so sánh |
+| Bỏ cả volume + delta | 778 | **−66.0** | −0.085 | BOS đơn thuần tạo quá nhiều nhiễu |
+| Bỏ ngưỡng volume, giữ delta | 290 | +61.7 | 0.213 | Volume lớn có ích biên, nhưng Δ chưa có ý nghĩa thống kê |
+| Bỏ delta, giữ volume | 558 | **−18.9** | −0.034 | Delta có hướng là lớp lọc quan trọng nhất |
+| Time-of-day RVOL | 187 | +55.1 | 0.295 | Không cải thiện trên bot này |
+| Gom volume 2 / 4 nến 15m | 170 / 129 | +48.2 / +31.5 | 0.284 / 0.244 | Giảm NET do lọc quá nhiều |
+| Gom delta 2 / 4 nến 15m | 199 / 163 | +61.8 / +49.3 | 0.311 / 0.302 | Delta của chính nến BOS tốt hơn |
+| CLV ≥0.55 | 200 | +80.9 | 0.405 | +5.2R nhưng CI90 Δ/tuần cắt 0, giảm ở 365d gần nhất |
+
+Baseline theo 3 era là **−0.2R / +7.6R / +68.4R**: edge tập trung mạnh ở era gần đây, vì vậy **không
+nâng thêm filter/threshold** từ kết quả này. Sweep volume 0→2× và delta 0.50→0.60 cũng cho thấy
+`deltaBuyMin=0.55` khá nhạy, không phải plateau đủ rộng để tối ưu thêm. Thay đổi live duy nhất được áp dụng
+là **`deltaStrict: true`**: thiếu/NaN `takerBuyVolume` thì không mở lệnh mới (exit vẫn chạy), vì delta là
+lớp xác nhận thiết yếu; dữ liệu hợp lệ cho kết quả hoàn toàn giống baseline.
+
+Lý do kiểm tra time-of-day: crypto có periodicity rõ theo ngày/giờ và cả bên trong giờ
+([Hansen, Kim & Kimbrough](https://arxiv.org/abs/2109.12142)). Lý do tách volume khỏi delta: nghiên cứu
+microstructure cho thấy volume thô nhiễu hơn order-flow imbalance
+([Cont, Kukanov & Stoikov](https://arxiv.org/abs/1011.6402)); nghiên cứu XBT perpetual cũng tìm thấy quan hệ
+mạnh với **contemporaneous** order-flow imbalance, không mặc nhiên là dự báo tương lai
+([Silantyev](https://doi.org/10.1007/s42521-019-00007-w)).
+
+```bash
+./node_modules/.bin/ts-node scripts/entry-volume-audit.ts 1200 btcusdt,solusdt,xrpusdt,dogeusdt structural
+./node_modules/.bin/ts-node scripts/entry-volume-audit.ts 1200 btcusdt,solusdt,xrpusdt,dogeusdt threshold
+```
+
+### A4. Extreme-volume 15m → rời vùng → retest lần đầu
+
+Audit riêng đúng giả thuyết “nến 15m có quote-volume ≥2× trung bình 1–2 ngày trước tạo vùng; sau đó
+giá quay lại vùng và volume kích lại”. Định nghĩa chính: lookback 192 nến, vùng = body nến, giá phải rời
+vùng ≥0.5 ATR, chỉ xét retest đầu trong 10 ngày và chỉ vào sau khi nến retest đóng. Đã perturb lookback
+96/192, threshold 1.8/2.0/2.2×, full range và cluster bốn nến.
+
+- 42.814 retest: phản ứng theo hướng vùng **+0.060% sau 4h** (CI90 +0.039…+0.082%) và
+  **+0.133% sau 24h** (CI90 +0.087…+0.183%). Có “memory” giá nhỏ nhưng thật.
+- Retest volume ≥2×: +0.085%/4h và +0.201%/24h. “Spike lại nhưng nhỏ hơn event”:
+  +0.058%/4h, +0.144%/24h.
+- Dấu hiệu absorption (delta ép ngược vùng nhưng nến đóng về phía bảo vệ): +0.488%/24h
+  (CI90 +0.108…+0.887%). Body nhỏ/effort-no-result: +0.572%/24h (CI90 +0.186…+0.989%).
+- Tuy nhiên đường đi không trade được với entry trực tiếp: TP/SL ±1 ATR chỉ thắng 49.3%, exp sau phí
+  **−0.302R/lệnh**. HTF 4h/1h + absorption với stop 3 ATR/time-exit 24h chỉ +0.019R/lệnh,
+  CI90 −0.274…+0.293R và không ổn định theo era/coin.
+- Làm confluence cho SMC cũng không tách được edge: baseline 0.356R/lệnh; có retest trong 24 bars
+  0.363R/lệnh; volume retest ≥1.3× là 0.373R/lệnh. Chênh lệch quá nhỏ, các cohort absorption chỉ 1–2 lệnh.
+- Thử state machine `absorption → ARM → reclaim/BOS`: vào ngay −0.159R/lệnh; reclaim −0.155R;
+  BOS cải thiện lên −0.037R nhưng vẫn âm. Biến thể tốt nhất `HTF + effort/no-result + BOS` chỉ
+  +2.0R/31 lệnh (0.065R/lệnh), CI90 −0.313…+0.457R, Era A −6.7R và chỉ 2/4 symbol dương.
+
+Kết luận: vùng extreme-volume có giá trị **quan sát phản ứng/market memory**, đặc biệt absorption ở horizon
+24h, nhưng **không được bật làm entry hay hard gate live**. Kline chỉ cho tổng volume cả nến, không cho
+volume-at-price; muốn dựng POC/high-volume node thật cần Binance aggTrades/tick data.
+
+```bash
+./node_modules/.bin/ts-node scripts/extreme-volume-retest-audit.ts 1200
+```
+
+### A5. Chẩn đoán Turtle Era C và cải tiến production
+
+Audit liên tục 1.050 ngày cho thấy Era C thấp không phải do ít lệnh hay WR sụp mạnh, mà do **thiếu
+follow-through lớn**: MFE trung bình 1.42R so với 2.77R/3.53R ở Era A/B; tỷ lệ vị thế từng đạt 5R giảm
+từ 13.4%/14.7% xuống 4.5%. Pha long đóng góp −53.1R trong khi short +109.1R; BTC của Era C giảm 42.4%.
+Vì trend-following có payoff lồi, bỏ năm vị thế tốt nhất làm Era C từ +56.0R thành −70.5R. Đây là thay
+đổi regime và độ dài xu hướng, không phải lỗi volume hay một ngưỡng entry đơn lẻ.
+
+Cải tiến production đã áp dụng theo hướng **không cắt sức mạnh convex**:
+
+- LONG: breakout theo close 15 ngày, thoát khi close thủng midpoint channel 15 ngày.
+- SHORT: breakout theo close-low 30 ngày để lọc wick/squeeze; vẫn giữ Chandelier 3 ATR vì midpoint
+  exit cho short làm kết quả xấu đi.
+- Trên cùng 1.050 ngày: NET +981.5R → **+1,038.8R**, exp 0.780 → **0.800R/unit**; Era C
+  +56.0R → **+112.9R**. Era A/B/C sau sửa vẫn dương: +276.7R / +649.2R / +112.9R.
+- Jitter ±15% trong 30 seed: 30/30 NET dương, median đạt 95% baseline. Cải tiến giảm điểm yếu của
+  Era C nhưng không giả định rằng có thể xoá hoàn toàn chu kỳ thiếu xu hướng.
+
+```bash
+./node_modules/.bin/ts-node scripts/turtle-era-diagnosis.ts 1050
+./node_modules/.bin/ts-node exp-turtle-overfit.ts 1050
+```
+
 ### B. Audit overfit (`scripts/overfit-audit.ts`)
 
 - **OOS thời gian** ✅ yếu: edge dương ở **cả 2 nửa** lịch sử (nửa cũ +18.7R, nửa mới +44.8R) — nhưng nửa cũ yếu hơn rõ (phụ thuộc regime).
@@ -212,7 +340,7 @@ npx ts-node scripts/liquidity-rule-validate.ts 500 700  # validate luật volume
 1. **Đa coin sau đổi entry** — Đã chạy 8 perp (bảng trên). Tiếp: forward-test **SOL/XRP**; **không** thêm ETH/BNB vào bot cho đến khi tune riêng.
 2. **BOS gắn pullback** — `bosSwingMinPivotAfterArm: true` đã sweep: **giảm NET** (~10R) — **không bật**. Có thể thử swing trong cửa sổ `[armedIndex, i]` thay vì min pivot.
 3. **Chất lượng nến CONFIRM** — CLV / wick / `minEntryRR` đã có hook; sweep cho thấy thường **giảm** NET trên BTC — có thể hữu ích hơn trên alt hoặc kết hợp `minBarsAfterArm` cao hơn.
-4. **Forward-test live** — So khớp ARM → CONFIRM trên chart với log bot; kiểm tra delta REST Futures có đủ field `takerBuyVolume` (`deltaStrict` nếu muốn fail-closed).
+4. **Forward-test live** — So khớp ARM → CONFIRM trên chart với log bot; kiểm tra delta REST Futures có đủ field `takerBuyVolume` (`deltaStrict: true` đang fail-closed).
 5. **Regime / W4** — Theo dõi walk-forward cửa sổ gần nhất; cân nhắc giảm size hoặc tắt symbol khi W4 âm kéo dài (chưa code — cần định nghĩa rule trước khi implement).
 
 ---
@@ -258,7 +386,9 @@ mỗi ~12s, và khi nến 15m **đóng** sẽ đánh giá setup (ARM → CONFIRM
 
 ### Lệnh Telegram
 - **`/status`** (hoặc `/positions`) — bot trả về danh sách **đang giữ / đang chờ (ARM) / flat** trên mọi symbol,
-  kèm R hiện tại và thời gian giữ. Bot chỉ trả lời đúng **Chat ID** đã cấu hình.
+  kèm routing `Turtle → Binance`, `Fast → MEXC`, readiness, pending/quarantine, R và thời gian giữ.
+- **`/health`** — signed read-only check cho cả Binance và MEXC: key/IP, readiness, One-way mode,
+  equity/available, số vị thế exchange và trạng thái Fast. Bot chỉ trả lời đúng **Chat ID** đã cấu hình.
 
 ```
 📊 Trạng thái bot — 4 symbol
@@ -278,14 +408,19 @@ Hiện $68,100 (+1.1R) · giữ 1.2d
 `docker-compose.yml` chạy **cả 3 service**: bot alert (`swing-bot`), chart perpetual (`swing-chart` — cổng 3847), dashboard (`swing-dashboard` — cổng 3848, chỉ localhost).
 
 ```bash
-# LẦN ĐẦU: tạo sẵn file state (bind-mount file chưa tồn tại → Docker tạo THƯ MỤC làm hỏng bot)
+# LẦN ĐẦU: state Fast/MEXC dùng directory mount để temp+rename luôn atomic.
 touch bot-state.json trades-live.jsonl turtle-state.json turtle-trades.jsonl
+mkdir -p fast-trend-mexc-runtime
 
 docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
 docker compose logs -f swing-bot  # xem log (tìm "🐢 Turtle:" và "THỰC THI BẬT")
 docker compose restart swing-bot  # sau khi đổi CONFIG/.env.local (kèm --build nếu đổi code)
 docker compose down               # dừng tất cả
 ```
+Không bind-mount riêng `fast-trend-mexc-state.json`: file đích sẽ thành mountpoint và Docker trả
+`EBUSY` khi bot atomic-rename file `.tmp`. Compose hiện mount cả `fast-trend-mexc-runtime/`; state,
+journal và file tạm nằm cùng filesystem. Nếu nâng cấp từ cấu hình cũ, dừng bot rồi copy snapshot
+JSON hợp lệ mới nhất và journal cũ vào thư mục này trước khi recreate container.
 `restart: unless-stopped` trong compose → container tự sống lại khi crash / khi Docker Desktop khởi động lại. Chart perpetual xem tại `http://localhost:3847`.
 
 > **Để chạy 24/7 trên máy local:** bật Docker Desktop **tự khởi động khi đăng nhập** (Settings → General → *Start Docker Desktop when you sign in*), và **tắt sleep** để máy không ngủ (macOS: `caffeinate -s`, hoặc System Settings → chống ngủ khi cắm điện). Máy ngủ = bot dừng nhận nến; khi thức dậy bot **replay nến nhỡ** nên không sai lệch, nhưng alert/lệnh sẽ trễ tới lúc thức.
@@ -322,6 +457,39 @@ bot **đối soát** vị thế thật trên sàn (lưới an toàn nếu SL/TP 
 4. Verify vài lệnh khớp đúng SL/TP trên testnet rồi mới chuyển **mainnet** (`BINANCE_TESTNET=false` + key thật
    đã bật quyền *Enable Futures*; nên giới hạn IP của key theo IP nhà bạn).
 
+## Fast Trend trên MEXC Futures
+
+Fast Trend dùng Binance Futures 4h làm nguồn tín hiệu nhưng thực thi trên tài khoản MEXC riêng, nên
+không còn chặn Turtle/Binance khi hai chiến lược cùng muốn giữ một coin. Không có automatic failover
+giữa hai sàn.
+
+Luật entry hiện tại: **LONG** đóng trên high 10 ngày; **SHORT** đóng dưới close-low 30 ngày để arm,
+rồi chỉ vào nếu nến 4h kế tiếp vẫn đóng dưới mức breakout đã đóng băng và còn dưới EMA50. Fast mặc
+định chạy shadow; không bật tiền thật chỉ vì MEXC preflight đã pass.
+
+MEXC cần đúng **2 secret value**: `MEXC_API_KEY` và `MEXC_API_SECRET`. API key phải có KYC và các
+quyền **View Account Details**, **View Order Details**, **Order Placing**; không cấp withdrawal và nên
+bind IP. Đặt Futures account ở **One-way mode**.
+
+```env
+MEXC_ENABLED=true
+MEXC_TRADING_ENABLED=false     # kiểm tra /health trước; chỉ bật true khi preflight pass
+FAST_TREND_TRADING_ENABLED=false # shadow; chỉ bật sau forward-test độc lập
+MEXC_API_KEY=...
+MEXC_API_SECRET=...
+MEXC_BASE_URL=https://api.mexc.com
+MEXC_LEVERAGE=10
+MEXC_MARGIN_TYPE=ISOLATED
+MEXC_MAX_PORTFOLIO_RISK_PCT=10
+MEXC_MAX_BASIS_PCT=0.3
+```
+
+Sau khi `/health` báo MEXC key/IP OK và One-way, forward-test đủ điều kiện rồi mới đổi đồng thời
+`MEXC_TRADING_ENABLED=true` và `FAST_TREND_TRADING_ENABLED=true`, sau đó rebuild/restart.
+Connector dùng MEXC contract metadata để đổi risk sang số contract, deterministic `externalOid` để
+không nhân đôi lệnh khi timeout, native stop theo `positionId`, và reduce-only exit. Mặc định thiếu key
+hoặc preflight lỗi thì Fast trở về alert-only; Turtle/Binance không bị ảnh hưởng.
+
 ### Dashboard theo dõi
 ```bash
 npm run dashboard        # http://localhost:3848  (hoặc service swing-dashboard trong docker-compose)
@@ -343,6 +511,9 @@ Hiển thị: **tài khoản** (equity, unrealized PnL, khả dụng, exposure, 
 - `live-state.ts` — persist vị thế qua restart (`bot-state.json`) + nhật ký lệnh (`trades-live.jsonl`)
 - `binance-futures.ts` — client REST ký HMAC cho Binance USDⓈ-M Futures (đặt/huỷ lệnh, số dư, vị thế)
 - `live-trade.ts` — lớp thực thi: sizing theo risk, đặt SL/TP trên sàn, trail, đối soát (dùng khi `TRADING_ENABLED`)
+- `mexc-futures.ts` — REST/signing/metadata/order/position/native-stop cho MEXC USDT-M Futures
+- `mexc-fast-execution.ts` — sizing theo contract, basis gate, idempotency và recovery cho Fast/MEXC
+- `fast-trend-execution.ts` — boundary thực thi riêng của Fast Trend
 - `dashboard-server.ts` — dashboard web theo dõi giao dịch (port 3848, chỉ đọc)
 - `scripts/baseline-gate.sh` — so NET 250d BTC với baseline trước khi merge thay đổi strategy
 - `scripts/confirm-quality-gate.ts`, `scripts/pullback-zone-gate.ts` — sweep filter CONFIRM / pullback

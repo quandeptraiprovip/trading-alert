@@ -51,19 +51,29 @@ import {
 } from "./telegram";
 import { loadState, saveState, appendJournal, PersistedSymbol } from "./live-state";
 import { createBinanceFromEnv } from "./binance-futures";
+import { createMexcFromEnv } from "./mexc-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 import { TurtleLive } from "./turtle-live";
 import { FastTrendLive } from "./fast-trend-live";
+import { MexcFastExecution } from "./mexc-fast-execution";
 
 const telegram = loadTelegramConfig();
 
 // ── Lớp THỰC THI lệnh thật (tùy chọn) ──────────────────────────────────────
 // TRADING_ENABLED=false (mặc định) hoặc thiếu API key → bot chạy ALERT-ONLY y như cũ.
 const TRADING_ENABLED = (process.env.TRADING_ENABLED ?? "false").toLowerCase() === "true";
+// SMC tắt mặc định: không scan/tạo setup/mở lệnh mới. Nếu state cũ còn vị thế, bot chỉ
+// khôi phục và quản lý vị thế đó tới khi thoát (drain-only), tránh bỏ rơi lệnh trên sàn.
+const SMC_ENABLED = (process.env.SMC_ENABLED ?? "false").toLowerCase() === "true";
 const execCfg = loadExecConfig();
 const binance = TRADING_ENABLED ? createBinanceFromEnv() : null;
 const trader = binance ? new LiveTrader(binance, execCfg) : null;
 let tradingReady = false; // chỉ true sau khi init() (margin/đòn bẩy/filters) thành công
+let binancePreflightPassed = false;
+const MEXC_ENABLED = (process.env.MEXC_ENABLED ?? "false").toLowerCase() === "true";
+const MEXC_TRADING_ENABLED = (process.env.MEXC_TRADING_ENABLED ?? "false").toLowerCase() === "true";
+const mexc = MEXC_ENABLED ? createMexcFromEnv() : null;
+let mexcTradingReady = false;
 
 // Tiền tố MỌI log bằng giờ Việt Nam (kèm giây) để truy vết sự kiện theo thời gian khi đọc
 // `docker logs`. Bọc console 1 lần thay vì sửa từng dòng log.
@@ -122,12 +132,24 @@ const states: SymbolState[] = [];
 function smcOpenRiskFrac(): number {
   return trader ? states.reduce((sum, s) => sum + (s.livePos ? trader.riskFracOf(s.livePos as PosInfo) : 0), 0) : 0;
 }
-/** true nếu SMC hoặc lớp `exclude` KHÁC đang giữ THẬT symbol này (loại trừ chính lớp gọi). */
+/** Chỉ các sleeve cùng Binance account mới loại trừ symbol; Fast/MEXC là venue độc lập. */
 function otherHoldsSymbolExcept(sym: string, exclude: "turtle" | "fast"): boolean {
   if (isTrading() && states.some((s) => s.symbol === sym && s.livePos)) return true;
   if (exclude !== "turtle" && turtle?.hasRealPosition(sym)) return true;
-  if (exclude !== "fast" && fastTrend?.hasRealPosition(sym)) return true;
   return false;
+}
+
+/**
+ * Trùng lặp XUYÊN SÀN (khắc phục A1, audit 2026-08): Fast/MEXC không đặt lại cùng underlying +
+ * cùng hướng mà lớp Binance đang giữ. Không có xung đột cơ học giữa 2 venue nên guard cũ bỏ qua,
+ * nhưng rủi ro kinh tế vẫn cộng dồn — thực tế 23/07–02/08 đã short DOT/SOL/AVAX trên cả hai sàn.
+ * Bỏ rất ít cơ hội: 96,1% vị thế Fast trùng symbol+hướng với Turtle trong 180 ngày, và phần KHÔNG
+ * trùng đo được NET -37,2R/1.050 ngày.
+ */
+function binanceHoldsSameDir(sym: string, dir: "long" | "short"): boolean {
+  const s = sym.toLowerCase();
+  if (isTrading() && states.some((x) => x.symbol === s && x.livePos?.dir === dir)) return true;
+  return turtle?.realPositionDir(s) === dir;
 }
 
 // ── Lớp chiến lược TURTLE (turtle.ts) chạy song song — xem turtle-live.ts ──
@@ -135,8 +157,8 @@ function otherHoldsSymbolExcept(sym: string, exclude: "turtle" | "fast"): boolea
 const TURTLE_ENABLED = (process.env.TURTLE_ENABLED ?? "true").toLowerCase() === "true";
 const TURTLE_TRADING_ENABLED = (process.env.TURTLE_TRADING_ENABLED ?? "true").toLowerCase() === "true";
 const TURTLE_RISK_PCT = (() => {
-  const n = parseFloat(process.env.TURTLE_RISK_PCT ?? "1");
-  return (Number.isFinite(n) && n > 0 ? n : 1) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
+  const n = parseFloat(process.env.TURTLE_RISK_PCT ?? "0.5");
+  return (Number.isFinite(n) && n > 0 ? n : 0.5) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
 })();
 // Rổ turtle — HOÁN ĐỔI CHẤT LƯỢNG 2026-07 (giữ NGUYÊN 8 coin, KHÔNG mở rộng để tránh pha loãng
 // expectancy như audit exp-turtle-levers.ts đã cảnh báo): BỎ BNB (rủi ro solvency exchange-token +
@@ -155,18 +177,16 @@ const turtle: TurtleLive | null = TURTLE_ENABLED
       maxPortfolioRiskPct: execCfg.maxPortfolioRiskPct,
       leverage: execCfg.leverage,
       otherHoldsSymbol: (sym) => otherHoldsSymbolExcept(sym, "turtle"),
-      otherOpenRiskFrac: () => smcOpenRiskFrac() + (fastTrend?.openRiskFrac() ?? 0),
+      otherOpenRiskFrac: () => smcOpenRiskFrac(),
       isTradingReady: () => tradingReady,
     })
   : null;
 
-// ── Sleeve TREND NHANH (fast-trend-live.ts) — mirror cơ chế turtle (EMA50 + BTC gate +
-// chandelier + pyramiding) nhưng breakout ngắn hơn (mặc định 10d) → giao dịch cả lúc thị trường
-// đi ngang (turtle đứng ngoài). Loại trừ symbol lẫn nhau với SMC/Turtle khi giao dịch thật (SL
-// closePosition đóng cả symbol). Risk mặc định NHỎ hơn turtle (chiến lược mới/ngắn hơn, chưa có
-// track record dài) — xem FAST_TREND_RISK_PCT. Audit 3-era: scripts/fast-trend-audit.ts.
+// ── Sleeve TREND NHANH (fast-trend-live.ts) — LONG high-breakout 10d; SHORT close-low 30d
+// rồi chờ thêm 1 nến 4h xác nhận. Chandelier hai hướng, EMA50 + BTC gate + pyramiding.
+// Mặc định shadow/alert-only; chỉ bật tiền thật sau forward-test độc lập.
 const FAST_TREND_ENABLED = (process.env.FAST_TREND_ENABLED ?? "true").toLowerCase() === "true";
-const FAST_TREND_TRADING_ENABLED = (process.env.FAST_TREND_TRADING_ENABLED ?? "true").toLowerCase() === "true";
+const FAST_TREND_TRADING_ENABLED = (process.env.FAST_TREND_TRADING_ENABLED ?? "false").toLowerCase() === "true";
 const FAST_TREND_RISK_PCT = (() => {
   const n = parseFloat(process.env.FAST_TREND_RISK_PCT ?? "0.5");
   return (Number.isFinite(n) && n > 0 ? n : 0.5) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
@@ -174,20 +194,40 @@ const FAST_TREND_RISK_PCT = (() => {
 const FAST_TREND_ENTRY_DAYS = (() => { const n = parseInt(process.env.FAST_TREND_ENTRY_DAYS ?? "10", 10); return Number.isFinite(n) && n >= 2 ? n : 10; })();
 const FAST_TREND_SYMBOLS = (process.env.FAST_TREND_SYMBOLS ?? TURTLE_SYMBOLS.join(","))
   .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-const fastTrendTrader = binance && FAST_TREND_TRADING_ENABLED ? new LiveTrader(binance, { ...execCfg, riskPct: FAST_TREND_RISK_PCT }) : null;
+const MEXC_MAX_PORTFOLIO_RISK_PCT = (() => {
+  const n = parseFloat(process.env.MEXC_MAX_PORTFOLIO_RISK_PCT ?? "10");
+  return (Number.isFinite(n) && n > 0 ? n : 10) / 100;
+})();
+const MEXC_LEVERAGE = (() => {
+  const n = parseInt(process.env.MEXC_LEVERAGE ?? String(execCfg.leverage), 10);
+  return Number.isFinite(n) && n > 0 ? n : execCfg.leverage;
+})();
+const MEXC_MARGIN_TYPE = (process.env.MEXC_MARGIN_TYPE ?? "ISOLATED").toUpperCase() === "CROSSED" ? "CROSSED" as const : "ISOLATED" as const;
+const MEXC_MAX_BASIS_PCT = (() => {
+  const n = parseFloat(process.env.MEXC_MAX_BASIS_PCT ?? "0.3");
+  return (Number.isFinite(n) && n > 0 ? n : 0.3) / 100;
+})();
+const fastTrendExecution = mexc && MEXC_TRADING_ENABLED && FAST_TREND_TRADING_ENABLED
+  ? new MexcFastExecution(mexc, {
+      riskPct: FAST_TREND_RISK_PCT,
+      maxPortfolioRiskPct: MEXC_MAX_PORTFOLIO_RISK_PCT,
+      leverage: MEXC_LEVERAGE,
+      marginType: MEXC_MARGIN_TYPE,
+      maxBasisPct: MEXC_MAX_BASIS_PCT,
+    })
+  : null;
 const fastTrend: FastTrendLive | null = FAST_TREND_ENABLED
   ? new FastTrendLive({
       symbols: FAST_TREND_SYMBOLS,
       entryDays: FAST_TREND_ENTRY_DAYS,
       telegram,
-      api: binance,
-      trader: fastTrendTrader,
+      execution: fastTrendExecution,
       riskPct: FAST_TREND_RISK_PCT,
-      maxPortfolioRiskPct: execCfg.maxPortfolioRiskPct,
-      leverage: execCfg.leverage,
-      otherHoldsSymbol: (sym) => otherHoldsSymbolExcept(sym, "fast"),
-      otherOpenRiskFrac: () => smcOpenRiskFrac() + (turtle?.openRiskFrac() ?? 0),
-      isTradingReady: () => tradingReady,
+      maxPortfolioRiskPct: MEXC_MAX_PORTFOLIO_RISK_PCT,
+      leverage: MEXC_LEVERAGE,
+      otherOpenRiskFrac: () => 0,
+      binanceHoldsSameDir,
+      isTradingReady: () => mexcTradingReady,
     })
   : null;
 
@@ -443,7 +483,7 @@ function openRiskFracExcluding(symbol: string): number {
 
 /** Mở lệnh thật. Trả OpenResult (placed true/false) hoặc null nếu LỖI (đã báo Telegram). */
 async function execOpen(st: SymbolState, sig: EntrySignal): Promise<OpenResult | null> {
-  if (!trader || !st.livePos) return null;
+  if (!SMC_ENABLED || !trader || !st.livePos) return null;
   try {
     return await trader.open(st.symbol, sig.entry, st.livePos as PosInfo, openRiskFracExcluding(st.symbol));
   } catch (err) {
@@ -605,6 +645,13 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
     return;
   }
 
+  // SMC đã tắt: state cũ chỉ được drain tới flat, tuyệt đối không ARM hay mở lệnh mới.
+  if (!SMC_ENABLED) {
+    st.tracker.reset();
+    persist();
+    return;
+  }
+
   const sig = evaluateNewEntry(st, candle);
   if (!sig) {
     persist(); // lưu lastOpenTime tiến lên (để resume đúng sau restart)
@@ -681,6 +728,14 @@ async function prefetchHistory(st: SymbolState): Promise<void> {
     return;
   }
 
+  if (!SMC_ENABLED) {
+    st.buffer = candles.slice(-BUFFER_SIZE);
+    st.lastOpenTime = st.buffer[st.buffer.length - 1]?.openTime ?? st.lastOpenTime;
+    st.tracker.reset();
+    console.log(`[Init] ${formatSymbol(st.symbol)} — SMC drain-only, giữ state vị thế cũ; không replay entry.`);
+    return;
+  }
+
   // Luôn chạy silent scan toàn bộ buffer — chart là source of truth, không phụ thuộc file.
   // Reset livePos + tracker trước để strategy tự phát hiện lại từ đầu.
   st.livePos = null;
@@ -754,7 +809,9 @@ function startHealthMonitor(): void {
 // ── Giám sát KẾT NỐI BINANCE (API ký) — ping read-only định kỳ ──
 // Bắt sớm trường hợp key/IP chết (đổi IP → -2015), mất mạng, 451… mà không cần đợi sự kiện trade.
 let binanceDown = false;
+let mexcDown = false;
 const BINANCE_HEALTH_MS = 5 * 60 * 1000;
+const MEXC_HEALTH_MS = 5 * 60 * 1000;
 
 function startBinanceHealthMonitor(): void {
   if (!binance) return;
@@ -764,10 +821,12 @@ function startBinanceHealthMonitor(): void {
       await binance.getEquity(); // signed read — xác thực kết nối + key + IP
       if (binanceDown) {
         binanceDown = false;
+        tradingReady = binancePreflightPassed;
         console.log("[Health] ✅ Kết nối Binance phục hồi.");
         await sendTelegramReliable(telegram, `✅ *Kết nối Binance phục hồi*\n🕐 ${formatTimeVn(Date.now())}`);
       }
     } catch (err: any) {
+      tradingReady = false;
       if (binanceDown) return; // đã báo rồi, không spam
       binanceDown = true;
       const code = err?.response?.data?.code;
@@ -794,6 +853,111 @@ function startBinanceHealthMonitor(): void {
   console.log(`[Health] ✅ Giám sát kết nối Binance mỗi ${BINANCE_HEALTH_MS / 60000} phút`);
 }
 
+function startMexcHealthMonitor(): void {
+  if (!mexc) return;
+  const check = async (): Promise<void> => {
+    void flushPendingTelegram(telegram);
+    try {
+      await mexc.getEquity();
+      const recovered = mexcDown;
+      mexcDown = false;
+      if (fastTrendExecution && MEXC_TRADING_ENABLED && (recovered || !mexcTradingReady)) {
+        try {
+          mexcTradingReady = (await fastTrendExecution.preflight(FAST_TREND_SYMBOLS)).ok;
+        } catch {
+          mexcTradingReady = false;
+        }
+      }
+      if (recovered) {
+        console.log("[Health] ✅ Kết nối MEXC phục hồi.");
+        await sendTelegramReliable(telegram, `✅ *Kết nối MEXC phục hồi* · entry readiness ${mexcTradingReady ? "BẬT" : "vẫn TẮT"}\n🕐 ${formatTimeVn(Date.now())}`);
+      }
+    } catch (err: any) {
+      mexcTradingReady = false; // chỉ chặn exposure mới; Fast vẫn tiếp tục reconcile/exit
+      if (mexcDown) return;
+      mexcDown = true;
+      const code = err?.response?.data?.code;
+      const msg = err?.response?.data?.message ?? err?.response?.data?.msg ?? (err instanceof Error ? err.message : String(err));
+      console.error(`[Health] 🔌 Mất kết nối MEXC${code ? ` (code ${code})` : ""}: ${msg}`);
+      await sendTelegramReliable(
+        telegram,
+        `🔌 *MẤT KẾT NỐI MEXC*${code ? ` (code ${code})` : ""} — ${escapeMarkdown(String(msg))}\n\n` +
+          `Fast không mở/add mới. Native stop trên MEXC vẫn bảo vệ vị thế; bot tiếp tục thử reconcile/exit.\n🕐 ${formatTimeVn(Date.now())}`,
+      );
+    }
+  };
+  setInterval(() => void check(), MEXC_HEALTH_MS);
+  console.log(`[Health] ✅ Giám sát kết nối MEXC mỗi ${MEXC_HEALTH_MS / 60000} phút`);
+}
+
+/** /health: signed read-only account check; tuyệt đối không đặt/hủy lệnh. */
+async function buildHealthMessage(): Promise<string> {
+  const now = Date.now();
+  const dataAgeMs = now - lastDataAt;
+  const dataAgeSec = Math.max(0, Math.round(dataAgeMs / 1000));
+  const dataFresh = dataAgeMs <= HEALTH_TIMEOUT_MS;
+  const binanceMode = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() === "false" ? "MAINNET" : "TESTNET";
+  const usd = (n: number): string =>
+    Number.isFinite(n) ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "n/a";
+
+  const lines = [
+    `🩺 *HEALTH* — ${formatTimeVn(now)}`,
+    `Telegram: ✅ nhận lệnh`,
+    SMC_ENABLED
+      ? `Data Futures SMC: ${dataFresh ? "✅" : "⚠️"} phản hồi gần nhất ${dataAgeSec}s trước`
+      : `Data Futures SMC: ⚪ tắt`,
+    `Routing: Turtle → Binance · Fast → MEXC`,
+    `Binance entry: ${tradingReady ? "✅ READY" : "⚠️ OFF"} · MEXC entry: ${mexcTradingReady ? "✅ READY" : "⚠️ OFF"}`,
+    `SMC ${SMC_ENABLED ? (trader && tradingReady ? "LIVE" : "alert-only") : states.some((s) => s.livePos) ? "DRAIN-ONLY" : "TẮT"} · Turtle ${turtleTrader && tradingReady ? "BINANCE LIVE" : "alert-only"} · Fast ${fastTrendExecution && mexcTradingReady ? "MEXC LIVE" : "alert-only"}`,
+    ``,
+  ];
+
+  lines.push(`🏦 *Binance / Turtle*`);
+  if (!TRADING_ENABLED) lines.push("Signed API: ⚪ tắt bởi `TRADING_ENABLED=false`");
+  else if (!binance) lines.push("Signed API: ❌ thiếu `BINANCE_API_KEY` / `BINANCE_API_SECRET`");
+  else {
+    try {
+      const e = await binance.getEquity();
+      const marginUsedPct = e.marginBalance > 0 ? (e.initialMargin / e.marginBalance) * 100 : 0;
+      lines.push(
+        `${binanceMode}: ✅ key / IP OK`,
+        `Wallet/available: $${usd(e.walletBalance)} / $${usd(e.available)}`,
+        `Unrealized: ${e.unrealized >= 0 ? "+" : ""}$${usd(e.unrealized)} · margin used ${marginUsedPct.toFixed(1)}%`,
+      );
+    } catch (err: any) {
+      const code = err?.response?.data?.code;
+      const msg = err?.response?.data?.msg ?? (err instanceof Error ? err.message : String(err));
+      lines.push(`❌ signed API${code ? ` code ${code}` : ""}: ${escapeMarkdown(String(msg))}`);
+    }
+  }
+
+  lines.push(``, `🏦 *MEXC / Fast Trend*`);
+  if (!MEXC_ENABLED) lines.push("Signed API: ⚪ tắt bởi `MEXC_ENABLED=false`");
+  else if (!mexc) lines.push("Signed API: ❌ thiếu `MEXC_API_KEY` / `MEXC_API_SECRET`");
+  else {
+    try {
+      const asset = await mexc.getEquity(); // proves key/IP/account-read independently of doc schema quirks
+      const [mode, positions] = await Promise.all([
+        mexc.getPositionMode().catch(() => 0),
+        mexc.getOpenPositions().catch(() => []),
+      ]);
+      const runtime = fastTrend?.runtimeSummary();
+      lines.push(
+        `MAINNET: ✅ key / IP OK · ${mode === 2 ? "One-way ✅" : mode === 1 ? "Hedge ❌" : "position mode chưa xác minh ⚠️"}`,
+        `Equity/available: $${usd(asset.equity)} / $${usd(asset.availableOpen)}`,
+        `Unrealized: ${asset.unrealized >= 0 ? "+" : ""}$${usd(asset.unrealized)} · exchange positions ${positions.length}`,
+        `Fast state: real ${runtime?.real ?? 0} · paper ${runtime?.paper ?? 0} · armed ${runtime?.armed ?? 0} · pending ${runtime?.pending ?? 0} · quarantine ${runtime?.quarantined ?? 0}`,
+        `State storage: ${runtime?.persistenceHealthy !== false ? "✅ OK" : `❌ ERROR — ${escapeMarkdown(runtime.persistenceError ?? "không rõ")}`}`,
+      );
+    } catch (err: any) {
+      const code = err?.response?.data?.code;
+      const msg = err?.response?.data?.message ?? err?.response?.data?.msg ?? (err instanceof Error ? err.message : String(err));
+      lines.push(`❌ signed API${code ? ` code ${code}` : ""}: ${escapeMarkdown(String(msg))}`);
+    }
+  }
+  return lines.join("\n");
+}
+
 // Cổng rate-limit TOÀN CỤC: 429/418 là giới hạn theo IP (mọi symbol chung 1 IP).
 // Khi dính, cho TẤT CẢ symbol cùng nghỉ tới mốc này — tránh thundering herd (4 symbol
 // cùng retry sẽ giữ IP bị giới hạn, thậm chí leo thang 429→418 ban IP).
@@ -804,6 +968,7 @@ function startPolling(st: SymbolState, initialDelayMs = 0): void {
     `[Poll] ✅ Theo dõi ${formatSymbol(st.symbol)} ${CONFIG.entryTf} (Futures REST, mỗi ${POLL_INTERVAL_MS / 1000}s)`
   );
   const tick = async (): Promise<void> => {
+    if (!SMC_ENABLED && !st.livePos) return; // drain xong: ngừng fetch SMC, interval chỉ còn no-op
     if (Date.now() < rateLimitedUntil) return; // đang trong cửa sổ nghỉ rate-limit chung
     if (st.ticking) return; // tick trước CHƯA xong (đặt lệnh/replay chậm) → bỏ nhịp, tránh DOUBLE-OPEN
     st.ticking = true;
@@ -848,9 +1013,34 @@ function startPolling(st: SymbolState, initialDelayMs = 0): void {
   }, initialDelayMs);
 }
 
+// ── Heartbeat: tự đẩy cờ trading THỰC TẾ của process đang chạy (khắc phục A4) ──
+// Sự cố 02/08/2026: .env.local tắt Fast/MEXC lúc 23:13 nhưng process cũ vẫn đặt 3 lệnh thật lúc
+// 03:01 hôm sau. /health hiển thị đúng nhưng phải có người gõ mới thấy — nên đẩy chủ động.
+const HEARTBEAT_MS = 24 * 60 * 60 * 1000;
+function startDailyHeartbeat(): void {
+  const send = async (): Promise<void> => {
+    try {
+      await sendTelegram(telegram, await buildHealthMessage());
+    } catch (err) {
+      console.error("[Heartbeat] lỗi gửi:", err instanceof Error ? err.message : String(err));
+    }
+  };
+  setInterval(() => void send(), HEARTBEAT_MS);
+  console.log(`[Heartbeat] ✅ Tự báo cờ trading mỗi ${HEARTBEAT_MS / 3_600_000}h`);
+}
+
 // ── Lệnh /status: liệt kê lệnh đang giữ / chờ trên từng symbol ──
 function buildStatusMessage(): string {
-  const lines = [`📊 *Trạng thái bot* — ${states.length} symbol`, ``];
+  const smcMode = SMC_ENABLED ? `${states.length} symbol` : states.some((s) => s.livePos) ? "TẮT · đang drain vị thế cũ" : "TẮT";
+  const fastRuntime = fastTrend?.runtimeSummary();
+  const lines = [
+    `📊 *Trạng thái bot*`,
+    `Routing: Turtle → Binance · Fast → MEXC`,
+    `Binance ${tradingReady ? "✅ READY" : "⚠️ OFF"} · MEXC ${mexcTradingReady ? "✅ READY" : "⚠️ OFF"}`,
+    `SMC: ${smcMode}`,
+    `Fast/MEXC: real ${fastRuntime?.real ?? 0} · paper ${fastRuntime?.paper ?? 0} · armed ${fastRuntime?.armed ?? 0} · pending ${fastRuntime?.pending ?? 0} · quarantine ${fastRuntime?.quarantined ?? 0} · storage ${fastRuntime?.persistenceHealthy !== false ? "✅" : "❌"}`,
+    ``,
+  ];
   let open = 0;
   for (const st of states) {
     const tag = formatSymbol(st.symbol);
@@ -878,10 +1068,10 @@ function buildStatusMessage(): string {
     }
   }
   const tLines = turtle?.statusLines() ?? [];
-  if (tLines.length) lines.push(`— 🐢 Turtle —`, ``, ...tLines);
+  if (tLines.length) lines.push(`— 🐢 Turtle / Binance —`, ``, ...tLines);
   const fLines = fastTrend?.statusLines() ?? [];
-  if (fLines.length) lines.push(`— ⚡ Fast-trend (giấy, forward-test) —`, ``, ...fLines, ``);
-  lines.push(`_Đang mở: ${open}/${states.length} SMC + ${tLines.length ? Math.ceil(tLines.length / 3) : 0} turtle + ${fLines.length} fast(giấy) · ${formatTimeVn(Date.now())}_`);
+  if (fLines.length) lines.push(`— ⚡ Fast Trend / MEXC —`, ``, ...fLines, ``);
+  lines.push(`_Đang mở: ${open} SMC-drain + ${tLines.length ? Math.ceil(tLines.length / 3) : 0} turtle + ${(fastRuntime?.real ?? 0) + (fastRuntime?.paper ?? 0)} fast · ${formatTimeVn(Date.now())}_`);
   return lines.join("\n");
 }
 
@@ -906,7 +1096,13 @@ function startCommandListener(): void {
       if (drained === false) continue; // bỏ qua backlog cũ ở lần đầu (chỉ để set offset)
       if (u.chatId !== telegram.chatId) continue; // chỉ trả lời chủ kênh
       const cmd = u.text.trim().toLowerCase().split(/[\s@]/)[0];
-      if (["/status", "/positions", "/start", "/help"].includes(cmd)) {
+      if (cmd === "/health") {
+        console.log(`[Cmd] ${cmd} từ ${u.chatId} (signed read-only)`);
+        await sendTelegram(telegram, await buildHealthMessage());
+      } else if (cmd === "/help") {
+        console.log(`[Cmd] ${cmd} từ ${u.chatId}`);
+        await sendTelegram(telegram, `🤖 *Lệnh bot*\n/status hoặc /positions — routing + vị thế Binance/MEXC\n/health — key/IP, readiness và số dư Futures của cả hai sàn`);
+      } else if (["/status", "/positions", "/start"].includes(cmd)) {
         console.log(`[Cmd] ${cmd} từ ${u.chatId}`);
         await sendTelegram(telegram, buildStatusMessage());
       }
@@ -916,24 +1112,33 @@ function startCommandListener(): void {
   };
 
   void tick();
-  console.log(`[Cmd] ✅ Lắng nghe lệnh Telegram (/status) mỗi ${COMMAND_POLL_MS / 1000}s`);
+  console.log(`[Cmd] ✅ Lắng nghe lệnh Telegram (/status, /health) mỗi ${COMMAND_POLL_MS / 1000}s`);
 }
 
 async function main(): Promise<void> {
   console.log("🤖 Swing Alert Bot khởi động...");
-  console.log(`📈 SMC: ${SYMBOLS.map(formatSymbol).join(", ")} | entry ${CONFIG.entryTf} | bias ${CONFIG.htfBiasTf}/${CONFIG.htfZoneTf}`);
-  if (TURTLE_ENABLED) console.log(`🐢 Turtle: ${TURTLE_SYMBOLS.map(formatSymbol).join(", ")} | 4h | risk ${(TURTLE_RISK_PCT * 100).toFixed(1)}%/unit${TURTLE_TRADING_ENABLED ? "" : " | KHÔNG trade (alert-only)"}`);
+  if (SMC_ENABLED) {
+    console.log(
+      `📈 SMC: ${SYMBOLS.map(formatSymbol).join(", ")} | entry ${CONFIG.entryTf} | bias ${CONFIG.htfBiasTf}/${CONFIG.htfZoneTf}` +
+        ` | vol ≥${CONFIG.ltfConfirmVolMult.toFixed(1)}x | delta ${CONFIG.deltaStrict ? "strict" : "soft"} ≥${CONFIG.deltaBuyMin.toFixed(2)}`,
+    );
+  } else {
+    console.log("📈 SMC: TẮT — không scan/ARM/entry mới; chỉ drain state vị thế cũ nếu có.");
+  }
+  if (TURTLE_ENABLED) console.log(`🐢 Turtle Hybrid: ${TURTLE_SYMBOLS.map(formatSymbol).join(", ")} | 4h | risk ${(TURTLE_RISK_PCT * 100).toFixed(1)}%/unit${TURTLE_TRADING_ENABLED ? "" : " | KHÔNG trade (alert-only)"}`);
+  if (FAST_TREND_ENABLED) console.log(`⚡ Fast Trend → MEXC: ${FAST_TREND_SYMBOLS.map(formatSymbol).join(", ")} | risk ${(FAST_TREND_RISK_PCT * 100).toFixed(2)}%/unit | ${fastTrendExecution ? "chờ preflight" : "ALERT-ONLY"}`);
   console.log(`📬 Telegram: ${telegram.enabled ? "Đã cấu hình ✅" : "Chưa cấu hình (log ra console)"}`);
   console.log(`   Luồng: ARM → MỞ LỆNH → RA LỆNH (logic thoát = backtest)`);
   console.log("");
 
   // Rehydrate state đã lưu (vị thế/cooldown/lastOpenTime) để không mất lệnh đang giữ khi restart.
   const saved = loadState();
-  const rehydrated = SYMBOLS.filter((s) => saved[s]?.livePos);
+  const rehydrated = Object.keys(saved).filter((s) => saved[s]?.livePos);
   if (rehydrated.length) {
     console.log(`[State] Khôi phục ${rehydrated.length} vị thế đang giữ: ${rehydrated.map(formatSymbol).join(", ")}`);
   }
-  states.push(...SYMBOLS.map((s) => createState(s, saved[s])));
+  const activeSmcSymbols = SMC_ENABLED ? SYMBOLS : rehydrated;
+  states.push(...activeSmcSymbols.map((s) => createState(s, saved[s])));
 
   for (const st of states) {
     await prefetchHistory(st);
@@ -945,13 +1150,14 @@ async function main(): Promise<void> {
     const testnet = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";
     try {
       // Preflight cả symbol turtle (nếu turtle trade thật) — set margin/đòn bẩy/filter một lần
-      const pfSymbols = [...new Set([...SYMBOLS, ...(turtle && turtleTrader ? TURTLE_SYMBOLS : []), ...(fastTrend && fastTrendTrader ? FAST_TREND_SYMBOLS : [])])];
+      const pfSymbols = [...new Set([...activeSmcSymbols, ...(turtle && turtleTrader ? TURTLE_SYMBOLS : [])])];
       const pf = await trader.preflight(pfSymbols);
       for (const w of pf.warnings) console.warn(`[Preflight] ⚠️ ${w}`);
       if (!pf.ok) {
         console.error(`[Preflight] ❌ ${pf.errors.join(" | ")} — chạy ALERT-ONLY.`);
         await sendTelegram(telegram, `❌ *Không bật được giao dịch*\n${pf.errors.map((e) => "• " + escapeMarkdown(e)).join("\n")}\nBot chạy ALERT-ONLY.`);
       } else {
+        binancePreflightPassed = true;
         tradingReady = true;
         await reconcileStartup(); // khớp state bot ↔ sàn TRƯỚC khi nhận nến mới
         console.log(`[Trade] ✅ THỰC THI BẬT (${testnet ? "TESTNET" : "MAINNET ⚠️"}) · equity $${pf.equity.toFixed(2)} · risk ${(execCfg.riskPct * 100).toFixed(1)}%×sizeMult · trần ${(execCfg.maxPortfolioRiskPct * 100).toFixed(0)}% · ${execCfg.marginType} ${execCfg.leverage}x`);
@@ -973,14 +1179,47 @@ async function main(): Promise<void> {
     console.log(`[Trade] Alert-only (TRADING_ENABLED=${TRADING_ENABLED}${TRADING_ENABLED && !binance ? ", thiếu API key" : ""}).`);
   }
 
-  // Khởi động lớp TURTLE sau khi lớp thực thi & đối soát SMC đã xong (turtle tự đối soát riêng).
+  // MEXC là venue độc lập chỉ dành cho Fast Trend. Không phụ thuộc TRADING_ENABLED/Binance.
+  if (fastTrendExecution && mexc) {
+    try {
+      const pf = await fastTrendExecution.preflight(FAST_TREND_SYMBOLS);
+      for (const warning of pf.warnings) console.warn(`[MEXC Preflight] ⚠️ ${warning}`);
+      if (!pf.ok) {
+        console.error(`[MEXC Preflight] ❌ ${pf.errors.join(" | ")} — Fast chạy ALERT-ONLY.`);
+        await sendTelegram(
+          telegram,
+          `❌ *Không bật được Fast/MEXC*\n${pf.errors.map((e) => "• " + escapeMarkdown(e)).join("\n")}\nFast chạy ALERT-ONLY; Turtle/Binance không bị ảnh hưởng.`,
+        );
+      } else {
+        mexcTradingReady = true;
+        console.log(`[MEXC] ✅ FAST EXECUTION BẬT · equity $${pf.equity.toFixed(2)} · risk ${(FAST_TREND_RISK_PCT * 100).toFixed(2)}%/unit · trần ${(MEXC_MAX_PORTFOLIO_RISK_PCT * 100).toFixed(1)}% · ${MEXC_MARGIN_TYPE} ${MEXC_LEVERAGE}x`);
+        await sendTelegram(
+          telegram,
+          `⚡💰 *Fast Trend → MEXC: BẬT*\nEquity $${pf.equity.toFixed(2)} · risk ${(FAST_TREND_RISK_PCT * 100).toFixed(2)}%/unit · trần ${(MEXC_MAX_PORTFOLIO_RISK_PCT * 100).toFixed(1)}%\n${MEXC_MARGIN_TYPE} ${MEXC_LEVERAGE}x · basis gate ${(MEXC_MAX_BASIS_PCT * 100).toFixed(2)}%`,
+        );
+        setInterval(() => void fastTrendExecution.syncTime().catch(() => {}), 30 * 60 * 1000);
+      }
+    } catch (err) {
+      mexcTradingReady = false;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[MEXC] ❌ preflight thất bại — Fast ALERT-ONLY:", msg);
+      await sendTelegram(telegram, `❌ *Lỗi kết nối MEXC* — ${escapeMarkdown(msg)}\nFast chạy ALERT-ONLY; Turtle/Binance vẫn độc lập.`);
+    }
+  } else if (MEXC_ENABLED && MEXC_TRADING_ENABLED) {
+    console.error("[MEXC] ❌ Đã bật trading nhưng thiếu MEXC_API_KEY/MEXC_API_SECRET hoặc Fast trading bị tắt.");
+  } else {
+    console.log(`[MEXC] Fast alert-only (MEXC_ENABLED=${MEXC_ENABLED}, MEXC_TRADING_ENABLED=${MEXC_TRADING_ENABLED}).`);
+  }
+  if (mexc) startMexcHealthMonitor();
+
+  // Khởi động lớp TURTLE sau khi lớp thực thi & drain SMC cũ (nếu có) đã đối soát.
   if (turtle) {
     try {
-      await turtle.start(SYMBOLS);
+      await turtle.start(activeSmcSymbols);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[Turtle] ❌ khởi động thất bại — turtle tắt phiên này:", msg);
-      await sendTelegram(telegram, `🐢❌ *Turtle không khởi động được* — ${escapeMarkdown(msg)}\nLớp SMC vẫn chạy bình thường.`);
+      await sendTelegram(telegram, `🐢❌ *Turtle không khởi động được* — ${escapeMarkdown(msg)}\nSMC đang tắt; kiểm tra bot ngay.`);
     }
   } else {
     console.log("[Turtle] Tắt (TURTLE_ENABLED=false).");
@@ -1008,12 +1247,16 @@ async function main(): Promise<void> {
   });
 
   // Gửi startup message SAU khi đã replay chart — trạng thái vị thế đã chính xác
-  await sendTelegram(telegram, buildStartupMessage(SYMBOLS) + "\n\n" + buildStatusMessage());
+  const startup = SMC_ENABLED
+    ? buildStartupMessage(SYMBOLS)
+    : `🤖 *Swing Bot* đã chạy\n\n📈 SMC: *TẮT* — không mở lệnh mới\n🐢 Turtle/Binance: ${TURTLE_ENABLED ? "BẬT" : "TẮT"}\n⚡ Fast/MEXC: ${mexcTradingReady ? "LIVE" : FAST_TREND_ENABLED ? "alert-only" : "TẮT"}`;
+  await sendTelegram(telegram, startup + "\n\n" + buildStatusMessage());
   for (const st of openedWhileOffline) {
     await sendTelegram(telegram, buildOfflineEntryMessage(st.livePos!, st.symbol));
   }
   startCommandListener();
-  startHealthMonitor();
+  startDailyHeartbeat();
+  if (SMC_ENABLED) startHealthMonitor();
   for (let i = 0; i < states.length; i++) {
     startPolling(states[i], i * 3_000); // stagger 3s/symbol tránh 429
   }

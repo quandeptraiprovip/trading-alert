@@ -26,6 +26,8 @@ import {
   buildHtfContext,
   SetupTracker,
   htfClosedCount,
+  confirmVolumeRatio,
+  windowBuyRatio,
 } from "./strategy";
 
 const FUNDING_INTERVAL_MS = 8 * 60 * 60 * 1000;
@@ -112,6 +114,10 @@ export interface Trade {
   mitigations: number;
   displAtr: number;
   sizeMult: number; // (#2) bội số risk theo chất lượng setup
+  confirmVolRatio: number; // volume thực / baseline tại CONFIRM (có thể là cửa sổ nhiều nến)
+  confirmBuyRatio: number | null; // taker-buy ratio có trọng số volume tại CONFIRM
+  confirmBodyRatio: number; // |close-open| / (high-low)
+  confirmCloseLocation: number; // (close-low) / (high-low)
 }
 
 function fmtTime(ms: number): string {
@@ -161,6 +167,10 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
     mitigations: number;
     displAtr: number;
     sizeMult: number;
+    confirmVolRatio: number;
+    confirmBuyRatio: number | null;
+    confirmBodyRatio: number;
+    confirmCloseLocation: number;
   } | null = null;
   let cooldownUntil = -1;
 
@@ -231,6 +241,10 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
           mitigations: pos.mitigations,
           displAtr: pos.displAtr,
           sizeMult: pos.sizeMult,
+          confirmVolRatio: pos.confirmVolRatio,
+          confirmBuyRatio: pos.confirmBuyRatio,
+          confirmBodyRatio: pos.confirmBodyRatio,
+          confirmCloseLocation: pos.confirmCloseLocation,
         });
         cooldownUntil = i + CONFIG.cooldownBars;
         pos = null;
@@ -290,6 +304,7 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
 
     const signal = tracker.update(ltf, i, cachedCtx!);
     if (signal) {
+      const range = c.high - c.low;
       pos = {
         dir: signal.direction,
         entryIndex: i,
@@ -302,6 +317,10 @@ export function runBacktest(symbol: string, ltf: Candle[]): Trade[] {
         mitigations: signal.zone.mitigations,
         displAtr: signal.zone.displAtr,
         sizeMult: signal.sizeMult,
+        confirmVolRatio: confirmVolumeRatio(ltf, i),
+        confirmBuyRatio: windowBuyRatio(ltf, i, CONFIG.deltaWindowBars),
+        confirmBodyRatio: range > 0 ? Math.abs(c.close - c.open) / range : 0,
+        confirmCloseLocation: range > 0 ? (c.close - c.low) / range : 0.5,
       };
     }
   }

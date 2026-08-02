@@ -92,7 +92,11 @@ async function main() {
 
   const runM = (symbols: string[], p: TurtleParams) => metrics(runBasket(data, symbols, p), t0, t1);
   // Baseline GHIM = cấu hình TRƯỚC cải tiến 2026-07-04 (pyramid + BTC gate TẮT) — không trôi theo T mặc định
-  const BASE_P: TurtleParams = { ...T, entryBufferAtr: 0, trendLen2: 0, confirmVolMult: 0, pyramidStepAtr: 0, pyramidMaxUnits: 1, btcGateSlow: 0, gate: undefined };
+  const BASE_P: TurtleParams = {
+    ...T, shortEntryDays: 0, shortEntrySource: "low", shortExitMode: "chandelier",
+    entryBufferAtr: 0, trendLen2: 0, confirmVolMult: 0,
+    pyramidStepAtr: 0, pyramidMaxUnits: 1, btcGateSlow: 0, gate: undefined,
+  };
   const base = runM(BASE8, BASE_P);
 
   console.log(HDR);
