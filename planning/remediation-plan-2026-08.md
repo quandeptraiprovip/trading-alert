@@ -88,9 +88,25 @@ Muốn đạt +1.279,9R thì phóng to Turtle tốn maxDD 77,1R, còn thêm slee
 trội hoàn toàn**: cùng NET, DD cao hơn 23%, lại còn cõng thêm venue thứ hai, phí taker cao hơn
 (0,08% vs 0,05%) và toàn bộ bề mặt vận hành đã sinh ra sự cố 02/08.
 
-**Kết luận:** không dùng A1. Việc đúng là **giữ Fast ở shadow** (`FAST_TREND_TRADING_ENABLED=false`,
-đã là mặc định) và nếu muốn thêm exposure thì tăng size Turtle trên sàn rẻ hơn — đó là quyết định
-sizing, thuộc [[live-trading]], không phải thay đổi rule.
+**Kết luận kỹ thuật:** không dùng A1. Ba khả năng đã đo:
+
+| Cấu hình | NET R | maxDD | NET/DD | Fast đóng góp |
+|---|---:|---:|---:|---:|
+| Hai sàn, gỡ A1 | +1.279,9R | 94,6R | 13,53 | +240,3R |
+| Hai sàn, giữ A1 | +996,6R | 68,7R | 14,51 | **−42,9R** |
+| Chỉ Turtle, risk 0,5→0,6 | +1.279,9R | 77,1R | **16,60** | — |
+
+**QUYẾT ĐỊNH CỦA USER 2026-08-02: chạy hai sàn, gỡ A1.** Đã được trình bày rằng phương án "chỉ Turtle
++ tăng size" trội hơn ở mọi trục (cùng NET, DD thấp hơn 18%, một venue, phí rẻ hơn) và rằng hai
+sleeve không đa dạng hoá (trùng 96,1%, tương quan PnL tuần 0,99–1,00). User chọn hai sàn.
+
+Kèm theo quyết định:
+- A1 đã gỡ khỏi code — giữ A1 khi Fast live là ô tệ nhất trong bảng.
+- Fast chạy canary bằng **risk**, không bằng unit: `FAST_TREND_RISK_PCT=0.25` (không có env giới hạn
+  `pyramidMaxUnits`). Nâng lên 0,5% chỉ sau forward gate ≥14 ngày và ≥20 setup đã đóng.
+- Forward gate của audit **chưa đạt** khi bật (Fast mới có 10 vị thế thật, thua cả 10). Đây là rủi ro
+  đã biết và được chấp nhận có ý thức, không phải sơ suất.
+- Kỳ vọng phải neo vào Era C (+116R/353 ngày), không phải NET toàn kỳ.
 
 ### A2. Ngân sách rủi ro tính bằng USD trên tổng equity hai sàn
 

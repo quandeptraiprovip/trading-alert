@@ -138,12 +138,6 @@ export class TurtleLive {
     return !!this.states.get(symbol.toLowerCase())?.pos?.real;
   }
 
-  /** Hướng của vị thế THẬT đang giữ; null nếu flat hoặc chỉ là vị thế giấy. */
-  realPositionDir(symbol: string): "long" | "short" | null {
-    const pos = this.states.get(symbol.toLowerCase())?.pos;
-    return pos?.real ? pos.dir : null;
-  }
-
   /** Tổng risk frac HIỆU DỤNG các unit THẬT đang mở (paper không chiếm trần). */
   openRiskFrac(): number {
     let n = 0;

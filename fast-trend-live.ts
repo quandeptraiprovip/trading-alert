@@ -129,12 +129,6 @@ export interface FastTrendOpts {
   leverage: number; // để guard SL rộng hơn vùng thanh lý
   /** Tổng risk frac lớp khác cùng venue/account (hiện tại luôn 0 vì MEXC dành riêng cho Fast). */
   otherOpenRiskFrac: () => number;
-  /**
-   * Lớp trên Binance (SMC/Turtle) có đang giữ lệnh THẬT cùng underlying + cùng hướng không.
-   * Hai venue không xung đột cơ học (SL closePosition không đóng nhầm nhau), nhưng rủi ro KINH TẾ
-   * thì cộng dồn: cùng coin, cùng hướng, cùng lúc = một cược đặt hai lần.
-   */
-  binanceHoldsSameDir: (symbol: string, dir: "long" | "short") => boolean;
   /** MEXC đã preflight OK chưa. Chỉ chặn entry/add; quản lý vị thế vẫn luôn thử. */
   isTradingReady: () => boolean;
 }
@@ -325,13 +319,6 @@ export class FastTrendLive {
     }
     if (this.o.execution && !this.persistenceHealthy) {
       console.warn(`[Fast] ${formatSymbol(st.symbol)} bỏ entry — state storage chưa sẵn sàng`);
-      return;
-    }
-
-    // Khử trùng lặp XUYÊN SÀN — chỉ áp khi Fast sẽ đặt lệnh THẬT; alert/paper vẫn báo bình thường.
-    if (this.tradingLive() && this.o.binanceHoldsSameDir(st.symbol, dir)) {
-      console.log(`[Fast] ${formatSymbol(st.symbol)} bỏ entry ${dir.toUpperCase()} — Binance đang giữ cùng hướng`);
-      await this.tg(`⚡⏭️ *Fast bỏ entry* ${formatSymbol(st.symbol)} ${dir.toUpperCase()} — lớp Binance đang giữ cùng underlying + hướng (tránh đặt hai lần cùng một cược).`);
       return;
     }
 

@@ -139,18 +139,9 @@ function otherHoldsSymbolExcept(sym: string, exclude: "turtle" | "fast"): boolea
   return false;
 }
 
-/**
- * Trùng lặp XUYÊN SÀN (khắc phục A1, audit 2026-08): Fast/MEXC không đặt lại cùng underlying +
- * cùng hướng mà lớp Binance đang giữ. Không có xung đột cơ học giữa 2 venue nên guard cũ bỏ qua,
- * nhưng rủi ro kinh tế vẫn cộng dồn — thực tế 23/07–02/08 đã short DOT/SOL/AVAX trên cả hai sàn.
- * Bỏ rất ít cơ hội: 96,1% vị thế Fast trùng symbol+hướng với Turtle trong 180 ngày, và phần KHÔNG
- * trùng đo được NET -37,2R/1.050 ngày.
- */
-function binanceHoldsSameDir(sym: string, dir: "long" | "short"): boolean {
-  const s = sym.toLowerCase();
-  if (isTrading() && states.some((x) => x.symbol === s && x.livePos?.dir === dir)) return true;
-  return turtle?.realPositionDir(s) === dir;
-}
+// KHÔNG khử trùng lặp xuyên sàn: đã đo (scripts/dedup-crossvenue-impact.ts) — chặn Fast khi Turtle
+// giữ cùng symbol+hướng sẽ loại 89% vị thế Fast (phần mang +283,3R) và chỉ giữ nhánh −42,9R.
+// Chấp nhận Fast và Turtle cùng cược: NET gộp +1.279,9R / maxDD 94,6R trên 1.050 ngày.
 
 // ── Lớp chiến lược TURTLE (turtle.ts) chạy song song — xem turtle-live.ts ──
 // Loại trừ theo symbol với SMC khi giao dịch thật (SL closePosition đóng cả symbol).
@@ -226,7 +217,6 @@ const fastTrend: FastTrendLive | null = FAST_TREND_ENABLED
       maxPortfolioRiskPct: MEXC_MAX_PORTFOLIO_RISK_PCT,
       leverage: MEXC_LEVERAGE,
       otherOpenRiskFrac: () => 0,
-      binanceHoldsSameDir,
       isTradingReady: () => mexcTradingReady,
     })
   : null;
