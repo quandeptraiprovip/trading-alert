@@ -34,11 +34,13 @@ const DC_ENTRY = Math.max(2, Math.round(T.entryDays * BARS_PER_DAY)); // 90 nế
 const DC_SHORT_ENTRY = T.shortEntryDays > 0
   ? Math.max(2, Math.round(T.shortEntryDays * BARS_PER_DAY))
   : DC_ENTRY;
+/** Kênh THOÁT của LONG (midpoint ratchet) — tách khỏi kênh vào, xem `T.longExitDays`. */
+const DC_LONG_EXIT = T.longExitDays > 0 ? Math.max(2, Math.round(T.longExitDays * BARS_PER_DAY)) : DC_ENTRY;
 const MAX_HOLD_BARS = Math.round(T.maxHoldDays * BARS_PER_DAY); // 360 nến
 // Fetch đủ: warmup gate SMA100d (600) + replay tối đa ~80 ngày (> maxHold 60d) → phát hiện được
 // mọi vị thế đang mở kể cả cold-start.
 const FETCH_BARS = 1100;
-const WARMUP_BARS = Math.max(DC_ENTRY, DC_SHORT_ENTRY, T.trendLen, T.atrPeriod, T.btcGateSlow) + 1;
+const WARMUP_BARS = Math.max(DC_ENTRY, DC_SHORT_ENTRY, DC_LONG_EXIT, T.trendLen, T.atrPeriod, T.btcGateSlow) + 1;
 const SETTLE_MS = 90_000; // đợi nến 4h chốt hẳn trên sàn rồi mới xử lý
 const CHECK_MS = 60_000; // nhịp kiểm tra mốc 4h
 const RECONCILE_MS = 10 * 60_000; // lưới an toàn: đối soát vị thế thật với sàn
@@ -54,6 +56,8 @@ type TurtleUnit = {
   // minNotional (vd BTC min 100 USDT với equity nhỏ). Tổng riskFrac 1 vị thế luôn bị chặn
   // bởi ngân sách maxUnits×riskPct → "giữ nguyên risk" ở cấp vị thế.
   riskFrac?: number;
+  // Tỉ trọng risk theo chính sách heat cấp danh mục (xem heatWeight); undefined = 1 (state cũ).
+  weight?: number;
 };
 
 type TurtleExitReason = "trail" | "mid" | "time" | "reconcile";
@@ -153,6 +157,27 @@ export class TurtleLive {
     return T.pyramidMaxUnits * this.o.riskPct;
   }
 
+  /**
+   * Tỉ trọng risk cho unit SẮP mở, theo mức "đông đúc" cùng hướng của cả sổ turtle:
+   *   w = 1 / (1 + heat / T.heatDecayK),  heat = tổng tỉ trọng các unit đang mở cùng hướng.
+   *
+   * Vì sao: rổ 8 large-cap crypto có tương quan ~0,85 — 24 unit cùng hướng KHÔNG phải 24 cược độc
+   * lập. Không có chính sách này, risk danh mục dao động 0→24 đơn vị và chính sự dao động đó (chứ
+   * không phải chất lượng lệnh) làm hỏng tỉ số lợi nhuận/rủi ro. Unit vào lúc sổ đông KHÔNG kém hơn
+   * (Spearman(heat, netR) = −0,025) nên ta chỉ NHỎ SIZE, KHÔNG BAO GIỜ bỏ lệnh.
+   *
+   * Đếm cả vị thế "giấy" để live khớp đúng backtest đã audit (backtest không phân biệt giấy/thật).
+   */
+  private heatWeight(dir: "long" | "short"): number {
+    if (!(T.heatDecayK > 0)) return 1;
+    let heat = 0;
+    for (const st of this.states.values()) {
+      if (st.pos?.dir !== dir) continue;
+      for (const u of st.pos.units) heat += u.weight ?? 1;
+    }
+    return 1 / (1 + heat / T.heatDecayK);
+  }
+
   /** Tổng risk frac hiệu dụng các unit thật của một vị thế. */
   private positionRiskFrac(pos: TurtlePos): number {
     let n = 0;
@@ -195,7 +220,8 @@ export class TurtleLive {
     await this.o.trader.syncStops(symbol, this.posInfo(pos), { noTp: true });
   }
 
-  private posInfo(pos: TurtlePos): PosInfo {
+  /** `sizeMult` = tỉ trọng risk của unit sắp mở (LiveTrader nhân riskPct với nó). */
+  private posInfo(pos: TurtlePos, sizeMult = 1): PosInfo {
     // target không dùng (noTp) — đặt mốc không với tới cho an toàn nếu code khác đọc nhầm
     const u0 = pos.units[0];
     return {
@@ -203,7 +229,7 @@ export class TurtleLive {
       initialSL: u0.initialSL,
       sl: pos.sl,
       target: pos.dir === "long" ? u0.entry * 100 : u0.entry * 0.01,
-      sizeMult: 1,
+      sizeMult,
     };
   }
 
@@ -224,7 +250,8 @@ export class TurtleLive {
     if (dir === "long" && !(initialSL > 0 && initialSL < entry)) return;
     if (dir === "short" && !(initialSL > entry)) return;
 
-    const unit: TurtleUnit = { entry, initialSL, entryTime: bar.openTime };
+    // Tỉ trọng risk theo mức đông đúc cùng hướng — tính TRƯỚC khi gắn vị thế vào state.
+    const unit: TurtleUnit = { entry, initialSL, entryTime: bar.openTime, weight: this.heatWeight(dir) };
     const pos: TurtlePos = {
       dir,
       units: [unit],
@@ -262,7 +289,7 @@ export class TurtleLive {
       try {
         // minQtyFloor: nâng qty lên sàn minNotional (BTC min 100 USDT) thay vì bỏ lệnh;
         // maxRiskFrac = ngân sách CẢ vị thế → risk hiệu dụng unit đầu không bao giờ vượt nó.
-        res = await this.o.trader!.open(st.symbol, entry, this.posInfo(pos), this.totalOpenRiskFrac(), {
+        res = await this.o.trader!.open(st.symbol, entry, this.posInfo(pos, unit.weight ?? 1), this.totalOpenRiskFrac(), {
           noTp: true,
           minQtyFloor: true,
           maxRiskFrac: this.positionRiskBudget(),
@@ -288,13 +315,13 @@ export class TurtleLive {
     this.journal({
       event: "entry", real: pos.real, symbol: st.symbol, dir, time: bar.openTime, timeVn: formatTimeVn(bar.openTime),
       entry, initialSL, initialStopSource: initialStop.source, initialStopAtr: +initialStop.distanceAtr.toFixed(3),
-      midTrail: pos.midTrail, unit: 1, qty: unit.qty, riskUsd: unit.riskUsd,
+      midTrail: pos.midTrail, unit: 1, qty: unit.qty, riskUsd: unit.riskUsd, weight: unit.weight,
     });
     console.log(`[Turtle] ENTRY ${formatSymbol(st.symbol)} ${dir.toUpperCase()} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : " (giấy)"}`);
     let msg = `🐢${dir === "long" ? "🟢" : "🔴"} *TURTLE ${dir.toUpperCase()}* ${formatSymbol(st.symbol)} @ $${fmtPrice(entry)}\n` +
       (dir === "long" && T.longExitMode === "mid"
-        ? `Hybrid close-breakout ${T.entryDays}d · hard SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · mid-close $${fmtPrice(pos.midTrail!)} · unit 1/${T.pyramidMaxUnits}`
-        : `Breakout ${dir === "short" ? (T.shortEntryDays || T.entryDays) : T.entryDays}d · SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · unit 1/${T.pyramidMaxUnits}`);
+        ? `Hybrid close-breakout ${T.entryDays}d · hard SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · mid-close ${T.longExitDays || T.entryDays}d $${fmtPrice(pos.midTrail!)} · unit 1/${T.pyramidMaxUnits} · size ×${(unit.weight ?? 1).toFixed(2)}`
+        : `Breakout ${dir === "short" ? (T.shortEntryDays || T.entryDays) : T.entryDays}d · SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · unit 1/${T.pyramidMaxUnits} · size ×${(unit.weight ?? 1).toFixed(2)}`);
     if (unit.qty != null) msg += `\n💵 Lệnh thật: ${unit.qty} @ $${fmtPrice(unit.realEntry ?? entry)}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}`;
     else msg += `\n📋 Alert-only (không đặt lệnh)`;
     await this.tg(msg);
@@ -307,7 +334,7 @@ export class TurtleLive {
     const initialSL = initialStop.price;
     if (pos.dir === "long" && !(initialSL > 0)) return;
 
-    const unit: TurtleUnit = { entry, initialSL, entryTime: bar.openTime };
+    const unit: TurtleUnit = { entry, initialSL, entryTime: bar.openTime, weight: this.heatWeight(pos.dir) };
     const nextSharedSl = pos.dir === "long" && T.longExitMode === "mid"
       ? Math.max(pos.sl, initialSL)
       : pos.dir === "short" && T.shortExitMode === "mid"
@@ -337,7 +364,7 @@ export class TurtleLive {
         const dist = Math.abs(entry - slPrice);
         if (dist <= 0) return;
         const f = api.getFilters(st.symbol);
-        let qty = api.roundQty(st.symbol, (equity * this.o.riskPct) / dist);
+        let qty = api.roundQty(st.symbol, (equity * this.o.riskPct * (unit.weight ?? 1)) / dist);
         // Sàn minNotional/minQty (BTC min 100 USDT): nâng qty thay vì bỏ add
         const needQty = Math.max(f.minQty, (f.minNotional * 1.01) / entry);
         if (qty < needQty) qty = parseFloat((Math.ceil(needQty / f.stepSize) * f.stepSize).toFixed(f.qtyPrecision));
@@ -378,12 +405,12 @@ export class TurtleLive {
     this.journal({
       event: "add", real: unit.qty != null, symbol: st.symbol, dir: pos.dir, time: bar.openTime, timeVn: formatTimeVn(bar.openTime),
       entry, initialSL, initialStopSource: initialStop.source, initialStopAtr: +initialStop.distanceAtr.toFixed(3),
-      unit: pos.units.length, qty: unit.qty, riskUsd: unit.riskUsd,
+      unit: pos.units.length, qty: unit.qty, riskUsd: unit.riskUsd, weight: unit.weight,
     });
     console.log(`[Turtle] ADD ${formatSymbol(st.symbol)} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : ""}`);
     await this.tg(
       `🐢➕ *TURTLE ADD* ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}\n` +
-        `Initial SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`
+        `Initial SL $${fmtPrice(initialSL)} (${initialStop.source === "ob" ? "OB 4h" : `fallback ${T.chandelierMult}×ATR`}) · SL chung $${fmtPrice(pos.sl)} · size ×${(unit.weight ?? 1).toFixed(2)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`
     );
   }
 
@@ -454,7 +481,9 @@ export class TurtleLive {
     const bar = candles[i];
     const longChannel = priorDonchian(candles, i, DC_ENTRY);
     const shortChannel = DC_SHORT_ENTRY === DC_ENTRY ? longChannel : priorDonchian(candles, i, DC_SHORT_ENTRY);
-    const longMidClose = (longChannel.closeHigh + longChannel.closeLow) / 2;
+    // midpoint LONG lấy trên kênh THOÁT (rộng hơn kênh vào → winner chạy lâu hơn)
+    const longExitCh = DC_LONG_EXIT === DC_ENTRY ? longChannel : priorDonchian(candles, i, DC_LONG_EXIT);
+    const longMidClose = (longExitCh.closeHigh + longExitCh.closeLow) / 2;
     const shortMidClose = (shortChannel.closeHigh + shortChannel.closeLow) / 2;
     const pos = st.pos;
 
@@ -546,15 +575,38 @@ export class TurtleLive {
     }
   }
 
-  /** Xử lý mọi nến ĐÃ ĐÓNG mới hơn lastBarTime của symbol (replay tuần tự — như bot SMC). */
-  private async processSymbol(st: TurtleSymbolState, candles: Candle[], gate: (t: number, d: "long" | "short") => boolean, silent: boolean): Promise<void> {
-    const closes = candles.map((c) => c.close);
-    const emaArr = ema(closes, T.trendLen);
-    const atr = atrSeries(candles, T.atrPeriod);
-    for (let i = WARMUP_BARS; i < candles.length; i++) {
-      if (candles[i].openTime <= st.lastBarTime) continue;
-      await this.step(st, candles, i, emaArr, atr, gate, silent);
-      st.lastBarTime = candles[i].openTime;
+  /**
+   * Replay mọi nến ĐÃ ĐÓNG còn thiếu, THEO THỜI GIAN (mọi symbol tiến cùng nhịp), không phải
+   * chạy hết symbol này rồi tới symbol kia.
+   *
+   * Vì sao quan trọng: chính sách heat (`heatWeight`) phụ thuộc trạng thái CẢ RỔ tại thời điểm vào
+   * lệnh. Replay nối tiếp từng symbol sẽ tính heat theo một trật tự không có thật (toàn bộ lịch sử
+   * của BTC trước khi ETH bắt đầu) → tỉ trọng risk lệch khỏi engine đã audit. Ở nhịp bình thường
+   * (mỗi chu kỳ đúng 1 nến mới) hai cách là như nhau; khác biệt chỉ xuất hiện khi cold-start hoặc
+   * bot offline nhiều nến — đúng lúc dễ sai nhất.
+   */
+  private async replay(
+    feeds: { st: TurtleSymbolState; candles: Candle[]; cold: boolean }[],
+    gate: (t: number, d: "long" | "short") => boolean,
+  ): Promise<void> {
+    const prep = feeds.map((f) => ({
+      ...f,
+      emaArr: ema(f.candles.map((c) => c.close), T.trendLen),
+      atr: atrSeries(f.candles, T.atrPeriod),
+      idxOf: new Map(f.candles.map((c, i) => [c.openTime, i])),
+    }));
+    const times = [...new Set(prep.flatMap((f) => f.candles.slice(WARMUP_BARS).map((c) => c.openTime)))].sort((a, b) => a - b);
+    for (const t of times) {
+      for (const f of prep) {
+        const i = f.idxOf.get(t);
+        if (i === undefined || i < WARMUP_BARS || t <= f.st.lastBarTime) continue;
+        try {
+          await this.step(f.st, f.candles, i, f.emaArr, f.atr, gate, f.cold);
+        } catch (err) {
+          console.error(`[Turtle] ${formatSymbol(f.st.symbol)} lỗi nến ${new Date(t).toISOString()}:`, err instanceof Error ? err.message : err);
+        }
+        f.st.lastBarTime = t;
+      }
     }
     this.persist();
   }
@@ -681,16 +733,18 @@ export class TurtleLive {
         return;
       }
       const gate = buildBtcGateLongs(btc, T.btcGateFast, T.btcGateSlow);
+      const feeds: { st: TurtleSymbolState; candles: Candle[]; cold: boolean }[] = [];
       for (const st of this.states.values()) {
         try {
           const candles = st.symbol === "btcusdt" ? btc : await this.fetchClosed(st.symbol);
           if (candles.length < WARMUP_BARS + 2) continue;
-          const isCold = silentColdStart && st.lastBarTime === 0;
-          await this.processSymbol(st, candles, gate, isCold);
+          // `cold` chốt TRƯỚC khi replay (lastBarTime sẽ đổi trong lúc chạy).
+          feeds.push({ st, candles, cold: silentColdStart && st.lastBarTime === 0 });
         } catch (err) {
-          console.error(`[Turtle] ${formatSymbol(st.symbol)} lỗi chu kỳ:`, err instanceof Error ? err.message : err);
+          console.error(`[Turtle] ${formatSymbol(st.symbol)} lỗi tải nến:`, err instanceof Error ? err.message : err);
         }
       }
+      await this.replay(feeds, gate);
     } finally {
       this.cycling = false;
     }
@@ -704,7 +758,7 @@ export class TurtleLive {
       console.log(`[Turtle] Khôi phục ${held.length} vị thế: ${held.map((s) => formatSymbol(s.symbol)).join(", ")}`);
     }
 
-    console.log(`[Turtle] 🐢 Khởi động Hybrid — ${this.o.symbols.length} symbol @ ${TF} | initial SL OB${T.initialStopObLookback} +${T.initialStopObPadAtr}ATR trong ${T.initialStopObMinAtr}-${T.initialStopObMaxAtr}ATR, fallback ${T.chandelierMult}ATR | long close/mid ${T.entryDays}d | short close ${T.shortEntryDays || T.entryDays}d/Chandelier | pyramid ${T.pyramidStepAtr}×ATR max${T.pyramidMaxUnits} | BTC gate ${T.btcGateFast / BARS_PER_DAY}d/${T.btcGateSlow / BARS_PER_DAY}d | ${this.o.trader ? `risk ${(this.o.riskPct * 100).toFixed(1)}%/unit` : "ALERT-ONLY"}`);
+    console.log(`[Turtle] 🐢 Khởi động Hybrid — ${this.o.symbols.length} symbol @ ${TF} | initial SL OB${T.initialStopObLookback} +${T.initialStopObPadAtr}ATR trong ${T.initialStopObMinAtr}-${T.initialStopObMaxAtr}ATR, fallback ${T.chandelierMult}ATR | long close ${T.entryDays}d / mid-exit ${T.longExitDays || T.entryDays}d | short close ${T.shortEntryDays || T.entryDays}d/Chandelier | pyramid ${T.pyramidStepAtr}×ATR max${T.pyramidMaxUnits} | heat-decay k=${T.heatDecayK || "TẮT"} | BTC gate ${T.btcGateFast / BARS_PER_DAY}d/${T.btcGateSlow / BARS_PER_DAY}d | ${this.o.trader ? `risk ${(this.o.riskPct * 100).toFixed(1)}%/unit` : "ALERT-ONLY"}`);
     // Thứ tự an toàn: (1) chốt sổ vị thế thật đã bị đóng trong lúc offline → (2) replay nến lỡ
     // trên state đã đúng → (3) đối soát cold-start/orphan với sàn.
     await this.reconcileHeld();

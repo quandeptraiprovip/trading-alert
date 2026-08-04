@@ -56,6 +56,13 @@ const RECONCILE_MS = 10 * 60_000; // lưới an toàn: đối soát vị thế t
 
 export const FAST_SHORT_ENTRY_DAYS = 30;
 export const FAST_SHORT_CONFIRM_BARS = 1;
+/**
+ * Trần unit RIÊNG của Fast — GHIM 4, không dùng `FAST_MAX_UNITS`.
+ * Turtle hạ 4→3 ngày 2026-08-04 dựa trên audit CỦA TURTLE (planning/portfolio-risk-and-exit-2026-08.md);
+ * audit của Fast (planning/trend-method-remediation-research-2026-08.md) là một bảng khác
+ * (NET +85/+162/+211/+244R theo 1/2/3/4 unit). Không để thay đổi của sleeve này trôi sang sleeve kia.
+ */
+const FAST_MAX_UNITS = 4;
 const FAST_SHORT_ENTRY_BARS = Math.max(2, Math.round(FAST_SHORT_ENTRY_DAYS * BARS_PER_DAY));
 
 export type FastShortEntrySetup = {
@@ -215,7 +222,7 @@ export class FastTrendLive {
       const heldD = ((Date.now() - p.units[0].entryTime) / TF_MS["1d"]).toFixed(1);
       const venue = p.real ? this.o.execution?.venueLabel ?? "LIVE" : "giấy";
       const state = st.quarantined ? ` · ⚠️ ${escapeMarkdown(st.quarantined)}` : st.pending ? ` · pending ${st.pending.kind}` : "";
-      lines.push(`${icon} *${formatSymbol(st.symbol)}* (fast-${this.o.entryDays}d, ${venue}) — ${p.units.length}/${T.pyramidMaxUnits} unit · Entry₁ $${fmtPrice(p.units[0].entry)} · SL tín hiệu $${fmtPrice(p.sl)}${p.confirmedVenueSl ? ` · SL MEXC $${fmtPrice(p.confirmedVenueSl)}` : ""} · giữ ${heldD}d${state}`);
+      lines.push(`${icon} *${formatSymbol(st.symbol)}* (fast-${this.o.entryDays}d, ${venue}) — ${p.units.length}/${FAST_MAX_UNITS} unit · Entry₁ $${fmtPrice(p.units[0].entry)} · SL tín hiệu $${fmtPrice(p.sl)}${p.confirmedVenueSl ? ` · SL MEXC $${fmtPrice(p.confirmedVenueSl)}` : ""} · giữ ${heldD}d${state}`);
     }
     return lines;
   }
@@ -249,7 +256,7 @@ export class FastTrendLive {
 
   /** Ngân sách risk tối đa cho MỘT vị thế (bất biến với sàn minNotional): maxUnits × riskPct. */
   private positionRiskBudget(): number {
-    return T.pyramidMaxUnits * this.o.riskPct;
+    return FAST_MAX_UNITS * this.o.riskPct;
   }
 
   /** Tổng risk frac hiệu dụng các unit thật của một vị thế. */
@@ -382,7 +389,7 @@ export class FastTrendLive {
       ? `Close-low ${FAST_SHORT_ENTRY_DAYS}d + ${FAST_SHORT_CONFIRM_BARS} nến 4h xác nhận`
       : `High breakout ${this.o.entryDays}d`;
     let msg = `⚡${dir === "long" ? "🟢" : "🔴"} *FAST-${this.o.entryDays}d ${dir.toUpperCase()}* ${formatSymbol(st.symbol)} @ $${fmtPrice(entry)}\n` +
-      `${entryRule} · SL $${fmtPrice(initialSL)} (${T.chandelierMult}×ATR trail) · unit 1/${T.pyramidMaxUnits}`;
+      `${entryRule} · SL $${fmtPrice(initialSL)} (${T.chandelierMult}×ATR trail) · unit 1/${FAST_MAX_UNITS}`;
     if (unit.qty != null) msg += `\n💵 Lệnh thật: ${unit.qty} @ $${fmtPrice(unit.realEntry ?? entry)}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}`;
     else msg += `\n📋 Alert-only (không đặt lệnh)`;
     await this.tg(msg);
@@ -451,8 +458,8 @@ export class FastTrendLive {
     }
 
     this.journal({ event: "add", venue: unit.qty != null ? this.o.execution?.venueLabel : "paper", real: unit.qty != null, symbol: st.symbol, dir: pos.dir, time: bar.openTime, timeVn: formatTimeVn(bar.openTime), entry, initialSL, unit: pos.units.length, qty: unit.qty, realEntry: unit.realEntry, riskUsd: unit.riskUsd, positionId: pos.positionId, protectionId: pos.protectionId, confirmedVenueSl: pos.confirmedVenueSl });
-    console.log(`[Fast] ADD ${formatSymbol(st.symbol)} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : ""}`);
-    await this.tg(`⚡➕ *FAST-${this.o.entryDays}d ADD* ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} unit ${pos.units.length}/${T.pyramidMaxUnits} @ $${fmtPrice(entry)} · SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`);
+    console.log(`[Fast] ADD ${formatSymbol(st.symbol)} unit ${pos.units.length}/${FAST_MAX_UNITS} @ $${fmtPrice(entry)}${unit.qty != null ? ` · qty ${unit.qty}` : ""}`);
+    await this.tg(`⚡➕ *FAST-${this.o.entryDays}d ADD* ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} unit ${pos.units.length}/${FAST_MAX_UNITS} @ $${fmtPrice(entry)} · SL chung $${fmtPrice(pos.sl)}${unit.qty != null ? ` · qty ${unit.qty}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}` : " · (giấy)"}`);
   }
 
   private async exitPosition(
@@ -539,7 +546,7 @@ export class FastTrendLive {
         }
       }
       // pyramiding
-      if (T.pyramidStepAtr > 0 && pos.units.length < T.pyramidMaxUnits && atr[i] > 0) {
+      if (T.pyramidStepAtr > 0 && pos.units.length < FAST_MAX_UNITS && atr[i] > 0) {
         const last = pos.units[pos.units.length - 1];
         const trig = pos.dir === "long" ? bar.close >= last.entry + T.pyramidStepAtr * atr[i] : bar.close <= last.entry - T.pyramidStepAtr * atr[i];
         if (trig) await this.addUnit(st, pos, bar, atr[i], silent);

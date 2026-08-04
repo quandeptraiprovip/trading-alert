@@ -15,11 +15,12 @@
  *      Chandelier exit. Close-channel giảm nhiễu râu nến/short-squeeze giả.
  *   3. Stop ban đầu: ngoài nến ngược hướng 4h gần nhất nếu cách entry 1.5-4×ATR;
  *      ngoài envelope đó fallback 3×ATR. Mỗi unit dùng stop riêng làm mẫu số R.
- *   4. LONG thoát khi nến đóng dưới midpoint của kênh close `dcEntry` (midpoint chỉ ratchet lên),
- *      đồng thời giữ hard stop 3×ATR trên sàn. SHORT giữ Chandelier 3×ATR; cả hai có time-stop.
+ *   4. LONG thoát khi nến đóng dưới midpoint của kênh close THOÁT `longExitDays` (midpoint chỉ
+ *      ratchet lên), đồng thời giữ hard stop 3×ATR trên sàn. SHORT giữ Chandelier 3×ATR; cả hai
+ *      có time-stop. Kênh thoát TÁCH RỜI kênh vào (Turtle gốc cũng vậy) — xem `longExitDays`.
  *   5. 1 VỊ THẾ / symbol, nhưng PYRAMIDING kiểu Turtle: thêm unit mỗi 0.5×ATR chạy có lợi
- *      (tối đa 4 unit, mỗi unit có SL/R riêng, trail chandelier chung). Unit thêm có expectancy
- *      CAO hơn lệnh mới (điều kiện = trend đang chạy) → tần suất ~1.1 lệnh/ngày mà R/lệnh tăng.
+ *      (tối đa `pyramidMaxUnits`, mỗi unit có SL/R riêng, trail chandelier chung). Unit thêm có
+ *      expectancy CAO hơn lệnh mới (điều kiện = trend đang chạy).
  *   6. BTC REGIME GATE: chỉ vào LONG khi SMA10d>SMA100d trên BTC 4h (đại diện regime cả rổ);
  *      short tự do. Audit 2026-07-04 (exp-turtle-levers.ts, 1015d): NET +233R vs +80R baseline,
  *      exp 0.207 vs 0.142, era & perturbation đậu; mở rộng rổ >8 coin thì LOẠI (pha loãng exp).
@@ -41,6 +42,13 @@ import { fetchKlinesPaged } from "./backtest";
 export const T = {
   tf: "4h", // khung vào lệnh — 4h: cân bằng giữa "daily-proven" của Turtle và tần suất ~1/ngày
   entryDays: 15, // Hybrid LONG dùng close-channel 15 ngày.
+  // Kênh THOÁT của LONG (midpoint ratchet) — TÁCH khỏi kênh VÀO như Turtle gốc (vào 20d / ra 10d là
+  // hai số khác nhau). Trước 2026-08-04 code buộc chúng bằng nhau, tức chưa bao giờ tinh chỉnh tham
+  // số quan trọng nhất của hệ: attribution cho thấy 100% lợi nhuận đến từ nhánh thoát "mid".
+  // Kênh thoát RỘNG hơn kênh vào ⇒ midpoint thấp hơn ⇒ cho winner chạy lâu hơn. 0 = dùng entryDays.
+  // Audit 2.026 ngày: plateau ở 20-25d với MỌI entryDays thử (12/15/18d đều muốn kênh thoát ~22-25d);
+  // chọn 20 = cạnh bảo thủ của plateau, cải thiện CẢ BA era. Chi tiết: planning/portfolio-risk-and-exit-2026-08.md
+  longExitDays: 20,
   shortEntryDays: 30, // SHORT dùng close-channel chậm hơn để lọc wick/squeeze; 0 = dùng entryDays.
   chandelierMult: 3.0, // fallback initial SL; SHORT/legacy LONG còn dùng làm Chandelier trail
   initialStopObLookback: 6, // tìm nến ngược hướng gần nhất trong 6 nến 4h đã đóng
@@ -69,7 +77,19 @@ export const T = {
   // PYRAMIDING kiểu Turtle — BẬT (audit 1015d: NET +79.6R→+233.3R, exp 0.142→0.207, ~1.1 lệnh/ngày,
   // maxDD 20.2%→23.5% @1%/unit vì 1 vị thế chứa tối đa 4R risk; perturbation 30/30 thắng baseline):
   pyramidStepAtr: 0.5, // thêm 1 unit mỗi khi giá chạy 0.5×ATR có lợi kể từ fill gần nhất
-  pyramidMaxUnits: 4, // tổng unit tối đa mỗi vị thế (kiểu Turtle cổ điển)
+  // 4 → 3 (2026-08-04): các unit TRONG CÙNG một symbol có tương quan ĐÚNG BẰNG 1, nên unit thứ 4
+  // gần như chỉ thêm rủi ro chứ không thêm đa dạng hoá. Sharpe 3 unit > 4 > 5 ở mọi mức heatDecayK
+  // (2..8) và perturbation 30/30; NET R gần như không đổi. Xem planning/portfolio-risk-and-exit-2026-08.md
+  pyramidMaxUnits: 3, // tổng unit tối đa mỗi vị thế
+  // ── Chính sách rủi ro CẤP DANH MỤC (turtle-live.ts + scripts/portfolio-engine.ts dùng; runTurtle
+  // chạy từng symbol nên không thấy được và bỏ qua tham số này) ──
+  // Size mỗi unit mới nhân với 1/(1 + heat/heatDecayK), heat = tổng tỉ trọng unit đang mở CÙNG HƯỚNG
+  // trên cả rổ. Cơ chế: 8 symbol × 3 unit cùng hướng trên rổ crypto tương quan ~0,85 KHÔNG phải 24
+  // cược độc lập — để risk danh mục dao động 0→24 đơn vị làm hỏng tỉ số lợi nhuận/rủi ro (vol
+  // targeting, Harvey et al. 2018). Đo được: Spearman(heat, netR) = −0,025 ⇒ unit vào lúc đông KHÔNG
+  // kém hơn — lợi ích thuần tuý đến từ ổn định rủi ro, không phải từ việc né lệnh xấu.
+  // KHÔNG BAO GIỜ bỏ lệnh (chỉ nhỏ size): trần cứng làm mất cả trend lớn — bài học A1 (−22% NET).
+  heatDecayK: 4, // 0 = tắt chính sách
   // BTC REGIME GATE cho LONG (mọi symbol): chỉ long khi SMA10d > SMA100d trên BTC 4h.
   // Short KHÔNG gate (gate short đã test là hại). Cùng audit trên: exp +46%, era 0.19/0.20/0.24 phẳng.
   btcGateFast: 60, // SMA nhanh, nến 4h (= 10 ngày)
@@ -271,6 +291,7 @@ export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Tra
   const dcShortEntry = p.shortEntryDays > 0
     ? Math.max(2, Math.round(p.shortEntryDays * barsPerDay))
     : dcEntry;
+  const dcLongExit = p.longExitDays > 0 ? Math.max(2, Math.round(p.longExitDays * barsPerDay)) : dcEntry;
   const maxHoldBars = Math.round(p.maxHoldDays * barsPerDay);
 
   // Vị thế = 1..maxUnits UNIT (pyramiding kiểu Turtle): mỗi unit có entry/SL-gốc/R riêng,
@@ -278,13 +299,15 @@ export function runTurtle(symbol: string, c: Candle[], p: TurtleParams = T): Tra
   type Unit = { entryIndex: number; entry: number; initialSL: number };
   let pos: { dir: "long" | "short"; units: Unit[]; sl: number; extreme: number; midTrail: number | null } | null = null;
   let cooldownUntil = -1;
-  const warmup = Math.max(dcEntry, dcShortEntry, p.trendLen, p.trendLen2, p.atrPeriod) + 1;
+  const warmup = Math.max(dcEntry, dcShortEntry, dcLongExit, p.trendLen, p.trendLen2, p.atrPeriod) + 1;
 
   for (let i = warmup; i < c.length; i++) {
     const bar = c[i];
     const longChannel = priorDonchian(c, i, dcEntry);
     const shortChannel = dcShortEntry === dcEntry ? longChannel : priorDonchian(c, i, dcShortEntry);
-    const longMidClose = (longChannel.closeHigh + longChannel.closeLow) / 2;
+    // midpoint LONG lấy trên kênh THOÁT (có thể rộng hơn kênh vào); SHORT vẫn dùng kênh vào của nó.
+    const longExitCh = dcLongExit === dcEntry ? longChannel : priorDonchian(c, i, dcLongExit);
+    const longMidClose = (longExitCh.closeHigh + longExitCh.closeLow) / 2;
     const shortMidClose = (shortChannel.closeHigh + shortChannel.closeLow) / 2;
 
     // ─── Quản lý lệnh mở ───
