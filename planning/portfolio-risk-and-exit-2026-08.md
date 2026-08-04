@@ -25,6 +25,29 @@ NET R thô giảm (1.571 → 807) vì bản mới cố ý chạy đòn bẩy th�
 do nên **NET R thô không so trực tiếp được**; ba cột so được là Sharpe, NET-quy-đổi-cùng-maxDD, và
 CAGR-tại-cùng-maxDD. Cả ba đều tăng.
 
+### NET R tăng bao nhiêu? — phải chốt mức drawdown trước
+
+NET R tỉ lệ THUẬN với risk/unit, mà risk/unit là env var. Nên câu "NET R tăng X%" chỉ có nghĩa sau khi
+ghim mức drawdown. Chuẩn hoá bằng maxDD **compounding** (thứ tài khoản thật chịu):
+
+| maxDD ghim | CŨ risk/unit → NET R (CAGR) | MỚI risk/unit → NET R (CAGR) | NET R | CAGR |
+|---:|---|---|---:|---:|
+| 20% | 0,095% → 1.571 (27%) | 0,304% → 2.581 (48%) | **+64%** | +75% |
+| 25% | 0,121% → 1.571 (35%) | 0,386% → 2.570 (62%) | **+64%** | +77% |
+| 30% | 0,148% → 1.571 (43%) | 0,471% → 2.560 (77%) | **+63%** | +79% |
+| 40% | 0,207% → 1.571 (60%) | 0,650% → 2.541 (110%) | **+62%** | +82% |
+| 50% | 0,272% → 1.571 (79%) | 0,849% → 2.522 (145%) | **+61%** | +83% |
+| 76% | 0,500% → 1.571 (124%) | 1,531% → 2.472 (215%) | **+57%** | +73% |
+
+**NET R tăng ~60% ở mọi mức DD** — không phụ thuộc điểm vận hành. (Bảng trên dùng maxDD compounding;
+nếu chuẩn hoá bảo thủ hơn bằng maxDD trong không gian R cộng dồn thì mức tăng là +41%. Khoảng
+**+41% … +64%** tuỳ cách chuẩn hoá; con số thực tế nằm ở đầu trên vì tài khoản compounding.)
+
+**Nếu GIỮ NGUYÊN `TURTLE_RISK_PCT=0,5%` (không đổi gì):** NET R **giảm** 1.571 → 807, CAGR 124% → 82%,
+đổi lại maxDD 76% → 32%. Tức là bản mới ở mức risk cũ = ít lợi nhuận hơn nhưng an toàn hơn nhiều.
+Muốn hiện thực hoá phần "+60% NET R" thì phải NÂNG `TURTLE_RISK_PCT` — quyết định vận hành của user,
+nghiên cứu này không đụng vào (xem trần khuyến nghị trong nghiên cứu đòn bẩy cũ).
+
 Điểm vận hành đáng chú ý: giữ nguyên `TURTLE_RISK_PCT=0.5%`, maxDD lịch sử tụt **76% → 32%** trong khi
 CAGR vẫn 82%. Mức 76% trên tài khoản vài trăm USD thực tế là ngưỡng bỏ cuộc, không phải một điểm vận
 hành. Muốn đổi lại DD cũ lấy lợi nhuận thì nâng `TURTLE_RISK_PCT` — nhưng đó là env var và là quyết
