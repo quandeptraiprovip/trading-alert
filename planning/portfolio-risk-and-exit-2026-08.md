@@ -121,6 +121,39 @@ số hoá lại theo **tỉ lệ với kênh vào** thì lên 30/30 (`scripts/ex
 đại lượng có ý nghĩa là "kênh thoát rộng hơn kênh vào bao nhiêu", nên nếu sau này đổi `entryDays` thì
 **phải đổi `longExitDays` theo cùng tỉ lệ ~1,33×**, đừng giữ nguyên 20.
 
+## PLACEBO TEST — "có overfit không" trả lời bằng thực nghiệm
+
+Bootstrap không phân biệt được "edge thật" với "con may mắn nhất trong ~100 lần thử": sai số chuẩn
+của ΔSharpe ≈ 0,145, nên max của 100 lần bốc dưới null cũng cỡ +0,3 — đúng bằng kết quả của ta.
+`scripts/exp-placebo.ts` đo TRỰC TIẾP phân phối ΔSharpe dưới null.
+
+| Placebo | ΔSharpe | So với bản thật |
+|---|---:|---|
+| **P1b. Giảm size NGẪU NHIÊN** (cùng phân phối tỉ trọng, gán ngẫu nhiên), chỉ policy | median **−0,012**, max +0,057 | heat thật +0,076 → **0/40 lần bốc bằng được** |
+| **P2. Heat SAI CHIỀU** (dùng heat chiều ngược lại), chỉ policy | **−0,006** | heat thật +0,076 |
+| **P3. Bốc ngẫu nhiên** longExitDays ~ U{8..60}, maxUnits ~ U{1..6} | median **+0,187**, p05 −0,017 | bản ship +0,286 → **4/60 lần bốc thắng, p ≈ 0,082** |
+
+**Đọc từng dòng:**
+
+- **P1b/P2 ⇒ chính sách heat KHÔNG overfit.** Giảm size ngẫu nhiên với ĐÚNG cùng phân phối tỉ trọng
+  cho ΔSharpe ≈ 0 (median âm), và 0/40 lần bốc chạm được mức của heat thật. Dùng sai chiều cũng ≈ 0.
+  Lợi ích gắn chặt vào đúng biến số, không phải vào việc "size dao động". p thực nghiệm ≤ 0,024.
+- **P3 ⇒ hướng của thay đổi luật KHÔNG overfit, nhưng CON SỐ CỤ THỂ thì KHÔNG đặc biệt.** Điều đáng
+  chú ý: **median của lần bốc bừa đã là +0,187**, và p05 ≈ 0 — tức gần như MỌI giá trị exit từ 8 đến
+  60 ngày và mọi trần unit từ 1 đến 6 đều tốt hơn cấu hình production cũ. Đó là dấu hiệu **giá trị cũ
+  (exit = entry = 15d, 4 unit) nằm ở một góc xấu**, chứ không phải ta bốc trúng may. Mặt khác 6,7% lần
+  bốc còn thắng bản ship ⇒ **không được tuyên bố 20d/3 unit là điểm tối ưu**; nó chỉ là một điểm bất
+  kỳ trên một cao nguyên rộng và phẳng.
+
+**Công bố một lần peek:** giữa 20d và 25d, tôi chọn 20d SAU khi đã nhìn era C (25d cho Sharpe A+B cao
+hơn nhưng làm era C xấu đi). Đó là peek. P3 cho thấy nó gần như không quan trọng (19d/27d/30d đều cho
+kết quả tương đương), nhưng vẫn phải ghi ra.
+
+**Rủi ro CÒN LẠI — placebo không bắt được:** cả 60 lần bốc dùng CHUNG một bộ dữ liệu (8 coin, 5,7 năm
+crypto). Nếu cấu trúc tương quan/độ dài trend của crypto đổi, toàn bộ họ tham số sẽ sai CÙNG NHAU và
+không phép placebo nào phát hiện được. Phòng vệ duy nhất là: nhất quán 3 era, walk-forward 5/6, và cơ
+chế có lý — cả ba đều đạt, nhưng không cái nào là bằng chứng.
+
 ## Kết quả ÂM (đừng lặp lại)
 
 - **Mở rộng rổ — LOẠI lần hai, lần này bằng metric đúng.** Audit cũ loại vì "pha loãng expectancy/lệnh",
@@ -190,6 +223,7 @@ trị khác = ứng viên mới, đăng ký lại từ đầu theo giao thức l
 ./node_modules/.bin/ts-node scripts/exp-exit-pyramid.ts 2000        # kênh thoát, trần unit, bước pyramid
 ./node_modules/.bin/ts-node scripts/exp-exit-ratio.ts 2000          # tham số hoá theo tỉ lệ
 ./node_modules/.bin/ts-node scripts/exp-joint-audit.ts 2000         # lưới, chọn trên A+B, niêm phong C
+./node_modules/.bin/ts-node scripts/exp-placebo.ts 2000             # placebo: có overfit không
 ```
 
 ## Tài liệu
