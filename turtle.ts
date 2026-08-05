@@ -96,6 +96,34 @@ export const T = {
   btcGateSlow: 600, // SMA chậm, nến 4h (= 100 ngày); 0 = tắt gate
 };
 
+/**
+ * Một dòng mô tả LUẬT đang chạy + fingerprint 6 ký tự, để `/health` (và heartbeat hằng ngày) chứng
+ * minh được process đang chạy ĐÚNG cấu hình nào — không cần SSH đọc log.
+ *
+ * Sự cố 02/08/2026 xảy ra vì không có cách nào xác nhận từ xa rằng bot đang chạy code gì; đổi luật
+ * mà không có kênh xác nhận thì lần sau lại phải dựng lại từ API sàn.
+ */
+export function turtleConfigLine(): string {
+  const f = {
+    e: T.entryDays, x: T.longExitDays, s: T.shortEntryDays, c: T.chandelierMult,
+    u: T.pyramidMaxUnits, p: T.pyramidStepAtr, k: T.heatDecayK,
+    a: T.atrPeriod, t: T.trendLen, h: T.maxHoldDays, g: `${T.btcGateFast}/${T.btcGateSlow}`,
+  };
+  // FNV-1a 32-bit trên JSON cấu hình — đổi bất kỳ tham số nào là fingerprint đổi.
+  let hash = 0x811c9dc5;
+  const s = JSON.stringify(f);
+  for (let i = 0; i < s.length; i++) {
+    hash ^= s.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  const bpd = 6; // nến 4h/ngày
+  return (
+    `long ${T.entryDays}d/exit ${T.longExitDays || T.entryDays}d · short ${T.shortEntryDays || T.entryDays}d/chand ${T.chandelierMult}×ATR · ` +
+    `pyramid ${T.pyramidStepAtr}×ATR max${T.pyramidMaxUnits} · heat-decay k=${T.heatDecayK || "TẮT"} · ` +
+    `gate ${T.btcGateFast / bpd}/${T.btcGateSlow / bpd}d · fp \`${hash.toString(16).padStart(8, "0").slice(0, 6)}\``
+  );
+}
+
 const VOL_SMA_LEN = 20;
 
 const FUNDING_INTERVAL_MS = 8 * 60 * 60 * 1000;

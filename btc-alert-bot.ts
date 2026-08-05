@@ -54,6 +54,7 @@ import { createBinanceFromEnv } from "./binance-futures";
 import { createMexcFromEnv } from "./mexc-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 import { TurtleLive } from "./turtle-live";
+import { turtleConfigLine } from "./turtle";
 import { FastTrendLive } from "./fast-trend-live";
 import { MexcFastExecution } from "./mexc-fast-execution";
 
@@ -899,6 +900,8 @@ async function buildHealthMessage(): Promise<string> {
     `Routing: Turtle → Binance · Fast → MEXC`,
     `Binance entry: ${tradingReady ? "✅ READY" : "⚠️ OFF"} · MEXC entry: ${mexcTradingReady ? "✅ READY" : "⚠️ OFF"}`,
     `SMC ${SMC_ENABLED ? (trader && tradingReady ? "LIVE" : "alert-only") : states.some((s) => s.livePos) ? "DRAIN-ONLY" : "TẮT"} · Turtle ${turtleTrader && tradingReady ? "BINANCE LIVE" : "alert-only"} · Fast ${fastTrendExecution && mexcTradingReady ? "MEXC LIVE" : "alert-only"}`,
+    // Luật ĐANG CHẠY của process này — để xác nhận deploy từ Telegram, không cần đọc log container.
+    `Turtle rule: ${turtleConfigLine()}`,
     ``,
   ];
 
