@@ -499,15 +499,16 @@ function summarize(trades: Trade[]) {
 // ─────────────────────────────────────────────
 // REPORT chi tiết
 // ─────────────────────────────────────────────
-function report(trades: Trade[], data: Map<string, Candle[]>, riskPct: number, t0: number, t1: number) {
+/** `p` = cấu hình ĐÃ DÙNG để sinh `trades` (sweep dùng biến thể riêng — KHÔNG được sửa `T`). */
+function report(trades: Trade[], data: Map<string, Candle[]>, riskPct: number, t0: number, t1: number, p: TurtleParams = T) {
   trades.sort((a, b) => a.entryTime - b.entryTime);
   const s = summarize(trades);
   const periodDays = (t1 - t0) / TF_MS["1d"];
-  const avgHoldDays = s.n ? (trades.reduce((a, t) => a + t.holdBars, 0) / s.n) * (TF_MS[T.tf] / TF_MS["1d"]) : 0;
+  const avgHoldDays = s.n ? (trades.reduce((a, t) => a + t.holdBars, 0) / s.n) * (TF_MS[p.tf] / TF_MS["1d"]) : 0;
 
   console.log("=".repeat(72));
-  console.log(`  TURTLE HYBRID — tf ${T.tf} | initial SL OB${T.initialStopObLookback} trong ${T.initialStopObMinAtr}-${T.initialStopObMaxAtr}ATR, fallback ${T.chandelierMult}ATR | LONG close/mid ${T.entryDays}d | SHORT close ${T.shortEntryDays || T.entryDays}d/Chandelier | EMA${T.trendLen}`);
-  console.log(`  Pyramid: ${T.pyramidStepAtr > 0 ? `+1 unit / ${T.pyramidStepAtr}×ATR, tối đa ${T.pyramidMaxUnits} (mỗi unit = 1 lệnh)` : "TẮT"} | BTC gate LONG: ${T.btcGateSlow > 0 ? `SMA ${T.btcGateFast / 6}d>${T.btcGateSlow / 6}d` : "TẮT"}`);
+  console.log(`  TURTLE HYBRID — tf ${p.tf} | initial SL OB${p.initialStopObLookback} trong ${p.initialStopObMinAtr}-${p.initialStopObMaxAtr}ATR, fallback ${p.chandelierMult}ATR | LONG close ${p.entryDays}d/mid ${p.longExitDays || p.entryDays}d | SHORT close ${p.shortEntryDays || p.entryDays}d/Chandelier | EMA${p.trendLen}`);
+  console.log(`  Pyramid: ${p.pyramidStepAtr > 0 ? `+1 unit / ${p.pyramidStepAtr}×ATR, tối đa ${p.pyramidMaxUnits} (mỗi unit = 1 lệnh)` : "TẮT"} | BTC gate LONG: ${p.btcGateSlow > 0 ? `SMA ${p.btcGateFast / 6}d>${p.btcGateSlow / 6}d` : "TẮT"}`);
   console.log(`  Symbols: ${[...data.keys()].map((x) => x.toUpperCase()).join(", ")}`);
   console.log(`  Chi phí: ${CONFIG.costs.enabled ? `taker ${CONFIG.costs.takerFeePct}%+slip ${CONFIG.costs.slippagePct}%/chiều + funding ${CONFIG.costs.fundingPer8hPct}%/8h` : "TẮT"}`);
   console.log("=".repeat(72));
@@ -635,10 +636,15 @@ async function main() {
   }
 
   console.log(`→ Chọn breakout=${best.p.entryDays}d / chandelier=${best.p.chandelierMult}×ATR (EDGE mạnh nhất, freq>=0.4/ngày). Báo cáo chi tiết:\n`);
-  T.entryDays = best.p.entryDays; T.chandelierMult = best.p.chandelierMult;
-  report(best.trades, data, riskPct, t0, t1);
+  // TUYỆT ĐỐI không gán vào `T`: đó là cấu hình LIVE dùng chung (turtle-live.ts + fast-trend-live.ts
+  // đọc T.chandelierMult ở runtime). Sự cố 2026-08-05: bundle esbuild làm `main()` này chạy TRONG
+  // bot, và hai dòng gán ở đây đã đổi chandelier 3.0→4.0 trên tiền thật.
+  report(best.trades, data, riskPct, t0, t1, best.p);
 }
 
-if (require.main === module) {
+// `require.main === module` KHÔNG đủ: trong bundle esbuild (--format=cjs), mọi module ESM đều thấy
+// `module` là module gốc của bundle nên điều kiện này ĐÚNG với mọi file → main() backtest chạy trong
+// bot production. Phải kiểm tra thêm rằng process thực sự được khởi chạy bằng CHÍNH file này.
+if (require.main === module && /[\\/]turtle\.(ts|js)$/.test(process.argv[1] ?? "")) {
   main().catch((e) => { console.error("Lỗi:", e?.response?.data ?? e.message); process.exit(1); });
 }

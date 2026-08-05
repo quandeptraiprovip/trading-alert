@@ -54,9 +54,15 @@ import { createBinanceFromEnv } from "./binance-futures";
 import { createMexcFromEnv } from "./mexc-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 import { TurtleLive } from "./turtle-live";
-import { turtleConfigLine } from "./turtle";
+import { T as TURTLE_CONFIG, turtleConfigLine } from "./turtle";
 import { FastTrendLive } from "./fast-trend-live";
 import { MexcFastExecution } from "./mexc-fast-execution";
+
+// BẤT BIẾN AN TOÀN (sự cố 2026-08-05): cấu hình chiến lược Turtle là hằng số trong process này.
+// Trước đây `turtle.ts main()` (sweep chọn tham số) chạy được bên trong bundle bot và gán
+// `T.entryDays`/`T.chandelierMult` → bot đặt lệnh thật bằng tham số CHƯA từng được audit, im lặng.
+// Đóng băng ở đây biến mọi lần gán tương lai thành TypeError ngay tại chỗ, thay vì lỗi âm thầm.
+Object.freeze(TURTLE_CONFIG);
 
 const telegram = loadTelegramConfig();
 

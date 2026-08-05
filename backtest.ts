@@ -593,7 +593,9 @@ async function main() {
   report(allTrades, ltfBySymbol, riskPct, periodStart, periodEnd);
 }
 
-if (require.main === module) {
+// `require.main === module` KHÔNG đủ trong bundle esbuild (xem turtle.ts): mọi module ESM đều thoả,
+// nên main() backtest này từng chạy TRONG bot production (btc-alert-bot.ts import ./backtest).
+if (require.main === module && /[\\/]backtest\.(ts|js)$/.test(process.argv[1] ?? "")) {
   main().catch((err) => {
     console.error("Lỗi:", err?.response?.data ?? err.message);
     process.exit(1);

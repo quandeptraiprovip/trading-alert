@@ -514,7 +514,8 @@ async function main(): Promise<void> {
   console.log("  - Macro/chọn key discretionary chưa có; HVN chỉ xuất hiện ở document-v1 và là proxy OHLCV.");
 }
 
-if (require.main === module) {
+// Xem turtle.ts: `require.main === module` một mình không an toàn khi file bị bundle.
+if (require.main === module && /[\\/]key-volume-backtest\.(ts|js)$/.test(process.argv[1] ?? "")) {
   main().catch((error: unknown) => {
     const detail = (error as { response?: { data?: unknown }; message?: string });
     console.error("Lỗi:", detail.response?.data ?? detail.message ?? error);
