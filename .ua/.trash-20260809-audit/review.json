@@ -1,0 +1,46 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'config:.env.example' has no edges (orphan)",
+    "Node 'document:README.md' has no edges (orphan)",
+    "Node 'config:package.json' has no edges (orphan)",
+    "Node 'config:tsconfig.json' has no edges (orphan)",
+    "Node 'config:vercel.json' has no edges (orphan)",
+    "Node 'document:planning/fxdream-keyvolume-method.md' has no edges (orphan)",
+    "Node 'document:planning/portfolio-risk-and-exit-2026-08.md' has no edges (orphan)",
+    "Node 'file:scripts/baseline-gate.sh' has no edges (orphan)",
+    "Node 'file:scripts/rsi-ablation.sh' has no edges (orphan)",
+    "Node 'file:.ua/.understandignore' has no edges (orphan)",
+    "Node 'config:.ua/config.json' has no edges (orphan)",
+    "Node 'file:next-env.d.ts' has no edges (orphan)",
+    "Node 'file:next.config.js' has no edges (orphan)",
+    "Node 'document:planning/mexc-futures/reviews/external-review-status.md' has no edges (orphan)",
+    "Node 'file:public/index.html' has no edges (orphan)",
+    "Node 'file:tsconfig.tsbuildinfo' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 523,
+    "totalEdges": 818,
+    "totalLayers": 8,
+    "tourSteps": 12,
+    "nodeTypes": {
+      "file": 106,
+      "function": 382,
+      "class": 8,
+      "service": 5,
+      "config": 5,
+      "document": 17
+    },
+    "edgeTypes": {
+      "contains": 392,
+      "exports": 116,
+      "imports": 253,
+      "calls": 40,
+      "configures": 1,
+      "depends_on": 2,
+      "serves": 1,
+      "related": 9,
+      "tested_by": 4
+    }
+  }
+}

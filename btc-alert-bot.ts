@@ -8,7 +8,7 @@
 import "./load-env";
 import https from "https";
 import axios from "axios";
-import { fetchKlinesPaged } from "./backtest";
+import { fetchFuturesKlinesPaged } from "./backtest";
 import {
   Candle,
   CONFIG,
@@ -55,7 +55,7 @@ import { createMexcFromEnv } from "./mexc-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 import { TurtleLive } from "./turtle-live";
 import { T as TURTLE_CONFIG, turtleConfigLine } from "./turtle";
-import { FastTrendLive } from "./fast-trend-live";
+import { FastTrendLive, fastConfigLine } from "./fast-trend-live";
 import { MexcFastExecution } from "./mexc-fast-execution";
 
 // BẤT BIẾN AN TOÀN (sự cố 2026-08-05): cấu hình chiến lược Turtle là hằng số trong process này.
@@ -187,7 +187,7 @@ const FAST_TREND_ENABLED = (process.env.FAST_TREND_ENABLED ?? "true").toLowerCas
 const FAST_TREND_TRADING_ENABLED = (process.env.FAST_TREND_TRADING_ENABLED ?? "false").toLowerCase() === "true";
 const FAST_TREND_RISK_PCT = (() => {
   const n = parseFloat(process.env.FAST_TREND_RISK_PCT ?? "0.5");
-  return (Number.isFinite(n) && n > 0 ? n : 0.5) / 100; // % equity / UNIT (1 vị thế tối đa 4 unit)
+  return (Number.isFinite(n) && n > 0 ? n : 0.5) / 100; // % equity / UNIT (1 vị thế tối đa 3 unit)
 })();
 const FAST_TREND_ENTRY_DAYS = (() => { const n = parseInt(process.env.FAST_TREND_ENTRY_DAYS ?? "10", 10); return Number.isFinite(n) && n >= 2 ? n : 10; })();
 const FAST_TREND_SYMBOLS = (process.env.FAST_TREND_SYMBOLS ?? TURTLE_SYMBOLS.join(","))
@@ -718,7 +718,7 @@ async function onCandleClose(st: SymbolState, candle: Candle): Promise<void> {
 // trong lúc bot tắt (downtime). resumeFrom = Infinity → khởi động sạch (toàn bộ là warmup).
 async function prefetchHistory(st: SymbolState): Promise<void> {
   console.log(`[Init] ${formatSymbol(st.symbol)} — tải lịch sử 15m để warmup...`);
-  const candles = await fetchKlinesPaged(st.symbol, CONFIG.entryTf, BUFFER_SIZE);
+  const candles = await fetchFuturesKlinesPaged(st.symbol, CONFIG.entryTf, BUFFER_SIZE);
   candles.pop(); // bỏ nến hiện tại (chưa đóng)
   if (candles.length === 0) {
     console.warn(`[Init] ${formatSymbol(st.symbol)} không tải được nến nào.`);
@@ -908,6 +908,7 @@ async function buildHealthMessage(): Promise<string> {
     `SMC ${SMC_ENABLED ? (trader && tradingReady ? "LIVE" : "alert-only") : states.some((s) => s.livePos) ? "DRAIN-ONLY" : "TẮT"} · Turtle ${turtleTrader && tradingReady ? "BINANCE LIVE" : "alert-only"} · Fast ${fastTrendExecution && mexcTradingReady ? "MEXC LIVE" : "alert-only"}`,
     // Luật ĐANG CHẠY của process này — để xác nhận deploy từ Telegram, không cần đọc log container.
     `Turtle rule: ${turtleConfigLine()}`,
+    ...(FAST_TREND_ENABLED ? [`Fast rule: ${fastConfigLine(FAST_TREND_ENTRY_DAYS)}`] : []),
     ``,
   ];
 

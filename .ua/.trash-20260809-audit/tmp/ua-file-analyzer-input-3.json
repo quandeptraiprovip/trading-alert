@@ -1,0 +1,182 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": "exp-turtle-levers.ts",
+      "language": "typescript",
+      "sizeLines": 281,
+      "fileCategory": "code"
+    },
+    {
+      "path": "key-volume-backtest.ts",
+      "language": "typescript",
+      "sizeLines": 524,
+      "fileCategory": "code"
+    },
+    {
+      "path": "key-volume.ts",
+      "language": "typescript",
+      "sizeLines": 1746,
+      "fileCategory": "code"
+    },
+    {
+      "path": "kline-fetch.ts",
+      "language": "typescript",
+      "sizeLines": 226,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/cross-sectional-basis.ts",
+      "language": "typescript",
+      "sizeLines": 390,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/daily-relative-momentum.ts",
+      "language": "typescript",
+      "sizeLines": 336,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/dedup-crossvenue-impact.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/funding-tail-reversal.ts",
+      "language": "typescript",
+      "sizeLines": 316,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/key-volume-ablation.ts",
+      "language": "typescript",
+      "sizeLines": 266,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/key-volume-method-audit.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/quarter-hour-order-flow.ts",
+      "language": "typescript",
+      "sizeLines": 185,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-era-diagnosis.ts",
+      "language": "typescript",
+      "sizeLines": 440,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-losing-streak.ts",
+      "language": "typescript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-overfit-ablation.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-pyramid-spotcheck.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-key-volume.ts",
+      "language": "typescript",
+      "sizeLines": 522,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "exp-turtle-levers.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "key-volume-backtest.ts": [
+      "backtest.ts",
+      "key-volume.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "key-volume.ts": [
+      "strategy.ts"
+    ],
+    "kline-fetch.ts": [
+      "strategy.ts"
+    ],
+    "scripts/cross-sectional-basis.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/daily-relative-momentum.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/dedup-crossvenue-impact.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/funding-tail-reversal.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/key-volume-ablation.ts": [
+      "key-volume-backtest.ts",
+      "key-volume.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/key-volume-method-audit.ts": [
+      "key-volume-backtest.ts",
+      "key-volume.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/quarter-hour-order-flow.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/turtle-era-diagnosis.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-losing-streak.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-overfit-ablation.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-pyramid-spotcheck.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "test-key-volume.ts": [
+      "key-volume-backtest.ts",
+      "key-volume.ts",
+      "strategy.ts"
+    ]
+  }
+}

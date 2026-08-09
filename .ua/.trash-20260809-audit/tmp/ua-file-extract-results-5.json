@@ -1,0 +1,1215 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 5,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 5,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "scripts/smallcap-native-research.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 125,
+      "nonEmptyLines": 116,
+      "functions": [
+        {
+          "name": "compound",
+          "startLine": 52,
+          "endLine": 54,
+          "params": [
+            "netReturns"
+          ]
+        },
+        {
+          "name": "returnMap",
+          "startLine": 56,
+          "endLine": 58,
+          "params": [
+            "values"
+          ]
+        },
+        {
+          "name": "reversalResult",
+          "startLine": 60,
+          "endLine": 84,
+          "params": [
+            "period"
+          ]
+        },
+        {
+          "name": "supplyResult",
+          "startLine": 86,
+          "endLine": 101,
+          "params": [
+            "period"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 103,
+          "endLine": 123,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "compound",
+          "callee": "netReturns.reduce",
+          "lineNumber": 53
+        },
+        {
+          "caller": "returnMap",
+          "callee": "Object.entries(values).map",
+          "lineNumber": 57
+        },
+        {
+          "caller": "returnMap",
+          "callee": "Object.entries",
+          "lineNumber": 57
+        },
+        {
+          "caller": "returnMap",
+          "callee": "symbol.toLowerCase",
+          "lineNumber": 57
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "buildSmallCapReversalSignals",
+          "lineNumber": 61
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "signals.map",
+          "lineNumber": 65
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "quotePassiveOrder",
+          "lineNumber": 68
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "simulateConservativeMakerFill",
+          "lineNumber": 71
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "fills.filter((fill) => fill.status === \"filled\").map",
+          "lineNumber": 75
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "fills.filter",
+          "lineNumber": 75
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "evaluateSmallCapPeriod",
+          "lineNumber": 78
+        },
+        {
+          "caller": "reversalResult",
+          "callee": "returnMap",
+          "lineNumber": 78
+        },
+        {
+          "caller": "supplyResult",
+          "callee": "buildSmallCapSupplySignals",
+          "lineNumber": 87
+        },
+        {
+          "caller": "supplyResult",
+          "callee": "evaluateSmallCapPeriod",
+          "lineNumber": 92
+        },
+        {
+          "caller": "supplyResult",
+          "callee": "returnMap",
+          "lineNumber": 92
+        },
+        {
+          "caller": "main",
+          "callee": "JSON.parse",
+          "lineNumber": 106
+        },
+        {
+          "caller": "main",
+          "callee": "fs.readFileSync",
+          "lineNumber": 106
+        },
+        {
+          "caller": "main",
+          "callee": "(input.reversalPeriods ?? []).map",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "(input.supplyPeriods ?? []).map",
+          "lineNumber": 108
+        },
+        {
+          "caller": "main",
+          "callee": "reversal.flatMap",
+          "lineNumber": 109
+        },
+        {
+          "caller": "main",
+          "callee": "supply.flatMap",
+          "lineNumber": 110
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 111
+        },
+        {
+          "caller": "main",
+          "callee": "JSON.stringify",
+          "lineNumber": 111
+        },
+        {
+          "caller": "main",
+          "callee": "compound",
+          "lineNumber": 117
+        },
+        {
+          "caller": "main",
+          "callee": "compound",
+          "lineNumber": 120
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "smallcap-research.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 88,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "evaluateSmallCapPeriod",
+          "startLine": 31,
+          "endLine": 88,
+          "params": [
+            "signals",
+            "realizedReturns",
+            "options"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "evaluateSmallCapPeriod",
+          "line": 31,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "signals.filter",
+          "lineNumber": 37
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "Math.abs",
+          "lineNumber": 37
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "intended.reduce",
+          "lineNumber": 42
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "Math.abs",
+          "lineNumber": 42
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "intended.filter",
+          "lineNumber": 43
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "options.filledSymbols.has",
+          "lineNumber": 44
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "Number.isFinite",
+          "lineNumber": 46
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "realizedReturns.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "usable.reduce",
+          "lineNumber": 50
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "Math.abs",
+          "lineNumber": 50
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "usable.map",
+          "lineNumber": 63
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "realizedReturns.get",
+          "lineNumber": 64
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "Math.abs",
+          "lineNumber": 67
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "trades.reduce",
+          "lineNumber": 78
+        },
+        {
+          "caller": "evaluateSmallCapPeriod",
+          "callee": "trades.reduce",
+          "lineNumber": 79
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "smallcap-reversal.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 272,
+      "nonEmptyLines": 249,
+      "functions": [
+        {
+          "name": "median",
+          "startLine": 71,
+          "endLine": 75,
+          "params": [
+            "values"
+          ]
+        },
+        {
+          "name": "mean",
+          "startLine": 77,
+          "endLine": 79,
+          "params": [
+            "values"
+          ]
+        },
+        {
+          "name": "volumeShock",
+          "startLine": 81,
+          "endLine": 88,
+          "params": [
+            "current",
+            "prior"
+          ]
+        },
+        {
+          "name": "eligibleCurrent",
+          "startLine": 90,
+          "endLine": 107,
+          "params": [
+            "current",
+            "signalTime",
+            "params"
+          ]
+        },
+        {
+          "name": "validateParams",
+          "startLine": 109,
+          "endLine": 122,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "buildSmallCapReversalSignals",
+          "startLine": 124,
+          "endLine": 204,
+          "params": [
+            "observations",
+            "signalTime",
+            "params"
+          ]
+        },
+        {
+          "name": "quotePassiveOrder",
+          "startLine": 230,
+          "endLine": 246,
+          "params": [
+            "signal",
+            "book",
+            "ttlMs"
+          ]
+        },
+        {
+          "name": "simulateConservativeMakerFill",
+          "startLine": 254,
+          "endLine": 272,
+          "params": [
+            "order",
+            "trades"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SMALLCAP_REVERSAL_DEFAULTS",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "buildSmallCapReversalSignals",
+          "line": 124,
+          "isDefault": false
+        },
+        {
+          "name": "quotePassiveOrder",
+          "line": 230,
+          "isDefault": false
+        },
+        {
+          "name": "simulateConservativeMakerFill",
+          "line": 254,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "median",
+          "callee": "[...values].sort",
+          "lineNumber": 72
+        },
+        {
+          "caller": "mean",
+          "callee": "values.reduce",
+          "lineNumber": 78
+        },
+        {
+          "caller": "volumeShock",
+          "callee": "prior.map",
+          "lineNumber": 82
+        },
+        {
+          "caller": "volumeShock",
+          "callee": "mean",
+          "lineNumber": 83
+        },
+        {
+          "caller": "volumeShock",
+          "callee": "mean",
+          "lineNumber": 84
+        },
+        {
+          "caller": "volumeShock",
+          "callee": "values.map",
+          "lineNumber": 84
+        },
+        {
+          "caller": "volumeShock",
+          "callee": "Math.sqrt",
+          "lineNumber": 85
+        },
+        {
+          "caller": "volumeShock",
+          "callee": "Math.log",
+          "lineNumber": 87
+        },
+        {
+          "caller": "validateParams",
+          "callee": "Number.isInteger",
+          "lineNumber": 119
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "validateParams",
+          "lineNumber": 129
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "observation.symbol.toLowerCase",
+          "lineNumber": 133
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "histories.get",
+          "lineNumber": 134
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "rows.push",
+          "lineNumber": 135
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "histories.set",
+          "lineNumber": 136
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...unsorted].sort",
+          "lineNumber": 141
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "rows.findIndex",
+          "lineNumber": 142
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "eligibleCurrent",
+          "lineNumber": 145
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "rows\n      .slice(index - params.volumeLookbackDays, index)\n      .map",
+          "lineNumber": 148
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "rows\n      .slice",
+          "lineNumber": 148
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "priorVolumes.some",
+          "lineNumber": 151
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "volumeShock",
+          "lineNumber": 152
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "Number.isFinite",
+          "lineNumber": 153
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "Math.abs",
+          "lineNumber": 154
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "raw.push",
+          "lineNumber": 156
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "median",
+          "lineNumber": 167
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "raw.map",
+          "lineNumber": 167
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "raw.map",
+          "lineNumber": 168
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "Math.max",
+          "lineNumber": 173
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "Math.floor",
+          "lineNumber": 175
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...features]\n    .sort((a, b) => a.volumeShockZ - b.volumeShockZ || a.symbol.localeCompare(b.symbol))\n    .slice",
+          "lineNumber": 177
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...features]\n    .sort",
+          "lineNumber": 177
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "a.symbol.localeCompare",
+          "lineNumber": 178
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...lowVolume]\n    .sort((a, b) => a.residualReturn - b.residualReturn || a.symbol.localeCompare(b.symbol))\n    .slice",
+          "lineNumber": 182
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...lowVolume]\n    .sort",
+          "lineNumber": 182
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "a.symbol.localeCompare",
+          "lineNumber": 183
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "longs.map",
+          "lineNumber": 185
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...lowVolume]\n    .filter((feature) => feature.shortable && !longSymbols.has(feature.symbol))\n    .sort((a, b) => b.residualReturn - a.residualReturn || a.symbol.localeCompare(b.symbol))\n    .slice",
+          "lineNumber": 186
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...lowVolume]\n    .filter((feature) => feature.shortable && !longSymbols.has(feature.symbol))\n    .sort",
+          "lineNumber": 186
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "[...lowVolume]\n    .filter",
+          "lineNumber": 186
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "longSymbols.has",
+          "lineNumber": 187
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "a.symbol.localeCompare",
+          "lineNumber": 188
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "longs.map",
+          "lineNumber": 193
+        },
+        {
+          "caller": "buildSmallCapReversalSignals",
+          "callee": "shorts.map",
+          "lineNumber": 198
+        },
+        {
+          "caller": "simulateConservativeMakerFill",
+          "callee": "trades\n    .filter((trade) => trade.tradedAt >= order.placedAt && trade.tradedAt <= order.expiresAt)\n    .sort",
+          "lineNumber": 263
+        },
+        {
+          "caller": "simulateConservativeMakerFill",
+          "callee": "trades\n    .filter",
+          "lineNumber": 263
+        },
+        {
+          "caller": "simulateConservativeMakerFill",
+          "callee": "ordered.find",
+          "lineNumber": 266
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "smallcap-supply.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 177,
+      "nonEmptyLines": 165,
+      "functions": [
+        {
+          "name": "percentileRanks",
+          "startLine": 70,
+          "endLine": 83,
+          "params": [
+            "values"
+          ]
+        },
+        {
+          "name": "eligible",
+          "startLine": 85,
+          "endLine": 99,
+          "params": [
+            "observation",
+            "params"
+          ]
+        },
+        {
+          "name": "buildSmallCapSupplySignals",
+          "startLine": 101,
+          "endLine": 177,
+          "params": [
+            "observations",
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SMALLCAP_SUPPLY_DEFAULTS",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "buildSmallCapSupplySignals",
+          "line": 101,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "percentileRanks",
+          "callee": "values.map((value, index) => ({ value, index }))\n    .sort",
+          "lineNumber": 72
+        },
+        {
+          "caller": "percentileRanks",
+          "callee": "values.map",
+          "lineNumber": 72
+        },
+        {
+          "caller": "percentileRanks",
+          "callee": "Array(values.length).fill",
+          "lineNumber": 74
+        },
+        {
+          "caller": "percentileRanks",
+          "callee": "Array",
+          "lineNumber": 74
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "Number.isInteger",
+          "lineNumber": 105
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "observations.map",
+          "lineNumber": 111
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "observations\n    .filter((observation) => eligible(observation, params))\n    .sort",
+          "lineNumber": 114
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "observations\n    .filter",
+          "lineNumber": 114
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "eligible",
+          "lineNumber": 115
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "a.symbol.localeCompare",
+          "lineNumber": 116
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "eligibleRows.map",
+          "lineNumber": 119
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "Math.max",
+          "lineNumber": 121
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "percentileRanks",
+          "lineNumber": 126
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "features.map",
+          "lineNumber": 126
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "percentileRanks",
+          "lineNumber": 127
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "features.map",
+          "lineNumber": 127
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "percentileRanks",
+          "lineNumber": 128
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "features.map",
+          "lineNumber": 128
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "percentileRanks",
+          "lineNumber": 129
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "features.map",
+          "lineNumber": 129
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "percentileRanks",
+          "lineNumber": 130
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "features.map",
+          "lineNumber": 130
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "features.map",
+          "lineNumber": 131
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "[...ranked]\n    .filter(({ feature }) => !params.requirePositiveUsageForLong\n      || feature.observation.usageGrowth12Weeks > 0)\n    .sort((a, b) => a.pressureScore - b.pressureScore\n      || a.feature.observation.symbol.localeCompare(b.feature.observation.symbol))\n    .slice",
+          "lineNumber": 142
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "[...ranked]\n    .filter(({ feature }) => !params.requirePositiveUsageForLong\n      || feature.observation.usageGrowth12Weeks > 0)\n    .sort",
+          "lineNumber": 142
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "[...ranked]\n    .filter",
+          "lineNumber": 142
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "a.feature.observation.symbol.localeCompare",
+          "lineNumber": 146
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "longs.map",
+          "lineNumber": 148
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "[...ranked]\n    .filter(({ feature }) => feature.observation.shortable\n      && !longSymbols.has(feature.observation.symbol))\n    .sort((a, b) => b.pressureScore - a.pressureScore\n      || a.feature.observation.symbol.localeCompare(b.feature.observation.symbol))\n    .slice",
+          "lineNumber": 149
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "[...ranked]\n    .filter(({ feature }) => feature.observation.shortable\n      && !longSymbols.has(feature.observation.symbol))\n    .sort",
+          "lineNumber": 149
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "[...ranked]\n    .filter",
+          "lineNumber": 149
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "longSymbols.has",
+          "lineNumber": 151
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "a.feature.observation.symbol.localeCompare",
+          "lineNumber": 153
+        },
+        {
+          "caller": "toSignal",
+          "callee": "item.feature.observation.symbol.toLowerCase",
+          "lineNumber": 162
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "longs.map",
+          "lineNumber": 174
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "toSignal",
+          "lineNumber": 174
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "shorts.map",
+          "lineNumber": 175
+        },
+        {
+          "caller": "buildSmallCapSupplySignals",
+          "callee": "toSignal",
+          "lineNumber": 175
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "test-smallcap-native.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 221,
+      "nonEmptyLines": 207,
+      "functions": [
+        {
+          "name": "reversalSeries",
+          "startLine": 18,
+          "endLine": 41,
+          "params": [
+            "symbol",
+            "finalReturn",
+            "finalVolume",
+            "overrides"
+          ]
+        },
+        {
+          "name": "testNativeReversalRankingAndQuarantine",
+          "startLine": 55,
+          "endLine": 80,
+          "params": []
+        },
+        {
+          "name": "testConservativeMakerFill",
+          "startLine": 82,
+          "endLine": 112,
+          "params": []
+        },
+        {
+          "name": "supply",
+          "startLine": 114,
+          "endLine": 134,
+          "params": [
+            "symbol",
+            "values",
+            "overrides"
+          ]
+        },
+        {
+          "name": "testSupplyPressureRanking",
+          "startLine": 136,
+          "endLine": 199,
+          "params": []
+        },
+        {
+          "name": "testResearchCostStress",
+          "startLine": 201,
+          "endLine": 215,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "reversalSeries",
+          "callee": "closes.map",
+          "lineNumber": 25
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 57
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 58
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 59
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 60
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 61
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 62
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "buildSmallCapReversalSignals",
+          "lineNumber": 64
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "assert.deepEqual",
+          "lineNumber": 65
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "signals.map",
+          "lineNumber": 66
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "assert.ok",
+          "lineNumber": 69
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "signals.every",
+          "lineNumber": 69
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "assert.equal",
+          "lineNumber": 70
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "signals.reduce",
+          "lineNumber": 70
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "buildSmallCapReversalSignals",
+          "lineNumber": 72
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries(\"loser\", 0.80, 1_000).map",
+          "lineNumber": 74
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "reversalSeries",
+          "lineNumber": 74
+        },
+        {
+          "caller": "testNativeReversalRankingAndQuarantine",
+          "callee": "assert.deepEqual",
+          "lineNumber": 79
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "buildSmallCapReversalSignals",
+          "lineNumber": 83
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "reversalSeries",
+          "lineNumber": 84
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "reversalSeries",
+          "lineNumber": 85
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "reversalSeries",
+          "lineNumber": 86
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "reversalSeries",
+          "lineNumber": 87
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "quotePassiveOrder",
+          "lineNumber": 89
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "assert.equal",
+          "lineNumber": 94
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "simulateConservativeMakerFill",
+          "lineNumber": 96
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "assert.equal",
+          "lineNumber": 102
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "simulateConservativeMakerFill",
+          "lineNumber": 104
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "assert.equal",
+          "lineNumber": 110
+        },
+        {
+          "caller": "testConservativeMakerFill",
+          "callee": "assert.equal",
+          "lineNumber": 111
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "supply",
+          "lineNumber": 137
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "supply",
+          "lineNumber": 145
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "supply",
+          "lineNumber": 156
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "supply",
+          "lineNumber": 160
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "buildSmallCapSupplySignals",
+          "lineNumber": 165
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "assert.deepEqual",
+          "lineNumber": 171
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "signals.map",
+          "lineNumber": 172
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "assert.ok",
+          "lineNumber": 175
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "assert.equal",
+          "lineNumber": 176
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "signals.reduce",
+          "lineNumber": 176
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "buildSmallCapSupplySignals",
+          "lineNumber": 178
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "observations.slice",
+          "lineNumber": 181
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "assert.ok",
+          "lineNumber": 188
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "withoutShort.some",
+          "lineNumber": 188
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "assert.throws",
+          "lineNumber": 190
+        },
+        {
+          "caller": "testSupplyPressureRanking",
+          "callee": "buildSmallCapSupplySignals",
+          "lineNumber": 190
+        },
+        {
+          "caller": "testResearchCostStress",
+          "callee": "evaluateSmallCapPeriod",
+          "lineNumber": 207
+        },
+        {
+          "caller": "testResearchCostStress",
+          "callee": "evaluateSmallCapPeriod",
+          "lineNumber": 208
+        },
+        {
+          "caller": "testResearchCostStress",
+          "callee": "assert.equal",
+          "lineNumber": 209
+        },
+        {
+          "caller": "testResearchCostStress",
+          "callee": "assert.ok",
+          "lineNumber": 210
+        },
+        {
+          "caller": "testResearchCostStress",
+          "callee": "assert.equal",
+          "lineNumber": 211
+        },
+        {
+          "caller": "testResearchCostStress",
+          "callee": "evaluateSmallCapPeriod",
+          "lineNumber": 211
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    }
+  ]
+}

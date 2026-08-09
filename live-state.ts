@@ -14,9 +14,11 @@
  */
 import fs from "fs";
 import path from "path";
+import { atomicWriteFileSync } from "./atomic-file";
 
-const STATE_FILE = path.join(process.cwd(), "bot-state.json");
-const JOURNAL_FILE = path.join(process.cwd(), "trades-live.jsonl");
+const DATA_DIR = path.resolve(process.env.TRADING_DATA_DIR?.trim() || process.cwd());
+const STATE_FILE = path.join(DATA_DIR, "bot-state.json");
+const JOURNAL_FILE = path.join(DATA_DIR, "trades-live.jsonl");
 
 export type PersistedLivePos = {
   dir: "long" | "short";
@@ -55,7 +57,7 @@ export function loadState(): Record<string, PersistedSymbol> {
 
 export function saveState(states: PersistedSymbol[]): void {
   try {
-    fs.writeFileSync(STATE_FILE, JSON.stringify(states, null, 2));
+    atomicWriteFileSync(STATE_FILE, JSON.stringify(states, null, 2));
   } catch (e) {
     console.error("[State] ghi bot-state.json lỗi:", e instanceof Error ? e.message : e);
   }

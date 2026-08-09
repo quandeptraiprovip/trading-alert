@@ -1,8 +1,9 @@
 # Chạy cả BOT alert đa-symbol + CHART perpetual bằng Docker.
 #
-#   # LẦN ĐẦU: tạo sẵn file state (bind-mount file chưa tồn tại → Docker tạo THƯ MỤC làm hỏng bot)
-#   touch bot-state.json trades-live.jsonl turtle-state.json turtle-trades.jsonl fast-trend-state.json fast-trend-trades.jsonl
-#   mkdir -p fast-trend-mexc-runtime
+#   # LẦN ĐẦU: state atomic cần mount cả thư mục, không bind-mount từng file.
+#   mkdir -p trading-runtime fast-trend-mexc-runtime
+#   touch trading-runtime/bot-state.json trading-runtime/trades-live.jsonl \
+#         trading-runtime/turtle-state.json trading-runtime/turtle-trades.jsonl
 #
 #   docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
 #   docker compose logs -f swing-bot  # xem log bot (tìm "🐢 Turtle:" và "THỰC THI BẬT")
@@ -20,15 +21,14 @@ services:
     env_file: .env.local
     environment:
       TZ: Asia/Ho_Chi_Minh
+      TRADING_DATA_DIR: /app/trading-runtime
       FAST_TREND_DATA_DIR: /app/fast-trend-mexc-runtime
     dns:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - ./bot-state.json:/app/bot-state.json
-      - ./trades-live.jsonl:/app/trades-live.jsonl
-      - ./turtle-state.json:/app/turtle-state.json
-      - ./turtle-trades.jsonl:/app/turtle-trades.jsonl
+      # Mount directory để SMC/Turtle có thể temp+fsync+rename atomic.
+      - ./trading-runtime:/app/trading-runtime
       - ./fast-trend-state.json:/app/fast-trend-state.json
       - ./fast-trend-trades.jsonl:/app/fast-trend-trades.jsonl
       # Mount the directory, not each file: Fast persists with atomic temp+rename.
@@ -60,12 +60,12 @@ services:
     env_file: .env.local
     environment:
       TZ: Asia/Ho_Chi_Minh
+      TRADING_DATA_DIR: /app/trading-runtime
     dns:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - ./bot-state.json:/app/bot-state.json:ro
-      - ./trades-live.jsonl:/app/trades-live.jsonl:ro
+      - ./trading-runtime:/app/trading-runtime:ro
     ports:
       - "127.0.0.1:3848:3848"
     restart: unless-stopped

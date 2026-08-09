@@ -1,0 +1,15 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {"path": "alt-trend.ts", "language": "typescript", "sizeLines": 378, "fileCategory": "code"},
+    {"path": "scripts/alt-trend-backtest.ts", "language": "typescript", "sizeLines": 174, "fileCategory": "code"},
+    {"path": "scripts/alt-universe-scanner.ts", "language": "typescript", "sizeLines": 179, "fileCategory": "code"},
+    {"path": "test-alt-trend.ts", "language": "typescript", "sizeLines": 152, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "alt-trend.ts": ["strategy.ts"],
+    "scripts/alt-trend-backtest.ts": ["alt-trend.ts", "kline-fetch.ts", "strategy.ts"],
+    "scripts/alt-universe-scanner.ts": ["alt-trend.ts"],
+    "test-alt-trend.ts": ["alt-trend.ts", "strategy.ts"]
+  }
+}

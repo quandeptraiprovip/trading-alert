@@ -28,8 +28,9 @@ for (const level of ["log", "warn", "error"] as const) {
 }
 
 const PORT = parseInt(process.argv[2] ?? "3848", 10);
-const STATE_FILE = path.join(process.cwd(), "bot-state.json");
-const JOURNAL_FILE = path.join(process.cwd(), "trades-live.jsonl");
+const DATA_DIR = path.resolve(process.env.TRADING_DATA_DIR?.trim() || process.cwd());
+const STATE_FILE = path.join(DATA_DIR, "bot-state.json");
+const JOURNAL_FILE = path.join(DATA_DIR, "trades-live.jsonl");
 
 const TRADING_ENABLED = (process.env.TRADING_ENABLED ?? "false").toLowerCase() === "true";
 const TESTNET = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";

@@ -1,0 +1,5593 @@
+{
+  "fileNodes": [
+    {
+      "id": "file:backtest.ts",
+      "type": "file",
+      "name": "backtest.ts",
+      "filePath": "backtest.ts",
+      "summary": "Cung cấp engine backtest chung: tải dữ liệu nến, mô phỏng giao dịch, bootstrap và Monte Carlo để đánh giá độ bền của chiến lược.",
+      "tags": [
+        "backtest",
+        "simulation",
+        "statistics",
+        "research"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:exp-overfit.ts",
+      "type": "file",
+      "name": "exp-overfit.ts",
+      "filePath": "exp-overfit.ts",
+      "summary": "Chạy thí nghiệm overfit cho chiến lược nền, so sánh các cấu hình trên dữ liệu lịch sử và tổng hợp kết quả.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:exp-turtle-overfit.ts",
+      "type": "file",
+      "name": "exp-turtle-overfit.ts",
+      "filePath": "exp-turtle-overfit.ts",
+      "summary": "Đánh giá nguy cơ overfit của Turtle strategy bằng các biến thể cấu hình và kết quả backtest có thể đối chiếu.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:load-env.ts",
+      "type": "file",
+      "name": "load-env.ts",
+      "filePath": "load-env.ts",
+      "summary": "Nạp biến môi trường từ tệp `.env` vào runtime để các script và bot dùng chung cấu hình cục bộ.",
+      "tags": [
+        "configuration",
+        "environment",
+        "bootstrap"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/coin-features.ts",
+      "type": "file",
+      "name": "coin-features.ts",
+      "filePath": "scripts/coin-features.ts",
+      "summary": "Trích xuất feature theo từng coin, gồm hành vi giá và hiệu quả xu hướng, để phân tích khác biệt hiệu suất giữa các symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/coin-fit.ts",
+      "type": "file",
+      "name": "coin-fit.ts",
+      "filePath": "scripts/coin-fit.ts",
+      "summary": "Đo độ phù hợp của chiến lược theo từng coin và xếp hạng kết quả backtest để nhận diện universe phù hợp.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/confirm-quality-gate.ts",
+      "type": "file",
+      "name": "confirm-quality-gate.ts",
+      "filePath": "scripts/confirm-quality-gate.ts",
+      "summary": "Kiểm định quality gate của tín hiệu xác nhận bằng cách so sánh hiệu suất các nhóm setup trên cùng dữ liệu backtest.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/cross-asset-2817.ts",
+      "type": "file",
+      "name": "cross-asset-2817.ts",
+      "filePath": "scripts/cross-asset-2817.ts",
+      "summary": "Đánh giá cấu hình cross-asset mang nhãn 28/17 trên nhiều symbol và tổng hợp độ ổn định của kết quả.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/cross-asset-baseline.ts",
+      "type": "file",
+      "name": "cross-asset-baseline.ts",
+      "filePath": "scripts/cross-asset-baseline.ts",
+      "summary": "Thiết lập baseline cross-asset để so sánh nhất quán các thử nghiệm chiến lược trên nhiều symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/entry-frequency-sweep.ts",
+      "type": "file",
+      "name": "entry-frequency-sweep.ts",
+      "filePath": "scripts/entry-frequency-sweep.ts",
+      "summary": "Quét các tham số ảnh hưởng đến tần suất entry và báo cáo trade-off giữa số lệnh, lợi nhuận và drawdown.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/entry-volume-audit.ts",
+      "type": "file",
+      "name": "entry-volume-audit.ts",
+      "filePath": "scripts/entry-volume-audit.ts",
+      "summary": "Audit tác động của volume tại entry theo bucket và dùng paired weekly bootstrap để kiểm tra độ tin cậy thống kê.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/exit-sweep.ts",
+      "type": "file",
+      "name": "exit-sweep.ts",
+      "filePath": "scripts/exit-sweep.ts",
+      "summary": "Quét các biến thể exit trên basket backtest và so sánh kết quả net sau chi phí giao dịch.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/extreme-volume-retest-audit.ts",
+      "type": "file",
+      "name": "extreme-volume-retest-audit.ts",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "summary": "Phân tích chuyên sâu setup extreme-volume retest, từ HTF alignment và xác nhận entry đến mô phỏng stop, bootstrap và báo cáo confluence.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/ftr-experiments.ts",
+      "type": "file",
+      "name": "ftr-experiments.ts",
+      "filePath": "scripts/ftr-experiments.ts",
+      "summary": "Chạy nhóm thí nghiệm FTR trên dữ liệu backtest để so sánh các biến thể tín hiệu và tham số.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/liquidity-experiments.ts",
+      "type": "file",
+      "name": "liquidity-experiments.ts",
+      "filePath": "scripts/liquidity-experiments.ts",
+      "summary": "Thử nghiệm các điều kiện liquidity trong logic entry và đo ảnh hưởng của chúng lên chất lượng giao dịch.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/liquidity-rule-validate.ts",
+      "type": "file",
+      "name": "liquidity-rule-validate.ts",
+      "filePath": "scripts/liquidity-rule-validate.ts",
+      "summary": "Xác thực một liquidity rule đề xuất trên nhiều symbol trước khi đưa vào chiến lược chính.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/liquidity-soft.ts",
+      "type": "file",
+      "name": "liquidity-soft.ts",
+      "filePath": "scripts/liquidity-soft.ts",
+      "summary": "Đánh giá phiên bản soft gate cho liquidity nhằm giảm tín hiệu yếu mà không loại bỏ quá nhiều cơ hội.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/maxhold-validate.ts",
+      "type": "file",
+      "name": "maxhold-validate.ts",
+      "filePath": "scripts/maxhold-validate.ts",
+      "summary": "Kiểm định giới hạn thời gian giữ lệnh (`max hold`) bằng kết quả net trên nhiều cửa sổ backtest.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/mm-experiments.ts",
+      "type": "file",
+      "name": "mm-experiments.ts",
+      "filePath": "scripts/mm-experiments.ts",
+      "summary": "Chạy các thí nghiệm money management để so sánh quy tắc phân bổ risk và ảnh hưởng đến danh mục.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/mm-sizing.ts",
+      "type": "file",
+      "name": "mm-sizing.ts",
+      "filePath": "scripts/mm-sizing.ts",
+      "summary": "Phân tích position sizing có trọng số và tổng hợp tác động của từng cách sizing lên net return.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/overfit-audit.ts",
+      "type": "file",
+      "name": "overfit-audit.ts",
+      "filePath": "scripts/overfit-audit.ts",
+      "summary": "Audit độ bền của các candidate strategy bằng các lát cắt dữ liệu và tiêu chí phát hiện overfit.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/portfolio-basket.ts",
+      "type": "file",
+      "name": "portfolio-basket.ts",
+      "filePath": "scripts/portfolio-basket.ts",
+      "summary": "Mô phỏng basket portfolio, đo mức chồng lấp vị thế, tương quan và max drawdown để đánh giá diversification.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/pullback-zone-gate.ts",
+      "type": "file",
+      "name": "pullback-zone-gate.ts",
+      "filePath": "scripts/pullback-zone-gate.ts",
+      "summary": "Kiểm định gate yêu cầu pullback quay lại vùng giá trước khi cho phép entry.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/symbol-correlation.ts",
+      "type": "file",
+      "name": "symbol-correlation.ts",
+      "filePath": "scripts/symbol-correlation.ts",
+      "summary": "Tính tương quan lợi nhuận giữa các symbol và mức tương quan trung bình của basket chiến lược.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-baseline-sig.ts",
+      "type": "file",
+      "name": "turtle-baseline-sig.ts",
+      "filePath": "scripts/turtle-baseline-sig.ts",
+      "summary": "Đo statistical significance của Turtle baseline để làm mốc cho các cải tiến tiếp theo.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/turtle-prefetch.ts",
+      "type": "file",
+      "name": "turtle-prefetch.ts",
+      "filePath": "scripts/turtle-prefetch.ts",
+      "summary": "Prefetch dữ liệu nến cần cho các backtest Turtle nhằm giảm thời gian chạy thí nghiệm lặp lại.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/volume-sweep.ts",
+      "type": "file",
+      "name": "volume-sweep.ts",
+      "filePath": "scripts/volume-sweep.ts",
+      "summary": "Quét ngưỡng volume của tín hiệu entry và so sánh hiệu suất giữa các cấu hình.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-3.ts",
+      "type": "file",
+      "name": "weakness-gate-3.ts",
+      "filePath": "scripts/weakness-gate-3.ts",
+      "summary": "Đánh giá biến thể thứ ba của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-4.ts",
+      "type": "file",
+      "name": "weakness-gate-4.ts",
+      "filePath": "scripts/weakness-gate-4.ts",
+      "summary": "Đánh giá biến thể thứ tư của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-5.ts",
+      "type": "file",
+      "name": "weakness-gate-5.ts",
+      "filePath": "scripts/weakness-gate-5.ts",
+      "summary": "Đánh giá biến thể thứ năm của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-6.ts",
+      "type": "file",
+      "name": "weakness-gate-6.ts",
+      "filePath": "scripts/weakness-gate-6.ts",
+      "summary": "Đánh giá biến thể thứ sáu của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-7.ts",
+      "type": "file",
+      "name": "weakness-gate-7.ts",
+      "filePath": "scripts/weakness-gate-7.ts",
+      "summary": "Đánh giá biến thể thứ bảy của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-8.ts",
+      "type": "file",
+      "name": "weakness-gate-8.ts",
+      "filePath": "scripts/weakness-gate-8.ts",
+      "summary": "Chạy kiểm tra gọn cho biến thể thứ tám của weakness gate bằng các primitive backtest dùng chung.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/whale-sweep.ts",
+      "type": "file",
+      "name": "whale-sweep.ts",
+      "filePath": "scripts/whale-sweep.ts",
+      "summary": "Quét các ngưỡng nhận diện hoạt động whale và đo tác động của chúng lên chất lượng entry.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:strategy.ts",
+      "type": "file",
+      "name": "strategy.ts",
+      "filePath": "strategy.ts",
+      "summary": "Định nghĩa lõi signal strategy dùng chung: tổng hợp nến đa khung, phân tích market structure và volume, dựng zone/FVG, chấm quality và đánh giá entry.",
+      "tags": [
+        "strategy",
+        "signal-generation",
+        "market-structure",
+        "volume-analysis"
+      ],
+      "complexity": "complex",
+      "languageNotes": "TypeScript được tổ chức quanh các pure function có typed domain model; `SetupTracker` giữ phần stateful riêng biệt."
+    },
+    {
+      "id": "file:exp-turtle-improve.ts",
+      "type": "file",
+      "name": "exp-turtle-improve.ts",
+      "filePath": "exp-turtle-improve.ts",
+      "summary": "Chạy thí nghiệm cải thiện Turtle strategy và so sánh trực tiếp các candidate với baseline backtest.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/audit-candidates.ts",
+      "type": "file",
+      "name": "audit-candidates.ts",
+      "filePath": "scripts/audit-candidates.ts",
+      "summary": "Audit các candidate portfolio/Turtle bằng cùng engine, gate và thống kê để chọn cấu hình có độ bền tốt hơn.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-direction.ts",
+      "type": "file",
+      "name": "exp-direction.ts",
+      "filePath": "scripts/exp-direction.ts",
+      "summary": "Thử nghiệm policy theo hướng long/short và đo đóng góp của từng direction vào hiệu suất danh mục.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-exit-pyramid.ts",
+      "type": "file",
+      "name": "exp-exit-pyramid.ts",
+      "filePath": "scripts/exp-exit-pyramid.ts",
+      "summary": "Đánh giá tương tác giữa exit policy và pyramid entries trong Turtle portfolio.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-exit-ratio.ts",
+      "type": "file",
+      "name": "exp-exit-ratio.ts",
+      "filePath": "scripts/exp-exit-ratio.ts",
+      "summary": "Quét tỷ lệ exit và so sánh Sharpe cùng các portfolio metric giữa những cấu hình.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-heat-shape.ts",
+      "type": "file",
+      "name": "exp-heat-shape.ts",
+      "filePath": "scripts/exp-heat-shape.ts",
+      "summary": "Thử nghiệm cách phân bổ portfolio heat theo hình dạng khác nhau để kiểm soát concentration risk.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-joint-audit.ts",
+      "type": "file",
+      "name": "exp-joint-audit.ts",
+      "filePath": "scripts/exp-joint-audit.ts",
+      "summary": "Audit đồng thời nhiều lever của portfolio nhằm phát hiện cải thiện phụ thuộc lẫn nhau hoặc không bền.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-placebo.ts",
+      "type": "file",
+      "name": "exp-placebo.ts",
+      "filePath": "scripts/exp-placebo.ts",
+      "summary": "Chạy placebo experiments để kiểm tra liệu cải thiện quan sát được có vượt nhiễu và lựa chọn ngẫu nhiên hay không.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-portfolio-caps.ts",
+      "type": "file",
+      "name": "exp-portfolio-caps.ts",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "summary": "Định nghĩa và đánh giá hard cap, soft cap, decay và volatility targeting cho portfolio risk.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-portfolio-levers.ts",
+      "type": "file",
+      "name": "exp-portfolio-levers.ts",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "summary": "So sánh tuần tự các nhóm portfolio lever trên dữ liệu đã tải và báo cáo đóng góp của từng lớp thay đổi.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/fast-trend-audit.ts",
+      "type": "file",
+      "name": "fast-trend-audit.ts",
+      "filePath": "scripts/fast-trend-audit.ts",
+      "summary": "Audit Fast Trend strategy trên backtest để kiểm tra chất lượng và độ bền của tín hiệu.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/portfolio-engine.ts",
+      "type": "file",
+      "name": "portfolio-engine.ts",
+      "filePath": "scripts/portfolio-engine.ts",
+      "summary": "Cung cấp engine mô phỏng Turtle portfolio, quản lý nhiều book, compound equity, hiệu chỉnh risk theo target drawdown và tính portfolio stats.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Các type và pure calculation tách khỏi vòng lặp mô phỏng, giúp tái sử dụng cùng engine cho nhiều experiment."
+    },
+    {
+      "id": "file:scripts/portfolio-equivalence.ts",
+      "type": "file",
+      "name": "portfolio-equivalence.ts",
+      "filePath": "scripts/portfolio-equivalence.ts",
+      "summary": "Chuẩn hóa cách nạp basket và dựng gate để các thí nghiệm portfolio dùng dữ liệu và điều kiện tương đương.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-attribution.ts",
+      "type": "file",
+      "name": "turtle-attribution.ts",
+      "filePath": "scripts/turtle-attribution.ts",
+      "summary": "Phân rã kết quả Turtle portfolio theo thành phần để xác định nguồn đóng góp lợi nhuận và rủi ro.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-before-after.ts",
+      "type": "file",
+      "name": "turtle-before-after.ts",
+      "filePath": "scripts/turtle-before-after.ts",
+      "summary": "So sánh before/after cho một tập thay đổi Turtle bằng cùng dữ liệu, portfolio engine và metric.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:turtle.ts",
+      "type": "file",
+      "name": "turtle.ts",
+      "filePath": "turtle.ts",
+      "summary": "Cài đặt Turtle strategy dùng Donchian breakout, ATR, BTC gate, initial stop và logic mô phỏng/report cho backtest.",
+      "tags": [
+        "strategy",
+        "turtle-trading",
+        "backtest",
+        "risk-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:exp-turtle-levers.ts",
+      "type": "file",
+      "name": "exp-turtle-levers.ts",
+      "filePath": "exp-turtle-levers.ts",
+      "summary": "Quét các lever của Turtle strategy trên dữ liệu nhiều symbol và định dạng bảng metric để so sánh candidate.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:key-volume-backtest.ts",
+      "type": "file",
+      "name": "key-volume-backtest.ts",
+      "filePath": "key-volume-backtest.ts",
+      "summary": "Điều phối backtest Key Volume, áp leverage cap, tổng hợp diagnostics theo symbol và dùng weekly bootstrap để đánh giá kết quả.",
+      "tags": [
+        "backtest",
+        "simulation",
+        "statistics",
+        "research"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:key-volume.ts",
+      "type": "file",
+      "name": "key-volume.ts",
+      "filePath": "key-volume.ts",
+      "summary": "Cài đặt Key Volume strategy hoàn chỉnh: phát hiện level, chọn retest/confluence, xác nhận candle, dựng trade plan và mô phỏng vòng đời lệnh.",
+      "tags": [
+        "strategy",
+        "key-volume",
+        "state-machine",
+        "signal-generation"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Typed configuration và các helper thuần được ghép thành một state machine mô phỏng trade plan nhiều giai đoạn."
+    },
+    {
+      "id": "file:kline-fetch.ts",
+      "type": "file",
+      "name": "kline-fetch.ts",
+      "filePath": "kline-fetch.ts",
+      "summary": "Tải dữ liệu kline theo trang với cache cục bộ, parallel fetch, backfill phần cũ và cập nhật phần mới.",
+      "tags": [
+        "market-data",
+        "data-fetching",
+        "cache",
+        "pagination"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/cross-sectional-basis.ts",
+      "type": "file",
+      "name": "cross-sectional-basis.ts",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "summary": "Nghiên cứu cross-sectional basis bằng funding/premium data, mô phỏng tín hiệu và block bootstrap kết quả.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/daily-relative-momentum.ts",
+      "type": "file",
+      "name": "daily-relative-momentum.ts",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "summary": "Nghiên cứu daily relative momentum trên nhiều symbol, mô phỏng portfolio và kiểm tra độ bền bằng block bootstrap.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/dedup-crossvenue-impact.ts",
+      "type": "file",
+      "name": "dedup-crossvenue-impact.ts",
+      "filePath": "scripts/dedup-crossvenue-impact.ts",
+      "summary": "Đo tác động của việc deduplicate position giữa nhiều venue đối với exposure và kết quả Turtle.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/funding-tail-reversal.ts",
+      "type": "file",
+      "name": "funding-tail-reversal.ts",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "summary": "Nghiên cứu funding-tail reversal bằng dữ liệu funding, ATR, cashflow theo R và backtest theo symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/key-volume-ablation.ts",
+      "type": "file",
+      "name": "key-volume-ablation.ts",
+      "filePath": "scripts/key-volume-ablation.ts",
+      "summary": "Thực hiện ablation study cho Key Volume strategy, tách ảnh hưởng của từng rule lên frequency và payoff.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/key-volume-method-audit.ts",
+      "type": "file",
+      "name": "key-volume-method-audit.ts",
+      "filePath": "scripts/key-volume-method-audit.ts",
+      "summary": "Audit phương pháp Key Volume bằng cấu hình backtest thống nhất và các summary metric có thể so sánh.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/quarter-hour-order-flow.ts",
+      "type": "file",
+      "name": "quarter-hour-order-flow.ts",
+      "filePath": "scripts/quarter-hour-order-flow.ts",
+      "summary": "Nghiên cứu order flow theo khung 15 phút, kết hợp realized volatility với mô phỏng và metric theo symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-era-diagnosis.ts",
+      "type": "file",
+      "name": "turtle-era-diagnosis.ts",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "summary": "Chẩn đoán hiệu suất Turtle theo era, market regime, MFE và counterfactual gate bằng bootstrap và breakdown chi tiết.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/turtle-losing-streak.ts",
+      "type": "file",
+      "name": "turtle-losing-streak.ts",
+      "filePath": "scripts/turtle-losing-streak.ts",
+      "summary": "Tính chuỗi thua liên tiếp của Turtle trên dữ liệu nhiều symbol để định lượng tail risk vận hành.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/turtle-overfit-ablation.ts",
+      "type": "file",
+      "name": "turtle-overfit-ablation.ts",
+      "filePath": "scripts/turtle-overfit-ablation.ts",
+      "summary": "Thực hiện ablation các cải tiến Turtle để phát hiện lever overfit hoặc thiếu đóng góp độc lập.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "type": "file",
+      "name": "turtle-pyramid-spotcheck.ts",
+      "filePath": "scripts/turtle-pyramid-spotcheck.ts",
+      "summary": "Spot-check logic pyramid của Turtle trên một tập dữ liệu nhỏ và in các sai khác đáng chú ý.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:test-key-volume.ts",
+      "type": "file",
+      "name": "test-key-volume.ts",
+      "filePath": "test-key-volume.ts",
+      "summary": "Bộ regression test cho Key Volume: no-lookahead, level activation, candle bias, reentry, leverage cap, retest state machine và các pattern xác nhận.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:binance-futures.ts",
+      "type": "file",
+      "name": "binance-futures.ts",
+      "filePath": "binance-futures.ts",
+      "summary": "Cung cấp typed REST client cho Binance Futures, bao gồm ký request, đồng bộ thời gian, đọc tài khoản/vị thế và quản lý order.",
+      "tags": [
+        "exchange-client",
+        "futures",
+        "order-execution",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:btc-alert-bot.ts",
+      "type": "file",
+      "name": "btc-alert-bot.ts",
+      "filePath": "btc-alert-bot.ts",
+      "summary": "Entry point của bot cảnh báo và giao dịch live; điều phối dữ liệu nến, signal strategy, state persistence, exchange execution, health monitoring và Telegram commands.",
+      "tags": [
+        "typescript",
+        "strategy",
+        "data-processing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:dashboard-server.ts",
+      "type": "file",
+      "name": "dashboard-server.ts",
+      "filePath": "dashboard-server.ts",
+      "summary": "Phục vụ dashboard read-only cho bot, kết hợp state/journal cục bộ với dữ liệu tài khoản Binance để hiển thị vị thế và thống kê giao dịch.",
+      "tags": [
+        "dashboard",
+        "monitoring",
+        "http-server",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:fast-trend-execution.ts",
+      "type": "file",
+      "name": "fast-trend-execution.ts",
+      "filePath": "fast-trend-execution.ts",
+      "summary": "Định nghĩa type và interface trung lập với venue cho các thao tác open, add, stop sync, flatten, reconcile và recovery của Fast Trend.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Interface mô hình hóa hành động cấp chiến lược thay vì làm lộ API order riêng của từng exchange."
+    },
+    {
+      "id": "file:fast-trend-live.ts",
+      "type": "file",
+      "name": "fast-trend-live.ts",
+      "filePath": "fast-trend-live.ts",
+      "summary": "Cài đặt state machine Fast Trend live, xử lý xác nhận short, quản lý vị thế/persistence và gọi execution adapter theo từng candle.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:live-state.ts",
+      "type": "file",
+      "name": "live-state.ts",
+      "filePath": "live-state.ts",
+      "summary": "Persist trạng thái vị thế live qua restart và ghi journal JSONL cho entry/exit để đối chiếu vận hành với backtest.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "State được serialize thành JSON và journal append-only JSONL để phục hồi sau restart và audit giao dịch."
+    },
+    {
+      "id": "file:live-trade.ts",
+      "type": "file",
+      "name": "live-trade.ts",
+      "filePath": "live-trade.ts",
+      "summary": "Điều phối order execution trên Binance, từ sizing và mở vị thế đến thay stop an toàn, reconcile và flatten.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:mexc-fast-execution.ts",
+      "type": "file",
+      "name": "mexc-fast-execution.ts",
+      "filePath": "mexc-fast-execution.ts",
+      "summary": "Adapter `FastExecution` cho MEXC, chuyển intent của chiến lược thành thao tác order idempotent và quản lý protection order.",
+      "tags": [
+        "exchange-client",
+        "futures",
+        "order-execution",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:mexc-futures.ts",
+      "type": "file",
+      "name": "mexc-futures.ts",
+      "filePath": "mexc-futures.ts",
+      "summary": "Cung cấp signed REST client cho MEXC Futures, chuẩn hóa symbol, tính contracts và quản lý account, position cùng order.",
+      "tags": [
+        "exchange-client",
+        "futures",
+        "order-execution",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:telegram-test.ts",
+      "type": "file",
+      "name": "telegram-test.ts",
+      "filePath": "telegram-test.ts",
+      "summary": "Smoke test cấu hình Telegram bằng cách nạp environment và gửi một test message thực tế.",
+      "tags": [
+        "telegram",
+        "notification",
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:telegram.ts",
+      "type": "file",
+      "name": "telegram.ts",
+      "filePath": "telegram.ts",
+      "summary": "Cung cấp Telegram integration cho bot: gửi retryable message, đọc updates và dựng thông báo startup, arm, entry, exit cùng trạng thái test.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:test-binance.ts",
+      "type": "file",
+      "name": "test-binance.ts",
+      "filePath": "test-binance.ts",
+      "summary": "Integration smoke test cho Binance Futures client, gồm kết nối, account data và các thao tác an toàn theo cấu hình test.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:test-live-trade.ts",
+      "type": "file",
+      "name": "test-live-trade.ts",
+      "filePath": "test-live-trade.ts",
+      "summary": "Regression test cho quy trình thay stop của `LiveTrader`, bao gồm rollback khi lỗi và kết quả order không rõ ràng.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:test-mexc.ts",
+      "type": "file",
+      "name": "test-mexc.ts",
+      "filePath": "test-mexc.ts",
+      "summary": "Kiểm thử execution flow và close direction ở one-way mode cho MEXC Fast Trend adapter.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:turtle-live.ts",
+      "type": "file",
+      "name": "turtle-live.ts",
+      "filePath": "turtle-live.ts",
+      "summary": "Cài đặt Turtle strategy live trên Binance, duy trì state theo candle và điều phối entry, pyramid, stop cùng Telegram notification.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/smallcap-native-research.ts",
+      "type": "file",
+      "name": "smallcap-native-research.ts",
+      "filePath": "scripts/smallcap-native-research.ts",
+      "summary": "Cung cấp offline runner cho các kỳ nghiên cứu small-cap reversal và supply, đọc snapshot point-in-time cục bộ rồi tổng hợp signal, maker fill và lợi nhuận sau chi phí.",
+      "tags": [
+        "entry-point",
+        "nghiên-cứu",
+        "small-cap",
+        "backtest",
+        "cli"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "TypeScript CLI dùng kiểu dữ liệu riêng cho từng kỳ nghiên cứu và không có network hoặc đường đặt lệnh live."
+    },
+    {
+      "id": "file:smallcap-research.ts",
+      "type": "file",
+      "name": "smallcap-research.ts",
+      "filePath": "smallcap-research.ts",
+      "summary": "Định nghĩa hợp đồng signal/result dùng chung và thực hiện portfolio accounting cho nghiên cứu small-cap, bao gồm normalized weights, exposure và chi phí giao dịch.",
+      "tags": [
+        "portfolio-accounting",
+        "nghiên-cứu",
+        "small-cap",
+        "type-definition"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Các interface TypeScript tách rõ target exposure, realized exposure và đóng góp gross/cost/net của từng giao dịch."
+    },
+    {
+      "id": "file:smallcap-reversal.ts",
+      "type": "file",
+      "name": "smallcap-reversal.ts",
+      "filePath": "smallcap-reversal.ts",
+      "summary": "Triển khai research engine reversal cho small-cap: lọc universe point-in-time, xếp hạng residual return trong nhóm volume shock thấp và mô phỏng passive maker fill bảo thủ.",
+      "tags": [
+        "chiến-lược",
+        "reversal",
+        "small-cap",
+        "xếp-hạng",
+        "maker-fill"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Dùng Map theo symbol để bảo toàn lịch sử point-in-time và deterministic tie-break bằng localeCompare khi xếp hạng cross-section."
+    },
+    {
+      "id": "file:smallcap-supply.ts",
+      "type": "file",
+      "name": "smallcap-supply.ts",
+      "filePath": "smallcap-supply.ts",
+      "summary": "Triển khai factor supply pressure point-in-time cho small-cap bằng rank của FDV premium, dilution, unlock, exchange inflow và usage growth để chọn cặp long/short.",
+      "tags": [
+        "chiến-lược",
+        "supply-pressure",
+        "small-cap",
+        "factor-ranking",
+        "market-neutral"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Percentile ranks có xử lý tied values giúp từng thành phần factor đóng góp ổn định mà không bị một outlier chi phối."
+    },
+    {
+      "id": "file:test-smallcap-native.ts",
+      "type": "file",
+      "name": "test-smallcap-native.ts",
+      "filePath": "test-smallcap-native.ts",
+      "summary": "Kiểm thử deterministic cho reversal ranking, event quarantine, maker-fill bảo thủ, supply-pressure ranking, point-in-time integrity và cost stress của nghiên cứu small-cap.",
+      "tags": [
+        "test",
+        "small-cap",
+        "no-lookahead",
+        "execution-simulation",
+        "cost-stress"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:alt-trend.ts",
+      "type": "file",
+      "name": "alt-trend.ts",
+      "filePath": "alt-trend.ts",
+      "summary": "Triển khai research-only dual-momentum engine cho altcoin perpetual thanh khoản cao, gồm tradability gate, BTC regime filter, relative-strength ranking và mô phỏng portfolio với stop/cost/delist.",
+      "tags": [
+        "chiến-lược",
+        "dual-momentum",
+        "altcoin",
+        "portfolio-simulation",
+        "risk-management"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Engine xử lý quyết định close-at-open từ nến đã hoàn tất và chỉ cập nhật trailing stop sau khi nến đóng để tránh same-bar lookahead."
+    },
+    {
+      "id": "file:scripts/alt-trend-backtest.ts",
+      "type": "file",
+      "name": "alt-trend-backtest.ts",
+      "filePath": "scripts/alt-trend-backtest.ts",
+      "summary": "Chạy backtest Alt Trend trên universe do người dùng chỉ định, stress nhiều mức cost, báo cáo theo era/symbol và ước lượng CI bằng 28-day block bootstrap.",
+      "tags": [
+        "backtest",
+        "nghiên-cứu",
+        "cost-stress",
+        "bootstrap",
+        "cli"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Universe bắt buộc truyền rõ ràng để tránh hidden cherry-pick; runner cũng cảnh báo survivor list hiện tại không phải point-in-time universe lịch sử."
+    },
+    {
+      "id": "file:scripts/alt-universe-scanner.ts",
+      "type": "file",
+      "name": "alt-universe-scanner.ts",
+      "filePath": "scripts/alt-universe-scanner.ts",
+      "summary": "Quét Binance Futures hiện tại để tạo tradability snapshot cho perpetual USDT, đo depth/OI/ADL risk và tùy chọn lưu universe forward theo ngày.",
+      "tags": [
+        "universe-scanner",
+        "binance-futures",
+        "liquidity",
+        "market-data",
+        "cli"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Giới hạn concurrency theo batch và dùng Promise.allSettled để một symbol lỗi không làm mất toàn bộ snapshot."
+    },
+    {
+      "id": "file:test-alt-trend.ts",
+      "type": "file",
+      "name": "test-alt-trend.ts",
+      "filePath": "test-alt-trend.ts",
+      "summary": "Kiểm thử tradability gates, momentum ranking, BTC regime filter, next-open execution, no-future-leak và tác động của transaction cost lên Alt Trend.",
+      "tags": [
+        "test",
+        "alt-trend",
+        "no-lookahead",
+        "cost-stress",
+        "regime-filter"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/api/chart/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "app/api/chart/route.ts",
+      "summary": "Cung cấp route handler GET của Next.js để dựng payload biểu đồ theo số ngày đã giới hạn, trả JSON không cache và chuẩn hóa lỗi thành HTTP 500.",
+      "tags": [
+        "api-handler",
+        "nextjs",
+        "biểu-đồ",
+        "xử-lý-lỗi"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Dùng App Router route handler với Node.js runtime và NextResponse để tạo phản hồi JSON."
+    },
+    {
+      "id": "file:chart-payload.ts",
+      "type": "file",
+      "name": "chart-payload.ts",
+      "filePath": "chart-payload.ts",
+      "summary": "Kết nối dữ liệu nến và backtest để tạo payload gọn cho biểu đồ, gồm candle OHLCV và các marker giao dịch trong cửa sổ hiển thị.",
+      "tags": [
+        "dịch-vụ-dữ-liệu",
+        "biểu-đồ",
+        "backtest",
+        "serialization"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng async/await và ánh xạ object có kiểu để chuyển mô hình Candle/Trade thành DTO dành cho UI."
+    },
+    {
+      "id": "file:chart-server.ts",
+      "type": "file",
+      "name": "chart-server.ts",
+      "filePath": "chart-server.ts",
+      "summary": "Triển khai HTTP server độc lập cho Chart UI, phục vụ static assets và hai API lấy danh sách symbol hoặc dữ liệu backtest cho biểu đồ.",
+      "tags": [
+        "http-server",
+        "biểu-đồ",
+        "static-assets",
+        "api-handler"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng module http gốc của Node.js, dynamic import cho cấu hình strategy và kiểm tra đường dẫn để giảm nguy cơ path traversal."
+    },
+    {
+      "id": "service:.dockerignore",
+      "type": "service",
+      "name": ".dockerignore",
+      "filePath": ".dockerignore",
+      "summary": "Giới hạn Docker build context bằng cách loại dependency, build artifacts, runtime state, IDE metadata và secrets, đồng thời vẫn cho phép `.env.example`.",
+      "tags": [
+        "containerization",
+        "build-context",
+        "security",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "Định nghĩa multi-stage Docker build dùng esbuild để bundle bot, Chart UI và dashboard thành các file Node.js độc lập, rồi tạo runtime image tối giản với timezone Việt Nam.",
+      "tags": [
+        "containerization",
+        "multi-stage-build",
+        "deployment",
+        "esbuild"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Multi-stage build tách dependency phục vụ bundle khỏi runtime image; runtime chỉ giữ Node.js, tzdata, các bundle và public assets."
+    },
+    {
+      "id": "service:Dockerfile:builder",
+      "type": "service",
+      "name": "builder",
+      "filePath": "Dockerfile",
+      "summary": "Builder stage cài tối thiểu axios, dotenv và esbuild rồi bundle ba entry point TypeScript cho môi trường Node.js 20.",
+      "tags": [
+        "build-stage",
+        "esbuild",
+        "typescript",
+        "containerization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile:node",
+      "type": "service",
+      "name": "node",
+      "filePath": "Dockerfile",
+      "summary": "Runtime stage nhận các bundle và public assets từ builder, expose cổng 3847/3848 và mặc định khởi chạy bot alert.",
+      "tags": [
+        "runtime-stage",
+        "nodejs",
+        "deployment",
+        "containerization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Điều phối ba container dùng chung image cho swing bot, Chart UI và trading dashboard, kèm env files, DNS, state volumes, restart policy và port binding an toàn.",
+      "tags": [
+        "orchestration",
+        "containerization",
+        "deployment",
+        "persistent-state",
+        "security"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Compose bind dashboard vào localhost trên cổng 3848 và mount dữ liệu bot ở chế độ read-only cho dashboard."
+    },
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Mẫu biến môi trường cho Telegram, Binance Futures, MEXC Futures, các sleeve SMC/Turtle/Fast Trend và giới hạn rủi ro danh mục. Các cờ giao dịch được thiết kế theo hướng fail-closed, còn API credentials chỉ xuất hiện dưới dạng placeholder.",
+      "tags": [
+        "cấu-hình",
+        "biến-môi-trường",
+        "quản-trị-rủi-ro",
+        "giao-dịch-live"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Định dạng dotenv kết hợp giá trị mặc định với chú thích vận hành và cảnh báo bảo mật bằng tiếng Việt."
+    },
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "Quy định cách coding agent làm việc trong repo: nêu giả định trước khi sửa, ưu tiên giải pháp đơn giản, thay đổi surgical và xác minh theo tiêu chí thành công.",
+      "tags": [
+        "tài-liệu",
+        "hướng-dẫn-agent",
+        "quy-trình-phát-triển",
+        "kiểm-chứng"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "Bản hướng dẫn dành cho Claude khi thay đổi code, nhấn mạnh việc làm rõ yêu cầu, tránh overengineering, giữ diff nhỏ và gắn từng bước với phép kiểm tra cụ thể.",
+      "tags": [
+        "tài-liệu",
+        "hướng-dẫn-agent",
+        "thay-đổi-surgical",
+        "kiểm-chứng"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Tài liệu tổng quan vận hành bot swing alert đa coin, kiến trúc chiến lược SMC/Key Volume/Turtle/Fast Trend, kết quả backtest và các giới hạn overfit. Đồng thời hướng dẫn Telegram, giao dịch Binance/MEXC, Docker và dashboard.",
+      "tags": [
+        "tài-liệu",
+        "tổng-quan",
+        "backtest",
+        "vận-hành",
+        "crypto-trading"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Manifest npm của `btc-alert-bot`, khai báo các lệnh chạy bot, dashboard, test và backtest cùng runtime Next.js, React, Axios, WebSocket và dotenv.",
+      "tags": [
+        "cấu-hình",
+        "npm",
+        "build-system",
+        "dependency-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "tsconfig.json",
+      "summary": "Cấu hình TypeScript strict cho cả script Node.js và ứng dụng Next.js, dùng CommonJS, JSX preserve, incremental checking và `ts-node` ở chế độ transpile-only.",
+      "tags": [
+        "cấu-hình",
+        "typescript",
+        "build-system",
+        "type-checking"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Cấu hình dùng chung hai ngữ cảnh: CommonJS cho script CLI và plugin `next` cho App Router."
+    },
+    {
+      "id": "config:vercel.json",
+      "type": "config",
+      "name": "vercel.json",
+      "filePath": "vercel.json",
+      "summary": "Cấu hình Vercel xác định framework Next.js và cố định lệnh cài dependency cùng lệnh build production.",
+      "tags": [
+        "cấu-hình",
+        "vercel",
+        "deployment",
+        "nextjs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:planning/alt-trend-implementation-2026-08.md",
+      "type": "document",
+      "name": "alt-trend-implementation-2026-08.md",
+      "filePath": "planning/alt-trend-implementation-2026-08.md",
+      "summary": "Định nghĩa ranh giới triển khai và research protocol cho Alt Trend, từ current-universe scanner đến backtest, promotion gate và bước verification.",
+      "tags": [
+        "tài-liệu",
+        "alt-trend",
+        "research-protocol",
+        "backtest"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/fxdream-keyvolume-method.md",
+      "type": "document",
+      "name": "fxdream-keyvolume-method.md",
+      "filePath": "planning/fxdream-keyvolume-method.md",
+      "summary": "Đặc tả nghiên cứu toàn diện phương pháp Key Volume của FX Dream Trading, bao gồm quy trình top-down, setup, entry/SL/TP, quản trị vốn và khả năng số hóa. Tài liệu còn audit sai lệch giữa nguồn gốc với code, kết quả ablation và benchmark sau remediation.",
+      "tags": [
+        "tài-liệu",
+        "key-volume",
+        "phương-pháp-giao-dịch",
+        "audit",
+        "ablation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:planning/independent-strategy-research-2026-08.md",
+      "type": "document",
+      "name": "independent-strategy-research-2026-08.md",
+      "filePath": "planning/independent-strategy-research-2026-08.md",
+      "summary": "Tổng hợp nghiên cứu các strategy crypto độc lập với bot hiện tại, ưu tiên staggered cross-sectional momentum sau kiểm định 2.000 ngày trên tám major. Tài liệu cũng ghi nhận edge carry đã decay và loại các giả thuyết funding-tail, basis cùng order-flow không đạt tiêu chí.",
+      "tags": [
+        "tài-liệu",
+        "nghiên-cứu-chiến-lược",
+        "cross-sectional-momentum",
+        "robustness",
+        "crypto"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/portfolio-risk-and-exit-2026-08.md",
+      "type": "document",
+      "name": "portfolio-risk-and-exit-2026-08.md",
+      "filePath": "planning/portfolio-risk-and-exit-2026-08.md",
+      "summary": "Ghi lại quyết định cải tiến Turtle ở cấp danh mục: heat-decay theo cùng hướng, tách kênh thoát long và giảm số unit pyramid. Kết quả được đối chiếu bằng audit, placebo test, rollback criteria và hướng dẫn tái lập.",
+      "tags": [
+        "tài-liệu",
+        "turtle",
+        "portfolio-risk",
+        "exit-policy",
+        "anti-overfit"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/random-maturity-carry-protocol-2026-08.md",
+      "type": "document",
+      "name": "random-maturity-carry-protocol-2026-08.md",
+      "filePath": "planning/random-maturity-carry-protocol-2026-08.md",
+      "summary": "Pre-registered protocol cho chiến lược random-maturity spot–perpetual carry, khóa trước giả thuyết, implementation, các giai đoạn time isolation và robustness gates trước validation.",
+      "tags": [
+        "tài-liệu",
+        "research-protocol",
+        "carry",
+        "time-isolation",
+        "robustness"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:planning/remediation-plan-2026-08.md",
+      "type": "document",
+      "name": "remediation-plan-2026-08.md",
+      "filePath": "planning/remediation-plan-2026-08.md",
+      "summary": "Kế hoạch remediation sau chuỗi thua, tách rõ sửa lỗi cấu trúc khỏi thay đổi có tuyên bố alpha để chống overfit. Lộ trình ưu tiên dedup xuyên sàn, risk budget theo tổng equity, trần cùng hướng, forensic journal và shadow testing có preregistration.",
+      "tags": [
+        "tài-liệu",
+        "remediation",
+        "anti-overfit",
+        "quản-trị-rủi-ro",
+        "rollout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/smallcap-native-implementation-2026-08.md",
+      "type": "document",
+      "name": "smallcap-native-implementation-2026-08.md",
+      "filePath": "planning/smallcap-native-implementation-2026-08.md",
+      "summary": "Mô tả implementation research biệt lập cho small-cap gồm hai engine reversal và supply, offline runner cùng các bước verification để tránh ảnh hưởng đường chạy production.",
+      "tags": [
+        "tài-liệu",
+        "smallcap",
+        "research-engine",
+        "implementation",
+        "verification"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/trend-method-remediation-research-2026-08.md",
+      "type": "document",
+      "name": "trend-method-remediation-research-2026-08.md",
+      "filePath": "planning/trend-method-remediation-research-2026-08.md",
+      "summary": "Phân tích điểm yếu của Turtle và Fast Trend sau các lệnh thua, liệt kê biến thể đã kiểm tra và đánh giá mức đa dạng hóa giữa hai sleeve. Tài liệu chốt các thay đổi đã chấp nhận, các hạng mục còn chờ và ràng buộc Binance signal/MEXC execution.",
+      "tags": [
+        "tài-liệu",
+        "trend-following",
+        "remediation",
+        "turtle",
+        "fast-trend"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-interview.md",
+      "type": "document",
+      "name": "claude-interview.md",
+      "filePath": "planning/mexc-futures/claude-interview.md",
+      "summary": "Bộ câu hỏi và giả định đã chốt cho tích hợp MEXC Futures, bao quát routing strategy, nguồn market data, account mode, protection policy, network ambiguity, rollout và security.",
+      "tags": [
+        "tài-liệu",
+        "mexc-futures",
+        "assumption-interview",
+        "yêu-cầu",
+        "security"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-plan.md",
+      "type": "document",
+      "name": "claude-plan.md",
+      "filePath": "planning/mexc-futures/claude-plan.md",
+      "summary": "Implementation plan theo giai đoạn để chuyển Fast Trend sang MEXC Futures: sửa state safety, tạo execution boundary, xây adapter, recovery/reconciliation và tách venue trong bot. Kế hoạch kèm test matrix, shadow rollout, mainnet canary và definition of done.",
+      "tags": [
+        "tài-liệu",
+        "mexc-futures",
+        "implementation-plan",
+        "rollout",
+        "reconciliation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-research.md",
+      "type": "document",
+      "name": "claude-research.md",
+      "filePath": "planning/mexc-futures/claude-research.md",
+      "summary": "Nghiên cứu nền cho tích hợp MEXC Futures, đối chiếu coupling hiện tại và các safety gap của Fast Trend với API chính thức. Phạm vi gồm authentication, metadata/sizing, order idempotency, WebSocket reconciliation, rate limits, fees và architecture decision.",
+      "tags": [
+        "tài-liệu",
+        "mexc-futures",
+        "api-research",
+        "risk-analysis",
+        "architecture"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "document",
+      "name": "claude-synthesized-spec.md",
+      "filePath": "planning/mexc-futures/claude-synthesized-spec.md",
+      "summary": "Đặc tả tổng hợp các functional requirement cho execution MEXC-native, recovery sau partial failure, phân tách ownership/risk và giữ nguyên semantics của strategy. Tài liệu cũng định nghĩa state/audit schema, preflight gate, rollout requirement, acceptance criteria và non-goals.",
+      "tags": [
+        "tài-liệu",
+        "mexc-futures",
+        "đặc-tả",
+        "fault-recovery",
+        "acceptance-criteria"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/mexc-futures-integration.md",
+      "type": "document",
+      "name": "mexc-futures-integration.md",
+      "filePath": "planning/mexc-futures/mexc-futures-integration.md",
+      "summary": "Đặc tả ban đầu cho việc route Fast Trend sang MEXC Futures, xác định mục tiêu, signal/risk intent, yêu cầu an toàn, rollout và những nội dung ngoài phạm vi.",
+      "tags": [
+        "tài-liệu",
+        "mexc-futures",
+        "đặc-tả-ban-đầu",
+        "strategy-routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/baseline-gate.sh",
+      "type": "file",
+      "name": "baseline-gate.sh",
+      "filePath": "scripts/baseline-gate.sh",
+      "summary": "Quality gate chạy backtest BTC 250 ngày, parse NET R và số lệnh rồi chỉ PASS khi kết quả không thấp hơn baseline cấu hình. Script trả exit code riêng khi không parse được output hoặc khi strategy suy giảm.",
+      "tags": [
+        "script",
+        "quality-gate",
+        "backtest",
+        "regression-check"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Bash dùng `set -euo pipefail`, command substitution và một đoạn Python nhỏ để so sánh số thực chính xác."
+    },
+    {
+      "id": "file:scripts/entry-ablation.sh",
+      "type": "file",
+      "name": "entry-ablation.sh",
+      "filePath": "scripts/entry-ablation.sh",
+      "summary": "Script ablation các điều kiện entry SMC bằng cách patch `strategy.ts`, chạy nhiều tổ hợp pullback/rejection/discount-premium và lọc các metric backtest quan trọng. Cuối cùng script phục hồi cấu hình baseline.",
+      "tags": [
+        "script",
+        "ablation",
+        "entry-signal",
+        "backtest",
+        "smc"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Bash nhúng JavaScript qua heredoc để sửa cấu hình TypeScript theo từng kịch bản."
+    },
+    {
+      "id": "file:scripts/indicator-ablation.sh",
+      "type": "file",
+      "name": "indicator-ablation.sh",
+      "filePath": "scripts/indicator-ablation.sh",
+      "summary": "Chạy ma trận A/B cho các filter RSI, EMA 15m, EMA 1h và ADX của entry, đồng thời thu gọn output về số lệnh, NET R và p-value. Baseline all-off được phục hồi sau loạt thử nghiệm.",
+      "tags": [
+        "script",
+        "ablation",
+        "technical-indicator",
+        "backtest",
+        "entry-filter"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Bash dùng heredoc JavaScript để patch bốn boolean trong source trước mỗi lần chạy."
+    },
+    {
+      "id": "file:scripts/rsi-ablation.sh",
+      "type": "file",
+      "name": "rsi-ablation.sh",
+      "filePath": "scripts/rsi-ablation.sh",
+      "summary": "So sánh các RSI mode trên baseline BOS+ARM và EMA50 1h, chạy backtest cho từng mode rồi in metric trên một dòng. Khi hoàn tất, script đặt `entryRsiMode` trở lại `off`.",
+      "tags": [
+        "script",
+        "ablation",
+        "rsi",
+        "backtest",
+        "entry-filter"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Script shell thay string literal TypeScript bằng JavaScript nhúng và chủ động restore trạng thái baseline."
+    },
+    {
+      "id": "file:.ua/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".ua/.understandignore",
+      "summary": "Mẫu ignore cho Understand Anything, ghi lại default exclusions và các pattern gợi ý cho secrets, runtime state, logs, scripts cùng test files. Toàn bộ rule dự án hiện vẫn được comment nên scanner không loại thêm file nào.",
+      "tags": [
+        "cấu-hình",
+        "ignore-patterns",
+        "phân-tích-codebase",
+        "bảo-mật"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.ua/config.json",
+      "type": "config",
+      "name": "config.json",
+      "filePath": ".ua/config.json",
+      "summary": "Cấu hình Understand Anything yêu cầu sinh nội dung phân tích bằng tiếng Việt.",
+      "tags": [
+        "cấu-hình",
+        "understand-anything",
+        "ngôn-ngữ-đầu-ra"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "app/layout.tsx",
+      "summary": "Root layout tối giản của Next.js App Router, đặt ngôn ngữ tài liệu là tiếng Việt và render toàn bộ route content trong thẻ `body`.",
+      "tags": [
+        "component",
+        "nextjs",
+        "app-router",
+        "layout"
+      ],
+      "complexity": "simple",
+      "languageNotes": "React Server Component dùng typed `children` và default export theo convention của Next.js App Router."
+    },
+    {
+      "id": "file:next-env.d.ts",
+      "type": "file",
+      "name": "next-env.d.ts",
+      "filePath": "next-env.d.ts",
+      "summary": "File declaration do Next.js sinh để đưa type definitions lõi và image types vào môi trường TypeScript của dự án.",
+      "tags": [
+        "type-definition",
+        "nextjs",
+        "generated-file",
+        "typescript"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Dùng triple-slash reference và được Next.js quản lý tự động."
+    },
+    {
+      "id": "file:next.config.js",
+      "type": "file",
+      "name": "next.config.js",
+      "filePath": "next.config.js",
+      "summary": "Cấu hình Next.js rewrite route `/` sang static dashboard `/index.html`, cho phép trang biểu đồ trong `public` trở thành trang mặc định.",
+      "tags": [
+        "cấu-hình",
+        "nextjs",
+        "routing",
+        "rewrite"
+      ],
+      "complexity": "simple",
+      "languageNotes": "CommonJS config dùng JSDoc type import để nhận type checking mà không chuyển file sang TypeScript."
+    },
+    {
+      "id": "document:planning/mexc-futures/reviews/external-review-status.md",
+      "type": "document",
+      "name": "external-review-status.md",
+      "filePath": "planning/mexc-futures/reviews/external-review-status.md",
+      "summary": "Biên bản trạng thái external review cho kế hoạch MEXC Futures: Gemini bị bỏ qua do thiếu CLI, còn Codex thoát trước khi tạo review. Việc tích hợp review và chia section đang tạm dừng chờ quyết định retry hoặc skip rõ ràng.",
+      "tags": [
+        "tài-liệu",
+        "external-review",
+        "mexc-futures",
+        "trạng-thái"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:public/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "public/index.html",
+      "summary": "Dashboard single-page hiển thị nến, volume quote và marker vào/ra từ backtest bằng Lightweight Charts. UI hỗ trợ chọn symbol/khoảng thời gian, đồng bộ zoom giữa hai chart, thống kê NET R và danh sách giao dịch tương tác.",
+      "tags": [
+        "dashboard",
+        "visualization",
+        "backtest",
+        "lightweight-charts",
+        "client-side"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Một file HTML độc lập nhúng CSS responsive và vanilla JavaScript, tải Lightweight Charts từ CDN và gọi các endpoint `/api/symbols` cùng `/api/chart`."
+    },
+    {
+      "id": "file:scripts/random-maturity-carry.ts",
+      "type": "file",
+      "name": "random-maturity-carry.ts",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "summary": "Research runner cho random-maturity spot–perpetual carry trên năm crypto, với dữ liệu Binance theo giờ, cache có coverage, mô phỏng hedge bốn legs và hạch toán fees/funding/slippage/financing. Script khóa dev/validation/holdout, chạy stress scenarios, block bootstrap và self-test chống lookahead.",
+      "tags": [
+        "research",
+        "carry",
+        "backtest",
+        "risk-analysis",
+        "data-pipeline"
+      ],
+      "complexity": "complex",
+      "languageNotes": "TypeScript mô hình hóa riêng bar, funding, position và trade; toàn bộ return được đối soát giữa trade ledger và hourly PnL trước khi báo cáo."
+    },
+    {
+      "id": "file:scripts/turtle-live-parity.ts",
+      "type": "file",
+      "name": "turtle-live-parity.ts",
+      "filePath": "scripts/turtle-live-parity.ts",
+      "summary": "Parity test chạy `TurtleLive` ở paper mode từng nến trong sandbox tạm rồi so từng unit, hướng, timestamp và risk weight với portfolio engine đã audit. Script không tải credentials và xóa state tạm sau khi kiểm tra.",
+      "tags": [
+        "test",
+        "turtle",
+        "live-parity",
+        "risk-validation",
+        "sandbox"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng dynamic `require` sau `chdir` để cô lập các đường dẫn state được tính lúc module load, rồi monkey-patch entry/add hooks để ghi nhận unit."
+    },
+    {
+      "id": "file:tsconfig.tsbuildinfo",
+      "type": "file",
+      "name": "tsconfig.tsbuildinfo",
+      "filePath": "tsconfig.tsbuildinfo",
+      "summary": "Artifact incremental build do TypeScript sinh, lưu metadata về source graph và trạng thái type-check để tăng tốc các lần compile sau.",
+      "tags": [
+        "generated-file",
+        "typescript",
+        "build-cache",
+        "incremental-build"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Đây là dữ liệu máy sinh một dòng, không phải source cần chỉnh sửa thủ công."
+    }
+  ],
+  "importEdges": [
+    {
+      "source": "file:backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/exp-portfolio-caps.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:fast-trend-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:live-state.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:mexc-fast-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:turtle-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:fast-trend-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "file:fast-trend-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:fast-trend-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:mexc-fast-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smallcap-native-research.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smallcap-native-research.ts",
+      "target": "file:smallcap-reversal.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smallcap-native-research.ts",
+      "target": "file:smallcap-supply.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smallcap-reversal.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smallcap-supply.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-smallcap-native.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-smallcap-native.ts",
+      "target": "file:smallcap-reversal.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-smallcap-native.ts",
+      "target": "file:smallcap-supply.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:alt-trend.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-trend-backtest.ts",
+      "target": "file:alt-trend.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-trend-backtest.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-trend-backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-universe-scanner.ts",
+      "target": "file:alt-trend.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-alt-trend.ts",
+      "target": "file:alt-trend.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-alt-trend.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/chart/route.ts",
+      "target": "file:chart-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:chart-payload.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:chart-payload.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:chart-server.ts",
+      "target": "file:chart-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ],
+  "allEdges": [
+    {
+      "source": "file:backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/exp-portfolio-caps.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:fast-trend-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:live-state.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:mexc-fast-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:turtle-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:fast-trend-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "file:fast-trend-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:fast-trend-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:mexc-fast-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smallcap-native-research.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smallcap-native-research.ts",
+      "target": "file:smallcap-reversal.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smallcap-native-research.ts",
+      "target": "file:smallcap-supply.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smallcap-reversal.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:smallcap-supply.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-smallcap-native.ts",
+      "target": "file:smallcap-research.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-smallcap-native.ts",
+      "target": "file:smallcap-reversal.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-smallcap-native.ts",
+      "target": "file:smallcap-supply.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:alt-trend.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-trend-backtest.ts",
+      "target": "file:alt-trend.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-trend-backtest.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-trend-backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/alt-universe-scanner.ts",
+      "target": "file:alt-trend.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-alt-trend.ts",
+      "target": "file:alt-trend.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-alt-trend.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/chart/route.ts",
+      "target": "file:chart-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:chart-payload.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:chart-payload.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:chart-server.ts",
+      "target": "file:chart-payload.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:.dockerignore",
+      "target": "service:Dockerfile",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:Dockerfile",
+      "target": "service:Dockerfile:builder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "service:Dockerfile",
+      "target": "service:Dockerfile:node",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "service:Dockerfile:node",
+      "target": "service:Dockerfile:builder",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:Dockerfile:node",
+      "type": "serves",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "document:AGENTS.md",
+      "target": "document:CLAUDE.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/independent-strategy-research-2026-08.md",
+      "target": "document:planning/random-maturity-carry-protocol-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/remediation-plan-2026-08.md",
+      "target": "document:planning/trend-method-remediation-research-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/alt-trend-implementation-2026-08.md",
+      "target": "document:planning/independent-strategy-research-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/smallcap-native-implementation-2026-08.md",
+      "target": "document:planning/independent-strategy-research-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/claude-interview.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/claude-research.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/mexc-futures-integration.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/claude-plan.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:smallcap-research.ts",
+      "target": "file:test-smallcap-native.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:smallcap-reversal.ts",
+      "target": "file:test-smallcap-native.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:smallcap-supply.ts",
+      "target": "file:test-smallcap-native.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:alt-trend.ts",
+      "target": "file:test-alt-trend.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

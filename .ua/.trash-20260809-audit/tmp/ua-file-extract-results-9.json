@@ -1,0 +1,579 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 7,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 7
+    }
+  },
+  "results": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 66,
+      "nonEmptyLines": 59,
+      "definitions": [
+        {
+          "name": "TELEGRAM_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "TELEGRAM_BOT_TOKEN",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "TELEGRAM_CHAT_ID",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 9,
+          "endLine": 9
+        },
+        {
+          "name": "TRADING_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 13,
+          "endLine": 13
+        },
+        {
+          "name": "SMC_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 14,
+          "endLine": 14
+        },
+        {
+          "name": "BINANCE_TESTNET",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 17,
+          "endLine": 17
+        },
+        {
+          "name": "RISK_PCT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 24,
+          "endLine": 24
+        },
+        {
+          "name": "MAX_PORTFOLIO_RISK_PCT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 25,
+          "endLine": 25
+        },
+        {
+          "name": "LEVERAGE",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 26,
+          "endLine": 26
+        },
+        {
+          "name": "MARGIN_TYPE",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 27,
+          "endLine": 27
+        },
+        {
+          "name": "TURTLE_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 31,
+          "endLine": 31
+        },
+        {
+          "name": "TURTLE_TRADING_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 32,
+          "endLine": 32
+        },
+        {
+          "name": "TURTLE_RISK_PCT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 33,
+          "endLine": 33
+        },
+        {
+          "name": "FAST_TREND_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 42,
+          "endLine": 42
+        },
+        {
+          "name": "FAST_TREND_TRADING_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 43,
+          "endLine": 43
+        },
+        {
+          "name": "FAST_TREND_RISK_PCT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 44,
+          "endLine": 44
+        },
+        {
+          "name": "FAST_TREND_ENTRY_DAYS",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 46,
+          "endLine": 46
+        },
+        {
+          "name": "MEXC_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 53,
+          "endLine": 53
+        },
+        {
+          "name": "MEXC_TRADING_ENABLED",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 54,
+          "endLine": 54
+        },
+        {
+          "name": "MEXC_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 55,
+          "endLine": 55
+        },
+        {
+          "name": "MEXC_API_SECRET",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 56,
+          "endLine": 56
+        },
+        {
+          "name": "MEXC_BASE_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 57,
+          "endLine": 57
+        },
+        {
+          "name": "MEXC_RECV_WINDOW_MS",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 58,
+          "endLine": 58
+        },
+        {
+          "name": "MEXC_LEVERAGE",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 59,
+          "endLine": 59
+        },
+        {
+          "name": "MEXC_MARGIN_TYPE",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 60,
+          "endLine": 60
+        },
+        {
+          "name": "MEXC_MAX_PORTFOLIO_RISK_PCT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 61,
+          "endLine": 61
+        },
+        {
+          "name": "MEXC_MAX_BASIS_PCT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 62,
+          "endLine": 62
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 27
+      }
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 65,
+      "nonEmptyLines": 44,
+      "sections": [
+        {
+          "heading": "AGENTS.md",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Think Before Coding",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "2. Simplicity First",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "3. Surgical Changes",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "4. Goal-Driven Execution",
+          "level": 2,
+          "line": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 65,
+      "nonEmptyLines": 44,
+      "sections": [
+        {
+          "heading": "CLAUDE.md",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Think Before Coding",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "2. Simplicity First",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "3. Surgical Changes",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "4. Goal-Driven Execution",
+          "level": 2,
+          "line": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 522,
+      "nonEmptyLines": 407,
+      "sections": [
+        {
+          "heading": "BTC Swing Alert Bot + Backtest",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chiến lược (file `strategy.ts`)",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "Key Volume — phương pháp nghiên cứu độc lập",
+          "level": 3,
+          "line": 43
+        },
+        {
+          "heading": "Backtest — kiểm tra điểm vào/ra & lợi nhuận",
+          "level": 2,
+          "line": 83
+        },
+        {
+          "heading": "Kết quả tham chiếu — **NET (đã trừ chi phí)**, 250 ngày **BTC only** (15m entry)",
+          "level": 3,
+          "line": 97
+        },
+        {
+          "heading": "So sánh đa coin — **Binance USDⓈ-M Perpetual** (250 ngày, cùng `CONFIG`)",
+          "level": 3,
+          "line": 117
+        },
+        {
+          "heading": "5 cải tiến (A, B, C, D, F) — bật/tắt qua `CONFIG` trong `strategy.ts`",
+          "level": 3,
+          "line": 146
+        },
+        {
+          "heading": "Nghiên cứu đã làm & giới hạn (overfit + domain coin)",
+          "level": 2,
+          "line": 170
+        },
+        {
+          "heading": "A. Dấu chân nhà tạo lập / SMC nâng cao — ĐÃ THỬ, ĐỀU KHÔNG TĂNG NET",
+          "level": 3,
+          "line": 174
+        },
+        {
+          "heading": "A2. Tham số EXIT (hướng ít thử hơn entry) — `scripts/exit-sweep.ts`, `scripts/maxhold-validate.ts`",
+          "level": 3,
+          "line": 188
+        },
+        {
+          "heading": "A3. Audit entry/volume 15m — 1.200 ngày, rổ 4 coin",
+          "level": 3,
+          "line": 205
+        },
+        {
+          "heading": "A4. Extreme-volume 15m → rời vùng → retest lần đầu",
+          "level": 3,
+          "line": 239
+        },
+        {
+          "heading": "A5. Chẩn đoán Turtle Era C và cải tiến production",
+          "level": 3,
+          "line": 269
+        },
+        {
+          "heading": "B. Audit overfit (`scripts/overfit-audit.ts`)",
+          "level": 3,
+          "line": 292
+        },
+        {
+          "heading": "C. \"Phương pháp chỉ hợp một số coin?\" — ĐÚNG, là tính chất THẬT (`scripts/coin-fit.ts`)",
+          "level": 3,
+          "line": 299
+        },
+        {
+          "heading": "D. Đặc trưng phân biệt? Volume tách good/bad nhưng **KHÔNG vững OOS** (`scripts/coin-features.ts`, `liquidity-rule-validate.ts`)",
+          "level": 3,
+          "line": 311
+        },
+        {
+          "heading": "Kết luận thực dụng (domain)",
+          "level": 3,
+          "line": 316
+        },
+        {
+          "heading": "Script nghiên cứu (đều fetch data, in NET so sánh; KHÔNG đổi baseline)",
+          "level": 3,
+          "line": 323
+        },
+        {
+          "heading": "Hướng tiếp theo (ưu tiên)",
+          "level": 2,
+          "line": 338
+        },
+        {
+          "heading": "Bot live (forward-test / alert thật)",
+          "level": 2,
+          "line": 348
+        },
+        {
+          "heading": "1. Telegram (tuỳ chọn — không có thì log ra console)",
+          "level": 3,
+          "line": 350
+        },
+        {
+          "heading": "2. Chạy",
+          "level": 3,
+          "line": 359
+        },
+        {
+          "heading": "Lệnh Telegram",
+          "level": 3,
+          "line": 387
+        },
+        {
+          "heading": "Chạy 24/7 bằng Docker (local, trên máy của bạn)",
+          "level": 3,
+          "line": 407
+        },
+        {
+          "heading": "Giao dịch THẬT trên Binance Futures (tuỳ chọn)",
+          "level": 2,
+          "line": 430
+        },
+        {
+          "heading": "Chạy thử trên TESTNET trước (khuyến nghị)",
+          "level": 3,
+          "line": 442
+        },
+        {
+          "heading": "Fast Trend trên MEXC Futures",
+          "level": 2,
+          "line": 460
+        },
+        {
+          "heading": "Dashboard theo dõi",
+          "level": 3,
+          "line": 493
+        },
+        {
+          "heading": "File",
+          "level": 2,
+          "line": 506
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 29
+      }
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 37,
+      "nonEmptyLines": 37,
+      "sections": [
+        {
+          "heading": "name",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "scripts",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "dependencies",
+          "level": 1,
+          "line": 21
+        },
+        {
+          "heading": "devDependencies",
+          "level": 1,
+          "line": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 40,
+      "nonEmptyLines": 40,
+      "sections": [
+        {
+          "heading": "compilerOptions",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "ts-node",
+          "level": 1,
+          "line": 27
+        },
+        {
+          "heading": "include",
+          "level": 1,
+          "line": 30
+        },
+        {
+          "heading": "exclude",
+          "level": 1,
+          "line": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "vercel.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 6,
+      "nonEmptyLines": 6,
+      "sections": [
+        {
+          "heading": "$schema",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "framework",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "buildCommand",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "installCommand",
+          "level": 1,
+          "line": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    }
+  ]
+}

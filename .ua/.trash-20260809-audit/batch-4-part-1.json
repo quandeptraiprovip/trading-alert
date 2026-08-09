@@ -1,0 +1,1366 @@
+{
+  "nodes": [
+    {
+      "id": "file:binance-futures.ts",
+      "type": "file",
+      "name": "binance-futures.ts",
+      "filePath": "binance-futures.ts",
+      "summary": "Cung cấp typed REST client cho Binance Futures, bao gồm ký request, đồng bộ thời gian, đọc tài khoản/vị thế và quản lý order.",
+      "tags": [
+        "exchange-client",
+        "futures",
+        "order-execution",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:binance-futures.ts:createBinanceFromEnv",
+      "type": "function",
+      "name": "createBinanceFromEnv",
+      "filePath": "binance-futures.ts",
+      "lineRange": [
+        331,
+        340
+      ],
+      "summary": "Khởi tạo Binance Futures client từ biến môi trường, hoặc trả về trạng thái không cấu hình khi thiếu credential.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:binance-futures.ts:BinanceFutures",
+      "type": "class",
+      "name": "BinanceFutures",
+      "filePath": "binance-futures.ts",
+      "lineRange": [
+        50,
+        328
+      ],
+      "summary": "Typed client bao bọc Binance Futures REST API, chịu trách nhiệm ký request, đồng bộ thời gian và thao tác account/order.",
+      "tags": [
+        "service",
+        "order-execution",
+        "exchange-client",
+        "risk-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:btc-alert-bot.ts",
+      "type": "file",
+      "name": "btc-alert-bot.ts",
+      "filePath": "btc-alert-bot.ts",
+      "summary": "Entry point của bot cảnh báo và giao dịch live; điều phối dữ liệu nến, signal strategy, state persistence, exchange execution, health monitoring và Telegram commands.",
+      "tags": [
+        "typescript",
+        "strategy",
+        "data-processing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:createState",
+      "type": "function",
+      "name": "createState",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        231,
+        242
+      ],
+      "summary": "Hàm `createState` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:persist",
+      "type": "function",
+      "name": "persist",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        245,
+        254
+      ],
+      "summary": "Hàm `persist` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:tryExitAndTrail",
+      "type": "function",
+      "name": "tryExitAndTrail",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        260,
+        334
+      ],
+      "summary": "Hàm `tryExitAndTrail` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:openLivePosition",
+      "type": "function",
+      "name": "openLivePosition",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        336,
+        348
+      ],
+      "summary": "Hàm `openLivePosition` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:evaluateNewEntry",
+      "type": "function",
+      "name": "evaluateNewEntry",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        350,
+        374
+      ],
+      "summary": "Hàm `evaluateNewEntry` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:maybeSendArmAlert",
+      "type": "function",
+      "name": "maybeSendArmAlert",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        376,
+        386
+      ],
+      "summary": "Hàm `maybeSendArmAlert` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:notifyEntry",
+      "type": "function",
+      "name": "notifyEntry",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        388,
+        418
+      ],
+      "summary": "Hàm `notifyEntry` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:notifyExit",
+      "type": "function",
+      "name": "notifyExit",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        420,
+        459
+      ],
+      "summary": "Hàm `notifyExit` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:execOpen",
+      "type": "function",
+      "name": "execOpen",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        482,
+        492
+      ],
+      "summary": "Hàm `execOpen` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:execSyncStops",
+      "type": "function",
+      "name": "execSyncStops",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        494,
+        503
+      ],
+      "summary": "Hàm `execSyncStops` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:execFlatten",
+      "type": "function",
+      "name": "execFlatten",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        505,
+        514
+      ],
+      "summary": "Hàm `execFlatten` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:reconcileFlat",
+      "type": "function",
+      "name": "reconcileFlat",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        517,
+        537
+      ],
+      "summary": "Hàm `reconcileFlat` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:reconcileStartup",
+      "type": "function",
+      "name": "reconcileStartup",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        540,
+        571
+      ],
+      "summary": "Hàm `reconcileStartup` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:adoptPosition",
+      "type": "function",
+      "name": "adoptPosition",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        574,
+        612
+      ],
+      "summary": "Hàm `adoptPosition` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:onCandleClose",
+      "type": "function",
+      "name": "onCandleClose",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        614,
+        714
+      ],
+      "summary": "Hàm `onCandleClose` thực hiện logic miền trong btc-alert-bot.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:prefetchHistory",
+      "type": "function",
+      "name": "prefetchHistory",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        719,
+        751
+      ],
+      "summary": "Hàm `prefetchHistory` thực hiện logic miền trong btc-alert-bot.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:fetchClosedSince",
+      "type": "function",
+      "name": "fetchClosedSince",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        756,
+        778
+      ],
+      "summary": "Hàm `fetchClosedSince` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:startHealthMonitor",
+      "type": "function",
+      "name": "startHealthMonitor",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        792,
+        804
+      ],
+      "summary": "Hàm `startHealthMonitor` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:startBinanceHealthMonitor",
+      "type": "function",
+      "name": "startBinanceHealthMonitor",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        813,
+        851
+      ],
+      "summary": "Hàm `startBinanceHealthMonitor` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:startMexcHealthMonitor",
+      "type": "function",
+      "name": "startMexcHealthMonitor",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        853,
+        888
+      ],
+      "summary": "Hàm `startMexcHealthMonitor` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:buildHealthMessage",
+      "type": "function",
+      "name": "buildHealthMessage",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        891,
+        958
+      ],
+      "summary": "Hàm `buildHealthMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:startPolling",
+      "type": "function",
+      "name": "startPolling",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        965,
+        1013
+      ],
+      "summary": "Hàm `startPolling` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:startDailyHeartbeat",
+      "type": "function",
+      "name": "startDailyHeartbeat",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        1019,
+        1029
+      ],
+      "summary": "Hàm `startDailyHeartbeat` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:buildStatusMessage",
+      "type": "function",
+      "name": "buildStatusMessage",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        1032,
+        1075
+      ],
+      "summary": "Hàm `buildStatusMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:startCommandListener",
+      "type": "function",
+      "name": "startCommandListener",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        1077,
+        1115
+      ],
+      "summary": "Hàm `startCommandListener` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:btc-alert-bot.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "btc-alert-bot.ts",
+      "lineRange": [
+        1117,
+        1267
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: entry point của bot cảnh báo và giao dịch live; điều phối dữ liệu nến, signal strategy, state persistence, exchange execution, health monitoring và Telegram commands.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:dashboard-server.ts",
+      "type": "file",
+      "name": "dashboard-server.ts",
+      "filePath": "dashboard-server.ts",
+      "summary": "Phục vụ dashboard read-only cho bot, kết hợp state/journal cục bộ với dữ liệu tài khoản Binance để hiển thị vị thế và thống kê giao dịch.",
+      "tags": [
+        "dashboard",
+        "monitoring",
+        "http-server",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:dashboard-server.ts:journalStats",
+      "type": "function",
+      "name": "journalStats",
+      "filePath": "dashboard-server.ts",
+      "lineRange": [
+        76,
+        142
+      ],
+      "summary": "Tính win rate, tổng R, profit factor, drawdown, streak và breakdown từ journal giao dịch live.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:dashboard-server.ts:buildPayload",
+      "type": "function",
+      "name": "buildPayload",
+      "filePath": "dashboard-server.ts",
+      "lineRange": [
+        144,
+        255
+      ],
+      "summary": "Tổng hợp state, journal và dữ liệu account/position từ exchange thành payload read-only cho dashboard.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:fast-trend-execution.ts",
+      "type": "file",
+      "name": "fast-trend-execution.ts",
+      "filePath": "fast-trend-execution.ts",
+      "summary": "Định nghĩa type và interface trung lập với venue cho các thao tác open, add, stop sync, flatten, reconcile và recovery của Fast Trend.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Interface mô hình hóa hành động cấp chiến lược thay vì làm lộ API order riêng của từng exchange."
+    },
+    {
+      "id": "file:fast-trend-live.ts",
+      "type": "file",
+      "name": "fast-trend-live.ts",
+      "filePath": "fast-trend-live.ts",
+      "summary": "Cài đặt state machine Fast Trend live, xử lý xác nhận short, quản lý vị thế/persistence và gọi execution adapter theo từng candle.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:fast-trend-live.ts:atomicWriteFileSync",
+      "type": "function",
+      "name": "atomicWriteFileSync",
+      "filePath": "fast-trend-live.ts",
+      "lineRange": [
+        26,
+        47
+      ],
+      "summary": "Ghi file theo kiểu atomic replace để tránh state bị hỏng nếu process dừng giữa lúc persist.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:fast-trend-live.ts:decideFastShortConfirmation",
+      "type": "function",
+      "name": "decideFastShortConfirmation",
+      "filePath": "fast-trend-live.ts",
+      "lineRange": [
+        73,
+        82
+      ],
+      "summary": "Hàm `decideFastShortConfirmation` thực hiện logic miền trong fast-trend-live.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "live-trading"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:fast-trend-live.ts:priorFastShortCloseLow",
+      "type": "function",
+      "name": "priorFastShortCloseLow",
+      "filePath": "fast-trend-live.ts",
+      "lineRange": [
+        84,
+        89
+      ],
+      "summary": "Hàm `priorFastShortCloseLow` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "live-trading"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:fast-trend-live.ts:FastTrendLive",
+      "type": "class",
+      "name": "FastTrendLive",
+      "filePath": "fast-trend-live.ts",
+      "lineRange": [
+        143,
+        801
+      ],
+      "summary": "State machine vận hành Fast Trend theo từng candle, quản lý setup, vị thế, persistence và execution side effects.",
+      "tags": [
+        "service",
+        "live-trading",
+        "state-machine",
+        "strategy"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:live-state.ts",
+      "type": "file",
+      "name": "live-state.ts",
+      "filePath": "live-state.ts",
+      "summary": "Persist trạng thái vị thế live qua restart và ghi journal JSONL cho entry/exit để đối chiếu vận hành với backtest.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "State được serialize thành JSON và journal append-only JSONL để phục hồi sau restart và audit giao dịch."
+    },
+    {
+      "id": "function:live-state.ts:loadState",
+      "type": "function",
+      "name": "loadState",
+      "filePath": "live-state.ts",
+      "lineRange": [
+        43,
+        54
+      ],
+      "summary": "Đọc state JSON đã persist và phục hồi map trạng thái theo symbol, với fallback an toàn khi dữ liệu lỗi.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:live-state.ts:saveState",
+      "type": "function",
+      "name": "saveState",
+      "filePath": "live-state.ts",
+      "lineRange": [
+        56,
+        62
+      ],
+      "summary": "Ghi snapshot trạng thái live ra JSON để bot có thể phục hồi sau restart.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:live-state.ts:appendJournal",
+      "type": "function",
+      "name": "appendJournal",
+      "filePath": "live-state.ts",
+      "lineRange": [
+        64,
+        70
+      ],
+      "summary": "Ghi thêm một event entry/exit dạng JSONL vào journal audit của bot.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:live-trade.ts",
+      "type": "file",
+      "name": "live-trade.ts",
+      "filePath": "live-trade.ts",
+      "summary": "Điều phối order execution trên Binance, từ sizing và mở vị thế đến thay stop an toàn, reconcile và flatten.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:live-trade.ts:loadExecConfig",
+      "type": "function",
+      "name": "loadExecConfig",
+      "filePath": "live-trade.ts",
+      "lineRange": [
+        364,
+        375
+      ],
+      "summary": "Hàm `loadExecConfig` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:live-trade.ts:LiveTrader",
+      "type": "class",
+      "name": "LiveTrader",
+      "filePath": "live-trade.ts",
+      "lineRange": [
+        55,
+        362
+      ],
+      "summary": "Dịch signal intent thành lệnh Binance thực tế với position sizing, stop replacement, reconcile và xử lý lỗi an toàn.",
+      "tags": [
+        "service",
+        "order-execution",
+        "exchange-client",
+        "risk-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:mexc-fast-execution.ts",
+      "type": "file",
+      "name": "mexc-fast-execution.ts",
+      "filePath": "mexc-fast-execution.ts",
+      "summary": "Adapter `FastExecution` cho MEXC, chuyển intent của chiến lược thành thao tác order idempotent và quản lý protection order.",
+      "tags": [
+        "exchange-client",
+        "futures",
+        "order-execution",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:mexc-fast-execution.ts:makeMexcExternalOid",
+      "type": "function",
+      "name": "makeMexcExternalOid",
+      "filePath": "mexc-fast-execution.ts",
+      "lineRange": [
+        31,
+        33
+      ],
+      "summary": "Hàm `makeMexcExternalOid` thực hiện logic miền trong mexc-fast-execution.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:mexc-fast-execution.ts:MexcFastExecution",
+      "type": "class",
+      "name": "MexcFastExecution",
+      "filePath": "mexc-fast-execution.ts",
+      "lineRange": [
+        39,
+        416
+      ],
+      "summary": "Adapter triển khai contract `FastExecution` trên MEXC với operation key idempotent và protection order.",
+      "tags": [
+        "service",
+        "order-execution",
+        "exchange-client",
+        "risk-management"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:binance-futures.ts",
+      "target": "function:binance-futures.ts:createBinanceFromEnv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:binance-futures.ts",
+      "target": "function:binance-futures.ts:createBinanceFromEnv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:binance-futures.ts",
+      "target": "class:binance-futures.ts:BinanceFutures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:binance-futures.ts",
+      "target": "class:binance-futures.ts:BinanceFutures",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:createState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:persist",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:tryExitAndTrail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:openLivePosition",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:evaluateNewEntry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:maybeSendArmAlert",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:notifyEntry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:notifyExit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:execOpen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:execSyncStops",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:execFlatten",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:reconcileFlat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:reconcileStartup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:adoptPosition",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:onCandleClose",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:prefetchHistory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:fetchClosedSince",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:startHealthMonitor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:startBinanceHealthMonitor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:startMexcHealthMonitor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:buildHealthMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:startPolling",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:startDailyHeartbeat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:buildStatusMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:startCommandListener",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "function:btc-alert-bot.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:fast-trend-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:live-state.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:mexc-fast-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:turtle-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:btc-alert-bot.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "function:dashboard-server.ts:journalStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "function:dashboard-server.ts:buildPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:dashboard-server.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "function:fast-trend-live.ts:atomicWriteFileSync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "function:fast-trend-live.ts:atomicWriteFileSync",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "function:fast-trend-live.ts:decideFastShortConfirmation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "function:fast-trend-live.ts:decideFastShortConfirmation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "function:fast-trend-live.ts:priorFastShortCloseLow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "function:fast-trend-live.ts:priorFastShortCloseLow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "class:fast-trend-live.ts:FastTrendLive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "class:fast-trend-live.ts:FastTrendLive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:fast-trend-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:fast-trend-live.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:live-state.ts",
+      "target": "function:live-state.ts:loadState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:live-state.ts",
+      "target": "function:live-state.ts:loadState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:live-state.ts",
+      "target": "function:live-state.ts:saveState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:live-state.ts",
+      "target": "function:live-state.ts:saveState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:live-state.ts",
+      "target": "function:live-state.ts:appendJournal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:live-state.ts",
+      "target": "function:live-state.ts:appendJournal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "function:live-trade.ts:loadExecConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "function:live-trade.ts:loadExecConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "class:live-trade.ts:LiveTrader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "class:live-trade.ts:LiveTrader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:live-trade.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "function:mexc-fast-execution.ts:makeMexcExternalOid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "function:mexc-fast-execution.ts:makeMexcExternalOid",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "class:mexc-fast-execution.ts:MexcFastExecution",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "class:mexc-fast-execution.ts:MexcFastExecution",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "file:fast-trend-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:mexc-fast-execution.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

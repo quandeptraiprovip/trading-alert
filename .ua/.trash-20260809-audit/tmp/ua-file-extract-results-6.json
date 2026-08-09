@@ -1,0 +1,1864 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 4,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "alt-trend.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 378,
+      "nonEmptyLines": 351,
+      "functions": [
+        {
+          "name": "evaluateTradability",
+          "startLine": 51,
+          "endLine": 78,
+          "params": [
+            "snapshot",
+            "plannedNotionalUsd",
+            "params"
+          ]
+        },
+        {
+          "name": "exactIndex",
+          "startLine": 156,
+          "endLine": 166,
+          "params": [
+            "candles",
+            "time"
+          ]
+        },
+        {
+          "name": "smaAt",
+          "startLine": 168,
+          "endLine": 173,
+          "params": [
+            "candles",
+            "index",
+            "period"
+          ]
+        },
+        {
+          "name": "atrAt",
+          "startLine": 175,
+          "endLine": 187,
+          "params": [
+            "candles",
+            "index",
+            "period"
+          ]
+        },
+        {
+          "name": "medianQuoteVolume",
+          "startLine": 189,
+          "endLine": 198,
+          "params": [
+            "candles",
+            "index",
+            "period"
+          ]
+        },
+        {
+          "name": "priorChannelLow",
+          "startLine": 200,
+          "endLine": 205,
+          "params": [
+            "candles",
+            "signalIndex",
+            "period"
+          ]
+        },
+        {
+          "name": "btcAllowsLong",
+          "startLine": 207,
+          "endLine": 214,
+          "params": [
+            "btc",
+            "entryTime",
+            "params"
+          ]
+        },
+        {
+          "name": "selectAltTrendCandidates",
+          "startLine": 216,
+          "endLine": 248,
+          "params": [
+            "data",
+            "btc",
+            "entryTime",
+            "params"
+          ]
+        },
+        {
+          "name": "closeTrade",
+          "startLine": 250,
+          "endLine": 277,
+          "params": [
+            "position",
+            "exitTime",
+            "exitPrice",
+            "exitReason",
+            "params"
+          ]
+        },
+        {
+          "name": "runAltTrendPortfolio",
+          "startLine": 279,
+          "endLine": 378,
+          "params": [
+            "data",
+            "btc",
+            "params",
+            "options"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ALT_UNIVERSE_DEFAULTS",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "evaluateTradability",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "ALT_TREND_DEFAULTS",
+          "line": 100,
+          "isDefault": false
+        },
+        {
+          "name": "selectAltTrendCandidates",
+          "line": 216,
+          "isDefault": false
+        },
+        {
+          "name": "runAltTrendPortfolio",
+          "line": 279,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "evaluateTradability",
+          "callee": "Math.max",
+          "lineNumber": 59
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "Math.min",
+          "lineNumber": 60
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "Math.max",
+          "lineNumber": 61
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "Math.min",
+          "lineNumber": 61
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "reasons.push",
+          "lineNumber": 67
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "reasons.push",
+          "lineNumber": 69
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "reasons.push",
+          "lineNumber": 71
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "reasons.push",
+          "lineNumber": 72
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "reasons.push",
+          "lineNumber": 74
+        },
+        {
+          "caller": "evaluateTradability",
+          "callee": "reasons.push",
+          "lineNumber": 76
+        },
+        {
+          "caller": "atrAt",
+          "callee": "Math.max",
+          "lineNumber": 180
+        },
+        {
+          "caller": "atrAt",
+          "callee": "Math.abs",
+          "lineNumber": 182
+        },
+        {
+          "caller": "atrAt",
+          "callee": "Math.abs",
+          "lineNumber": 183
+        },
+        {
+          "caller": "medianQuoteVolume",
+          "callee": "values.push",
+          "lineNumber": 193
+        },
+        {
+          "caller": "medianQuoteVolume",
+          "callee": "values.sort",
+          "lineNumber": 195
+        },
+        {
+          "caller": "priorChannelLow",
+          "callee": "Math.min",
+          "lineNumber": 203
+        },
+        {
+          "caller": "btcAllowsLong",
+          "callee": "exactIndex",
+          "lineNumber": 208
+        },
+        {
+          "caller": "btcAllowsLong",
+          "callee": "smaAt",
+          "lineNumber": 211
+        },
+        {
+          "caller": "btcAllowsLong",
+          "callee": "smaAt",
+          "lineNumber": 212
+        },
+        {
+          "caller": "btcAllowsLong",
+          "callee": "Number.isFinite",
+          "lineNumber": 213
+        },
+        {
+          "caller": "btcAllowsLong",
+          "callee": "Number.isFinite",
+          "lineNumber": 213
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "btcAllowsLong",
+          "lineNumber": 222
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "exactIndex",
+          "lineNumber": 225
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "smaAt",
+          "lineNumber": 229
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "atrAt",
+          "lineNumber": 230
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "medianQuoteVolume",
+          "lineNumber": 231
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "candidates.push",
+          "lineNumber": 237
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "candidates.sort",
+          "lineNumber": 247
+        },
+        {
+          "caller": "selectAltTrendCandidates",
+          "callee": "a.symbol.localeCompare",
+          "lineNumber": 247
+        },
+        {
+          "caller": "closeTrade",
+          "callee": "Math.max",
+          "lineNumber": 259
+        },
+        {
+          "caller": "closeTrade",
+          "callee": "Math.floor",
+          "lineNumber": 260
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "[...data].map",
+          "lineNumber": 288
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "candles.at",
+          "lineNumber": 288
+        },
+        {
+          "caller": "exit",
+          "callee": "trades.push",
+          "lineNumber": 296
+        },
+        {
+          "caller": "exit",
+          "callee": "closeTrade",
+          "lineNumber": 296
+        },
+        {
+          "caller": "exit",
+          "callee": "positions.delete",
+          "lineNumber": 297
+        },
+        {
+          "caller": "exit",
+          "callee": "cooldownUntil.set",
+          "lineNumber": 298
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "data.get",
+          "lineNumber": 307
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "exactIndex",
+          "lineNumber": 308
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "lastTime.get",
+          "lineNumber": 310
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "candles.at",
+          "lineNumber": 311
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "exit",
+          "lineNumber": 313
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "closedToday.add",
+          "lineNumber": 314
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "smaAt",
+          "lineNumber": 323
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "priorChannelLow",
+          "lineNumber": 324
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "exit",
+          "lineNumber": 326
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "closedToday.add",
+          "lineNumber": 327
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "selectAltTrendCandidates(data, btc, time, params)\n        .filter((candidate) => !positions.has(candidate.symbol))\n        .filter((candidate) => !closedToday.has(candidate.symbol))\n        .filter((candidate) => time >= (cooldownUntil.get(candidate.symbol) ?? -Infinity))\n        .slice",
+          "lineNumber": 333
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "selectAltTrendCandidates(data, btc, time, params)\n        .filter((candidate) => !positions.has(candidate.symbol))\n        .filter((candidate) => !closedToday.has(candidate.symbol))\n        .filter",
+          "lineNumber": 333
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "selectAltTrendCandidates(data, btc, time, params)\n        .filter((candidate) => !positions.has(candidate.symbol))\n        .filter",
+          "lineNumber": 333
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "selectAltTrendCandidates(data, btc, time, params)\n        .filter",
+          "lineNumber": 333
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "selectAltTrendCandidates",
+          "lineNumber": 333
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "positions.has",
+          "lineNumber": 334
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "closedToday.has",
+          "lineNumber": 335
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "cooldownUntil.get",
+          "lineNumber": 336
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "positions.set",
+          "lineNumber": 342
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "data.get",
+          "lineNumber": 358
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "exactIndex",
+          "lineNumber": 359
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "exit",
+          "lineNumber": 363
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "Math.min",
+          "lineNumber": 363
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "atrAt",
+          "lineNumber": 366
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "Math.max",
+          "lineNumber": 367
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "Math.max",
+          "lineNumber": 368
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "data.get(symbol)!.at",
+          "lineNumber": 374
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "data.get",
+          "lineNumber": 374
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "exit",
+          "lineNumber": 375
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "trades.sort",
+          "lineNumber": 377
+        },
+        {
+          "caller": "runAltTrendPortfolio",
+          "callee": "a.symbol.localeCompare",
+          "lineNumber": 377
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 10,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "scripts/alt-trend-backtest.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 174,
+      "nonEmptyLines": 158,
+      "functions": [
+        {
+          "name": "metrics",
+          "startLine": 20,
+          "endLine": 43,
+          "params": [
+            "trades"
+          ]
+        },
+        {
+          "name": "rng",
+          "startLine": 45,
+          "endLine": 53,
+          "params": [
+            "seed"
+          ]
+        },
+        {
+          "name": "quantile",
+          "startLine": 55,
+          "endLine": 60,
+          "params": [
+            "sorted",
+            "p"
+          ]
+        },
+        {
+          "name": "blockBootstrap",
+          "startLine": 62,
+          "endLine": 83,
+          "params": [
+            "trades",
+            "start",
+            "end"
+          ]
+        },
+        {
+          "name": "row",
+          "startLine": 85,
+          "endLine": 93,
+          "params": [
+            "label",
+            "trades"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 95,
+          "endLine": 169,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "metrics",
+          "callee": "[...trades].sort",
+          "lineNumber": 21
+        },
+        {
+          "caller": "metrics",
+          "callee": "sorted.reduce",
+          "lineNumber": 22
+        },
+        {
+          "caller": "metrics",
+          "callee": "sorted.reduce",
+          "lineNumber": 23
+        },
+        {
+          "caller": "metrics",
+          "callee": "sorted.reduce",
+          "lineNumber": 24
+        },
+        {
+          "caller": "metrics",
+          "callee": "Math.max",
+          "lineNumber": 29
+        },
+        {
+          "caller": "metrics",
+          "callee": "Math.max",
+          "lineNumber": 30
+        },
+        {
+          "caller": "metrics",
+          "callee": "Math.max",
+          "lineNumber": 31
+        },
+        {
+          "caller": "metrics",
+          "callee": "sorted.filter",
+          "lineNumber": 35
+        },
+        {
+          "caller": "rng",
+          "callee": "Math.imul",
+          "lineNumber": 49
+        },
+        {
+          "caller": "rng",
+          "callee": "Math.imul",
+          "lineNumber": 50
+        },
+        {
+          "caller": "quantile",
+          "callee": "Math.floor",
+          "lineNumber": 57
+        },
+        {
+          "caller": "quantile",
+          "callee": "Math.ceil",
+          "lineNumber": 58
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.max",
+          "lineNumber": 64
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.ceil",
+          "lineNumber": 64
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "new Array(count).fill",
+          "lineNumber": 65
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.floor",
+          "lineNumber": 67
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "rng",
+          "lineNumber": 70
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.floor",
+          "lineNumber": 74
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "random",
+          "lineNumber": 74
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "samples.push",
+          "lineNumber": 75
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "samples.sort",
+          "lineNumber": 77
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "quantile",
+          "lineNumber": 79
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "quantile",
+          "lineNumber": 80
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "samples.filter",
+          "lineNumber": 81
+        },
+        {
+          "caller": "row",
+          "callee": "metrics",
+          "lineNumber": 86
+        },
+        {
+          "caller": "row",
+          "callee": "console.log",
+          "lineNumber": 87
+        },
+        {
+          "caller": "row",
+          "callee": "label.padEnd",
+          "lineNumber": 88
+        },
+        {
+          "caller": "row",
+          "callee": "String(value.n).padStart",
+          "lineNumber": 88
+        },
+        {
+          "caller": "row",
+          "callee": "String",
+          "lineNumber": 88
+        },
+        {
+          "caller": "row",
+          "callee": "(100 * value.wr).toFixed(1).padStart",
+          "lineNumber": 88
+        },
+        {
+          "caller": "row",
+          "callee": "(100 * value.wr).toFixed",
+          "lineNumber": 88
+        },
+        {
+          "caller": "row",
+          "callee": "value.grossR.toFixed(1).padStart",
+          "lineNumber": 89
+        },
+        {
+          "caller": "row",
+          "callee": "value.grossR.toFixed",
+          "lineNumber": 89
+        },
+        {
+          "caller": "row",
+          "callee": "(-value.costR).toFixed(1).padStart",
+          "lineNumber": 89
+        },
+        {
+          "caller": "row",
+          "callee": "(-value.costR).toFixed",
+          "lineNumber": 89
+        },
+        {
+          "caller": "row",
+          "callee": "value.netR.toFixed(1).padStart",
+          "lineNumber": 90
+        },
+        {
+          "caller": "row",
+          "callee": "value.netR.toFixed",
+          "lineNumber": 90
+        },
+        {
+          "caller": "row",
+          "callee": "value.exp.toFixed(3).padStart",
+          "lineNumber": 90
+        },
+        {
+          "caller": "row",
+          "callee": "value.exp.toFixed",
+          "lineNumber": 90
+        },
+        {
+          "caller": "row",
+          "callee": "value.equity.toFixed(1).padStart",
+          "lineNumber": 91
+        },
+        {
+          "caller": "row",
+          "callee": "value.equity.toFixed",
+          "lineNumber": 91
+        },
+        {
+          "caller": "row",
+          "callee": "(100 * value.maxDd).toFixed(1).padStart",
+          "lineNumber": 91
+        },
+        {
+          "caller": "row",
+          "callee": "(100 * value.maxDd).toFixed",
+          "lineNumber": 91
+        },
+        {
+          "caller": "main",
+          "callee": "Number",
+          "lineNumber": 96
+        },
+        {
+          "caller": "main",
+          "callee": "Number",
+          "lineNumber": 98
+        },
+        {
+          "caller": "main",
+          "callee": "[...new Set(rawSymbols.split(\",\").map((value) => value.trim().toLowerCase()))]\n    .filter",
+          "lineNumber": 103
+        },
+        {
+          "caller": "main",
+          "callee": "rawSymbols.split(\",\").map",
+          "lineNumber": 103
+        },
+        {
+          "caller": "main",
+          "callee": "rawSymbols.split",
+          "lineNumber": 103
+        },
+        {
+          "caller": "main",
+          "callee": "value.trim().toLowerCase",
+          "lineNumber": 103
+        },
+        {
+          "caller": "main",
+          "callee": "value.trim",
+          "lineNumber": 103
+        },
+        {
+          "caller": "main",
+          "callee": "Math.max",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "Math.ceil",
+          "lineNumber": 112
+        },
+        {
+          "caller": "main",
+          "callee": "Date.now",
+          "lineNumber": 113
+        },
+        {
+          "caller": "closedOnly",
+          "callee": "candles.filter",
+          "lineNumber": 115
+        },
+        {
+          "caller": "closedOnly",
+          "callee": "Date.now",
+          "lineNumber": 115
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 117
+        },
+        {
+          "caller": "main",
+          "callee": "closedOnly",
+          "lineNumber": 118
+        },
+        {
+          "caller": "main",
+          "callee": "fetchKlinesPaged",
+          "lineNumber": 118
+        },
+        {
+          "caller": "main",
+          "callee": "closedOnly",
+          "lineNumber": 120
+        },
+        {
+          "caller": "main",
+          "callee": "fetchKlinesPaged",
+          "lineNumber": 120
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 122
+        },
+        {
+          "caller": "main",
+          "callee": "symbol.toUpperCase",
+          "lineNumber": 122
+        },
+        {
+          "caller": "main",
+          "callee": "data.set",
+          "lineNumber": 124
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 127
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 128
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 129
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 130
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 132
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 133
+        },
+        {
+          "caller": "main",
+          "callee": "\"-\".repeat",
+          "lineNumber": 133
+        },
+        {
+          "caller": "main",
+          "callee": "runAltTrendPortfolio",
+          "lineNumber": 136
+        },
+        {
+          "caller": "main",
+          "callee": "byCost.set",
+          "lineNumber": 141
+        },
+        {
+          "caller": "main",
+          "callee": "row",
+          "lineNumber": 142
+        },
+        {
+          "caller": "main",
+          "callee": "byCost.get",
+          "lineNumber": 145
+        },
+        {
+          "caller": "main",
+          "callee": "btc.at",
+          "lineNumber": 146
+        },
+        {
+          "caller": "main",
+          "callee": "Date.now",
+          "lineNumber": 146
+        },
+        {
+          "caller": "main",
+          "callee": "blockBootstrap",
+          "lineNumber": 147
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "bootstrap.low.toFixed",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "bootstrap.high.toFixed",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "(100 * bootstrap.pPositive).toFixed",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 150
+        },
+        {
+          "caller": "main",
+          "callee": "row",
+          "lineNumber": 155
+        },
+        {
+          "caller": "main",
+          "callee": "base.filter",
+          "lineNumber": 155
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 158
+        },
+        {
+          "caller": "main",
+          "callee": "row",
+          "lineNumber": 159
+        },
+        {
+          "caller": "main",
+          "callee": "symbol.toUpperCase",
+          "lineNumber": 159
+        },
+        {
+          "caller": "main",
+          "callee": "base.filter",
+          "lineNumber": 159
+        },
+        {
+          "caller": "main",
+          "callee": "[...new Set(base.map((trade) => trade.symbol))]\n    .map((symbol) => ({ symbol, net: base.filter((trade) => trade.symbol === symbol).reduce((sum, trade) => sum + trade.netR, 0) }))\n    .sort",
+          "lineNumber": 161
+        },
+        {
+          "caller": "main",
+          "callee": "[...new Set(base.map((trade) => trade.symbol))]\n    .map",
+          "lineNumber": 161
+        },
+        {
+          "caller": "main",
+          "callee": "base.map",
+          "lineNumber": 161
+        },
+        {
+          "caller": "main",
+          "callee": "base.filter((trade) => trade.symbol === symbol).reduce",
+          "lineNumber": 162
+        },
+        {
+          "caller": "main",
+          "callee": "base.filter",
+          "lineNumber": 162
+        },
+        {
+          "caller": "main",
+          "callee": "base.filter",
+          "lineNumber": 165
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 166
+        },
+        {
+          "caller": "main",
+          "callee": "bestCoin.symbol.toUpperCase",
+          "lineNumber": 166
+        },
+        {
+          "caller": "main",
+          "callee": "bestCoin.net.toFixed",
+          "lineNumber": 166
+        },
+        {
+          "caller": "main",
+          "callee": "row",
+          "lineNumber": 167
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "scripts/alt-universe-scanner.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 179,
+      "nonEmptyLines": 163,
+      "functions": [
+        {
+          "name": "get",
+          "startLine": 44,
+          "endLine": 47,
+          "params": [
+            "url",
+            "params"
+          ]
+        },
+        {
+          "name": "depthUsd",
+          "startLine": 49,
+          "endLine": 60,
+          "params": [
+            "levels",
+            "mid",
+            "side"
+          ]
+        },
+        {
+          "name": "adlRisk",
+          "startLine": 62,
+          "endLine": 73,
+          "params": [
+            "symbol"
+          ]
+        },
+        {
+          "name": "inspect",
+          "startLine": 75,
+          "endLine": 101,
+          "params": [
+            "symbol",
+            "ticker",
+            "book",
+            "observedAt"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 103,
+          "endLine": 174,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get",
+          "callee": "await axios.get",
+          "lineNumber": 45
+        },
+        {
+          "caller": "depthUsd",
+          "callee": "Number",
+          "lineNumber": 53
+        },
+        {
+          "caller": "depthUsd",
+          "callee": "Number",
+          "lineNumber": 54
+        },
+        {
+          "caller": "adlRisk",
+          "callee": "await get",
+          "lineNumber": 64
+        },
+        {
+          "caller": "adlRisk",
+          "callee": "Array.isArray",
+          "lineNumber": 68
+        },
+        {
+          "caller": "adlRisk",
+          "callee": "raw.find",
+          "lineNumber": 68
+        },
+        {
+          "caller": "inspect",
+          "callee": "Number",
+          "lineNumber": 81
+        },
+        {
+          "caller": "inspect",
+          "callee": "Number",
+          "lineNumber": 82
+        },
+        {
+          "caller": "inspect",
+          "callee": "Promise.all",
+          "lineNumber": 84
+        },
+        {
+          "caller": "inspect",
+          "callee": "get",
+          "lineNumber": 85
+        },
+        {
+          "caller": "inspect",
+          "callee": "get",
+          "lineNumber": 86
+        },
+        {
+          "caller": "inspect",
+          "callee": "adlRisk",
+          "lineNumber": 87
+        },
+        {
+          "caller": "inspect",
+          "callee": "symbol.symbol.toLowerCase",
+          "lineNumber": 90
+        },
+        {
+          "caller": "inspect",
+          "callee": "Number",
+          "lineNumber": 93
+        },
+        {
+          "caller": "inspect",
+          "callee": "depthUsd",
+          "lineNumber": 96
+        },
+        {
+          "caller": "inspect",
+          "callee": "depthUsd",
+          "lineNumber": 97
+        },
+        {
+          "caller": "inspect",
+          "callee": "Number",
+          "lineNumber": 98
+        },
+        {
+          "caller": "inspect",
+          "callee": "Number",
+          "lineNumber": 98
+        },
+        {
+          "caller": "main",
+          "callee": "Number",
+          "lineNumber": 104
+        },
+        {
+          "caller": "main",
+          "callee": "Number",
+          "lineNumber": 105
+        },
+        {
+          "caller": "main",
+          "callee": "process.argv.includes",
+          "lineNumber": 106
+        },
+        {
+          "caller": "main",
+          "callee": "Date.now",
+          "lineNumber": 111
+        },
+        {
+          "caller": "main",
+          "callee": "Promise.all",
+          "lineNumber": 112
+        },
+        {
+          "caller": "main",
+          "callee": "get",
+          "lineNumber": 113
+        },
+        {
+          "caller": "main",
+          "callee": "get",
+          "lineNumber": 114
+        },
+        {
+          "caller": "main",
+          "callee": "get",
+          "lineNumber": 115
+        },
+        {
+          "caller": "main",
+          "callee": "tickers.map",
+          "lineNumber": 117
+        },
+        {
+          "caller": "main",
+          "callee": "books.map",
+          "lineNumber": 118
+        },
+        {
+          "caller": "main",
+          "callee": "exchange.symbols\n    .filter((symbol) => symbol.contractType === \"PERPETUAL\")\n    .filter((symbol) => symbol.status === \"TRADING\" && symbol.quoteAsset === \"USDT\")\n    .filter((symbol) => tickerBy.has(symbol.symbol) && bookBy.has(symbol.symbol))\n    .sort((a, b) => Number(tickerBy.get(b.symbol)!.quoteVolume) - Number(tickerBy.get(a.symbol)!.quoteVolume))\n    .slice",
+          "lineNumber": 119
+        },
+        {
+          "caller": "main",
+          "callee": "exchange.symbols\n    .filter((symbol) => symbol.contractType === \"PERPETUAL\")\n    .filter((symbol) => symbol.status === \"TRADING\" && symbol.quoteAsset === \"USDT\")\n    .filter((symbol) => tickerBy.has(symbol.symbol) && bookBy.has(symbol.symbol))\n    .sort",
+          "lineNumber": 119
+        },
+        {
+          "caller": "main",
+          "callee": "exchange.symbols\n    .filter((symbol) => symbol.contractType === \"PERPETUAL\")\n    .filter((symbol) => symbol.status === \"TRADING\" && symbol.quoteAsset === \"USDT\")\n    .filter",
+          "lineNumber": 119
+        },
+        {
+          "caller": "main",
+          "callee": "exchange.symbols\n    .filter((symbol) => symbol.contractType === \"PERPETUAL\")\n    .filter",
+          "lineNumber": 119
+        },
+        {
+          "caller": "main",
+          "callee": "exchange.symbols\n    .filter",
+          "lineNumber": 119
+        },
+        {
+          "caller": "main",
+          "callee": "tickerBy.has",
+          "lineNumber": 122
+        },
+        {
+          "caller": "main",
+          "callee": "bookBy.has",
+          "lineNumber": 122
+        },
+        {
+          "caller": "main",
+          "callee": "Number",
+          "lineNumber": 123
+        },
+        {
+          "caller": "main",
+          "callee": "tickerBy.get",
+          "lineNumber": 123
+        },
+        {
+          "caller": "main",
+          "callee": "Number",
+          "lineNumber": 123
+        },
+        {
+          "caller": "main",
+          "callee": "tickerBy.get",
+          "lineNumber": 123
+        },
+        {
+          "caller": "main",
+          "callee": "prelim.slice",
+          "lineNumber": 128
+        },
+        {
+          "caller": "main",
+          "callee": "Promise.allSettled",
+          "lineNumber": 129
+        },
+        {
+          "caller": "main",
+          "callee": "batch.map",
+          "lineNumber": 129
+        },
+        {
+          "caller": "main",
+          "callee": "inspect",
+          "lineNumber": 129
+        },
+        {
+          "caller": "main",
+          "callee": "tickerBy.get",
+          "lineNumber": 131
+        },
+        {
+          "caller": "main",
+          "callee": "bookBy.get",
+          "lineNumber": 132
+        },
+        {
+          "caller": "main",
+          "callee": "snapshots.push",
+          "lineNumber": 136
+        },
+        {
+          "caller": "main",
+          "callee": "console.warn",
+          "lineNumber": 137
+        },
+        {
+          "caller": "main",
+          "callee": "snapshots.map((snapshot) => ({\n    snapshot,\n    result: evaluateTradability(snapshot, plannedNotionalUsd),\n  })).sort",
+          "lineNumber": 141
+        },
+        {
+          "caller": "main",
+          "callee": "snapshots.map",
+          "lineNumber": 141
+        },
+        {
+          "caller": "main",
+          "callee": "evaluateTradability",
+          "lineNumber": 143
+        },
+        {
+          "caller": "main",
+          "callee": "rows.filter",
+          "lineNumber": 145
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 147
+        },
+        {
+          "caller": "main",
+          "callee": "plannedNotionalUsd.toFixed",
+          "lineNumber": 147
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(observedAt).toISOString",
+          "lineNumber": 147
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 149
+        },
+        {
+          "caller": "main",
+          "callee": "\"-\".repeat",
+          "lineNumber": 149
+        },
+        {
+          "caller": "main",
+          "callee": "Math.min",
+          "lineNumber": 151
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 152
+        },
+        {
+          "caller": "main",
+          "callee": "snapshot.symbol.toUpperCase().padEnd",
+          "lineNumber": 153
+        },
+        {
+          "caller": "main",
+          "callee": "snapshot.symbol.toUpperCase",
+          "lineNumber": 153
+        },
+        {
+          "caller": "main",
+          "callee": "result.listingAgeDays.toFixed(0).padStart",
+          "lineNumber": 154
+        },
+        {
+          "caller": "main",
+          "callee": "result.listingAgeDays.toFixed",
+          "lineNumber": 154
+        },
+        {
+          "caller": "main",
+          "callee": "result.spreadBps.toFixed(2).padStart",
+          "lineNumber": 155
+        },
+        {
+          "caller": "main",
+          "callee": "result.spreadBps.toFixed",
+          "lineNumber": 155
+        },
+        {
+          "caller": "main",
+          "callee": "depth.toFixed(0).padStart",
+          "lineNumber": 156
+        },
+        {
+          "caller": "main",
+          "callee": "depth.toFixed",
+          "lineNumber": 156
+        },
+        {
+          "caller": "main",
+          "callee": "snapshot.openInterestValue.toFixed(0).padStart",
+          "lineNumber": 157
+        },
+        {
+          "caller": "main",
+          "callee": "snapshot.openInterestValue.toFixed",
+          "lineNumber": 157
+        },
+        {
+          "caller": "main",
+          "callee": "snapshot.quoteVolume24h.toFixed(0).padStart",
+          "lineNumber": 158
+        },
+        {
+          "caller": "main",
+          "callee": "snapshot.quoteVolume24h.toFixed",
+          "lineNumber": 158
+        },
+        {
+          "caller": "main",
+          "callee": "result.capacityUsd.toFixed(0).padStart",
+          "lineNumber": 159
+        },
+        {
+          "caller": "main",
+          "callee": "result.capacityUsd.toFixed",
+          "lineNumber": 159
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 162
+        },
+        {
+          "caller": "main",
+          "callee": "\"-\".repeat",
+          "lineNumber": 162
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 163
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 164
+        },
+        {
+          "caller": "main",
+          "callee": "eligible.map((row) => row.snapshot.symbol).join",
+          "lineNumber": 164
+        },
+        {
+          "caller": "main",
+          "callee": "eligible.map",
+          "lineNumber": 164
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(observedAt).toISOString().slice",
+          "lineNumber": 167
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(observedAt).toISOString",
+          "lineNumber": 167
+        },
+        {
+          "caller": "main",
+          "callee": "path.join",
+          "lineNumber": 168
+        },
+        {
+          "caller": "main",
+          "callee": "process.cwd",
+          "lineNumber": 168
+        },
+        {
+          "caller": "main",
+          "callee": "fs.mkdirSync",
+          "lineNumber": 169
+        },
+        {
+          "caller": "main",
+          "callee": "path.join",
+          "lineNumber": 170
+        },
+        {
+          "caller": "main",
+          "callee": "fs.writeFileSync",
+          "lineNumber": 171
+        },
+        {
+          "caller": "main",
+          "callee": "JSON.stringify",
+          "lineNumber": 171
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 172
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "test-alt-trend.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 152,
+      "nonEmptyLines": 139,
+      "functions": [
+        {
+          "name": "series",
+          "startLine": 12,
+          "endLine": 35,
+          "params": [
+            "days",
+            "start",
+            "dailyReturn",
+            "quoteVolume"
+          ]
+        },
+        {
+          "name": "testTradabilityGate",
+          "startLine": 55,
+          "endLine": 86,
+          "params": []
+        },
+        {
+          "name": "testRankingRegimeAndNextOpen",
+          "startLine": 88,
+          "endLine": 110,
+          "params": []
+        },
+        {
+          "name": "testNoFutureLeakAndCostStress",
+          "startLine": 112,
+          "endLine": 147,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "series",
+          "callee": "out.push",
+          "lineNumber": 23
+        },
+        {
+          "caller": "series",
+          "callee": "Math.max",
+          "lineNumber": 26
+        },
+        {
+          "caller": "series",
+          "callee": "Math.min",
+          "lineNumber": 27
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "evaluateTradability",
+          "lineNumber": 68
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.equal",
+          "lineNumber": 69
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.deepEqual",
+          "lineNumber": 70
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "evaluateTradability",
+          "lineNumber": 72
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.equal",
+          "lineNumber": 80
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.ok",
+          "lineNumber": 81
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "fail.reasons.includes",
+          "lineNumber": 81
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.ok",
+          "lineNumber": 82
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "fail.reasons.includes",
+          "lineNumber": 82
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.ok",
+          "lineNumber": 83
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "fail.reasons.includes",
+          "lineNumber": 83
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.ok",
+          "lineNumber": 84
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "fail.reasons.includes",
+          "lineNumber": 84
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "assert.ok",
+          "lineNumber": 85
+        },
+        {
+          "caller": "testTradabilityGate",
+          "callee": "fail.reasons.includes",
+          "lineNumber": 85
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "series",
+          "lineNumber": 89
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "series",
+          "lineNumber": 90
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "series",
+          "lineNumber": 91
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "series",
+          "lineNumber": 92
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "selectAltTrendCandidates",
+          "lineNumber": 99
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "assert.deepEqual",
+          "lineNumber": 100
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "candidates.map",
+          "lineNumber": 100
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "runAltTrendPortfolio",
+          "lineNumber": 102
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "assert.ok",
+          "lineNumber": 103
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "assert.equal",
+          "lineNumber": 104
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "assert.equal",
+          "lineNumber": 105
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "assert.equal",
+          "lineNumber": 106
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "series",
+          "lineNumber": 108
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "assert.equal",
+          "lineNumber": 109
+        },
+        {
+          "caller": "testRankingRegimeAndNextOpen",
+          "callee": "runAltTrendPortfolio",
+          "lineNumber": 109
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "series",
+          "lineNumber": 113
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "series",
+          "lineNumber": 114
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "selectAltTrendCandidates",
+          "lineNumber": 117
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "selectAltTrendCandidates",
+          "lineNumber": 128
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "assert.deepEqual",
+          "lineNumber": 129
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "runAltTrendPortfolio",
+          "lineNumber": 131
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "runAltTrendPortfolio",
+          "lineNumber": 132
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "assert.equal",
+          "lineNumber": 133
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "assert.equal",
+          "lineNumber": 134
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "expensive.reduce",
+          "lineNumber": 135
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "cheap.reduce",
+          "lineNumber": 136
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "assert.ok",
+          "lineNumber": 138
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "expensive.reduce",
+          "lineNumber": 139
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "cheap.reduce",
+          "lineNumber": 140
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "runAltTrendPortfolio",
+          "lineNumber": 144
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "assert.ok",
+          "lineNumber": 145
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "assert.ok",
+          "lineNumber": 146
+        },
+        {
+          "caller": "testNoFutureLeakAndCostStress",
+          "callee": "isolatedWindow.every",
+          "lineNumber": 146
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {"path": "scripts/smallcap-native-research.ts", "language": "typescript", "sizeLines": 125, "fileCategory": "code"},
+    {"path": "smallcap-research.ts", "language": "typescript", "sizeLines": 88, "fileCategory": "code"},
+    {"path": "smallcap-reversal.ts", "language": "typescript", "sizeLines": 272, "fileCategory": "code"},
+    {"path": "smallcap-supply.ts", "language": "typescript", "sizeLines": 177, "fileCategory": "code"},
+    {"path": "test-smallcap-native.ts", "language": "typescript", "sizeLines": 221, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "scripts/smallcap-native-research.ts": ["smallcap-research.ts", "smallcap-reversal.ts", "smallcap-supply.ts"],
+    "smallcap-research.ts": [],
+    "smallcap-reversal.ts": ["smallcap-research.ts"],
+    "smallcap-supply.ts": ["smallcap-research.ts"],
+    "test-smallcap-native.ts": ["smallcap-research.ts", "smallcap-reversal.ts", "smallcap-supply.ts"]
+  }
+}

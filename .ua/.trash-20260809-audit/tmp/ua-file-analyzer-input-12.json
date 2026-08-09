@@ -1,0 +1,35 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": "scripts/baseline-gate.sh",
+      "language": "shell",
+      "sizeLines": 40,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/entry-ablation.sh",
+      "language": "shell",
+      "sizeLines": 36,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/indicator-ablation.sh",
+      "language": "shell",
+      "sizeLines": 39,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/rsi-ablation.sh",
+      "language": "shell",
+      "sizeLines": 32,
+      "fileCategory": "script"
+    }
+  ],
+  "batchImportData": {
+    "scripts/baseline-gate.sh": [],
+    "scripts/entry-ablation.sh": [],
+    "scripts/indicator-ablation.sh": [],
+    "scripts/rsi-ablation.sh": []
+  }
+}

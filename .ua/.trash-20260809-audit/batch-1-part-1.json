@@ -1,0 +1,952 @@
+{
+  "nodes": [
+    {
+      "id": "file:backtest.ts",
+      "type": "file",
+      "name": "backtest.ts",
+      "filePath": "backtest.ts",
+      "summary": "Cung cấp engine backtest chung: tải dữ liệu nến, mô phỏng giao dịch, bootstrap và Monte Carlo để đánh giá độ bền của chiến lược.",
+      "tags": [
+        "backtest",
+        "simulation",
+        "statistics",
+        "research"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:backtest.ts:fetchKlinesFromSource",
+      "type": "function",
+      "name": "fetchKlinesFromSource",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        45,
+        80
+      ],
+      "summary": "Hàm `fetchKlinesFromSource` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:fetchKlinesPaged",
+      "type": "function",
+      "name": "fetchKlinesPaged",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        83,
+        95
+      ],
+      "summary": "Hàm `fetchKlinesPaged` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:fmtTime",
+      "type": "function",
+      "name": "fmtTime",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        123,
+        132
+      ],
+      "summary": "Hàm `fmtTime` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:tradeCostR",
+      "type": "function",
+      "name": "tradeCostR",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        135,
+        146
+      ],
+      "summary": "Hàm `tradeCostR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "backtest"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:runBacktest",
+      "type": "function",
+      "name": "runBacktest",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        149,
+        329
+      ],
+      "summary": "Mô phỏng strategy trên chuỗi nến, quản lý entry/exit và trả về danh sách trade cùng thống kê phục vụ các experiment.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "backtest"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backtest.ts:bootstrap",
+      "type": "function",
+      "name": "bootstrap",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        342,
+        356
+      ],
+      "summary": "Hàm `bootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:simRandomTrade",
+      "type": "function",
+      "name": "simRandomTrade",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        359,
+        389
+      ],
+      "summary": "Hàm `simRandomTrade` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "backtest"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:monteCarloRandomEntry",
+      "type": "function",
+      "name": "monteCarloRandomEntry",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        396,
+        433
+      ],
+      "summary": "Chạy Monte Carlo với entry ngẫu nhiên để tạo baseline và kiểm tra edge của strategy so với nhiễu.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "backtest"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backtest.ts:report",
+      "type": "function",
+      "name": "report",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        436,
+        556
+      ],
+      "summary": "Hàm `report` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backtest.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "backtest.ts",
+      "lineRange": [
+        559,
+        594
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: cung cấp engine backtest chung: tải dữ liệu nến, mô phỏng giao dịch, bootstrap và Monte Carlo để đánh giá độ bền của chiến lược.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:exp-overfit.ts",
+      "type": "file",
+      "name": "exp-overfit.ts",
+      "filePath": "exp-overfit.ts",
+      "summary": "Chạy thí nghiệm overfit cho chiến lược nền, so sánh các cấu hình trên dữ liệu lịch sử và tổng hợp kết quả.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:exp-overfit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "exp-overfit.ts",
+      "lineRange": [
+        19,
+        98
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chạy thí nghiệm overfit cho chiến lược nền, so sánh các cấu hình trên dữ liệu lịch sử và tổng hợp kết quả.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:exp-turtle-overfit.ts",
+      "type": "file",
+      "name": "exp-turtle-overfit.ts",
+      "filePath": "exp-turtle-overfit.ts",
+      "summary": "Đánh giá nguy cơ overfit của Turtle strategy bằng các biến thể cấu hình và kết quả backtest có thể đối chiếu.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:exp-turtle-overfit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "exp-turtle-overfit.ts",
+      "lineRange": [
+        27,
+        134
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá nguy cơ overfit của Turtle strategy bằng các biến thể cấu hình và kết quả backtest có thể đối chiếu.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:load-env.ts",
+      "type": "file",
+      "name": "load-env.ts",
+      "filePath": "load-env.ts",
+      "summary": "Nạp biến môi trường từ tệp `.env` vào runtime để các script và bot dùng chung cấu hình cục bộ.",
+      "tags": [
+        "configuration",
+        "environment",
+        "bootstrap"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/coin-features.ts",
+      "type": "file",
+      "name": "coin-features.ts",
+      "filePath": "scripts/coin-features.ts",
+      "summary": "Trích xuất feature theo từng coin, gồm hành vi giá và hiệu quả xu hướng, để phân tích khác biệt hiệu suất giữa các symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/coin-features.ts:efficiencyRatio",
+      "type": "function",
+      "name": "efficiencyRatio",
+      "filePath": "scripts/coin-features.ts",
+      "lineRange": [
+        37,
+        46
+      ],
+      "summary": "Hàm `efficiencyRatio` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/coin-features.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/coin-features.ts",
+      "lineRange": [
+        68,
+        124
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: trích xuất feature theo từng coin, gồm hành vi giá và hiệu quả xu hướng, để phân tích khác biệt hiệu suất giữa các symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/coin-fit.ts",
+      "type": "file",
+      "name": "coin-fit.ts",
+      "filePath": "scripts/coin-fit.ts",
+      "summary": "Đo độ phù hợp của chiến lược theo từng coin và xếp hạng kết quả backtest để nhận diện universe phù hợp.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/coin-fit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/coin-fit.ts",
+      "lineRange": [
+        22,
+        81
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đo độ phù hợp của chiến lược theo từng coin và xếp hạng kết quả backtest để nhận diện universe phù hợp.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/confirm-quality-gate.ts",
+      "type": "file",
+      "name": "confirm-quality-gate.ts",
+      "filePath": "scripts/confirm-quality-gate.ts",
+      "summary": "Kiểm định quality gate của tín hiệu xác nhận bằng cách so sánh hiệu suất các nhóm setup trên cùng dữ liệu backtest.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/confirm-quality-gate.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/confirm-quality-gate.ts",
+      "lineRange": [
+        21,
+        92
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: kiểm định quality gate của tín hiệu xác nhận bằng cách so sánh hiệu suất các nhóm setup trên cùng dữ liệu backtest.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/cross-asset-2817.ts",
+      "type": "file",
+      "name": "cross-asset-2817.ts",
+      "filePath": "scripts/cross-asset-2817.ts",
+      "summary": "Đánh giá cấu hình cross-asset mang nhãn 28/17 trên nhiều symbol và tổng hợp độ ổn định của kết quả.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/cross-asset-2817.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/cross-asset-2817.ts",
+      "lineRange": [
+        30,
+        76
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá cấu hình cross-asset mang nhãn 28/17 trên nhiều symbol và tổng hợp độ ổn định của kết quả.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/cross-asset-baseline.ts",
+      "type": "file",
+      "name": "cross-asset-baseline.ts",
+      "filePath": "scripts/cross-asset-baseline.ts",
+      "summary": "Thiết lập baseline cross-asset để so sánh nhất quán các thử nghiệm chiến lược trên nhiều symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/cross-asset-baseline.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/cross-asset-baseline.ts",
+      "lineRange": [
+        30,
+        74
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: thiết lập baseline cross-asset để so sánh nhất quán các thử nghiệm chiến lược trên nhiều symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/entry-frequency-sweep.ts",
+      "type": "file",
+      "name": "entry-frequency-sweep.ts",
+      "filePath": "scripts/entry-frequency-sweep.ts",
+      "summary": "Quét các tham số ảnh hưởng đến tần suất entry và báo cáo trade-off giữa số lệnh, lợi nhuận và drawdown.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/entry-frequency-sweep.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/entry-frequency-sweep.ts",
+      "lineRange": [
+        19,
+        94
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: quét các tham số ảnh hưởng đến tần suất entry và báo cáo trade-off giữa số lệnh, lợi nhuận và drawdown.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/entry-volume-audit.ts",
+      "type": "file",
+      "name": "entry-volume-audit.ts",
+      "filePath": "scripts/entry-volume-audit.ts",
+      "summary": "Audit tác động của volume tại entry theo bucket và dùng paired weekly bootstrap để kiểm tra độ tin cậy thống kê.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/entry-volume-audit.ts:pairedWeeklyBootstrap",
+      "type": "function",
+      "name": "pairedWeeklyBootstrap",
+      "filePath": "scripts/entry-volume-audit.ts",
+      "lineRange": [
+        95,
+        123
+      ],
+      "summary": "Hàm `pairedWeeklyBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/entry-volume-audit.ts:printBucket",
+      "type": "function",
+      "name": "printBucket",
+      "filePath": "scripts/entry-volume-audit.ts",
+      "lineRange": [
+        138,
+        147
+      ],
+      "summary": "Hàm `printBucket` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/entry-volume-audit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/entry-volume-audit.ts",
+      "lineRange": [
+        149,
+        223
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: audit tác động của volume tại entry theo bucket và dùng paired weekly bootstrap để kiểm tra độ tin cậy thống kê.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exit-sweep.ts",
+      "type": "file",
+      "name": "exit-sweep.ts",
+      "filePath": "scripts/exit-sweep.ts",
+      "summary": "Quét các biến thể exit trên basket backtest và so sánh kết quả net sau chi phí giao dịch.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exit-sweep.ts:basketNet",
+      "type": "function",
+      "name": "basketNet",
+      "filePath": "scripts/exit-sweep.ts",
+      "lineRange": [
+        16,
+        28
+      ],
+      "summary": "Hàm `basketNet` thực hiện logic miền trong exit-sweep.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exit-sweep.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exit-sweep.ts",
+      "lineRange": [
+        30,
+        93
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: quét các biến thể exit trên basket backtest và so sánh kết quả net sau chi phí giao dịch.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:fetchKlinesFromSource",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:fetchKlinesPaged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:fetchKlinesPaged",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:fmtTime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:tradeCostR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:runBacktest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:runBacktest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:bootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:simRandomTrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:monteCarloRandomEntry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "function:backtest.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "function:exp-overfit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-overfit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "function:exp-turtle-overfit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-overfit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "function:scripts/coin-features.ts:efficiencyRatio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "function:scripts/coin-features.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-features.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "function:scripts/coin-fit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/coin-fit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "function:scripts/confirm-quality-gate.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/confirm-quality-gate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "function:scripts/cross-asset-2817.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-2817.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "function:scripts/cross-asset-baseline.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-asset-baseline.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "function:scripts/entry-frequency-sweep.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-frequency-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "function:scripts/entry-volume-audit.ts:pairedWeeklyBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "function:scripts/entry-volume-audit.ts:printBucket",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "function:scripts/entry-volume-audit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/entry-volume-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "function:scripts/exit-sweep.ts:basketNet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "function:scripts/exit-sweep.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exit-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": "exp-turtle-improve.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/audit-candidates.ts",
+      "language": "typescript",
+      "sizeLines": 192,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-direction.ts",
+      "language": "typescript",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-exit-pyramid.ts",
+      "language": "typescript",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-exit-ratio.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-heat-shape.ts",
+      "language": "typescript",
+      "sizeLines": 117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-joint-audit.ts",
+      "language": "typescript",
+      "sizeLines": 108,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-placebo.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-portfolio-caps.ts",
+      "language": "typescript",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-portfolio-levers.ts",
+      "language": "typescript",
+      "sizeLines": 200,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/fast-trend-audit.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/portfolio-engine.ts",
+      "language": "typescript",
+      "sizeLines": 661,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/portfolio-equivalence.ts",
+      "language": "typescript",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-attribution.ts",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-before-after.ts",
+      "language": "typescript",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "turtle.ts",
+      "language": "typescript",
+      "sizeLines": 650,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "exp-turtle-improve.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/audit-candidates.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-direction.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-exit-pyramid.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-exit-ratio.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-heat-shape.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-joint-audit.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-placebo.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-portfolio-caps.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-portfolio-levers.ts": [
+      "kline-fetch.ts",
+      "scripts/exp-portfolio-caps.ts",
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/fast-trend-audit.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/portfolio-engine.ts": [
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/portfolio-equivalence.ts": [
+      "kline-fetch.ts",
+      "scripts/portfolio-engine.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-attribution.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-before-after.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "turtle.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ]
+  }
+}

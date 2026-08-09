@@ -1,0 +1,13 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {"path": ".dockerignore", "language": "unknown", "sizeLines": 21, "fileCategory": "infra"},
+    {"path": "Dockerfile", "language": "dockerfile", "sizeLines": 26, "fileCategory": "infra"},
+    {"path": "docker-compose.yml", "language": "yaml", "sizeLines": 71, "fileCategory": "infra"}
+  ],
+  "batchImportData": {
+    ".dockerignore": [],
+    "Dockerfile": [],
+    "docker-compose.yml": []
+  }
+}

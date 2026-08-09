@@ -1,0 +1,3683 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 131,
+  "totalBatches": 13,
+  "exportsByPath": {
+    ".ua/.understandignore": [],
+    "alt-trend.ts": [
+      "ALT_UNIVERSE_DEFAULTS",
+      "evaluateTradability",
+      "ALT_TREND_DEFAULTS",
+      "selectAltTrendCandidates",
+      "runAltTrendPortfolio"
+    ],
+    "app/api/chart/route.ts": [
+      "runtime",
+      "maxDuration",
+      "GET"
+    ],
+    "app/layout.tsx": [
+      "RootLayout"
+    ],
+    "backtest.ts": [
+      "fetchKlinesPaged",
+      "runBacktest"
+    ],
+    "binance-futures.ts": [
+      "BinanceFutures",
+      "createBinanceFromEnv"
+    ],
+    "btc-alert-bot.ts": [],
+    "chart-payload.ts": [
+      "buildChartPayload"
+    ],
+    "chart-server.ts": [],
+    "dashboard-server.ts": [],
+    "exp-overfit.ts": [],
+    "exp-turtle-improve.ts": [],
+    "exp-turtle-levers.ts": [
+      "fmtRow",
+      "HDR"
+    ],
+    "exp-turtle-overfit.ts": [],
+    "fast-trend-execution.ts": [],
+    "fast-trend-live.ts": [
+      "atomicWriteFileSync",
+      "FAST_SHORT_ENTRY_DAYS",
+      "FAST_SHORT_CONFIRM_BARS",
+      "decideFastShortConfirmation",
+      "priorFastShortCloseLow",
+      "FastTrendLive"
+    ],
+    "key-volume-backtest.ts": [
+      "applyLeverageCap"
+    ],
+    "key-volume.ts": [
+      "KEY_VOLUME_CONFIG",
+      "KEY_VOLUME_DOCUMENT_V1_CONFIG",
+      "medianPrior",
+      "atrSeriesForward",
+      "candleChainBias",
+      "strictCandleChainBias",
+      "persistentCandleChainBias",
+      "structuralCandleChainBias",
+      "detectKeyVolumeLevels",
+      "isKeyVolumeLevelActive",
+      "isEngulfing",
+      "isInsideBar",
+      "isThreeBarReversal",
+      "hasReversalCandlePattern",
+      "hasDoubleTopBottom",
+      "isWithinSession",
+      "dailyTrapGate",
+      "sweptAndReclaimed",
+      "approximateHvnEdge",
+      "resolveTargetR",
+      "canReenterKey",
+      "hasShortHigherLowPressure",
+      "runKeyVolume"
+    ],
+    "kline-fetch.ts": [
+      "fetchKlinesPaged"
+    ],
+    "live-state.ts": [
+      "loadState",
+      "saveState",
+      "appendJournal"
+    ],
+    "live-trade.ts": [
+      "LiveTrader",
+      "loadExecConfig"
+    ],
+    "load-env.ts": [],
+    "mexc-fast-execution.ts": [
+      "makeMexcExternalOid",
+      "MexcFastExecution"
+    ],
+    "mexc-futures.ts": [
+      "MexcApiError",
+      "toMexcSymbol",
+      "mexcQueryString",
+      "signMexcRequest",
+      "calculateMexcContracts",
+      "MexcFutures",
+      "createMexcFromEnv"
+    ],
+    "next-env.d.ts": [],
+    "next.config.js": [],
+    "scripts/alt-trend-backtest.ts": [],
+    "scripts/alt-universe-scanner.ts": [],
+    "scripts/audit-candidates.ts": [],
+    "scripts/coin-features.ts": [],
+    "scripts/coin-fit.ts": [],
+    "scripts/confirm-quality-gate.ts": [],
+    "scripts/cross-asset-2817.ts": [],
+    "scripts/cross-asset-baseline.ts": [],
+    "scripts/cross-sectional-basis.ts": [],
+    "scripts/daily-relative-momentum.ts": [],
+    "scripts/dedup-crossvenue-impact.ts": [],
+    "scripts/entry-frequency-sweep.ts": [],
+    "scripts/entry-volume-audit.ts": [],
+    "scripts/exit-sweep.ts": [],
+    "scripts/exp-direction.ts": [],
+    "scripts/exp-exit-pyramid.ts": [],
+    "scripts/exp-exit-ratio.ts": [],
+    "scripts/exp-heat-shape.ts": [],
+    "scripts/exp-joint-audit.ts": [],
+    "scripts/exp-placebo.ts": [],
+    "scripts/exp-portfolio-caps.ts": [
+      "hardCap",
+      "softCap",
+      "decayH",
+      "decaySqrt",
+      "decayTotal",
+      "volTarget",
+      "setupBasket",
+      "evaluate"
+    ],
+    "scripts/exp-portfolio-levers.ts": [],
+    "scripts/extreme-volume-retest-audit.ts": [],
+    "scripts/fast-trend-audit.ts": [],
+    "scripts/ftr-experiments.ts": [],
+    "scripts/funding-tail-reversal.ts": [],
+    "scripts/key-volume-ablation.ts": [],
+    "scripts/key-volume-method-audit.ts": [],
+    "scripts/liquidity-experiments.ts": [],
+    "scripts/liquidity-rule-validate.ts": [],
+    "scripts/liquidity-soft.ts": [],
+    "scripts/maxhold-validate.ts": [],
+    "scripts/mm-experiments.ts": [],
+    "scripts/mm-sizing.ts": [],
+    "scripts/overfit-audit.ts": [],
+    "scripts/portfolio-basket.ts": [],
+    "scripts/portfolio-engine.ts": [
+      "tradeCostR",
+      "runTurtlePortfolio",
+      "runBooks",
+      "compoundedEquity",
+      "riskForTargetDD",
+      "riskMetrics",
+      "portfolioStats"
+    ],
+    "scripts/portfolio-equivalence.ts": [
+      "BASKET",
+      "loadBasket",
+      "buildGate"
+    ],
+    "scripts/pullback-zone-gate.ts": [],
+    "scripts/quarter-hour-order-flow.ts": [],
+    "scripts/random-maturity-carry.ts": [],
+    "scripts/smallcap-native-research.ts": [],
+    "scripts/symbol-correlation.ts": [],
+    "scripts/turtle-attribution.ts": [],
+    "scripts/turtle-baseline-sig.ts": [],
+    "scripts/turtle-before-after.ts": [],
+    "scripts/turtle-era-diagnosis.ts": [],
+    "scripts/turtle-live-parity.ts": [],
+    "scripts/turtle-losing-streak.ts": [],
+    "scripts/turtle-overfit-ablation.ts": [],
+    "scripts/turtle-prefetch.ts": [],
+    "scripts/turtle-pyramid-spotcheck.ts": [],
+    "scripts/volume-sweep.ts": [],
+    "scripts/weakness-gate-3.ts": [],
+    "scripts/weakness-gate-4.ts": [],
+    "scripts/weakness-gate-5.ts": [],
+    "scripts/weakness-gate-6.ts": [],
+    "scripts/weakness-gate-7.ts": [],
+    "scripts/weakness-gate-8.ts": [],
+    "scripts/whale-sweep.ts": [],
+    "smallcap-research.ts": [
+      "evaluateSmallCapPeriod"
+    ],
+    "smallcap-reversal.ts": [
+      "SMALLCAP_REVERSAL_DEFAULTS",
+      "buildSmallCapReversalSignals",
+      "quotePassiveOrder",
+      "simulateConservativeMakerFill"
+    ],
+    "smallcap-supply.ts": [
+      "SMALLCAP_SUPPLY_DEFAULTS",
+      "buildSmallCapSupplySignals"
+    ],
+    "strategy.ts": [
+      "CONFIG",
+      "TF_MS",
+      "aggregate",
+      "htfClosedCount",
+      "candleVol",
+      "candleBuyRatio",
+      "windowBuyRatio",
+      "rollingAvgVolume",
+      "rvolByTimeOfDay",
+      "avgVol",
+      "confirmVolumeRatio",
+      "findSwings",
+      "lastConfirmedSwing",
+      "structureBias",
+      "buildZones",
+      "buildFvgZones",
+      "buildHtfContext",
+      "qualitySizeMult",
+      "qualityTier",
+      "evaluateEntry",
+      "SetupTracker"
+    ],
+    "telegram-test.ts": [],
+    "telegram.ts": [
+      "loadTelegramConfig",
+      "escapeMarkdown",
+      "fmtPrice",
+      "formatSymbol",
+      "formatTimeVn",
+      "sendTelegram",
+      "sendTelegramReliable",
+      "flushPendingTelegram",
+      "getTelegramUpdates",
+      "buildStartupMessage",
+      "buildArmMessage",
+      "buildEntryMessage",
+      "buildOfflineEntryMessage",
+      "buildExitMessage",
+      "buildTestMessage"
+    ],
+    "test-alt-trend.ts": [],
+    "test-binance.ts": [],
+    "test-key-volume.ts": [],
+    "test-live-trade.ts": [],
+    "test-mexc.ts": [],
+    "test-smallcap-native.ts": [],
+    "tsconfig.tsbuildinfo": [],
+    "turtle-live.ts": [
+      "TurtleLive"
+    ],
+    "turtle.ts": [
+      "T",
+      "turtleConfigLine",
+      "ema",
+      "atrSeries",
+      "buildBtcGateLongs",
+      "priorDonchian",
+      "turtleInitialStop",
+      "runTurtle"
+    ]
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "backtest.ts",
+          "language": "typescript",
+          "sizeLines": 603,
+          "fileCategory": "code"
+        },
+        {
+          "path": "exp-overfit.ts",
+          "language": "typescript",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "exp-turtle-overfit.ts",
+          "language": "typescript",
+          "sizeLines": 135,
+          "fileCategory": "code"
+        },
+        {
+          "path": "load-env.ts",
+          "language": "typescript",
+          "sizeLines": 20,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/coin-features.ts",
+          "language": "typescript",
+          "sizeLines": 126,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/coin-fit.ts",
+          "language": "typescript",
+          "sizeLines": 83,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/confirm-quality-gate.ts",
+          "language": "typescript",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/cross-asset-2817.ts",
+          "language": "typescript",
+          "sizeLines": 81,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/cross-asset-baseline.ts",
+          "language": "typescript",
+          "sizeLines": 79,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/entry-frequency-sweep.ts",
+          "language": "typescript",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/entry-volume-audit.ts",
+          "language": "typescript",
+          "sizeLines": 228,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exit-sweep.ts",
+          "language": "typescript",
+          "sizeLines": 95,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/extreme-volume-retest-audit.ts",
+          "language": "typescript",
+          "sizeLines": 783,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/ftr-experiments.ts",
+          "language": "typescript",
+          "sizeLines": 103,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/liquidity-experiments.ts",
+          "language": "typescript",
+          "sizeLines": 124,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/liquidity-rule-validate.ts",
+          "language": "typescript",
+          "sizeLines": 75,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/liquidity-soft.ts",
+          "language": "typescript",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/maxhold-validate.ts",
+          "language": "typescript",
+          "sizeLines": 58,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/mm-experiments.ts",
+          "language": "typescript",
+          "sizeLines": 90,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/mm-sizing.ts",
+          "language": "typescript",
+          "sizeLines": 134,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/overfit-audit.ts",
+          "language": "typescript",
+          "sizeLines": 115,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/portfolio-basket.ts",
+          "language": "typescript",
+          "sizeLines": 266,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/pullback-zone-gate.ts",
+          "language": "typescript",
+          "sizeLines": 88,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/symbol-correlation.ts",
+          "language": "typescript",
+          "sizeLines": 191,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-baseline-sig.ts",
+          "language": "typescript",
+          "sizeLines": 37,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-prefetch.ts",
+          "language": "typescript",
+          "sizeLines": 26,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/volume-sweep.ts",
+          "language": "typescript",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/weakness-gate-3.ts",
+          "language": "typescript",
+          "sizeLines": 113,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/weakness-gate-4.ts",
+          "language": "typescript",
+          "sizeLines": 102,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/weakness-gate-5.ts",
+          "language": "typescript",
+          "sizeLines": 87,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/weakness-gate-6.ts",
+          "language": "typescript",
+          "sizeLines": 90,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/weakness-gate-7.ts",
+          "language": "typescript",
+          "sizeLines": 82,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/weakness-gate-8.ts",
+          "language": "typescript",
+          "sizeLines": 22,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/whale-sweep.ts",
+          "language": "typescript",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": "strategy.ts",
+          "language": "typescript",
+          "sizeLines": 1117,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "backtest.ts": [
+          "strategy.ts"
+        ],
+        "exp-overfit.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "exp-turtle-overfit.ts": [
+          "backtest.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "load-env.ts": [],
+        "scripts/coin-features.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/coin-fit.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/confirm-quality-gate.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/cross-asset-2817.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/cross-asset-baseline.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/entry-frequency-sweep.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/entry-volume-audit.ts": [
+          "backtest.ts",
+          "kline-fetch.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/exit-sweep.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/extreme-volume-retest-audit.ts": [
+          "backtest.ts",
+          "kline-fetch.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/ftr-experiments.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/liquidity-experiments.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/liquidity-rule-validate.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/liquidity-soft.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/maxhold-validate.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/mm-experiments.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/mm-sizing.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/overfit-audit.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/portfolio-basket.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/pullback-zone-gate.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/symbol-correlation.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/turtle-baseline-sig.ts": [
+          "backtest.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/turtle-prefetch.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "scripts/volume-sweep.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/weakness-gate-3.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/weakness-gate-4.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/weakness-gate-5.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/weakness-gate-6.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/weakness-gate-7.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/weakness-gate-8.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/whale-sweep.ts": [
+          "backtest.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "strategy.ts": []
+      },
+      "neighborMap": {
+        "backtest.ts": [
+          {
+            "path": "btc-alert-bot.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "chart-payload.ts",
+            "batchIndex": 7,
+            "symbols": [
+              "buildChartPayload"
+            ]
+          },
+          {
+            "path": "exp-turtle-improve.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "fast-trend-live.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "atomicWriteFileSync",
+              "FAST_SHORT_ENTRY_DAYS",
+              "FAST_SHORT_CONFIRM_BARS",
+              "decideFastShortConfirmation",
+              "priorFastShortCloseLow",
+              "FastTrendLive"
+            ]
+          },
+          {
+            "path": "key-volume-backtest.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "applyLeverageCap"
+            ]
+          },
+          {
+            "path": "scripts/fast-trend-audit.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "turtle-live.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "TurtleLive"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "exp-turtle-overfit.ts": [
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "load-env.ts": [
+          {
+            "path": "btc-alert-bot.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "dashboard-server.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "key-volume-backtest.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "applyLeverageCap"
+            ]
+          },
+          {
+            "path": "scripts/key-volume-ablation.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/key-volume-method-audit.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "telegram-test.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "test-binance.ts",
+            "batchIndex": 4,
+            "symbols": []
+          }
+        ],
+        "scripts/entry-volume-audit.ts": [
+          {
+            "path": "kline-fetch.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fetchKlinesPaged"
+            ]
+          }
+        ],
+        "scripts/extreme-volume-retest-audit.ts": [
+          {
+            "path": "kline-fetch.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fetchKlinesPaged"
+            ]
+          }
+        ],
+        "scripts/turtle-baseline-sig.ts": [
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "strategy.ts": [
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          },
+          {
+            "path": "kline-fetch.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fetchKlinesPaged"
+            ]
+          },
+          {
+            "path": "scripts/portfolio-equivalence.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "BASKET",
+              "loadBasket",
+              "buildGate"
+            ]
+          },
+          {
+            "path": "scripts/portfolio-engine.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "tradeCostR",
+              "runTurtlePortfolio",
+              "runBooks",
+              "compoundedEquity",
+              "riskForTargetDD",
+              "riskMetrics",
+              "portfolioStats"
+            ]
+          },
+          {
+            "path": "btc-alert-bot.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "key-volume-backtest.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "applyLeverageCap"
+            ]
+          },
+          {
+            "path": "fast-trend-live.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "atomicWriteFileSync",
+              "FAST_SHORT_ENTRY_DAYS",
+              "FAST_SHORT_CONFIRM_BARS",
+              "decideFastShortConfirmation",
+              "priorFastShortCloseLow",
+              "FastTrendLive"
+            ]
+          },
+          {
+            "path": "turtle-live.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "TurtleLive"
+            ]
+          },
+          {
+            "path": "live-trade.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "LiveTrader",
+              "loadExecConfig"
+            ]
+          },
+          {
+            "path": "scripts/exp-portfolio-levers.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "telegram.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "loadTelegramConfig",
+              "escapeMarkdown",
+              "fmtPrice",
+              "formatSymbol",
+              "formatTimeVn",
+              "sendTelegram",
+              "sendTelegramReliable",
+              "flushPendingTelegram",
+              "getTelegramUpdates",
+              "buildStartupMessage",
+              "buildArmMessage",
+              "buildEntryMessage",
+              "buildOfflineEntryMessage",
+              "buildExitMessage",
+              "buildTestMessage"
+            ]
+          },
+          {
+            "path": "key-volume.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "KEY_VOLUME_CONFIG",
+              "KEY_VOLUME_DOCUMENT_V1_CONFIG",
+              "medianPrior",
+              "atrSeriesForward",
+              "candleChainBias",
+              "strictCandleChainBias",
+              "persistentCandleChainBias",
+              "structuralCandleChainBias",
+              "detectKeyVolumeLevels",
+              "isKeyVolumeLevelActive",
+              "isEngulfing",
+              "isInsideBar",
+              "isThreeBarReversal",
+              "hasReversalCandlePattern",
+              "hasDoubleTopBottom",
+              "isWithinSession",
+              "dailyTrapGate",
+              "sweptAndReclaimed",
+              "approximateHvnEdge",
+              "resolveTargetR",
+              "canReenterKey",
+              "hasShortHigherLowPressure",
+              "runKeyVolume"
+            ]
+          },
+          {
+            "path": "scripts/exp-portfolio-caps.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "hardCap",
+              "softCap",
+              "decayH",
+              "decaySqrt",
+              "decayTotal",
+              "volTarget",
+              "setupBasket",
+              "evaluate"
+            ]
+          },
+          {
+            "path": "scripts/key-volume-ablation.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/key-volume-method-audit.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "alt-trend.ts",
+            "batchIndex": 6,
+            "symbols": [
+              "ALT_UNIVERSE_DEFAULTS",
+              "evaluateTradability",
+              "ALT_TREND_DEFAULTS",
+              "selectAltTrendCandidates",
+              "runAltTrendPortfolio"
+            ]
+          },
+          {
+            "path": "chart-payload.ts",
+            "batchIndex": 7,
+            "symbols": [
+              "buildChartPayload"
+            ]
+          },
+          {
+            "path": "scripts/audit-candidates.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-direction.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-exit-pyramid.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-exit-ratio.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-heat-shape.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-joint-audit.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-placebo.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-attribution.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-before-after.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "test-mexc.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "exp-turtle-improve.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "exp-turtle-levers.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fmtRow",
+              "HDR"
+            ]
+          },
+          {
+            "path": "scripts/alt-trend-backtest.ts",
+            "batchIndex": 6,
+            "symbols": []
+          },
+          {
+            "path": "scripts/dedup-crossvenue-impact.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/fast-trend-audit.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-era-diagnosis.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-losing-streak.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-overfit-ablation.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-pyramid-spotcheck.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "test-key-volume.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/cross-sectional-basis.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/daily-relative-momentum.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/funding-tail-reversal.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/quarter-hour-order-flow.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "test-alt-trend.ts",
+            "batchIndex": 6,
+            "symbols": []
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": "exp-turtle-improve.ts",
+          "language": "typescript",
+          "sizeLines": 91,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/audit-candidates.ts",
+          "language": "typescript",
+          "sizeLines": 192,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-direction.ts",
+          "language": "typescript",
+          "sizeLines": 95,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-exit-pyramid.ts",
+          "language": "typescript",
+          "sizeLines": 83,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-exit-ratio.ts",
+          "language": "typescript",
+          "sizeLines": 134,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-heat-shape.ts",
+          "language": "typescript",
+          "sizeLines": 117,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-joint-audit.ts",
+          "language": "typescript",
+          "sizeLines": 108,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-placebo.ts",
+          "language": "typescript",
+          "sizeLines": 134,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-portfolio-caps.ts",
+          "language": "typescript",
+          "sizeLines": 178,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/exp-portfolio-levers.ts",
+          "language": "typescript",
+          "sizeLines": 200,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/fast-trend-audit.ts",
+          "language": "typescript",
+          "sizeLines": 88,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/portfolio-engine.ts",
+          "language": "typescript",
+          "sizeLines": 661,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/portfolio-equivalence.ts",
+          "language": "typescript",
+          "sizeLines": 76,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-attribution.ts",
+          "language": "typescript",
+          "sizeLines": 113,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-before-after.ts",
+          "language": "typescript",
+          "sizeLines": 120,
+          "fileCategory": "code"
+        },
+        {
+          "path": "turtle.ts",
+          "language": "typescript",
+          "sizeLines": 650,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "exp-turtle-improve.ts": [
+          "backtest.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/audit-candidates.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-direction.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-exit-pyramid.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-exit-ratio.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-heat-shape.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-joint-audit.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-placebo.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-portfolio-caps.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/exp-portfolio-levers.ts": [
+          "kline-fetch.ts",
+          "scripts/exp-portfolio-caps.ts",
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/fast-trend-audit.ts": [
+          "backtest.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/portfolio-engine.ts": [
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/portfolio-equivalence.ts": [
+          "kline-fetch.ts",
+          "scripts/portfolio-engine.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/turtle-attribution.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/turtle-before-after.ts": [
+          "scripts/portfolio-engine.ts",
+          "scripts/portfolio-equivalence.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "turtle.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ]
+      },
+      "neighborMap": {
+        "exp-turtle-improve.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/audit-candidates.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-direction.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-exit-pyramid.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-exit-ratio.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-heat-shape.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-joint-audit.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-placebo.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-portfolio-caps.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/exp-portfolio-levers.ts": [
+          {
+            "path": "kline-fetch.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fetchKlinesPaged"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/fast-trend-audit.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/portfolio-engine.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/portfolio-equivalence.ts": [
+          {
+            "path": "kline-fetch.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fetchKlinesPaged"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/turtle-attribution.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/turtle-before-after.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "turtle.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "btc-alert-bot.ts",
+            "batchIndex": 4,
+            "symbols": []
+          },
+          {
+            "path": "exp-turtle-levers.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fmtRow",
+              "HDR"
+            ]
+          },
+          {
+            "path": "exp-turtle-overfit.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "fast-trend-live.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "atomicWriteFileSync",
+              "FAST_SHORT_ENTRY_DAYS",
+              "FAST_SHORT_CONFIRM_BARS",
+              "decideFastShortConfirmation",
+              "priorFastShortCloseLow",
+              "FastTrendLive"
+            ]
+          },
+          {
+            "path": "key-volume-backtest.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "applyLeverageCap"
+            ]
+          },
+          {
+            "path": "scripts/dedup-crossvenue-impact.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-baseline-sig.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-era-diagnosis.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-losing-streak.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-overfit-ablation.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "scripts/turtle-pyramid-spotcheck.ts",
+            "batchIndex": 3,
+            "symbols": []
+          },
+          {
+            "path": "turtle-live.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "TurtleLive"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 3,
+      "files": [
+        {
+          "path": "exp-turtle-levers.ts",
+          "language": "typescript",
+          "sizeLines": 281,
+          "fileCategory": "code"
+        },
+        {
+          "path": "key-volume-backtest.ts",
+          "language": "typescript",
+          "sizeLines": 524,
+          "fileCategory": "code"
+        },
+        {
+          "path": "key-volume.ts",
+          "language": "typescript",
+          "sizeLines": 1746,
+          "fileCategory": "code"
+        },
+        {
+          "path": "kline-fetch.ts",
+          "language": "typescript",
+          "sizeLines": 226,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/cross-sectional-basis.ts",
+          "language": "typescript",
+          "sizeLines": 390,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/daily-relative-momentum.ts",
+          "language": "typescript",
+          "sizeLines": 336,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/dedup-crossvenue-impact.ts",
+          "language": "typescript",
+          "sizeLines": 153,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/funding-tail-reversal.ts",
+          "language": "typescript",
+          "sizeLines": 316,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/key-volume-ablation.ts",
+          "language": "typescript",
+          "sizeLines": 266,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/key-volume-method-audit.ts",
+          "language": "typescript",
+          "sizeLines": 153,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/quarter-hour-order-flow.ts",
+          "language": "typescript",
+          "sizeLines": 185,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-era-diagnosis.ts",
+          "language": "typescript",
+          "sizeLines": 440,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-losing-streak.ts",
+          "language": "typescript",
+          "sizeLines": 49,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-overfit-ablation.ts",
+          "language": "typescript",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-pyramid-spotcheck.ts",
+          "language": "typescript",
+          "sizeLines": 62,
+          "fileCategory": "code"
+        },
+        {
+          "path": "test-key-volume.ts",
+          "language": "typescript",
+          "sizeLines": 522,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "exp-turtle-levers.ts": [
+          "kline-fetch.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "key-volume-backtest.ts": [
+          "backtest.ts",
+          "key-volume.ts",
+          "kline-fetch.ts",
+          "load-env.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "key-volume.ts": [
+          "strategy.ts"
+        ],
+        "kline-fetch.ts": [
+          "strategy.ts"
+        ],
+        "scripts/cross-sectional-basis.ts": [
+          "kline-fetch.ts",
+          "strategy.ts"
+        ],
+        "scripts/daily-relative-momentum.ts": [
+          "kline-fetch.ts",
+          "strategy.ts"
+        ],
+        "scripts/dedup-crossvenue-impact.ts": [
+          "kline-fetch.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/funding-tail-reversal.ts": [
+          "kline-fetch.ts",
+          "strategy.ts"
+        ],
+        "scripts/key-volume-ablation.ts": [
+          "key-volume-backtest.ts",
+          "key-volume.ts",
+          "kline-fetch.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/key-volume-method-audit.ts": [
+          "key-volume-backtest.ts",
+          "key-volume.ts",
+          "kline-fetch.ts",
+          "load-env.ts",
+          "strategy.ts"
+        ],
+        "scripts/quarter-hour-order-flow.ts": [
+          "kline-fetch.ts",
+          "strategy.ts"
+        ],
+        "scripts/turtle-era-diagnosis.ts": [
+          "kline-fetch.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/turtle-losing-streak.ts": [
+          "kline-fetch.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/turtle-overfit-ablation.ts": [
+          "kline-fetch.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "scripts/turtle-pyramid-spotcheck.ts": [
+          "kline-fetch.ts",
+          "strategy.ts",
+          "turtle.ts"
+        ],
+        "test-key-volume.ts": [
+          "key-volume-backtest.ts",
+          "key-volume.ts",
+          "strategy.ts"
+        ]
+      },
+      "neighborMap": {
+        "exp-turtle-levers.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "key-volume-backtest.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "key-volume.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "kline-fetch.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "scripts/alt-trend-backtest.ts",
+            "batchIndex": 6,
+            "symbols": []
+          },
+          {
+            "path": "scripts/entry-volume-audit.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "scripts/exp-portfolio-levers.ts",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "scripts/extreme-volume-retest-audit.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "scripts/portfolio-equivalence.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "BASKET",
+              "loadBasket",
+              "buildGate"
+            ]
+          }
+        ],
+        "scripts/cross-sectional-basis.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/daily-relative-momentum.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/dedup-crossvenue-impact.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "scripts/funding-tail-reversal.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/key-volume-ablation.ts": [
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/key-volume-method-audit.ts": [
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/quarter-hour-order-flow.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/turtle-era-diagnosis.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "scripts/turtle-losing-streak.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "scripts/turtle-overfit-ablation.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "scripts/turtle-pyramid-spotcheck.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "test-key-volume.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 4,
+      "files": [
+        {
+          "path": "binance-futures.ts",
+          "language": "typescript",
+          "sizeLines": 340,
+          "fileCategory": "code"
+        },
+        {
+          "path": "btc-alert-bot.ts",
+          "language": "typescript",
+          "sizeLines": 1269,
+          "fileCategory": "code"
+        },
+        {
+          "path": "dashboard-server.ts",
+          "language": "typescript",
+          "sizeLines": 476,
+          "fileCategory": "code"
+        },
+        {
+          "path": "fast-trend-execution.ts",
+          "language": "typescript",
+          "sizeLines": 82,
+          "fileCategory": "code"
+        },
+        {
+          "path": "fast-trend-live.ts",
+          "language": "typescript",
+          "sizeLines": 801,
+          "fileCategory": "code"
+        },
+        {
+          "path": "live-state.ts",
+          "language": "typescript",
+          "sizeLines": 70,
+          "fileCategory": "code"
+        },
+        {
+          "path": "live-trade.ts",
+          "language": "typescript",
+          "sizeLines": 375,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mexc-fast-execution.ts",
+          "language": "typescript",
+          "sizeLines": 416,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mexc-futures.ts",
+          "language": "typescript",
+          "sizeLines": 506,
+          "fileCategory": "code"
+        },
+        {
+          "path": "telegram-test.ts",
+          "language": "typescript",
+          "sizeLines": 20,
+          "fileCategory": "code"
+        },
+        {
+          "path": "telegram.ts",
+          "language": "typescript",
+          "sizeLines": 301,
+          "fileCategory": "code"
+        },
+        {
+          "path": "test-binance.ts",
+          "language": "typescript",
+          "sizeLines": 122,
+          "fileCategory": "code"
+        },
+        {
+          "path": "test-live-trade.ts",
+          "language": "typescript",
+          "sizeLines": 118,
+          "fileCategory": "code"
+        },
+        {
+          "path": "test-mexc.ts",
+          "language": "typescript",
+          "sizeLines": 266,
+          "fileCategory": "code"
+        },
+        {
+          "path": "turtle-live.ts",
+          "language": "typescript",
+          "sizeLines": 782,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "binance-futures.ts": [],
+        "btc-alert-bot.ts": [
+          "backtest.ts",
+          "binance-futures.ts",
+          "fast-trend-live.ts",
+          "live-state.ts",
+          "live-trade.ts",
+          "load-env.ts",
+          "mexc-fast-execution.ts",
+          "mexc-futures.ts",
+          "strategy.ts",
+          "telegram.ts",
+          "turtle-live.ts",
+          "turtle.ts"
+        ],
+        "dashboard-server.ts": [
+          "binance-futures.ts",
+          "live-trade.ts",
+          "load-env.ts"
+        ],
+        "fast-trend-execution.ts": [],
+        "fast-trend-live.ts": [
+          "backtest.ts",
+          "fast-trend-execution.ts",
+          "strategy.ts",
+          "telegram.ts",
+          "turtle.ts"
+        ],
+        "live-state.ts": [],
+        "live-trade.ts": [
+          "binance-futures.ts",
+          "strategy.ts"
+        ],
+        "mexc-fast-execution.ts": [
+          "fast-trend-execution.ts",
+          "mexc-futures.ts"
+        ],
+        "mexc-futures.ts": [],
+        "telegram-test.ts": [
+          "load-env.ts",
+          "telegram.ts"
+        ],
+        "telegram.ts": [
+          "strategy.ts"
+        ],
+        "test-binance.ts": [
+          "binance-futures.ts",
+          "load-env.ts"
+        ],
+        "test-live-trade.ts": [
+          "binance-futures.ts",
+          "live-trade.ts",
+          "telegram.ts"
+        ],
+        "test-mexc.ts": [
+          "fast-trend-live.ts",
+          "mexc-fast-execution.ts",
+          "mexc-futures.ts",
+          "strategy.ts"
+        ],
+        "turtle-live.ts": [
+          "backtest.ts",
+          "binance-futures.ts",
+          "live-trade.ts",
+          "strategy.ts",
+          "telegram.ts",
+          "turtle.ts"
+        ]
+      },
+      "neighborMap": {
+        "btc-alert-bot.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "dashboard-server.ts": [
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          }
+        ],
+        "fast-trend-live.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ],
+        "live-trade.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "telegram-test.ts": [
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          }
+        ],
+        "telegram.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "test-binance.ts": [
+          {
+            "path": "load-env.ts",
+            "batchIndex": 1,
+            "symbols": []
+          }
+        ],
+        "test-mexc.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "turtle-live.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          },
+          {
+            "path": "turtle.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "T",
+              "turtleConfigLine",
+              "ema",
+              "atrSeries",
+              "buildBtcGateLongs",
+              "priorDonchian",
+              "turtleInitialStop",
+              "runTurtle"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 5,
+      "files": [
+        {
+          "path": "scripts/smallcap-native-research.ts",
+          "language": "typescript",
+          "sizeLines": 125,
+          "fileCategory": "code"
+        },
+        {
+          "path": "smallcap-research.ts",
+          "language": "typescript",
+          "sizeLines": 88,
+          "fileCategory": "code"
+        },
+        {
+          "path": "smallcap-reversal.ts",
+          "language": "typescript",
+          "sizeLines": 272,
+          "fileCategory": "code"
+        },
+        {
+          "path": "smallcap-supply.ts",
+          "language": "typescript",
+          "sizeLines": 177,
+          "fileCategory": "code"
+        },
+        {
+          "path": "test-smallcap-native.ts",
+          "language": "typescript",
+          "sizeLines": 221,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "scripts/smallcap-native-research.ts": [
+          "smallcap-research.ts",
+          "smallcap-reversal.ts",
+          "smallcap-supply.ts"
+        ],
+        "smallcap-research.ts": [],
+        "smallcap-reversal.ts": [
+          "smallcap-research.ts"
+        ],
+        "smallcap-supply.ts": [
+          "smallcap-research.ts"
+        ],
+        "test-smallcap-native.ts": [
+          "smallcap-research.ts",
+          "smallcap-reversal.ts",
+          "smallcap-supply.ts"
+        ]
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 6,
+      "files": [
+        {
+          "path": "alt-trend.ts",
+          "language": "typescript",
+          "sizeLines": 378,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/alt-trend-backtest.ts",
+          "language": "typescript",
+          "sizeLines": 174,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/alt-universe-scanner.ts",
+          "language": "typescript",
+          "sizeLines": 179,
+          "fileCategory": "code"
+        },
+        {
+          "path": "test-alt-trend.ts",
+          "language": "typescript",
+          "sizeLines": 152,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "alt-trend.ts": [
+          "strategy.ts"
+        ],
+        "scripts/alt-trend-backtest.ts": [
+          "alt-trend.ts",
+          "kline-fetch.ts",
+          "strategy.ts"
+        ],
+        "scripts/alt-universe-scanner.ts": [
+          "alt-trend.ts"
+        ],
+        "test-alt-trend.ts": [
+          "alt-trend.ts",
+          "strategy.ts"
+        ]
+      },
+      "neighborMap": {
+        "alt-trend.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "scripts/alt-trend-backtest.ts": [
+          {
+            "path": "kline-fetch.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "fetchKlinesPaged"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ],
+        "test-alt-trend.ts": [
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 7,
+      "files": [
+        {
+          "path": "app/api/chart/route.ts",
+          "language": "typescript",
+          "sizeLines": 21,
+          "fileCategory": "code"
+        },
+        {
+          "path": "chart-payload.ts",
+          "language": "typescript",
+          "sizeLines": 64,
+          "fileCategory": "code"
+        },
+        {
+          "path": "chart-server.ts",
+          "language": "typescript",
+          "sizeLines": 79,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "app/api/chart/route.ts": [
+          "chart-payload.ts"
+        ],
+        "chart-payload.ts": [
+          "backtest.ts",
+          "strategy.ts"
+        ],
+        "chart-server.ts": [
+          "chart-payload.ts"
+        ]
+      },
+      "neighborMap": {
+        "chart-payload.ts": [
+          {
+            "path": "backtest.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "fetchKlinesPaged",
+              "runBacktest"
+            ]
+          },
+          {
+            "path": "strategy.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "CONFIG",
+              "TF_MS",
+              "aggregate",
+              "htfClosedCount",
+              "candleVol",
+              "candleBuyRatio",
+              "windowBuyRatio",
+              "rollingAvgVolume",
+              "rvolByTimeOfDay",
+              "avgVol",
+              "confirmVolumeRatio",
+              "findSwings",
+              "lastConfirmedSwing",
+              "structureBias",
+              "buildZones",
+              "buildFvgZones",
+              "buildHtfContext",
+              "qualitySizeMult",
+              "qualityTier",
+              "evaluateEntry",
+              "SetupTracker"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 8,
+      "files": [
+        {
+          "path": ".dockerignore",
+          "language": "unknown",
+          "sizeLines": 21,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 26,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "docker-compose.yml",
+          "language": "yaml",
+          "sizeLines": 71,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        ".dockerignore": [],
+        "Dockerfile": [],
+        "docker-compose.yml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 9,
+      "files": [
+        {
+          "path": ".env.example",
+          "language": "config",
+          "sizeLines": 66,
+          "fileCategory": "config"
+        },
+        {
+          "path": "AGENTS.md",
+          "language": "markdown",
+          "sizeLines": 65,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "CLAUDE.md",
+          "language": "markdown",
+          "sizeLines": 65,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "README.md",
+          "language": "markdown",
+          "sizeLines": 522,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "package.json",
+          "language": "json",
+          "sizeLines": 37,
+          "fileCategory": "config"
+        },
+        {
+          "path": "tsconfig.json",
+          "language": "json",
+          "sizeLines": 40,
+          "fileCategory": "config"
+        },
+        {
+          "path": "vercel.json",
+          "language": "json",
+          "sizeLines": 6,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        ".env.example": [],
+        "AGENTS.md": [],
+        "CLAUDE.md": [],
+        "README.md": [],
+        "package.json": [],
+        "tsconfig.json": [],
+        "vercel.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 10,
+      "files": [
+        {
+          "path": "planning/alt-trend-implementation-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 91,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/fxdream-keyvolume-method.md",
+          "language": "markdown",
+          "sizeLines": 771,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/independent-strategy-research-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 221,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/portfolio-risk-and-exit-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 236,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/random-maturity-carry-protocol-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 63,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/remediation-plan-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 250,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/smallcap-native-implementation-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 69,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/trend-method-remediation-research-2026-08.md",
+          "language": "markdown",
+          "sizeLines": 175,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "planning/alt-trend-implementation-2026-08.md": [],
+        "planning/fxdream-keyvolume-method.md": [],
+        "planning/independent-strategy-research-2026-08.md": [],
+        "planning/portfolio-risk-and-exit-2026-08.md": [],
+        "planning/random-maturity-carry-protocol-2026-08.md": [],
+        "planning/remediation-plan-2026-08.md": [],
+        "planning/smallcap-native-implementation-2026-08.md": [],
+        "planning/trend-method-remediation-research-2026-08.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 11,
+      "files": [
+        {
+          "path": "planning/mexc-futures/claude-interview.md",
+          "language": "markdown",
+          "sizeLines": 100,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/mexc-futures/claude-plan.md",
+          "language": "markdown",
+          "sizeLines": 455,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/mexc-futures/claude-research.md",
+          "language": "markdown",
+          "sizeLines": 235,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/mexc-futures/claude-synthesized-spec.md",
+          "language": "markdown",
+          "sizeLines": 167,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "planning/mexc-futures/mexc-futures-integration.md",
+          "language": "markdown",
+          "sizeLines": 53,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "planning/mexc-futures/claude-interview.md": [],
+        "planning/mexc-futures/claude-plan.md": [],
+        "planning/mexc-futures/claude-research.md": [],
+        "planning/mexc-futures/claude-synthesized-spec.md": [],
+        "planning/mexc-futures/mexc-futures-integration.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 12,
+      "files": [
+        {
+          "path": "scripts/baseline-gate.sh",
+          "language": "shell",
+          "sizeLines": 40,
+          "fileCategory": "script"
+        },
+        {
+          "path": "scripts/entry-ablation.sh",
+          "language": "shell",
+          "sizeLines": 36,
+          "fileCategory": "script"
+        },
+        {
+          "path": "scripts/indicator-ablation.sh",
+          "language": "shell",
+          "sizeLines": 39,
+          "fileCategory": "script"
+        },
+        {
+          "path": "scripts/rsi-ablation.sh",
+          "language": "shell",
+          "sizeLines": 32,
+          "fileCategory": "script"
+        }
+      ],
+      "batchImportData": {
+        "scripts/baseline-gate.sh": [],
+        "scripts/entry-ablation.sh": [],
+        "scripts/indicator-ablation.sh": [],
+        "scripts/rsi-ablation.sh": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 13,
+      "files": [
+        {
+          "path": ".ua/.understandignore",
+          "language": "unknown",
+          "sizeLines": 94,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".ua/config.json",
+          "language": "json",
+          "sizeLines": 3,
+          "fileCategory": "config"
+        },
+        {
+          "path": "app/layout.tsx",
+          "language": "typescript",
+          "sizeLines": 7,
+          "fileCategory": "code"
+        },
+        {
+          "path": "next-env.d.ts",
+          "language": "typescript",
+          "sizeLines": 5,
+          "fileCategory": "code"
+        },
+        {
+          "path": "next.config.js",
+          "language": "javascript",
+          "sizeLines": 8,
+          "fileCategory": "code"
+        },
+        {
+          "path": "planning/mexc-futures/reviews/external-review-status.md",
+          "language": "markdown",
+          "sizeLines": 12,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "public/index.html",
+          "language": "html",
+          "sizeLines": 455,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "scripts/random-maturity-carry.ts",
+          "language": "typescript",
+          "sizeLines": 752,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/turtle-live-parity.ts",
+          "language": "typescript",
+          "sizeLines": 123,
+          "fileCategory": "code"
+        },
+        {
+          "path": "tsconfig.tsbuildinfo",
+          "language": "tsbuildinfo",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        ".ua/.understandignore": [],
+        ".ua/config.json": [],
+        "app/layout.tsx": [],
+        "next-env.d.ts": [],
+        "next.config.js": [],
+        "planning/mexc-futures/reviews/external-review-status.md": [],
+        "public/index.html": [],
+        "scripts/random-maturity-carry.ts": [],
+        "scripts/turtle-live-parity.ts": [],
+        "tsconfig.tsbuildinfo": []
+      },
+      "neighborMap": {}
+    }
+  ]
+}

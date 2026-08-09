@@ -1,0 +1,77 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": ".ua/.understandignore",
+      "language": "unknown",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": "app/layout.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "next-env.d.ts",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "next.config.js",
+      "language": "javascript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "planning/mexc-futures/reviews/external-review-status.md",
+      "language": "markdown",
+      "sizeLines": 12,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "public/index.html",
+      "language": "html",
+      "sizeLines": 455,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "scripts/random-maturity-carry.ts",
+      "language": "typescript",
+      "sizeLines": 752,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-live-parity.ts",
+      "language": "typescript",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.tsbuildinfo",
+      "language": "tsbuildinfo",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    ".ua/.understandignore": [],
+    ".ua/config.json": [],
+    "app/layout.tsx": [],
+    "next-env.d.ts": [],
+    "next.config.js": [],
+    "planning/mexc-futures/reviews/external-review-status.md": [],
+    "public/index.html": [],
+    "scripts/random-maturity-carry.ts": [],
+    "scripts/turtle-live-parity.ts": [],
+    "tsconfig.tsbuildinfo": []
+  }
+}

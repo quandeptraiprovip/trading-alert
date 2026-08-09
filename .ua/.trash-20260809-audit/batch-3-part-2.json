@@ -1,0 +1,1046 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/dedup-crossvenue-impact.ts",
+      "type": "file",
+      "name": "dedup-crossvenue-impact.ts",
+      "filePath": "scripts/dedup-crossvenue-impact.ts",
+      "summary": "Đo tác động của việc deduplicate position giữa nhiều venue đối với exposure và kết quả Turtle.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/dedup-crossvenue-impact.ts:toPositions",
+      "type": "function",
+      "name": "toPositions",
+      "filePath": "scripts/dedup-crossvenue-impact.ts",
+      "lineRange": [
+        32,
+        46
+      ],
+      "summary": "Hàm `toPositions` thực hiện logic miền trong dedup-crossvenue-impact.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/dedup-crossvenue-impact.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/dedup-crossvenue-impact.ts",
+      "lineRange": [
+        62,
+        151
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đo tác động của việc deduplicate position giữa nhiều venue đối với exposure và kết quả Turtle.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/funding-tail-reversal.ts",
+      "type": "file",
+      "name": "funding-tail-reversal.ts",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "summary": "Nghiên cứu funding-tail reversal bằng dữ liệu funding, ATR, cashflow theo R và backtest theo symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:readFundingCache",
+      "type": "function",
+      "name": "readFundingCache",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        56,
+        65
+      ],
+      "summary": "Hàm `readFundingCache` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:fetchFunding",
+      "type": "function",
+      "name": "fetchFunding",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        67,
+        95
+      ],
+      "summary": "Hàm `fetchFunding` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:atrSeries",
+      "type": "function",
+      "name": "atrSeries",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        97,
+        114
+      ],
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:firstCandleAfter",
+      "type": "function",
+      "name": "firstCandleAfter",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        124,
+        133
+      ],
+      "summary": "Hàm `firstCandleAfter` thực hiện logic miền trong funding-tail-reversal.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:fundingCashflowR",
+      "type": "function",
+      "name": "fundingCashflowR",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        135,
+        146
+      ],
+      "summary": "Hàm `fundingCashflowR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:runSymbol",
+      "type": "function",
+      "name": "runSymbol",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        148,
+        222
+      ],
+      "summary": "Hàm `runSymbol` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        224,
+        249
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/funding-tail-reversal.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/funding-tail-reversal.ts",
+      "lineRange": [
+        265,
+        311
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu funding-tail reversal bằng dữ liệu funding, ATR, cashflow theo R và backtest theo symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/key-volume-ablation.ts",
+      "type": "file",
+      "name": "key-volume-ablation.ts",
+      "filePath": "scripts/key-volume-ablation.ts",
+      "summary": "Thực hiện ablation study cho Key Volume strategy, tách ảnh hưởng của từng rule lên frequency và payoff.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/key-volume-ablation.ts:summarize",
+      "type": "function",
+      "name": "summarize",
+      "filePath": "scripts/key-volume-ablation.ts",
+      "lineRange": [
+        27,
+        42
+      ],
+      "summary": "Hàm `summarize` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/key-volume-ablation.ts:frequencyDetail",
+      "type": "function",
+      "name": "frequencyDetail",
+      "filePath": "scripts/key-volume-ablation.ts",
+      "lineRange": [
+        44,
+        87
+      ],
+      "summary": "Hàm `frequencyDetail` thực hiện logic miền trong key-volume-ablation.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/key-volume-ablation.ts:payoffDetail",
+      "type": "function",
+      "name": "payoffDetail",
+      "filePath": "scripts/key-volume-ablation.ts",
+      "lineRange": [
+        89,
+        126
+      ],
+      "summary": "Hàm `payoffDetail` thực hiện logic miền trong key-volume-ablation.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/key-volume-ablation.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/key-volume-ablation.ts",
+      "lineRange": [
+        128,
+        261
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: thực hiện ablation study cho Key Volume strategy, tách ảnh hưởng của từng rule lên frequency và payoff.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/key-volume-method-audit.ts",
+      "type": "file",
+      "name": "key-volume-method-audit.ts",
+      "filePath": "scripts/key-volume-method-audit.ts",
+      "summary": "Audit phương pháp Key Volume bằng cấu hình backtest thống nhất và các summary metric có thể so sánh.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/key-volume-method-audit.ts:summarize",
+      "type": "function",
+      "name": "summarize",
+      "filePath": "scripts/key-volume-method-audit.ts",
+      "lineRange": [
+        74,
+        102
+      ],
+      "summary": "Hàm `summarize` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/key-volume-method-audit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/key-volume-method-audit.ts",
+      "lineRange": [
+        104,
+        148
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: audit phương pháp Key Volume bằng cấu hình backtest thống nhất và các summary metric có thể so sánh.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/quarter-hour-order-flow.ts",
+      "type": "file",
+      "name": "quarter-hour-order-flow.ts",
+      "filePath": "scripts/quarter-hour-order-flow.ts",
+      "summary": "Nghiên cứu order flow theo khung 15 phút, kết hợp realized volatility với mô phỏng và metric theo symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/quarter-hour-order-flow.ts:realizedVolPrice",
+      "type": "function",
+      "name": "realizedVolPrice",
+      "filePath": "scripts/quarter-hour-order-flow.ts",
+      "lineRange": [
+        37,
+        51
+      ],
+      "summary": "Hàm `realizedVolPrice` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/quarter-hour-order-flow.ts:runSymbol",
+      "type": "function",
+      "name": "runSymbol",
+      "filePath": "scripts/quarter-hour-order-flow.ts",
+      "lineRange": [
+        61,
+        107
+      ],
+      "summary": "Hàm `runSymbol` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/quarter-hour-order-flow.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "scripts/quarter-hour-order-flow.ts",
+      "lineRange": [
+        109,
+        131
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/quarter-hour-order-flow.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/quarter-hour-order-flow.ts",
+      "lineRange": [
+        147,
+        180
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu order flow theo khung 15 phút, kết hợp realized volatility với mô phỏng và metric theo symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/turtle-era-diagnosis.ts",
+      "type": "file",
+      "name": "turtle-era-diagnosis.ts",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "summary": "Chẩn đoán hiệu suất Turtle theo era, market regime, MFE và counterfactual gate bằng bootstrap và breakdown chi tiết.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:positionsOf",
+      "type": "function",
+      "name": "positionsOf",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        50,
+        66
+      ],
+      "summary": "Hàm `positionsOf` thực hiện logic miền trong turtle-era-diagnosis.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        72,
+        95
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:printEraSummary",
+      "type": "function",
+      "name": "printEraSummary",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        97,
+        112
+      ],
+      "summary": "Hàm `printEraSummary` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:printBreakdown",
+      "type": "function",
+      "name": "printBreakdown",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        114,
+        130
+      ],
+      "summary": "Hàm `printBreakdown` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:tradeMfeR",
+      "type": "function",
+      "name": "tradeMfeR",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        132,
+        144
+      ],
+      "summary": "Hàm `tradeMfeR` thực hiện logic miền trong turtle-era-diagnosis.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:printMfe",
+      "type": "function",
+      "name": "printMfe",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        146,
+        160
+      ],
+      "summary": "Hàm `printMfe` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:printMarketRegimes",
+      "type": "function",
+      "name": "printMarketRegimes",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        169,
+        191
+      ],
+      "summary": "Hàm `printMarketRegimes` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:bootstrapWeeklyDifference",
+      "type": "function",
+      "name": "bootstrapWeeklyDifference",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        212,
+        227
+      ],
+      "summary": "Hàm `bootstrapWeeklyDifference` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:buildBtcTwoSidedGate",
+      "type": "function",
+      "name": "buildBtcTwoSidedGate",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        229,
+        248
+      ],
+      "summary": "Hàm `buildBtcTwoSidedGate` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:buildBtcLongGate",
+      "type": "function",
+      "name": "buildBtcLongGate",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        250,
+        279
+      ],
+      "summary": "Hàm `buildBtcLongGate` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:printCounterfactuals",
+      "type": "function",
+      "name": "printCounterfactuals",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        281,
+        326
+      ],
+      "summary": "Hàm `printCounterfactuals` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:monthlyTotals",
+      "type": "function",
+      "name": "monthlyTotals",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        336,
+        346
+      ],
+      "summary": "Hàm `monthlyTotals` thực hiện logic miền trong turtle-era-diagnosis.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:printCandidateRobustness",
+      "type": "function",
+      "name": "printCandidateRobustness",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        348,
+        392
+      ],
+      "summary": "Hàm `printCandidateRobustness` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-era-diagnosis.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-era-diagnosis.ts",
+      "lineRange": [
+        402,
+        438
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chẩn đoán hiệu suất Turtle theo era, market regime, MFE và counterfactual gate bằng bootstrap và breakdown chi tiết.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "function:scripts/dedup-crossvenue-impact.ts:toPositions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "function:scripts/dedup-crossvenue-impact.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/dedup-crossvenue-impact.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:readFundingCache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:fetchFunding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:atrSeries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:firstCandleAfter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:fundingCashflowR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:runSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "function:scripts/funding-tail-reversal.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/funding-tail-reversal.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "function:scripts/key-volume-ablation.ts:summarize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "function:scripts/key-volume-ablation.ts:frequencyDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "function:scripts/key-volume-ablation.ts:payoffDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "function:scripts/key-volume-ablation.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-ablation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "function:scripts/key-volume-method-audit.ts:summarize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "function:scripts/key-volume-method-audit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/key-volume-method-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "function:scripts/quarter-hour-order-flow.ts:realizedVolPrice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "function:scripts/quarter-hour-order-flow.ts:runSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "function:scripts/quarter-hour-order-flow.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "function:scripts/quarter-hour-order-flow.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/quarter-hour-order-flow.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:positionsOf",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:printEraSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:printBreakdown",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:tradeMfeR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:printMfe",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:printMarketRegimes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:bootstrapWeeklyDifference",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:buildBtcTwoSidedGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:buildBtcLongGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:printCounterfactuals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:monthlyTotals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:printCandidateRobustness",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "function:scripts/turtle-era-diagnosis.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-era-diagnosis.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

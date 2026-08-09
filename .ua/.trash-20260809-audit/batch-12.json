@@ -1,0 +1,80 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/baseline-gate.sh",
+      "type": "file",
+      "name": "baseline-gate.sh",
+      "filePath": "scripts/baseline-gate.sh",
+      "summary": "Quality gate chạy backtest BTC 250 ngày, parse NET R và số lệnh rồi chỉ PASS khi kết quả không thấp hơn baseline cấu hình. Script trả exit code riêng khi không parse được output hoặc khi strategy suy giảm.",
+      "tags": ["script", "quality-gate", "backtest", "regression-check"],
+      "complexity": "simple",
+      "languageNotes": "Bash dùng `set -euo pipefail`, command substitution và một đoạn Python nhỏ để so sánh số thực chính xác."
+    },
+    {
+      "id": "file:scripts/entry-ablation.sh",
+      "type": "file",
+      "name": "entry-ablation.sh",
+      "filePath": "scripts/entry-ablation.sh",
+      "summary": "Script ablation các điều kiện entry SMC bằng cách patch `strategy.ts`, chạy nhiều tổ hợp pullback/rejection/discount-premium và lọc các metric backtest quan trọng. Cuối cùng script phục hồi cấu hình baseline.",
+      "tags": ["script", "ablation", "entry-signal", "backtest", "smc"],
+      "complexity": "simple",
+      "languageNotes": "Bash nhúng JavaScript qua heredoc để sửa cấu hình TypeScript theo từng kịch bản."
+    },
+    {
+      "id": "function:scripts/entry-ablation.sh:patch",
+      "type": "function",
+      "name": "patch",
+      "filePath": "scripts/entry-ablation.sh",
+      "lineRange": [6, 16],
+      "summary": "Thay các cờ pullback, rejection mode và discount/premium trong `strategy.ts` theo JSON của kịch bản ablation.",
+      "tags": ["utility", "cấu-hình", "ablation", "source-patching"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/indicator-ablation.sh",
+      "type": "file",
+      "name": "indicator-ablation.sh",
+      "filePath": "scripts/indicator-ablation.sh",
+      "summary": "Chạy ma trận A/B cho các filter RSI, EMA 15m, EMA 1h và ADX của entry, đồng thời thu gọn output về số lệnh, NET R và p-value. Baseline all-off được phục hồi sau loạt thử nghiệm.",
+      "tags": ["script", "ablation", "technical-indicator", "backtest", "entry-filter"],
+      "complexity": "simple",
+      "languageNotes": "Bash dùng heredoc JavaScript để patch bốn boolean trong source trước mỗi lần chạy."
+    },
+    {
+      "id": "function:scripts/indicator-ablation.sh:patch",
+      "type": "function",
+      "name": "patch",
+      "filePath": "scripts/indicator-ablation.sh",
+      "lineRange": [7, 19],
+      "summary": "Áp một tổ hợp bật/tắt RSI, EMA LTF, EMA HTF và ADX vào cấu hình entry trong `strategy.ts`.",
+      "tags": ["utility", "cấu-hình", "ablation", "source-patching"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/rsi-ablation.sh",
+      "type": "file",
+      "name": "rsi-ablation.sh",
+      "filePath": "scripts/rsi-ablation.sh",
+      "summary": "So sánh các RSI mode trên baseline BOS+ARM và EMA50 1h, chạy backtest cho từng mode rồi in metric trên một dòng. Khi hoàn tất, script đặt `entryRsiMode` trở lại `off`.",
+      "tags": ["script", "ablation", "rsi", "backtest", "entry-filter"],
+      "complexity": "simple",
+      "languageNotes": "Script shell thay string literal TypeScript bằng JavaScript nhúng và chủ động restore trạng thái baseline."
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/entry-ablation.sh",
+      "target": "function:scripts/entry-ablation.sh:patch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/indicator-ablation.sh",
+      "target": "function:scripts/indicator-ablation.sh:patch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

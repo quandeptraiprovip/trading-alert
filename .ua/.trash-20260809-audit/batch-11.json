@@ -1,0 +1,79 @@
+{
+  "nodes": [
+    {
+      "id": "document:planning/mexc-futures/claude-interview.md",
+      "type": "document",
+      "name": "claude-interview.md",
+      "filePath": "planning/mexc-futures/claude-interview.md",
+      "summary": "Bộ câu hỏi và giả định đã chốt cho tích hợp MEXC Futures, bao quát routing strategy, nguồn market data, account mode, protection policy, network ambiguity, rollout và security.",
+      "tags": ["tài-liệu", "mexc-futures", "assumption-interview", "yêu-cầu", "security"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-plan.md",
+      "type": "document",
+      "name": "claude-plan.md",
+      "filePath": "planning/mexc-futures/claude-plan.md",
+      "summary": "Implementation plan theo giai đoạn để chuyển Fast Trend sang MEXC Futures: sửa state safety, tạo execution boundary, xây adapter, recovery/reconciliation và tách venue trong bot. Kế hoạch kèm test matrix, shadow rollout, mainnet canary và definition of done.",
+      "tags": ["tài-liệu", "mexc-futures", "implementation-plan", "rollout", "reconciliation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-research.md",
+      "type": "document",
+      "name": "claude-research.md",
+      "filePath": "planning/mexc-futures/claude-research.md",
+      "summary": "Nghiên cứu nền cho tích hợp MEXC Futures, đối chiếu coupling hiện tại và các safety gap của Fast Trend với API chính thức. Phạm vi gồm authentication, metadata/sizing, order idempotency, WebSocket reconciliation, rate limits, fees và architecture decision.",
+      "tags": ["tài-liệu", "mexc-futures", "api-research", "risk-analysis", "architecture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "document",
+      "name": "claude-synthesized-spec.md",
+      "filePath": "planning/mexc-futures/claude-synthesized-spec.md",
+      "summary": "Đặc tả tổng hợp các functional requirement cho execution MEXC-native, recovery sau partial failure, phân tách ownership/risk và giữ nguyên semantics của strategy. Tài liệu cũng định nghĩa state/audit schema, preflight gate, rollout requirement, acceptance criteria và non-goals.",
+      "tags": ["tài-liệu", "mexc-futures", "đặc-tả", "fault-recovery", "acceptance-criteria"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/mexc-futures/mexc-futures-integration.md",
+      "type": "document",
+      "name": "mexc-futures-integration.md",
+      "filePath": "planning/mexc-futures/mexc-futures-integration.md",
+      "summary": "Đặc tả ban đầu cho việc route Fast Trend sang MEXC Futures, xác định mục tiêu, signal/risk intent, yêu cầu an toàn, rollout và những nội dung ngoài phạm vi.",
+      "tags": ["tài-liệu", "mexc-futures", "đặc-tả-ban-đầu", "strategy-routing"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:planning/mexc-futures/claude-interview.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/claude-research.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/mexc-futures-integration.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/mexc-futures/claude-plan.md",
+      "target": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

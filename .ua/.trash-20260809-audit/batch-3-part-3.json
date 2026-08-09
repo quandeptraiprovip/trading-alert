@@ -1,0 +1,553 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/turtle-losing-streak.ts",
+      "type": "file",
+      "name": "turtle-losing-streak.ts",
+      "filePath": "scripts/turtle-losing-streak.ts",
+      "summary": "Tính chuỗi thua liên tiếp của Turtle trên dữ liệu nhiều symbol để định lượng tail risk vận hành.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-losing-streak.ts:streak",
+      "type": "function",
+      "name": "streak",
+      "filePath": "scripts/turtle-losing-streak.ts",
+      "lineRange": [
+        8,
+        17
+      ],
+      "summary": "Hàm `streak` thực hiện logic miền trong turtle-losing-streak.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-losing-streak.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-losing-streak.ts",
+      "lineRange": [
+        19,
+        48
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: tính chuỗi thua liên tiếp của Turtle trên dữ liệu nhiều symbol để định lượng tail risk vận hành.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/turtle-overfit-ablation.ts",
+      "type": "file",
+      "name": "turtle-overfit-ablation.ts",
+      "filePath": "scripts/turtle-overfit-ablation.ts",
+      "summary": "Thực hiện ablation các cải tiến Turtle để phát hiện lever overfit hoặc thiếu đóng góp độc lập.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/turtle-overfit-ablation.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-overfit-ablation.ts",
+      "lineRange": [
+        27,
+        95
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: thực hiện ablation các cải tiến Turtle để phát hiện lever overfit hoặc thiếu đóng góp độc lập.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "type": "file",
+      "name": "turtle-pyramid-spotcheck.ts",
+      "filePath": "scripts/turtle-pyramid-spotcheck.ts",
+      "summary": "Spot-check logic pyramid của Turtle trên một tập dữ liệu nhỏ và in các sai khác đáng chú ý.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/turtle-pyramid-spotcheck.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-pyramid-spotcheck.ts",
+      "lineRange": [
+        11,
+        61
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: spot-check logic pyramid của Turtle trên một tập dữ liệu nhỏ và in các sai khác đáng chú ý.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:test-key-volume.ts",
+      "type": "file",
+      "name": "test-key-volume.ts",
+      "filePath": "test-key-volume.ts",
+      "summary": "Bộ regression test cho Key Volume: no-lookahead, level activation, candle bias, reentry, leverage cap, retest state machine và các pattern xác nhận.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:test-key-volume.ts:candle",
+      "type": "function",
+      "name": "candle",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        29,
+        48
+      ],
+      "summary": "Hàm `candle` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testSourceBackedDefaults",
+      "type": "function",
+      "name": "testSourceBackedDefaults",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        56,
+        74
+      ],
+      "summary": "Kiểm thử scenario `testSourceBackedDefaults` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testKeyActivationAndNoLookahead",
+      "type": "function",
+      "name": "testKeyActivationAndNoLookahead",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        76,
+        126
+      ],
+      "summary": "Kiểm thử scenario `testKeyActivationAndNoLookahead` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:test-key-volume.ts:testCandleChainBias",
+      "type": "function",
+      "name": "testCandleChainBias",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        128,
+        180
+      ],
+      "summary": "Kiểm thử scenario `testCandleChainBias` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:test-key-volume.ts:testConditionalReentryAndLeverageCap",
+      "type": "function",
+      "name": "testConditionalReentryAndLeverageCap",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        182,
+        206
+      ],
+      "summary": "Kiểm thử scenario `testConditionalReentryAndLeverageCap` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testSweepAndReclaim",
+      "type": "function",
+      "name": "testSweepAndReclaim",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        208,
+        231
+      ],
+      "summary": "Kiểm thử scenario `testSweepAndReclaim` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testHvnProxyAndWeeklyAlignment",
+      "type": "function",
+      "name": "testHvnProxyAndWeeklyAlignment",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        233,
+        253
+      ],
+      "summary": "Kiểm thử scenario `testHvnProxyAndWeeklyAlignment` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:appendM15",
+      "type": "function",
+      "name": "appendM15",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        255,
+        277
+      ],
+      "summary": "Hàm `appendM15` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testVolumeRetestStateMachine",
+      "type": "function",
+      "name": "testVolumeRetestStateMachine",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        279,
+        404
+      ],
+      "summary": "Kiểm thử scenario `testVolumeRetestStateMachine` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:test-key-volume.ts:testReversalCandlePatterns",
+      "type": "function",
+      "name": "testReversalCandlePatterns",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        407,
+        429
+      ],
+      "summary": "Kiểm thử scenario `testReversalCandlePatterns` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testDoubleTopBottom",
+      "type": "function",
+      "name": "testDoubleTopBottom",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        432,
+        446
+      ],
+      "summary": "Kiểm thử scenario `testDoubleTopBottom` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testDailyTrapGate",
+      "type": "function",
+      "name": "testDailyTrapGate",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        462,
+        484
+      ],
+      "summary": "Kiểm thử scenario `testDailyTrapGate` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-key-volume.ts:testReentryModes",
+      "type": "function",
+      "name": "testReentryModes",
+      "filePath": "test-key-volume.ts",
+      "lineRange": [
+        487,
+        507
+      ],
+      "summary": "Kiểm thử scenario `testReentryModes` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "function:scripts/turtle-losing-streak.ts:streak",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "function:scripts/turtle-losing-streak.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-losing-streak.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "function:scripts/turtle-overfit-ablation.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-overfit-ablation.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "function:scripts/turtle-pyramid-spotcheck.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-pyramid-spotcheck.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:candle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testSourceBackedDefaults",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testKeyActivationAndNoLookahead",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testCandleChainBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testConditionalReentryAndLeverageCap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testSweepAndReclaim",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testHvnProxyAndWeeklyAlignment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:appendM15",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testVolumeRetestStateMachine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testReversalCandlePatterns",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testDoubleTopBottom",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testDailyTrapGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "function:test-key-volume.ts:testReentryModes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:key-volume-backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-key-volume.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

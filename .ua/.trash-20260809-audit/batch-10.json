@@ -1,0 +1,106 @@
+{
+  "nodes": [
+    {
+      "id": "document:planning/alt-trend-implementation-2026-08.md",
+      "type": "document",
+      "name": "alt-trend-implementation-2026-08.md",
+      "filePath": "planning/alt-trend-implementation-2026-08.md",
+      "summary": "Định nghĩa ranh giới triển khai và research protocol cho Alt Trend, từ current-universe scanner đến backtest, promotion gate và bước verification.",
+      "tags": ["tài-liệu", "alt-trend", "research-protocol", "backtest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/fxdream-keyvolume-method.md",
+      "type": "document",
+      "name": "fxdream-keyvolume-method.md",
+      "filePath": "planning/fxdream-keyvolume-method.md",
+      "summary": "Đặc tả nghiên cứu toàn diện phương pháp Key Volume của FX Dream Trading, bao gồm quy trình top-down, setup, entry/SL/TP, quản trị vốn và khả năng số hóa. Tài liệu còn audit sai lệch giữa nguồn gốc với code, kết quả ablation và benchmark sau remediation.",
+      "tags": ["tài-liệu", "key-volume", "phương-pháp-giao-dịch", "audit", "ablation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:planning/independent-strategy-research-2026-08.md",
+      "type": "document",
+      "name": "independent-strategy-research-2026-08.md",
+      "filePath": "planning/independent-strategy-research-2026-08.md",
+      "summary": "Tổng hợp nghiên cứu các strategy crypto độc lập với bot hiện tại, ưu tiên staggered cross-sectional momentum sau kiểm định 2.000 ngày trên tám major. Tài liệu cũng ghi nhận edge carry đã decay và loại các giả thuyết funding-tail, basis cùng order-flow không đạt tiêu chí.",
+      "tags": ["tài-liệu", "nghiên-cứu-chiến-lược", "cross-sectional-momentum", "robustness", "crypto"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/portfolio-risk-and-exit-2026-08.md",
+      "type": "document",
+      "name": "portfolio-risk-and-exit-2026-08.md",
+      "filePath": "planning/portfolio-risk-and-exit-2026-08.md",
+      "summary": "Ghi lại quyết định cải tiến Turtle ở cấp danh mục: heat-decay theo cùng hướng, tách kênh thoát long và giảm số unit pyramid. Kết quả được đối chiếu bằng audit, placebo test, rollback criteria và hướng dẫn tái lập.",
+      "tags": ["tài-liệu", "turtle", "portfolio-risk", "exit-policy", "anti-overfit"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/random-maturity-carry-protocol-2026-08.md",
+      "type": "document",
+      "name": "random-maturity-carry-protocol-2026-08.md",
+      "filePath": "planning/random-maturity-carry-protocol-2026-08.md",
+      "summary": "Pre-registered protocol cho chiến lược random-maturity spot–perpetual carry, khóa trước giả thuyết, implementation, các giai đoạn time isolation và robustness gates trước validation.",
+      "tags": ["tài-liệu", "research-protocol", "carry", "time-isolation", "robustness"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:planning/remediation-plan-2026-08.md",
+      "type": "document",
+      "name": "remediation-plan-2026-08.md",
+      "filePath": "planning/remediation-plan-2026-08.md",
+      "summary": "Kế hoạch remediation sau chuỗi thua, tách rõ sửa lỗi cấu trúc khỏi thay đổi có tuyên bố alpha để chống overfit. Lộ trình ưu tiên dedup xuyên sàn, risk budget theo tổng equity, trần cùng hướng, forensic journal và shadow testing có preregistration.",
+      "tags": ["tài-liệu", "remediation", "anti-overfit", "quản-trị-rủi-ro", "rollout"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/smallcap-native-implementation-2026-08.md",
+      "type": "document",
+      "name": "smallcap-native-implementation-2026-08.md",
+      "filePath": "planning/smallcap-native-implementation-2026-08.md",
+      "summary": "Mô tả implementation research biệt lập cho small-cap gồm hai engine reversal và supply, offline runner cùng các bước verification để tránh ảnh hưởng đường chạy production.",
+      "tags": ["tài-liệu", "smallcap", "research-engine", "implementation", "verification"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:planning/trend-method-remediation-research-2026-08.md",
+      "type": "document",
+      "name": "trend-method-remediation-research-2026-08.md",
+      "filePath": "planning/trend-method-remediation-research-2026-08.md",
+      "summary": "Phân tích điểm yếu của Turtle và Fast Trend sau các lệnh thua, liệt kê biến thể đã kiểm tra và đánh giá mức đa dạng hóa giữa hai sleeve. Tài liệu chốt các thay đổi đã chấp nhận, các hạng mục còn chờ và ràng buộc Binance signal/MEXC execution.",
+      "tags": ["tài-liệu", "trend-following", "remediation", "turtle", "fast-trend"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:planning/independent-strategy-research-2026-08.md",
+      "target": "document:planning/random-maturity-carry-protocol-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/remediation-plan-2026-08.md",
+      "target": "document:planning/trend-method-remediation-research-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/alt-trend-implementation-2026-08.md",
+      "target": "document:planning/independent-strategy-research-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:planning/smallcap-native-implementation-2026-08.md",
+      "target": "document:planning/independent-strategy-research-2026-08.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

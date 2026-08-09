@@ -1,0 +1,13 @@
+{
+  "fixedSectionOk": false,
+  "nodesRecovered": 0,
+  "edgesRestored": 4,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Không có node bị mất, type lạ hoặc complexity cần remap; số node giữ nguyên 523.",
+    "Bốn cạnh tested_by bị merge loại nhầm: test-smallcap-native.ts thực sự import smallcap-research.ts, smallcap-reversal.ts và smallcap-supply.ts; test-alt-trend.ts thực sự import alt-trend.ts. Đã khôi phục đủ bốn cạnh.",
+    "Đối chiếu toàn bộ importMap: 253/253 quan hệ import nội bộ đã có cạnh imports tương ứng; không có endpoint không phân giải và không cần thêm cạnh cross-batch."
+  ]
+}

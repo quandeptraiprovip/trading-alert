@@ -1,0 +1,2044 @@
+{
+  "nodes": [
+    {
+      "id": "file:exp-turtle-levers.ts",
+      "type": "file",
+      "name": "exp-turtle-levers.ts",
+      "filePath": "exp-turtle-levers.ts",
+      "summary": "Quét các lever của Turtle strategy trên dữ liệu nhiều symbol và định dạng bảng metric để so sánh candidate.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:exp-turtle-levers.ts:fetchAll",
+      "type": "function",
+      "name": "fetchAll",
+      "filePath": "exp-turtle-levers.ts",
+      "lineRange": [
+        28,
+        37
+      ],
+      "summary": "Hàm `fetchAll` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:exp-turtle-levers.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "exp-turtle-levers.ts",
+      "lineRange": [
+        45,
+        60
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:exp-turtle-levers.ts:fmtRow",
+      "type": "function",
+      "name": "fmtRow",
+      "filePath": "exp-turtle-levers.ts",
+      "lineRange": [
+        68,
+        75
+      ],
+      "summary": "Hàm `fmtRow` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:exp-turtle-levers.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "exp-turtle-levers.ts",
+      "lineRange": [
+        78,
+        280
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: quét các lever của Turtle strategy trên dữ liệu nhiều symbol và định dạng bảng metric để so sánh candidate.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:key-volume-backtest.ts",
+      "type": "file",
+      "name": "key-volume-backtest.ts",
+      "filePath": "key-volume-backtest.ts",
+      "summary": "Điều phối backtest Key Volume, áp leverage cap, tổng hợp diagnostics theo symbol và dùng weekly bootstrap để đánh giá kết quả.",
+      "tags": [
+        "backtest",
+        "simulation",
+        "statistics",
+        "research"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:applyLeverageCap",
+      "type": "function",
+      "name": "applyLeverageCap",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        69,
+        82
+      ],
+      "summary": "Hàm `applyLeverageCap` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "backtest"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:weeklyBootstrap",
+      "type": "function",
+      "name": "weeklyBootstrap",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        112,
+        142
+      ],
+      "summary": "Hàm `weeklyBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        144,
+        196
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:fmtRow",
+      "type": "function",
+      "name": "fmtRow",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        198,
+        212
+      ],
+      "summary": "Hàm `fmtRow` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:sumDiagnostics",
+      "type": "function",
+      "name": "sumDiagnostics",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        214,
+        243
+      ],
+      "summary": "Hàm `sumDiagnostics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "backtest"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:printPerSymbol",
+      "type": "function",
+      "name": "printPerSymbol",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        245,
+        266
+      ],
+      "summary": "Hàm `printPerSymbol` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume-backtest.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "key-volume-backtest.ts",
+      "lineRange": [
+        268,
+        515
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: điều phối backtest Key Volume, áp leverage cap, tổng hợp diagnostics theo symbol và dùng weekly bootstrap để đánh giá kết quả.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:key-volume.ts",
+      "type": "file",
+      "name": "key-volume.ts",
+      "filePath": "key-volume.ts",
+      "summary": "Cài đặt Key Volume strategy hoàn chỉnh: phát hiện level, chọn retest/confluence, xác nhận candle, dựng trade plan và mô phỏng vòng đời lệnh.",
+      "tags": [
+        "strategy",
+        "key-volume",
+        "state-machine",
+        "signal-generation"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Typed configuration và các helper thuần được ghép thành một state machine mô phỏng trade plan nhiều giai đoạn."
+    },
+    {
+      "id": "function:key-volume.ts:medianPrior",
+      "type": "function",
+      "name": "medianPrior",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        375,
+        384
+      ],
+      "summary": "Hàm `medianPrior` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:atrSeriesForward",
+      "type": "function",
+      "name": "atrSeriesForward",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        386,
+        407
+      ],
+      "summary": "Hàm `atrSeriesForward` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:candleChainBias",
+      "type": "function",
+      "name": "candleChainBias",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        413,
+        431
+      ],
+      "summary": "Hàm `candleChainBias` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:strictCandleChainBias",
+      "type": "function",
+      "name": "strictCandleChainBias",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        437,
+        453
+      ],
+      "summary": "Hàm `strictCandleChainBias` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:persistentCandleChainBias",
+      "type": "function",
+      "name": "persistentCandleChainBias",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        460,
+        471
+      ],
+      "summary": "Hàm `persistentCandleChainBias` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit.",
+      "tags": [
+        "state-management",
+        "persistence",
+        "reliability"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:structuralCandleChainBias",
+      "type": "function",
+      "name": "structuralCandleChainBias",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        478,
+        504
+      ],
+      "summary": "Hàm `structuralCandleChainBias` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:detectKeyVolumeLevels",
+      "type": "function",
+      "name": "detectKeyVolumeLevels",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        514,
+        621
+      ],
+      "summary": "Phát hiện các Key Volume level từ dữ liệu nến mà không dùng thông tin tương lai và gắn metadata cho quá trình retest.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:key-volume.ts:isKeyVolumeLevelActive",
+      "type": "function",
+      "name": "isKeyVolumeLevelActive",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        623,
+        627
+      ],
+      "summary": "Hàm `isKeyVolumeLevelActive` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:latestClosedIndex",
+      "type": "function",
+      "name": "latestClosedIndex",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        639,
+        648
+      ],
+      "summary": "Hàm `latestClosedIndex` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:higherTimeframeBias",
+      "type": "function",
+      "name": "higherTimeframeBias",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        650,
+        672
+      ],
+      "summary": "Hàm `higherTimeframeBias` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:selectConfluentTouch",
+      "type": "function",
+      "name": "selectConfluentTouch",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        674,
+        707
+      ],
+      "summary": "Hàm `selectConfluentTouch` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:selectKeyTouch",
+      "type": "function",
+      "name": "selectKeyTouch",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        709,
+        744
+      ],
+      "summary": "Hàm `selectKeyTouch` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:isEngulfing",
+      "type": "function",
+      "name": "isEngulfing",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        751,
+        770
+      ],
+      "summary": "Hàm `isEngulfing` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:isInsideBar",
+      "type": "function",
+      "name": "isInsideBar",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        773,
+        777
+      ],
+      "summary": "Hàm `isInsideBar` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:isThreeBarReversal",
+      "type": "function",
+      "name": "isThreeBarReversal",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        780,
+        790
+      ],
+      "summary": "Hàm `isThreeBarReversal` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:hasReversalCandlePattern",
+      "type": "function",
+      "name": "hasReversalCandlePattern",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        792,
+        800
+      ],
+      "summary": "Hàm `hasReversalCandlePattern` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:hasDoubleTopBottom",
+      "type": "function",
+      "name": "hasDoubleTopBottom",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        806,
+        827
+      ],
+      "summary": "Hàm `hasDoubleTopBottom` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:isWithinSession",
+      "type": "function",
+      "name": "isWithinSession",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        835,
+        844
+      ],
+      "summary": "Hàm `isWithinSession` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:dailyTrapGate",
+      "type": "function",
+      "name": "dailyTrapGate",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        853,
+        877
+      ],
+      "summary": "Hàm `dailyTrapGate` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:sweptAndReclaimed",
+      "type": "function",
+      "name": "sweptAndReclaimed",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        879,
+        892
+      ],
+      "summary": "Hàm `sweptAndReclaimed` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:crossedSwing",
+      "type": "function",
+      "name": "crossedSwing",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        894,
+        913
+      ],
+      "summary": "Hàm `crossedSwing` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:lowerBoundTime",
+      "type": "function",
+      "name": "lowerBoundTime",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        915,
+        924
+      ],
+      "summary": "Hàm `lowerBoundTime` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:findEntryOrderBlock",
+      "type": "function",
+      "name": "findEntryOrderBlock",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        926,
+        949
+      ],
+      "summary": "Hàm `findEntryOrderBlock` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:approximateHvnEdge",
+      "type": "function",
+      "name": "approximateHvnEdge",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        955,
+        989
+      ],
+      "summary": "Hàm `approximateHvnEdge` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:buildVolumeRetestPlans",
+      "type": "function",
+      "name": "buildVolumeRetestPlans",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        997,
+        1168
+      ],
+      "summary": "Dựng trade plan cho setup volume retest, gồm entry, stop, target và các điều kiện xác nhận.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:key-volume.ts:buildDocumentEntryPlans",
+      "type": "function",
+      "name": "buildDocumentEntryPlans",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1170,
+        1320
+      ],
+      "summary": "Dựng biến thể entry plan theo bộ rule được mô tả trong tài liệu phương pháp Key Volume.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:key-volume.ts:buildEntryPlans",
+      "type": "function",
+      "name": "buildEntryPlans",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1322,
+        1332
+      ],
+      "summary": "Hàm `buildEntryPlans` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:entryCandleMatches",
+      "type": "function",
+      "name": "entryCandleMatches",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1334,
+        1350
+      ],
+      "summary": "Hàm `entryCandleMatches` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:nearestOpposingTarget",
+      "type": "function",
+      "name": "nearestOpposingTarget",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1352,
+        1371
+      ],
+      "summary": "Hàm `nearestOpposingTarget` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:resolveTargetR",
+      "type": "function",
+      "name": "resolveTargetR",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1373,
+        1381
+      ],
+      "summary": "Hàm `resolveTargetR` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:canReenterKey",
+      "type": "function",
+      "name": "canReenterKey",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1383,
+        1399
+      ],
+      "summary": "Hàm `canReenterKey` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:tradeCostR",
+      "type": "function",
+      "name": "tradeCostR",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1401,
+        1419
+      ],
+      "summary": "Hàm `tradeCostR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:hasShortHigherLowPressure",
+      "type": "function",
+      "name": "hasShortHigherLowPressure",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1421,
+        1435
+      ],
+      "summary": "Hàm `hasShortHigherLowPressure` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:finishTrade",
+      "type": "function",
+      "name": "finishTrade",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1437,
+        1477
+      ],
+      "summary": "Hàm `finishTrade` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:key-volume.ts:simulatePlans",
+      "type": "function",
+      "name": "simulatePlans",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1479,
+        1698
+      ],
+      "summary": "Mô phỏng vòng đời các Key Volume plan, xử lý trigger, reentry, stop, target và trade cost.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:key-volume.ts:runKeyVolume",
+      "type": "function",
+      "name": "runKeyVolume",
+      "filePath": "key-volume.ts",
+      "lineRange": [
+        1700,
+        1746
+      ],
+      "summary": "Chạy toàn bộ Key Volume strategy trên dữ liệu đầu vào và trả về trades cùng diagnostics.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:kline-fetch.ts",
+      "type": "file",
+      "name": "kline-fetch.ts",
+      "filePath": "kline-fetch.ts",
+      "summary": "Tải dữ liệu kline theo trang với cache cục bộ, parallel fetch, backfill phần cũ và cập nhật phần mới.",
+      "tags": [
+        "market-data",
+        "data-fetching",
+        "cache",
+        "pagination"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:kline-fetch.ts:parseKlineBatch",
+      "type": "function",
+      "name": "parseKlineBatch",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        24,
+        35
+      ],
+      "summary": "Hàm `parseKlineBatch` thực hiện logic miền trong kline-fetch.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:readCache",
+      "type": "function",
+      "name": "readCache",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        48,
+        58
+      ],
+      "summary": "Hàm `readCache` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:writeCache",
+      "type": "function",
+      "name": "writeCache",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        60,
+        70
+      ],
+      "summary": "Hàm `writeCache` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:fetchOnePage",
+      "type": "function",
+      "name": "fetchOnePage",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        72,
+        89
+      ],
+      "summary": "Hàm `fetchOnePage` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:fetchKlinesFromSourceParallel",
+      "type": "function",
+      "name": "fetchKlinesFromSourceParallel",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        97,
+        130
+      ],
+      "summary": "Hàm `fetchKlinesFromSourceParallel` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:backfillOlder",
+      "type": "function",
+      "name": "backfillOlder",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        133,
+        153
+      ],
+      "summary": "Hàm `backfillOlder` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:fetchForward",
+      "type": "function",
+      "name": "fetchForward",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        156,
+        174
+      ],
+      "summary": "Hàm `fetchForward` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:fetchWithSource",
+      "type": "function",
+      "name": "fetchWithSource",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        176,
+        212
+      ],
+      "summary": "Hàm `fetchWithSource` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:kline-fetch.ts:fetchKlinesPaged",
+      "type": "function",
+      "name": "fetchKlinesPaged",
+      "filePath": "kline-fetch.ts",
+      "lineRange": [
+        214,
+        226
+      ],
+      "summary": "Hàm `fetchKlinesPaged` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/cross-sectional-basis.ts",
+      "type": "file",
+      "name": "cross-sectional-basis.ts",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "summary": "Nghiên cứu cross-sectional basis bằng funding/premium data, mô phỏng tín hiệu và block bootstrap kết quả.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:readCache",
+      "type": "function",
+      "name": "readCache",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        54,
+        68
+      ],
+      "summary": "Hàm `readCache` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:fetchFunding",
+      "type": "function",
+      "name": "fetchFunding",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        75,
+        99
+      ],
+      "summary": "Hàm `fetchFunding` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:fetchPremium",
+      "type": "function",
+      "name": "fetchPremium",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        101,
+        125
+      ],
+      "summary": "Hàm `fetchPremium` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:atrSeries",
+      "type": "function",
+      "name": "atrSeries",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        127,
+        144
+      ],
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:fundingR",
+      "type": "function",
+      "name": "fundingR",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        146,
+        157
+      ],
+      "summary": "Hàm `fundingR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:simulate",
+      "type": "function",
+      "name": "simulate",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        159,
+        208
+      ],
+      "summary": "Hàm `simulate` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        210,
+        236
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:blockBootstrap",
+      "type": "function",
+      "name": "blockBootstrap",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        269,
+        288
+      ],
+      "summary": "Hàm `blockBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/cross-sectional-basis.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/cross-sectional-basis.ts",
+      "lineRange": [
+        290,
+        385
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu cross-sectional basis bằng funding/premium data, mô phỏng tín hiệu và block bootstrap kết quả.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/daily-relative-momentum.ts",
+      "type": "file",
+      "name": "daily-relative-momentum.ts",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "summary": "Nghiên cứu daily relative momentum trên nhiều symbol, mô phỏng portfolio và kiểm tra độ bền bằng block bootstrap.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/daily-relative-momentum.ts:atrSeries",
+      "type": "function",
+      "name": "atrSeries",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "lineRange": [
+        51,
+        68
+      ],
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/daily-relative-momentum.ts:simulate",
+      "type": "function",
+      "name": "simulate",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "lineRange": [
+        78,
+        118
+      ],
+      "summary": "Hàm `simulate` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/daily-relative-momentum.ts:metrics",
+      "type": "function",
+      "name": "metrics",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "lineRange": [
+        120,
+        148
+      ],
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/daily-relative-momentum.ts:blockBootstrap",
+      "type": "function",
+      "name": "blockBootstrap",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "lineRange": [
+        168,
+        199
+      ],
+      "summary": "Hàm `blockBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/daily-relative-momentum.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/daily-relative-momentum.ts",
+      "lineRange": [
+        215,
+        331
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu daily relative momentum trên nhiều symbol, mô phỏng portfolio và kiểm tra độ bền bằng block bootstrap.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "function:exp-turtle-levers.ts:fetchAll",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "function:exp-turtle-levers.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "function:exp-turtle-levers.ts:fmtRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "function:exp-turtle-levers.ts:fmtRow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "function:exp-turtle-levers.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-levers.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:applyLeverageCap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:applyLeverageCap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:weeklyBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:fmtRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:sumDiagnostics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:printPerSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "function:key-volume-backtest.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:key-volume.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume-backtest.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:medianPrior",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:medianPrior",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:atrSeriesForward",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:atrSeriesForward",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:candleChainBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:candleChainBias",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:strictCandleChainBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:strictCandleChainBias",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:persistentCandleChainBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:persistentCandleChainBias",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:structuralCandleChainBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:structuralCandleChainBias",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:detectKeyVolumeLevels",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:detectKeyVolumeLevels",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isKeyVolumeLevelActive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isKeyVolumeLevelActive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:latestClosedIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:higherTimeframeBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:selectConfluentTouch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:selectKeyTouch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isEngulfing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isEngulfing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isInsideBar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isInsideBar",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isThreeBarReversal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isThreeBarReversal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:hasReversalCandlePattern",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:hasReversalCandlePattern",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:hasDoubleTopBottom",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:hasDoubleTopBottom",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isWithinSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:isWithinSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:dailyTrapGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:dailyTrapGate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:sweptAndReclaimed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:sweptAndReclaimed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:crossedSwing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:lowerBoundTime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:findEntryOrderBlock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:approximateHvnEdge",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:approximateHvnEdge",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:buildVolumeRetestPlans",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:buildDocumentEntryPlans",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:buildEntryPlans",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:entryCandleMatches",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:nearestOpposingTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:resolveTargetR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:resolveTargetR",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:canReenterKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:canReenterKey",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:tradeCostR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:hasShortHigherLowPressure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:hasShortHigherLowPressure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:finishTrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:simulatePlans",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:runKeyVolume",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "function:key-volume.ts:runKeyVolume",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:key-volume.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:parseKlineBatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:readCache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:writeCache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:fetchOnePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:fetchKlinesFromSourceParallel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:backfillOlder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:fetchForward",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:fetchWithSource",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:fetchKlinesPaged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "function:kline-fetch.ts:fetchKlinesPaged",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:kline-fetch.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:readCache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:fetchFunding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:fetchPremium",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:atrSeries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:fundingR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:simulate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:blockBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "function:scripts/cross-sectional-basis.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/cross-sectional-basis.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "function:scripts/daily-relative-momentum.ts:atrSeries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "function:scripts/daily-relative-momentum.ts:simulate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "function:scripts/daily-relative-momentum.ts:metrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "function:scripts/daily-relative-momentum.ts:blockBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "function:scripts/daily-relative-momentum.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/daily-relative-momentum.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

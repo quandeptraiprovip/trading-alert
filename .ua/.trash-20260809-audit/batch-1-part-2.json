@@ -1,0 +1,1145 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/extreme-volume-retest-audit.ts",
+      "type": "file",
+      "name": "extreme-volume-retest-audit.ts",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "summary": "Phân tích chuyên sâu setup extreme-volume retest, từ HTF alignment và xác nhận entry đến mô phỏng stop, bootstrap và báo cáo confluence.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:atr",
+      "type": "function",
+      "name": "atr",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        103,
+        114
+      ],
+      "summary": "Hàm `atr` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:aggregateBuyRatio",
+      "type": "function",
+      "name": "aggregateBuyRatio",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        116,
+        126
+      ],
+      "summary": "Hàm `aggregateBuyRatio` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:simulateOneAtr",
+      "type": "function",
+      "name": "simulateOneAtr",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        138,
+        176
+      ],
+      "summary": "Hàm `simulateOneAtr` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:simulateWideStopTime",
+      "type": "function",
+      "name": "simulateWideStopTime",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        179,
+        209
+      ],
+      "summary": "Hàm `simulateWideStopTime` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:buildHtfAlignment",
+      "type": "function",
+      "name": "buildHtfAlignment",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        211,
+        238
+      ],
+      "summary": "Hàm `buildHtfAlignment` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:analyzeSymbol",
+      "type": "function",
+      "name": "analyzeSymbol",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        240,
+        345
+      ],
+      "summary": "Hàm `analyzeSymbol` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:weeklyBootstrap",
+      "type": "function",
+      "name": "weeklyBootstrap",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        370,
+        402
+      ],
+      "summary": "Hàm `weeklyBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:printBaselineConfluence",
+      "type": "function",
+      "name": "printBaselineConfluence",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        436,
+        468
+      ],
+      "summary": "Hàm `printBaselineConfluence` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:findConfirmation",
+      "type": "function",
+      "name": "findConfirmation",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        489,
+        514
+      ],
+      "summary": "Hàm `findConfirmation` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:simulateConfirmedTrade",
+      "type": "function",
+      "name": "simulateConfirmedTrade",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        516,
+        572
+      ],
+      "summary": "Hàm `simulateConfirmedTrade` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:runConfirmedVariant",
+      "type": "function",
+      "name": "runConfirmedVariant",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        574,
+        596
+      ],
+      "summary": "Hàm `runConfirmedVariant` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:confirmedBootstrap",
+      "type": "function",
+      "name": "confirmedBootstrap",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        598,
+        626
+      ],
+      "summary": "Hàm `confirmedBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:printConfirmedEntries",
+      "type": "function",
+      "name": "printConfirmedEntries",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        628,
+        667
+      ],
+      "summary": "Hàm `printConfirmedEntries` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/extreme-volume-retest-audit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/extreme-volume-retest-audit.ts",
+      "lineRange": [
+        669,
+        778
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: phân tích chuyên sâu setup extreme-volume retest, từ HTF alignment và xác nhận entry đến mô phỏng stop, bootstrap và báo cáo confluence.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/ftr-experiments.ts",
+      "type": "file",
+      "name": "ftr-experiments.ts",
+      "filePath": "scripts/ftr-experiments.ts",
+      "summary": "Chạy nhóm thí nghiệm FTR trên dữ liệu backtest để so sánh các biến thể tín hiệu và tham số.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/ftr-experiments.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/ftr-experiments.ts",
+      "lineRange": [
+        41,
+        101
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chạy nhóm thí nghiệm FTR trên dữ liệu backtest để so sánh các biến thể tín hiệu và tham số.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/liquidity-experiments.ts",
+      "type": "file",
+      "name": "liquidity-experiments.ts",
+      "filePath": "scripts/liquidity-experiments.ts",
+      "summary": "Thử nghiệm các điều kiện liquidity trong logic entry và đo ảnh hưởng của chúng lên chất lượng giao dịch.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/liquidity-experiments.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/liquidity-experiments.ts",
+      "lineRange": [
+        42,
+        122
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: thử nghiệm các điều kiện liquidity trong logic entry và đo ảnh hưởng của chúng lên chất lượng giao dịch.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/liquidity-rule-validate.ts",
+      "type": "file",
+      "name": "liquidity-rule-validate.ts",
+      "filePath": "scripts/liquidity-rule-validate.ts",
+      "summary": "Xác thực một liquidity rule đề xuất trên nhiều symbol trước khi đưa vào chiến lược chính.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/liquidity-rule-validate.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/liquidity-rule-validate.ts",
+      "lineRange": [
+        26,
+        73
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: xác thực một liquidity rule đề xuất trên nhiều symbol trước khi đưa vào chiến lược chính.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/liquidity-soft.ts",
+      "type": "file",
+      "name": "liquidity-soft.ts",
+      "filePath": "scripts/liquidity-soft.ts",
+      "summary": "Đánh giá phiên bản soft gate cho liquidity nhằm giảm tín hiệu yếu mà không loại bỏ quá nhiều cơ hội.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/liquidity-soft.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/liquidity-soft.ts",
+      "lineRange": [
+        32,
+        92
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá phiên bản soft gate cho liquidity nhằm giảm tín hiệu yếu mà không loại bỏ quá nhiều cơ hội.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/maxhold-validate.ts",
+      "type": "file",
+      "name": "maxhold-validate.ts",
+      "filePath": "scripts/maxhold-validate.ts",
+      "summary": "Kiểm định giới hạn thời gian giữ lệnh (`max hold`) bằng kết quả net trên nhiều cửa sổ backtest.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/maxhold-validate.ts:netWindow",
+      "type": "function",
+      "name": "netWindow",
+      "filePath": "scripts/maxhold-validate.ts",
+      "lineRange": [
+        20,
+        29
+      ],
+      "summary": "Hàm `netWindow` thực hiện logic miền trong maxhold-validate.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/maxhold-validate.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/maxhold-validate.ts",
+      "lineRange": [
+        31,
+        56
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: kiểm định giới hạn thời gian giữ lệnh (`max hold`) bằng kết quả net trên nhiều cửa sổ backtest.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/mm-experiments.ts",
+      "type": "file",
+      "name": "mm-experiments.ts",
+      "filePath": "scripts/mm-experiments.ts",
+      "summary": "Chạy các thí nghiệm money management để so sánh quy tắc phân bổ risk và ảnh hưởng đến danh mục.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/mm-experiments.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/mm-experiments.ts",
+      "lineRange": [
+        34,
+        88
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chạy các thí nghiệm money management để so sánh quy tắc phân bổ risk và ảnh hưởng đến danh mục.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/mm-sizing.ts",
+      "type": "file",
+      "name": "mm-sizing.ts",
+      "filePath": "scripts/mm-sizing.ts",
+      "summary": "Phân tích position sizing có trọng số và tổng hợp tác động của từng cách sizing lên net return.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/mm-sizing.ts:weightedNet",
+      "type": "function",
+      "name": "weightedNet",
+      "filePath": "scripts/mm-sizing.ts",
+      "lineRange": [
+        32,
+        46
+      ],
+      "summary": "Hàm `weightedNet` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/mm-sizing.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/mm-sizing.ts",
+      "lineRange": [
+        63,
+        132
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: phân tích position sizing có trọng số và tổng hợp tác động của từng cách sizing lên net return.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/overfit-audit.ts",
+      "type": "file",
+      "name": "overfit-audit.ts",
+      "filePath": "scripts/overfit-audit.ts",
+      "summary": "Audit độ bền của các candidate strategy bằng các lát cắt dữ liệu và tiêu chí phát hiện overfit.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/overfit-audit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/overfit-audit.ts",
+      "lineRange": [
+        29,
+        113
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: audit độ bền của các candidate strategy bằng các lát cắt dữ liệu và tiêu chí phát hiện overfit.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/portfolio-basket.ts",
+      "type": "file",
+      "name": "portfolio-basket.ts",
+      "filePath": "scripts/portfolio-basket.ts",
+      "summary": "Mô phỏng basket portfolio, đo mức chồng lấp vị thế, tương quan và max drawdown để đánh giá diversification.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/portfolio-basket.ts:overlapMs",
+      "type": "function",
+      "name": "overlapMs",
+      "filePath": "scripts/portfolio-basket.ts",
+      "lineRange": [
+        30,
+        40
+      ],
+      "summary": "Hàm `overlapMs` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-basket.ts:pearson",
+      "type": "function",
+      "name": "pearson",
+      "filePath": "scripts/portfolio-basket.ts",
+      "lineRange": [
+        50,
+        64
+      ],
+      "summary": "Hàm `pearson` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-basket.ts:maxDrawdownR",
+      "type": "function",
+      "name": "maxDrawdownR",
+      "filePath": "scripts/portfolio-basket.ts",
+      "lineRange": [
+        78,
+        88
+      ],
+      "summary": "Hàm `maxDrawdownR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-basket.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/portfolio-basket.ts",
+      "lineRange": [
+        95,
+        261
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: mô phỏng basket portfolio, đo mức chồng lấp vị thế, tương quan và max drawdown để đánh giá diversification.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/pullback-zone-gate.ts",
+      "type": "file",
+      "name": "pullback-zone-gate.ts",
+      "filePath": "scripts/pullback-zone-gate.ts",
+      "summary": "Kiểm định gate yêu cầu pullback quay lại vùng giá trước khi cho phép entry.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/pullback-zone-gate.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/pullback-zone-gate.ts",
+      "lineRange": [
+        18,
+        83
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: kiểm định gate yêu cầu pullback quay lại vùng giá trước khi cho phép entry.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/symbol-correlation.ts",
+      "type": "file",
+      "name": "symbol-correlation.ts",
+      "filePath": "scripts/symbol-correlation.ts",
+      "summary": "Tính tương quan lợi nhuận giữa các symbol và mức tương quan trung bình của basket chiến lược.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/symbol-correlation.ts:pearson",
+      "type": "function",
+      "name": "pearson",
+      "filePath": "scripts/symbol-correlation.ts",
+      "lineRange": [
+        34,
+        60
+      ],
+      "summary": "Hàm `pearson` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/symbol-correlation.ts:avgPairCorr",
+      "type": "function",
+      "name": "avgPairCorr",
+      "filePath": "scripts/symbol-correlation.ts",
+      "lineRange": [
+        63,
+        76
+      ],
+      "summary": "Hàm `avgPairCorr` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/symbol-correlation.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/symbol-correlation.ts",
+      "lineRange": [
+        78,
+        186
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: tính tương quan lợi nhuận giữa các symbol và mức tương quan trung bình của basket chiến lược.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:atr",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:aggregateBuyRatio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:simulateOneAtr",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:simulateWideStopTime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:buildHtfAlignment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:analyzeSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:weeklyBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:printBaselineConfluence",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:findConfirmation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:simulateConfirmedTrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:runConfirmedVariant",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:confirmedBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:printConfirmedEntries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "function:scripts/extreme-volume-retest-audit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/extreme-volume-retest-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "function:scripts/ftr-experiments.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/ftr-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "function:scripts/liquidity-experiments.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "function:scripts/liquidity-rule-validate.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-rule-validate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "function:scripts/liquidity-soft.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/liquidity-soft.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "function:scripts/maxhold-validate.ts:netWindow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "function:scripts/maxhold-validate.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/maxhold-validate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "function:scripts/mm-experiments.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-experiments.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "function:scripts/mm-sizing.ts:weightedNet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "function:scripts/mm-sizing.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/mm-sizing.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "function:scripts/overfit-audit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/overfit-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "function:scripts/portfolio-basket.ts:overlapMs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "function:scripts/portfolio-basket.ts:pearson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "function:scripts/portfolio-basket.ts:maxDrawdownR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "function:scripts/portfolio-basket.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-basket.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "function:scripts/pullback-zone-gate.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/pullback-zone-gate.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "function:scripts/symbol-correlation.ts:pearson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "function:scripts/symbol-correlation.ts:avgPairCorr",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "function:scripts/symbol-correlation.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/symbol-correlation.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

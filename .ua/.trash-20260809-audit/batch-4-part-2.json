@@ -1,0 +1,1108 @@
+{
+  "nodes": [
+    {
+      "id": "file:mexc-futures.ts",
+      "type": "file",
+      "name": "mexc-futures.ts",
+      "filePath": "mexc-futures.ts",
+      "summary": "Cung cấp signed REST client cho MEXC Futures, chuẩn hóa symbol, tính contracts và quản lý account, position cùng order.",
+      "tags": [
+        "exchange-client",
+        "futures",
+        "order-execution",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:mexc-futures.ts:toMexcSymbol",
+      "type": "function",
+      "name": "toMexcSymbol",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        102,
+        106
+      ],
+      "summary": "Hàm `toMexcSymbol` thực hiện logic miền trong mexc-futures.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:mexc-futures.ts:mexcQueryString",
+      "type": "function",
+      "name": "mexcQueryString",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        108,
+        114
+      ],
+      "summary": "Hàm `mexcQueryString` thực hiện logic miền trong mexc-futures.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:mexc-futures.ts:signMexcRequest",
+      "type": "function",
+      "name": "signMexcRequest",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        116,
+        126
+      ],
+      "summary": "Ký request MEXC bằng HMAC để xác thực các thao tác private API.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:mexc-futures.ts:calculateMexcContracts",
+      "type": "function",
+      "name": "calculateMexcContracts",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        139,
+        160
+      ],
+      "summary": "Chuyển risk/quantity mong muốn thành số contract hợp lệ theo contract size và precision của MEXC.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:mexc-futures.ts:createMexcFromEnv",
+      "type": "function",
+      "name": "createMexcFromEnv",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        496,
+        506
+      ],
+      "summary": "Khởi tạo MEXC Futures client từ biến môi trường với endpoint và credential phù hợp.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "exchange-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:mexc-futures.ts:MexcApiError",
+      "type": "class",
+      "name": "MexcApiError",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        95,
+        100
+      ],
+      "summary": "Error type giữ HTTP status và payload của lỗi MEXC để caller phân loại sự cố API.",
+      "tags": [
+        "error-handling",
+        "api-client",
+        "typed-error"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:mexc-futures.ts:MexcFutures",
+      "type": "class",
+      "name": "MexcFutures",
+      "filePath": "mexc-futures.ts",
+      "lineRange": [
+        165,
+        494
+      ],
+      "summary": "Typed client cho MEXC Futures REST API, bao gồm auth, market/account queries và order lifecycle.",
+      "tags": [
+        "service",
+        "order-execution",
+        "exchange-client",
+        "risk-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:telegram-test.ts",
+      "type": "file",
+      "name": "telegram-test.ts",
+      "filePath": "telegram-test.ts",
+      "summary": "Smoke test cấu hình Telegram bằng cách nạp environment và gửi một test message thực tế.",
+      "tags": [
+        "telegram",
+        "notification",
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram-test.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "telegram-test.ts",
+      "lineRange": [
+        9,
+        18
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: smoke test cấu hình Telegram bằng cách nạp environment và gửi một test message thực tế.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:telegram.ts",
+      "type": "file",
+      "name": "telegram.ts",
+      "filePath": "telegram.ts",
+      "summary": "Cung cấp Telegram integration cho bot: gửi retryable message, đọc updates và dựng thông báo startup, arm, entry, exit cùng trạng thái test.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:telegram.ts:loadTelegramConfig",
+      "type": "function",
+      "name": "loadTelegramConfig",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        22,
+        31
+      ],
+      "summary": "Hàm `loadTelegramConfig` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:escapeMarkdown",
+      "type": "function",
+      "name": "escapeMarkdown",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        39,
+        41
+      ],
+      "summary": "Hàm `escapeMarkdown` thực hiện logic miền trong telegram.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "telegram"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:fmtPrice",
+      "type": "function",
+      "name": "fmtPrice",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        43,
+        45
+      ],
+      "summary": "Hàm `fmtPrice` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:formatSymbol",
+      "type": "function",
+      "name": "formatSymbol",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        48,
+        51
+      ],
+      "summary": "Hàm `formatSymbol` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:formatTimeVn",
+      "type": "function",
+      "name": "formatTimeVn",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        53,
+        59
+      ],
+      "summary": "Hàm `formatTimeVn` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:sendTelegram",
+      "type": "function",
+      "name": "sendTelegram",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        61,
+        94
+      ],
+      "summary": "Hàm `sendTelegram` thực hiện logic miền trong telegram.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:sendTelegramReliable",
+      "type": "function",
+      "name": "sendTelegramReliable",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        104,
+        108
+      ],
+      "summary": "Gửi Telegram message theo cơ chế tin cậy, giữ lại lỗi tạm thời để có thể retry.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:flushPendingTelegram",
+      "type": "function",
+      "name": "flushPendingTelegram",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        111,
+        118
+      ],
+      "summary": "Thử gửi lại các Telegram message đang chờ sau lỗi kết nối trước đó.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:getTelegramUpdates",
+      "type": "function",
+      "name": "getTelegramUpdates",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        121,
+        148
+      ],
+      "summary": "Đọc Telegram updates để bot xử lý command và duy trì offset nhận tin.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:buildStartupMessage",
+      "type": "function",
+      "name": "buildStartupMessage",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        150,
+        164
+      ],
+      "summary": "Hàm `buildStartupMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:buildArmMessage",
+      "type": "function",
+      "name": "buildArmMessage",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        166,
+        181
+      ],
+      "summary": "Hàm `buildArmMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:buildEntryMessage",
+      "type": "function",
+      "name": "buildEntryMessage",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        183,
+        205
+      ],
+      "summary": "Hàm `buildEntryMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:buildOfflineEntryMessage",
+      "type": "function",
+      "name": "buildOfflineEntryMessage",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        212,
+        248
+      ],
+      "summary": "Hàm `buildOfflineEntryMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:buildExitMessage",
+      "type": "function",
+      "name": "buildExitMessage",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        252,
+        292
+      ],
+      "summary": "Hàm `buildExitMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:telegram.ts:buildTestMessage",
+      "type": "function",
+      "name": "buildTestMessage",
+      "filePath": "telegram.ts",
+      "lineRange": [
+        294,
+        301
+      ],
+      "summary": "Hàm `buildTestMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "telegram",
+        "notification",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:test-binance.ts",
+      "type": "file",
+      "name": "test-binance.ts",
+      "filePath": "test-binance.ts",
+      "summary": "Integration smoke test cho Binance Futures client, gồm kết nối, account data và các thao tác an toàn theo cấu hình test.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:test-binance.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "test-binance.ts",
+      "lineRange": [
+        15,
+        115
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: integration smoke test cho Binance Futures client, gồm kết nối, account data và các thao tác an toàn theo cấu hình test.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:test-live-trade.ts",
+      "type": "file",
+      "name": "test-live-trade.ts",
+      "filePath": "test-live-trade.ts",
+      "summary": "Regression test cho quy trình thay stop của `LiveTrader`, bao gồm rollback khi lỗi và kết quả order không rõ ràng.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:test-live-trade.ts:testStopReplacementOrder",
+      "type": "function",
+      "name": "testStopReplacementOrder",
+      "filePath": "test-live-trade.ts",
+      "lineRange": [
+        20,
+        45
+      ],
+      "summary": "Kiểm thử scenario `testStopReplacementOrder` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-live-trade.ts:testOldStopRestoredOnFailure",
+      "type": "function",
+      "name": "testOldStopRestoredOnFailure",
+      "filePath": "test-live-trade.ts",
+      "lineRange": [
+        47,
+        80
+      ],
+      "summary": "Kiểm thử scenario `testOldStopRestoredOnFailure` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:test-live-trade.ts:testAmbiguousNewStopAccepted",
+      "type": "function",
+      "name": "testAmbiguousNewStopAccepted",
+      "filePath": "test-live-trade.ts",
+      "lineRange": [
+        82,
+        107
+      ],
+      "summary": "Kiểm thử scenario `testAmbiguousNewStopAccepted` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:test-mexc.ts",
+      "type": "file",
+      "name": "test-mexc.ts",
+      "filePath": "test-mexc.ts",
+      "summary": "Kiểm thử execution flow và close direction ở one-way mode cho MEXC Fast Trend adapter.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:test-mexc.ts:testExecutionFlow",
+      "type": "function",
+      "name": "testExecutionFlow",
+      "filePath": "test-mexc.ts",
+      "lineRange": [
+        110,
+        205
+      ],
+      "summary": "Kiểm thử scenario `testExecutionFlow` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:test-mexc.ts:testOneWayCloseDirections",
+      "type": "function",
+      "name": "testOneWayCloseDirections",
+      "filePath": "test-mexc.ts",
+      "lineRange": [
+        207,
+        259
+      ],
+      "summary": "Kiểm thử scenario `testOneWayCloseDirections` bằng fixture và assertion nhằm ngăn regression.",
+      "tags": [
+        "test",
+        "regression",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:turtle-live.ts",
+      "type": "file",
+      "name": "turtle-live.ts",
+      "filePath": "turtle-live.ts",
+      "summary": "Cài đặt Turtle strategy live trên Binance, duy trì state theo candle và điều phối entry, pyramid, stop cùng Telegram notification.",
+      "tags": [
+        "live-trading",
+        "order-execution",
+        "risk-management",
+        "state-machine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:turtle-live.ts:TurtleLive",
+      "type": "class",
+      "name": "TurtleLive",
+      "filePath": "turtle-live.ts",
+      "lineRange": [
+        97,
+        782
+      ],
+      "summary": "State machine chạy Turtle strategy live, quản lý breakout entry, pyramid, trailing stop và thông báo theo symbol.",
+      "tags": [
+        "service",
+        "live-trading",
+        "state-machine",
+        "strategy"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:toMexcSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:toMexcSymbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:mexcQueryString",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:mexcQueryString",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:signMexcRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:signMexcRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:calculateMexcContracts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:calculateMexcContracts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:createMexcFromEnv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "function:mexc-futures.ts:createMexcFromEnv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "class:mexc-futures.ts:MexcApiError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "class:mexc-futures.ts:MexcApiError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "class:mexc-futures.ts:MexcFutures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:mexc-futures.ts",
+      "target": "class:mexc-futures.ts:MexcFutures",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "function:telegram-test.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram-test.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:loadTelegramConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:loadTelegramConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:escapeMarkdown",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:escapeMarkdown",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:fmtPrice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:fmtPrice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:formatSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:formatSymbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:formatTimeVn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:formatTimeVn",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:sendTelegram",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:sendTelegram",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:sendTelegramReliable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:sendTelegramReliable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:flushPendingTelegram",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:flushPendingTelegram",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:getTelegramUpdates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:getTelegramUpdates",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildStartupMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildStartupMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildArmMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildArmMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildEntryMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildEntryMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildOfflineEntryMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildOfflineEntryMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildExitMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildExitMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildTestMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "function:telegram.ts:buildTestMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:telegram.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "function:test-binance.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-binance.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "function:test-live-trade.ts:testStopReplacementOrder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "function:test-live-trade.ts:testOldStopRestoredOnFailure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "function:test-live-trade.ts:testAmbiguousNewStopAccepted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-live-trade.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "function:test-mexc.ts:testExecutionFlow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "function:test-mexc.ts:testOneWayCloseDirections",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:fast-trend-live.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:mexc-fast-execution.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:mexc-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test-mexc.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "class:turtle-live.ts:TurtleLive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "class:turtle-live.ts:TurtleLive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:binance-futures.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:live-trade.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:telegram.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle-live.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

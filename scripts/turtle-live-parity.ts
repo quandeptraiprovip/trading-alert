@@ -93,10 +93,15 @@ async function main() {
     [...data.entries()].map(([symbol, candles]) => ({ key: symbol, symbol, candles, p: { ...T, gate } })),
     (c) => (T.heatDecayK > 0 ? 1 / (1 + c.sameDirHeat / T.heatDecayK) : 1),
   );
-  const engine = res.trades
+  // `trades` chỉ sinh lúc THOÁT — vị thế còn mở ở nến cuối phải lấy từ `openAtEnd`, nếu không
+  // test sẽ báo nhầm "live thừa lệnh" mỗi khi bot đang giữ hàng (2026-08-09: XRP short còn mở).
+  const engine = [
+    ...res.trades.map((t) => ({ symbol: t.symbol, dir: t.dir, entryTime: t.entryTime, weight: t.weight })),
+    ...res.openAtEnd.map((u) => ({ symbol: u.symbol, dir: u.dir, entryTime: u.entryTime, weight: u.weight })),
+  ]
     .filter((t) => t.entryTime > firstTime && t.entryTime <= lastTime)
     .map((t) => ({ key: `${t.symbol}|${t.dir}|${t.entryTime}`, weight: t.weight }));
-  console.log(`Engine: ${engine.length} unit cùng cửa sổ`);
+  console.log(`Engine: ${engine.length} unit cùng cửa sổ (${res.openAtEnd.length} unit còn mở ở nến cuối)`);
 
   const liveMap = new Map(seen.map((u) => [u.key, u.weight]));
   const engMap = new Map(engine.map((u) => [u.key, u.weight]));

@@ -1,0 +1,119 @@
+[
+  {
+    "order": 1,
+    "title": "Tổng quan hệ thống",
+    "description": "Bắt đầu từ README để nắm mục tiêu của bot swing đa coin, các họ chiến lược và cách những thành phần vận hành liên kết với nhau. Tài liệu này cung cấp bản đồ khái niệm trước khi đi vào đường chạy live và các mô hình định lượng cụ thể.",
+    "nodeIds": [
+      "document:README.md"
+    ]
+  },
+  {
+    "order": 2,
+    "title": "Cấu hình khởi động",
+    "description": "Từ bức tranh tổng quan, hãy xem các biến môi trường định nghĩa sàn giao dịch, kênh Telegram và những sleeve được bật, rồi theo dõi cách chúng được nạp vào runtime. Đây là ranh giới cấu hình quyết định cùng một codebase sẽ chạy ở chế độ nghiên cứu, cảnh báo hay giao dịch thật.",
+    "nodeIds": [
+      "config:.env.example",
+      "file:load-env.ts"
+    ],
+    "languageLesson": "Trong Node.js, biến môi trường tách cấu hình triển khai khỏi mã nguồn; lớp nạp cấu hình nên biến các chuỗi thô thành giá trị đã được kiểm tra trước khi logic giao dịch sử dụng."
+  },
+  {
+    "order": 3,
+    "title": "Bộ điều phối live",
+    "description": "Sau khi cấu hình đã sẵn sàng, btc-alert-bot.ts là điểm vào chính điều phối vòng đời dữ liệu nến, chiến lược, trạng thái và thông báo. Fan-out cao của tệp này cho thấy đây là nơi tốt nhất để hiểu luồng kiểm soát tổng thể trước khi lần theo từng nhánh phụ thuộc.",
+    "nodeIds": [
+      "file:btc-alert-bot.ts"
+    ]
+  },
+  {
+    "order": 4,
+    "title": "SMC và mô phỏng",
+    "description": "Từ bộ điều phối, strategy.ts định nghĩa lõi tạo tín hiệu SMC và các cấu trúc thị trường dùng chung, còn backtest.ts cung cấp đường tải nến, mô phỏng giao dịch và thống kê đánh giá. Hai tệp có fan-in cao nhất nên tạo thành nền tảng mà phần lớn các thí nghiệm và luồng live dựa vào.",
+    "nodeIds": [
+      "file:strategy.ts",
+      "file:backtest.ts"
+    ],
+    "languageLesson": "TypeScript dùng interface và union type để giữ hợp đồng giữa tín hiệu, kế hoạch lệnh và kết quả mô phỏng nhất quán; điều này giúp phát hiện sai lệch cấu trúc ngay khi biên dịch."
+  },
+  {
+    "order": 5,
+    "title": "Nhánh Turtle",
+    "description": "Dựa trên hạ tầng nến và mô phỏng vừa thấy, turtle.ts cài đặt logic breakout, ATR và quản lý vị thế theo xu hướng. turtle-live.ts chuyển mô hình đó thành state machine vận hành trên Binance, vì vậy cặp tệp này cho thấy rõ ranh giới giữa định nghĩa chiến lược và vòng đời giao dịch thật.",
+    "nodeIds": [
+      "file:turtle.ts",
+      "file:turtle-live.ts"
+    ]
+  },
+  {
+    "order": 6,
+    "title": "Fast Trend MEXC",
+    "description": "Fast Trend là nhánh xu hướng thứ hai, trong đó state machine chiến lược phụ thuộc vào một hợp đồng execution riêng thay vì gắn cứng với sàn. Các adapter và REST client MEXC hiện thực hóa hợp đồng đó, giúp tách quyết định chiến lược khỏi chi tiết ký request, đặt lệnh và quản lý trạng thái sàn.",
+    "nodeIds": [
+      "file:fast-trend-live.ts",
+      "file:fast-trend-execution.ts",
+      "file:mexc-futures.ts",
+      "file:mexc-fast-execution.ts"
+    ],
+    "languageLesson": "Mẫu adapter trong TypeScript đặt interface ở phía logic nghiệp vụ và ánh xạ từng API sàn vào interface đó, nhờ vậy state machine có thể được kiểm thử mà không cần gọi mạng thật."
+  },
+  {
+    "order": 7,
+    "title": "Lệnh và trạng thái",
+    "description": "Sau khi các sleeve tạo quyết định, live-trade.ts chịu trách nhiệm sizing và điều phối lệnh qua Binance, còn live-state.ts lưu trạng thái và journal để sống qua restart. binance-futures.ts là lớp giao tiếp sàn bên dưới; đọc ba tệp cùng nhau sẽ làm rõ ranh giới giữa ý định giao dịch, trạng thái cục bộ và sự thật trên sàn.",
+    "nodeIds": [
+      "file:live-trade.ts",
+      "file:live-state.ts",
+      "file:binance-futures.ts"
+    ]
+  },
+  {
+    "order": 8,
+    "title": "Phòng nghiên cứu",
+    "description": "Ngoài các nhánh live, repo còn chứa những phương pháp nghiên cứu độc lập cho Key Volume, alt trend và small-cap. Những mô-đun này minh họa cách giả thuyết được tách thành builder tín hiệu, backtest và hợp đồng kết quả trước khi có thể cân nhắc đưa vào runtime.",
+    "nodeIds": [
+      "file:key-volume.ts",
+      "file:key-volume-backtest.ts",
+      "file:alt-trend.ts",
+      "file:smallcap-research.ts"
+    ]
+  },
+  {
+    "order": 9,
+    "title": "Parity và danh mục",
+    "description": "Sau khi hiểu từng phương pháp, các công cụ portfolio ghép giao dịch nhiều symbol và kiểm tra tính tương đương giữa các cách chạy mô phỏng. Bài kiểm tra Turtle live parity khép vòng bằng cách so state machine vận hành với engine nghiên cứu, giúp phát hiện sai lệch giữa kết quả lịch sử và hành vi thực thi.",
+    "nodeIds": [
+      "file:scripts/portfolio-engine.ts",
+      "file:scripts/portfolio-equivalence.ts",
+      "file:scripts/turtle-live-parity.ts",
+      "file:test-live-trade.ts"
+    ]
+  },
+  {
+    "order": 10,
+    "title": "Quan sát vận hành",
+    "description": "Khi bot đang chạy, telegram.ts biến sự kiện nội bộ thành cảnh báo có retry, còn dashboard-server.ts tổng hợp journal, state và dữ liệu tài khoản thành giao diện chỉ đọc. Đây là lớp giúp người vận hành đối chiếu những gì chiến lược dự định với trạng thái mà hệ thống đang báo cáo.",
+    "nodeIds": [
+      "file:telegram.ts",
+      "file:dashboard-server.ts"
+    ]
+  },
+  {
+    "order": 11,
+    "title": "Kỷ luật khắc phục",
+    "description": "Kế hoạch remediation ghi lại các điểm yếu đã quan sát, thứ tự kiểm chứng và điều kiện để thay đổi phương pháp sau chuỗi thua. Đặt tài liệu này sau các lớp nghiên cứu và parity cho thấy quyết định chiến lược phải đi qua bằng chứng vận hành, thay vì chỉ dựa vào một kết quả backtest thuận lợi.",
+    "nodeIds": [
+      "document:planning/remediation-plan-2026-08.md"
+    ]
+  },
+  {
+    "order": 12,
+    "title": "Đóng gói triển khai",
+    "description": "Cuối cùng, package.json định nghĩa các entry point và lệnh kiểm thử, Dockerfile bundle các tiến trình cần thiết, còn docker-compose.yml điều phối các container dùng chung image. Đây là bước nối kiến trúc code vừa khảo sát với hình thái runtime có thể triển khai và giám sát.",
+    "nodeIds": [
+      "config:package.json",
+      "service:Dockerfile",
+      "service:docker-compose.yml"
+    ],
+    "languageLesson": "Docker multi-stage build tách dependency phục vụ biên dịch khỏi runtime; Compose sau đó khai báo các service, cổng và quan hệ vận hành quanh cùng một image."
+  }
+]

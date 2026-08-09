@@ -10,18 +10,29 @@ import fs from "fs";
 import path from "path";
 import { Candle, TF_MS } from "./strategy";
 
-type KlineSource = { url: string; maxLimit: number };
-const KLINE_SOURCES: KlineSource[] = [
-  { url: "https://fapi.binance.com/fapi/v1/klines", maxLimit: 1500 },
-  { url: "https://data-api.binance.vision/api/v3/klines", maxLimit: 1000 },
-];
+export type KlineVenue = "futures" | "spot";
+type KlineSource = { venue: KlineVenue; url: string; maxLimit: number };
+const FUTURES_SOURCE: KlineSource = {
+  venue: "futures",
+  url: "https://fapi.binance.com/fapi/v1/klines",
+  maxLimit: 1500,
+};
+const SPOT_SOURCE: KlineSource = {
+  venue: "spot",
+  url: "https://data-api.binance.vision/api/v3/klines",
+  maxLimit: 1000,
+};
 
-const CACHE_DIR = path.join(process.cwd(), ".cache", "klines");
+const CACHE_DIR = path.resolve(
+  process.env.KLINE_CACHE_DIR?.trim() || path.join(process.cwd(), ".cache", "klines"),
+);
 const CACHE_ENABLED = process.env.KLINE_CACHE !== "0";
 /** Giữ tối đa ~2 năm 5m hoặc tương đương — tránh file cache phình vô hạn. */
 const CACHE_MAX_BARS = 220_000;
 
-function parseKlineBatch(data: unknown[]): Candle[] {
+function parseKlineBatch(data: unknown[], tf: string, now = Date.now()): Candle[] {
+  const tfMs = TF_MS[tf];
+  if (!tfMs) throw new Error(`TF không hỗ trợ: ${tf}`);
   return (data as any[]).map((k: any[]) => ({
     openTime: k[0],
     open: parseFloat(k[1]),
@@ -31,7 +42,7 @@ function parseKlineBatch(data: unknown[]): Candle[] {
     volume: parseFloat(k[5]),
     quoteVolume: parseFloat(k[7]),
     takerBuyVolume: parseFloat(k[9]),
-  }));
+  })).filter((c) => c.openTime + tfMs <= now);
 }
 
 function mergeDedupeSort(a: Candle[], b: Candle[]): Candle[] {
@@ -41,14 +52,14 @@ function mergeDedupeSort(a: Candle[], b: Candle[]): Candle[] {
   return [...map.values()].sort((x, y) => x.openTime - y.openTime);
 }
 
-function cacheFilePath(symbol: string, tf: string): string {
-  return path.join(CACHE_DIR, `${symbol.toLowerCase()}_${tf}.json`);
+export function klineCacheFilePath(symbol: string, tf: string, venue: KlineVenue): string {
+  return path.join(CACHE_DIR, venue, `${symbol.toLowerCase()}_${tf}.json`);
 }
 
-function readCache(symbol: string, tf: string): Candle[] {
+function readCache(symbol: string, tf: string, venue: KlineVenue): Candle[] {
   if (!CACHE_ENABLED) return [];
   try {
-    const p = cacheFilePath(symbol, tf);
+    const p = klineCacheFilePath(symbol, tf, venue);
     if (!fs.existsSync(p)) return [];
     const raw = JSON.parse(fs.readFileSync(p, "utf8")) as Candle[];
     return Array.isArray(raw) ? raw : [];
@@ -57,13 +68,14 @@ function readCache(symbol: string, tf: string): Candle[] {
   }
 }
 
-function writeCache(symbol: string, tf: string, candles: Candle[]): void {
+function writeCache(symbol: string, tf: string, venue: KlineVenue, candles: Candle[]): void {
   if (!CACHE_ENABLED || candles.length === 0) return;
   try {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const target = klineCacheFilePath(symbol, tf, venue);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
     const trimmed =
       candles.length > CACHE_MAX_BARS ? candles.slice(candles.length - CACHE_MAX_BARS) : candles;
-    fs.writeFileSync(cacheFilePath(symbol, tf), JSON.stringify(trimmed));
+    fs.writeFileSync(target, JSON.stringify(trimmed));
   } catch {
     /* cache best-effort */
   }
@@ -85,7 +97,7 @@ async function fetchOnePage(
   if (endTime != null) params.endTime = endTime;
   if (startTime != null) params.startTime = startTime;
   const res = await axios.get(src.url, { params, timeout: 30000 });
-  return parseKlineBatch(res.data as unknown[]);
+  return parseKlineBatch(res.data as unknown[], tf);
 }
 
 function fetchConcurrency(): number {
@@ -105,7 +117,7 @@ async function fetchKlinesFromSourceParallel(
 
   const pages = Math.ceil(totalBars / src.maxLimit);
   const endTimes: number[] = [];
-  let end = Date.now();
+  let end = Math.floor(Date.now() / tfMs) * tfMs - 1;
   for (let p = 0; p < pages; p++) {
     endTimes.push(end);
     end -= src.maxLimit * tfMs;
@@ -183,44 +195,44 @@ async function fetchWithSource(
   if (!tfMs) throw new Error(`TF không hỗ trợ: ${tf}`);
 
   const oldestNeeded = Date.now() - totalBars * tfMs;
-  let cached = readCache(symbol, tf);
+  let cached = readCache(symbol, tf, src.venue);
 
   if (cached.length > 0) {
     const last = cached[cached.length - 1].openTime;
     const stale = Date.now() - last >= tfMs * 2;
     if (stale) {
-      const forward = await fetchForward(src, symbol, tf, last + 1);
+      // Refetch từ chính openTime cuối để sửa snapshot từng bị cache khi nến còn chạy.
+      const forward = await fetchForward(src, symbol, tf, last);
       cached = mergeDedupeSort(cached, forward);
     }
     if (cached.length > 0 && cached[0].openTime > oldestNeeded) {
       cached = await backfillOlder(src, symbol, tf, cached, oldestNeeded);
     }
-    writeCache(symbol, tf, cached);
+    writeCache(symbol, tf, src.venue, cached);
     if (cached.length >= totalBars) {
       return cached.slice(cached.length - totalBars);
     }
     const missing = totalBars - cached.length;
     const older = await fetchKlinesFromSourceParallel(src, symbol, tf, missing + src.maxLimit);
     const merged = mergeDedupeSort(older, cached);
-    writeCache(symbol, tf, merged);
+    writeCache(symbol, tf, src.venue, merged);
     return merged.length <= totalBars ? merged : merged.slice(merged.length - totalBars);
   }
 
   const fresh = await fetchKlinesFromSourceParallel(src, symbol, tf, totalBars);
-  writeCache(symbol, tf, fresh);
+  writeCache(symbol, tf, src.venue, fresh);
   return fresh;
 }
 
-export async function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
-  let lastErr: unknown;
-  for (const src of KLINE_SOURCES) {
-    try {
-      return await fetchWithSource(src, symbol, tf, totalBars);
-    } catch (err: unknown) {
-      lastErr = err;
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      console.warn(`[Fetch] ${src.url} lỗi${status ? ` (HTTP ${status})` : ""}, thử nguồn kế tiếp...`);
-    }
-  }
-  throw lastErr;
+export function fetchFuturesKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  return fetchWithSource(FUTURES_SOURCE, symbol, tf, totalBars);
+}
+
+export function fetchSpotKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  return fetchWithSource(SPOT_SOURCE, symbol, tf, totalBars);
+}
+
+/** Mặc định fail-closed trên Binance USD-M Futures; Spot phải được gọi explicit. */
+export function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  return fetchFuturesKlinesPaged(symbol, tf, totalBars);
 }

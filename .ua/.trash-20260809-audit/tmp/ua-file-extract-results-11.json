@@ -1,0 +1,588 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 5,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 5
+    }
+  },
+  "results": [
+    {
+      "path": "planning/mexc-futures/claude-interview.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 100,
+      "nonEmptyLines": 72,
+      "sections": [
+        {
+          "heading": "MEXC Futures Integration — Assumption Interview",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. What problem are we solving?",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "2. Should orders fail over between exchanges?",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "3. Which market data should Fast Trend use?",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "4. What account mode and order behavior should be required?",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "5. What is the protection policy?",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "6. How should ambiguous network outcomes be handled?",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "7. How should rollout work without a documented API testnet?",
+          "level": 2,
+          "line": 61
+        },
+        {
+          "heading": "8. What are the migration rules for current Fast Trend state?",
+          "level": 2,
+          "line": 81
+        },
+        {
+          "heading": "9. What security rules apply?",
+          "level": 2,
+          "line": 87
+        },
+        {
+          "heading": "10. What is explicitly out of scope?",
+          "level": 2,
+          "line": 93
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "planning/mexc-futures/claude-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 455,
+      "nonEmptyLines": 349,
+      "sections": [
+        {
+          "heading": "Implementation Plan: Route Fast Trend to MEXC Futures",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Decisions and Constraints",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Static routing",
+          "level": 3,
+          "line": 9
+        },
+        {
+          "heading": "Chosen architecture",
+          "level": 3,
+          "line": 30
+        },
+        {
+          "heading": "2. Phase 0 — Freeze Baseline and Audit Existing Exposure",
+          "level": 2,
+          "line": 49
+        },
+        {
+          "heading": "Changes",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "Files",
+          "level": 3,
+          "line": 64
+        },
+        {
+          "heading": "Verification gate",
+          "level": 3,
+          "line": 70
+        },
+        {
+          "heading": "3. Phase 1 — Repair Fast Trend State Safety",
+          "level": 2,
+          "line": 77
+        },
+        {
+          "heading": "Changes in `fast-trend-live.ts`",
+          "level": 3,
+          "line": 82
+        },
+        {
+          "heading": "Journal/schema",
+          "level": 3,
+          "line": 99
+        },
+        {
+          "heading": "Tests",
+          "level": 3,
+          "line": 105
+        },
+        {
+          "heading": "Gate",
+          "level": 3,
+          "line": 114
+        },
+        {
+          "heading": "4. Phase 2 — Introduce the Fast Execution Boundary",
+          "level": 2,
+          "line": 119
+        },
+        {
+          "heading": "New contract",
+          "level": 3,
+          "line": 121
+        },
+        {
+          "heading": "Compatibility implementation",
+          "level": 3,
+          "line": 145
+        },
+        {
+          "heading": "Composition",
+          "level": 3,
+          "line": 151
+        },
+        {
+          "heading": "Tests and gate",
+          "level": 3,
+          "line": 157
+        },
+        {
+          "heading": "5. Phase 3 — Build the MEXC Read-Only Adapter",
+          "level": 2,
+          "line": 164
+        },
+        {
+          "heading": "New file: `mexc-futures.ts`",
+          "level": 3,
+          "line": 166
+        },
+        {
+          "heading": "Signing and transport",
+          "level": 3,
+          "line": 177
+        },
+        {
+          "heading": "Symbol/metadata gate",
+          "level": 3,
+          "line": 189
+        },
+        {
+          "heading": "Tests",
+          "level": 3,
+          "line": 195
+        },
+        {
+          "heading": "Gate",
+          "level": 3,
+          "line": 207
+        },
+        {
+          "heading": "6. Phase 4 — Implement MEXC Fast Execution and Recovery",
+          "level": 2,
+          "line": 212
+        },
+        {
+          "heading": "New file: `mexc-fast-execution.ts`",
+          "level": 3,
+          "line": 214
+        },
+        {
+          "heading": "Initial entry",
+          "level": 4,
+          "line": 216
+        },
+        {
+          "heading": "Pyramiding",
+          "level": 4,
+          "line": 234
+        },
+        {
+          "heading": "Stop updates",
+          "level": 4,
+          "line": 242
+        },
+        {
+          "heading": "Exit",
+          "level": 4,
+          "line": 250
+        },
+        {
+          "heading": "Reconciliation",
+          "level": 4,
+          "line": 258
+        },
+        {
+          "heading": "Fault-injection tests",
+          "level": 3,
+          "line": 267
+        },
+        {
+          "heading": "7. Phase 5 — Compose Independent Venues in the Bot",
+          "level": 2,
+          "line": 281
+        },
+        {
+          "heading": "`btc-alert-bot.ts`",
+          "level": 3,
+          "line": 283
+        },
+        {
+          "heading": "Configuration",
+          "level": 3,
+          "line": 298
+        },
+        {
+          "heading": "State paths",
+          "level": 3,
+          "line": 316
+        },
+        {
+          "heading": "Health and alerts",
+          "level": 3,
+          "line": 321
+        },
+        {
+          "heading": "Isolation tests",
+          "level": 3,
+          "line": 335
+        },
+        {
+          "heading": "8. Phase 6 — Cost Validation and Shadow Rollout",
+          "level": 2,
+          "line": 343
+        },
+        {
+          "heading": "Reprice Fast Trend evidence",
+          "level": 3,
+          "line": 345
+        },
+        {
+          "heading": "Shadow mode",
+          "level": 3,
+          "line": 359
+        },
+        {
+          "heading": "9. Phase 7 — Explicitly Approved Mainnet Canary",
+          "level": 2,
+          "line": 374
+        },
+        {
+          "heading": "Canary limits",
+          "level": 3,
+          "line": 379
+        },
+        {
+          "heading": "Required live lifecycle",
+          "level": 3,
+          "line": 388
+        },
+        {
+          "heading": "10. Phase 8 — Controlled Expansion",
+          "level": 2,
+          "line": 402
+        },
+        {
+          "heading": "11. Verification Matrix",
+          "level": 2,
+          "line": 415
+        },
+        {
+          "heading": "12. Definition of Done",
+          "level": 2,
+          "line": 430
+        },
+        {
+          "heading": "13. Key Official MEXC References",
+          "level": 2,
+          "line": 444
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 48
+      }
+    },
+    {
+      "path": "planning/mexc-futures/claude-research.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 235,
+      "nonEmptyLines": 191,
+      "sections": [
+        {
+          "heading": "MEXC Futures Integration — Research",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Executive Findings",
+          "level": 2,
+          "line": 6
+        },
+        {
+          "heading": "Current Codebase",
+          "level": 2,
+          "line": 25
+        },
+        {
+          "heading": "Composition and coupling",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "Contention and risk coupling",
+          "level": 3,
+          "line": 42
+        },
+        {
+          "heading": "Fast Trend safety gaps that block mainnet MEXC",
+          "level": 3,
+          "line": 54
+        },
+        {
+          "heading": "Existing state and operational visibility",
+          "level": 3,
+          "line": 77
+        },
+        {
+          "heading": "Current Official MEXC Futures API",
+          "level": 2,
+          "line": 92
+        },
+        {
+          "heading": "Eligibility and endpoints",
+          "level": 3,
+          "line": 94
+        },
+        {
+          "heading": "Authentication",
+          "level": 3,
+          "line": 104
+        },
+        {
+          "heading": "Metadata and sizing",
+          "level": 3,
+          "line": 121
+        },
+        {
+          "heading": "Orders and idempotency",
+          "level": 3,
+          "line": 140
+        },
+        {
+          "heading": "Position protection",
+          "level": 3,
+          "line": 157
+        },
+        {
+          "heading": "WebSocket and reconciliation",
+          "level": 3,
+          "line": 170
+        },
+        {
+          "heading": "Rate limits and errors",
+          "level": 3,
+          "line": 178
+        },
+        {
+          "heading": "Fees, funding and strategy validity",
+          "level": 3,
+          "line": 190
+        },
+        {
+          "heading": "Research-Derived Architecture Decision",
+          "level": 2,
+          "line": 203
+        },
+        {
+          "heading": "Official Sources",
+          "level": 2,
+          "line": 221
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 18
+      }
+    },
+    {
+      "path": "planning/mexc-futures/claude-synthesized-spec.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 167,
+      "nonEmptyLines": 135,
+      "sections": [
+        {
+          "heading": "MEXC Futures Integration — Synthesized Specification",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Objective",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Functional Requirements",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "FR-1: Preserve strategy semantics",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "FR-2: Execute with MEXC-native semantics",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "FR-3: Make every regular-order mutation recoverable",
+          "level": 3,
+          "line": 41
+        },
+        {
+          "heading": "FR-4: Recover safely after partial failure or restart",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "FR-5: Isolate health, risk and ownership",
+          "level": 3,
+          "line": 64
+        },
+        {
+          "heading": "State and Audit Schema",
+          "level": 2,
+          "line": 74
+        },
+        {
+          "heading": "Configuration",
+          "level": 2,
+          "line": 97
+        },
+        {
+          "heading": "Preflight Gates",
+          "level": 2,
+          "line": 118
+        },
+        {
+          "heading": "Rollout Requirements",
+          "level": 2,
+          "line": 132
+        },
+        {
+          "heading": "Acceptance Criteria",
+          "level": 2,
+          "line": 144
+        },
+        {
+          "heading": "Non-Goals",
+          "level": 2,
+          "line": 161
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 14
+      }
+    },
+    {
+      "path": "planning/mexc-futures/mexc-futures-integration.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 53,
+      "nonEmptyLines": 40,
+      "sections": [
+        {
+          "heading": "MEXC Futures Integration — Initial Spec",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Goal",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Strategy Routing",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "Signal and Risk Intent",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Safety Requirements",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "Rollout",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "Non-Goals",
+          "level": 2,
+          "line": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    }
+  ]
+}

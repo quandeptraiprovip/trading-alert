@@ -1,0 +1,1287 @@
+{
+  "name": "btc-alert-bot",
+  "description": "Bot và hệ thống nghiên cứu/backtest chiến lược crypto bằng TypeScript/Next.js, phát tín hiệu swing đa symbol qua Telegram và hỗ trợ SMC, Turtle, Fast Trend, Key Volume, Alt Trend cùng Smallcap. Lưu ý: dự án có hơn 100 file nguồn; nên giới hạn phạm vi phân tích vào một thư mục con để tăng tốc.",
+  "languages": [
+    "config",
+    "dockerfile",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "shell",
+    "tsbuildinfo",
+    "typescript",
+    "unknown",
+    "yaml"
+  ],
+  "frameworks": [
+    "React",
+    "Next.js",
+    "Docker",
+    "Docker Compose"
+  ],
+  "files": [
+    {
+      "path": ".dockerignore",
+      "language": "unknown",
+      "sizeLines": 21,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 66,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/.understandignore",
+      "language": "unknown",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "sizeLines": 65,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 65,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 26,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 522,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "alt-trend.ts",
+      "language": "typescript",
+      "sizeLines": 378,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/api/chart/route.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/layout.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backtest.ts",
+      "language": "typescript",
+      "sizeLines": 603,
+      "fileCategory": "code"
+    },
+    {
+      "path": "binance-futures.ts",
+      "language": "typescript",
+      "sizeLines": 340,
+      "fileCategory": "code"
+    },
+    {
+      "path": "btc-alert-bot.ts",
+      "language": "typescript",
+      "sizeLines": 1269,
+      "fileCategory": "code"
+    },
+    {
+      "path": "chart-payload.ts",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "chart-server.ts",
+      "language": "typescript",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard-server.ts",
+      "language": "typescript",
+      "sizeLines": 476,
+      "fileCategory": "code"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "sizeLines": 71,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "exp-overfit.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "exp-turtle-improve.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "exp-turtle-levers.ts",
+      "language": "typescript",
+      "sizeLines": 281,
+      "fileCategory": "code"
+    },
+    {
+      "path": "exp-turtle-overfit.ts",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fast-trend-execution.ts",
+      "language": "typescript",
+      "sizeLines": 82,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fast-trend-live.ts",
+      "language": "typescript",
+      "sizeLines": 801,
+      "fileCategory": "code"
+    },
+    {
+      "path": "key-volume-backtest.ts",
+      "language": "typescript",
+      "sizeLines": 524,
+      "fileCategory": "code"
+    },
+    {
+      "path": "key-volume.ts",
+      "language": "typescript",
+      "sizeLines": 1746,
+      "fileCategory": "code"
+    },
+    {
+      "path": "kline-fetch.ts",
+      "language": "typescript",
+      "sizeLines": 226,
+      "fileCategory": "code"
+    },
+    {
+      "path": "live-state.ts",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "live-trade.ts",
+      "language": "typescript",
+      "sizeLines": 375,
+      "fileCategory": "code"
+    },
+    {
+      "path": "load-env.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "mexc-fast-execution.ts",
+      "language": "typescript",
+      "sizeLines": 416,
+      "fileCategory": "code"
+    },
+    {
+      "path": "mexc-futures.ts",
+      "language": "typescript",
+      "sizeLines": 506,
+      "fileCategory": "code"
+    },
+    {
+      "path": "next-env.d.ts",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "next.config.js",
+      "language": "javascript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 37,
+      "fileCategory": "config"
+    },
+    {
+      "path": "planning/alt-trend-implementation-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 91,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/fxdream-keyvolume-method.md",
+      "language": "markdown",
+      "sizeLines": 771,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/independent-strategy-research-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 221,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-interview.md",
+      "language": "markdown",
+      "sizeLines": 100,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-plan.md",
+      "language": "markdown",
+      "sizeLines": 455,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-research.md",
+      "language": "markdown",
+      "sizeLines": 235,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-synthesized-spec.md",
+      "language": "markdown",
+      "sizeLines": 167,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/mexc-futures-integration.md",
+      "language": "markdown",
+      "sizeLines": 53,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/reviews/external-review-status.md",
+      "language": "markdown",
+      "sizeLines": 12,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/portfolio-risk-and-exit-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 236,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/random-maturity-carry-protocol-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 63,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/remediation-plan-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 250,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/smallcap-native-implementation-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/trend-method-remediation-research-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 175,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "public/index.html",
+      "language": "html",
+      "sizeLines": 455,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "scripts/alt-trend-backtest.ts",
+      "language": "typescript",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/alt-universe-scanner.ts",
+      "language": "typescript",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/audit-candidates.ts",
+      "language": "typescript",
+      "sizeLines": 192,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/baseline-gate.sh",
+      "language": "shell",
+      "sizeLines": 40,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/coin-features.ts",
+      "language": "typescript",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/coin-fit.ts",
+      "language": "typescript",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/confirm-quality-gate.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/cross-asset-2817.ts",
+      "language": "typescript",
+      "sizeLines": 81,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/cross-asset-baseline.ts",
+      "language": "typescript",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/cross-sectional-basis.ts",
+      "language": "typescript",
+      "sizeLines": 390,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/daily-relative-momentum.ts",
+      "language": "typescript",
+      "sizeLines": 336,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/dedup-crossvenue-impact.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/entry-ablation.sh",
+      "language": "shell",
+      "sizeLines": 36,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/entry-frequency-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/entry-volume-audit.ts",
+      "language": "typescript",
+      "sizeLines": 228,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exit-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-direction.ts",
+      "language": "typescript",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-exit-pyramid.ts",
+      "language": "typescript",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-exit-ratio.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-heat-shape.ts",
+      "language": "typescript",
+      "sizeLines": 117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-joint-audit.ts",
+      "language": "typescript",
+      "sizeLines": 108,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-placebo.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-portfolio-caps.ts",
+      "language": "typescript",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exp-portfolio-levers.ts",
+      "language": "typescript",
+      "sizeLines": 200,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/extreme-volume-retest-audit.ts",
+      "language": "typescript",
+      "sizeLines": 783,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/fast-trend-audit.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/ftr-experiments.ts",
+      "language": "typescript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/funding-tail-reversal.ts",
+      "language": "typescript",
+      "sizeLines": 316,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/indicator-ablation.sh",
+      "language": "shell",
+      "sizeLines": 39,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/key-volume-ablation.ts",
+      "language": "typescript",
+      "sizeLines": 266,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/key-volume-method-audit.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/liquidity-experiments.ts",
+      "language": "typescript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/liquidity-rule-validate.ts",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/liquidity-soft.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/maxhold-validate.ts",
+      "language": "typescript",
+      "sizeLines": 58,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/mm-experiments.ts",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/mm-sizing.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/overfit-audit.ts",
+      "language": "typescript",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/portfolio-basket.ts",
+      "language": "typescript",
+      "sizeLines": 266,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/portfolio-engine.ts",
+      "language": "typescript",
+      "sizeLines": 661,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/portfolio-equivalence.ts",
+      "language": "typescript",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/pullback-zone-gate.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/quarter-hour-order-flow.ts",
+      "language": "typescript",
+      "sizeLines": 185,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/random-maturity-carry.ts",
+      "language": "typescript",
+      "sizeLines": 752,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/rsi-ablation.sh",
+      "language": "shell",
+      "sizeLines": 32,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/smallcap-native-research.ts",
+      "language": "typescript",
+      "sizeLines": 125,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/symbol-correlation.ts",
+      "language": "typescript",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-attribution.ts",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-baseline-sig.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-before-after.ts",
+      "language": "typescript",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-era-diagnosis.ts",
+      "language": "typescript",
+      "sizeLines": 440,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-live-parity.ts",
+      "language": "typescript",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-losing-streak.ts",
+      "language": "typescript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-overfit-ablation.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-prefetch.ts",
+      "language": "typescript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-pyramid-spotcheck.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/volume-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-3.ts",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-4.ts",
+      "language": "typescript",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-5.ts",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-6.ts",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-7.ts",
+      "language": "typescript",
+      "sizeLines": 82,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-8.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/whale-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "smallcap-research.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "smallcap-reversal.ts",
+      "language": "typescript",
+      "sizeLines": 272,
+      "fileCategory": "code"
+    },
+    {
+      "path": "smallcap-supply.ts",
+      "language": "typescript",
+      "sizeLines": 177,
+      "fileCategory": "code"
+    },
+    {
+      "path": "strategy.ts",
+      "language": "typescript",
+      "sizeLines": 1117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "telegram-test.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "telegram.ts",
+      "language": "typescript",
+      "sizeLines": 301,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-alt-trend.ts",
+      "language": "typescript",
+      "sizeLines": 152,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-binance.ts",
+      "language": "typescript",
+      "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-key-volume.ts",
+      "language": "typescript",
+      "sizeLines": 522,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-live-trade.ts",
+      "language": "typescript",
+      "sizeLines": 118,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-mexc.ts",
+      "language": "typescript",
+      "sizeLines": 266,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test-smallcap-native.ts",
+      "language": "typescript",
+      "sizeLines": 221,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 40,
+      "fileCategory": "config"
+    },
+    {
+      "path": "tsconfig.tsbuildinfo",
+      "language": "tsbuildinfo",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "turtle-live.ts",
+      "language": "typescript",
+      "sizeLines": 782,
+      "fileCategory": "code"
+    },
+    {
+      "path": "turtle.ts",
+      "language": "typescript",
+      "sizeLines": 650,
+      "fileCategory": "code"
+    },
+    {
+      "path": "vercel.json",
+      "language": "json",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    }
+  ],
+  "totalFiles": 131,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "importMap": {
+    ".dockerignore": [],
+    ".env.example": [],
+    ".ua/.understandignore": [],
+    ".ua/config.json": [],
+    "AGENTS.md": [],
+    "CLAUDE.md": [],
+    "Dockerfile": [],
+    "README.md": [],
+    "alt-trend.ts": [
+      "strategy.ts"
+    ],
+    "app/api/chart/route.ts": [
+      "chart-payload.ts"
+    ],
+    "app/layout.tsx": [],
+    "backtest.ts": [
+      "strategy.ts"
+    ],
+    "binance-futures.ts": [],
+    "btc-alert-bot.ts": [
+      "backtest.ts",
+      "binance-futures.ts",
+      "fast-trend-live.ts",
+      "live-state.ts",
+      "live-trade.ts",
+      "load-env.ts",
+      "mexc-fast-execution.ts",
+      "mexc-futures.ts",
+      "strategy.ts",
+      "telegram.ts",
+      "turtle-live.ts",
+      "turtle.ts"
+    ],
+    "chart-payload.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "chart-server.ts": [
+      "chart-payload.ts"
+    ],
+    "dashboard-server.ts": [
+      "binance-futures.ts",
+      "live-trade.ts",
+      "load-env.ts"
+    ],
+    "docker-compose.yml": [],
+    "exp-overfit.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "exp-turtle-improve.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "exp-turtle-levers.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "exp-turtle-overfit.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "fast-trend-execution.ts": [],
+    "fast-trend-live.ts": [
+      "backtest.ts",
+      "fast-trend-execution.ts",
+      "strategy.ts",
+      "telegram.ts",
+      "turtle.ts"
+    ],
+    "key-volume-backtest.ts": [
+      "backtest.ts",
+      "key-volume.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "key-volume.ts": [
+      "strategy.ts"
+    ],
+    "kline-fetch.ts": [
+      "strategy.ts"
+    ],
+    "live-state.ts": [],
+    "live-trade.ts": [
+      "binance-futures.ts",
+      "strategy.ts"
+    ],
+    "load-env.ts": [],
+    "mexc-fast-execution.ts": [
+      "fast-trend-execution.ts",
+      "mexc-futures.ts"
+    ],
+    "mexc-futures.ts": [],
+    "next-env.d.ts": [],
+    "next.config.js": [],
+    "package.json": [],
+    "planning/alt-trend-implementation-2026-08.md": [],
+    "planning/fxdream-keyvolume-method.md": [],
+    "planning/independent-strategy-research-2026-08.md": [],
+    "planning/mexc-futures/claude-interview.md": [],
+    "planning/mexc-futures/claude-plan.md": [],
+    "planning/mexc-futures/claude-research.md": [],
+    "planning/mexc-futures/claude-synthesized-spec.md": [],
+    "planning/mexc-futures/mexc-futures-integration.md": [],
+    "planning/mexc-futures/reviews/external-review-status.md": [],
+    "planning/portfolio-risk-and-exit-2026-08.md": [],
+    "planning/random-maturity-carry-protocol-2026-08.md": [],
+    "planning/remediation-plan-2026-08.md": [],
+    "planning/smallcap-native-implementation-2026-08.md": [],
+    "planning/trend-method-remediation-research-2026-08.md": [],
+    "public/index.html": [],
+    "scripts/alt-trend-backtest.ts": [
+      "alt-trend.ts",
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/alt-universe-scanner.ts": [
+      "alt-trend.ts"
+    ],
+    "scripts/audit-candidates.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/baseline-gate.sh": [],
+    "scripts/coin-features.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/coin-fit.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/confirm-quality-gate.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/cross-asset-2817.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/cross-asset-baseline.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/cross-sectional-basis.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/daily-relative-momentum.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/dedup-crossvenue-impact.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/entry-ablation.sh": [],
+    "scripts/entry-frequency-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/entry-volume-audit.ts": [
+      "backtest.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/exit-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/exp-direction.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-exit-pyramid.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-exit-ratio.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-heat-shape.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-joint-audit.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-placebo.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-portfolio-caps.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/exp-portfolio-levers.ts": [
+      "kline-fetch.ts",
+      "scripts/exp-portfolio-caps.ts",
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/extreme-volume-retest-audit.ts": [
+      "backtest.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/fast-trend-audit.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/ftr-experiments.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/funding-tail-reversal.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/indicator-ablation.sh": [],
+    "scripts/key-volume-ablation.ts": [
+      "key-volume-backtest.ts",
+      "key-volume.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/key-volume-method-audit.ts": [
+      "key-volume-backtest.ts",
+      "key-volume.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/liquidity-experiments.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/liquidity-rule-validate.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/liquidity-soft.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/maxhold-validate.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/mm-experiments.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/mm-sizing.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/overfit-audit.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/portfolio-basket.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/portfolio-engine.ts": [
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/portfolio-equivalence.ts": [
+      "kline-fetch.ts",
+      "scripts/portfolio-engine.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/pullback-zone-gate.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/quarter-hour-order-flow.ts": [
+      "kline-fetch.ts",
+      "strategy.ts"
+    ],
+    "scripts/random-maturity-carry.ts": [],
+    "scripts/rsi-ablation.sh": [],
+    "scripts/smallcap-native-research.ts": [
+      "smallcap-research.ts",
+      "smallcap-reversal.ts",
+      "smallcap-supply.ts"
+    ],
+    "scripts/symbol-correlation.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/turtle-attribution.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-baseline-sig.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-before-after.ts": [
+      "scripts/portfolio-engine.ts",
+      "scripts/portfolio-equivalence.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-era-diagnosis.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-live-parity.ts": [],
+    "scripts/turtle-losing-streak.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-overfit-ablation.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-prefetch.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/turtle-pyramid-spotcheck.ts": [
+      "kline-fetch.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/volume-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-3.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-4.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-5.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-6.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-7.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-8.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/whale-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "smallcap-research.ts": [],
+    "smallcap-reversal.ts": [
+      "smallcap-research.ts"
+    ],
+    "smallcap-supply.ts": [
+      "smallcap-research.ts"
+    ],
+    "strategy.ts": [],
+    "telegram-test.ts": [
+      "load-env.ts",
+      "telegram.ts"
+    ],
+    "telegram.ts": [
+      "strategy.ts"
+    ],
+    "test-alt-trend.ts": [
+      "alt-trend.ts",
+      "strategy.ts"
+    ],
+    "test-binance.ts": [
+      "binance-futures.ts",
+      "load-env.ts"
+    ],
+    "test-key-volume.ts": [
+      "key-volume-backtest.ts",
+      "key-volume.ts",
+      "strategy.ts"
+    ],
+    "test-live-trade.ts": [
+      "binance-futures.ts",
+      "live-trade.ts",
+      "telegram.ts"
+    ],
+    "test-mexc.ts": [
+      "fast-trend-live.ts",
+      "mexc-fast-execution.ts",
+      "mexc-futures.ts",
+      "strategy.ts"
+    ],
+    "test-smallcap-native.ts": [
+      "smallcap-research.ts",
+      "smallcap-reversal.ts",
+      "smallcap-supply.ts"
+    ],
+    "tsconfig.json": [],
+    "tsconfig.tsbuildinfo": [],
+    "turtle-live.ts": [
+      "backtest.ts",
+      "binance-futures.ts",
+      "live-trade.ts",
+      "strategy.ts",
+      "telegram.ts",
+      "turtle.ts"
+    ],
+    "turtle.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "vercel.json": []
+  }
+}

@@ -1,0 +1,1450 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/exp-portfolio-caps.ts",
+      "type": "file",
+      "name": "exp-portfolio-caps.ts",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "summary": "Định nghĩa và đánh giá hard cap, soft cap, decay và volatility targeting cho portfolio risk.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:hardCap",
+      "type": "function",
+      "name": "hardCap",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        30,
+        33
+      ],
+      "summary": "Hàm `hardCap` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:softCap",
+      "type": "function",
+      "name": "softCap",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        36,
+        39
+      ],
+      "summary": "Hàm `softCap` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:decayH",
+      "type": "function",
+      "name": "decayH",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        42,
+        45
+      ],
+      "summary": "Hàm `decayH` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:decaySqrt",
+      "type": "function",
+      "name": "decaySqrt",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        48,
+        51
+      ],
+      "summary": "Hàm `decaySqrt` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:decayTotal",
+      "type": "function",
+      "name": "decayTotal",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        54,
+        57
+      ],
+      "summary": "Hàm `decayTotal` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:volTarget",
+      "type": "function",
+      "name": "volTarget",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        66,
+        94
+      ],
+      "summary": "Hàm `volTarget` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:setupBasket",
+      "type": "function",
+      "name": "setupBasket",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        96,
+        115
+      ],
+      "summary": "Hàm `setupBasket` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:evaluate",
+      "type": "function",
+      "name": "evaluate",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        117,
+        131
+      ],
+      "summary": "Hàm `evaluate` thực hiện logic miền trong exp-portfolio-caps.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-caps.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-portfolio-caps.ts",
+      "lineRange": [
+        133,
+        176
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: định nghĩa và đánh giá hard cap, soft cap, decay và volatility targeting cho portfolio risk.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/exp-portfolio-levers.ts",
+      "type": "file",
+      "name": "exp-portfolio-levers.ts",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "summary": "So sánh tuần tự các nhóm portfolio lever trên dữ liệu đã tải và báo cáo đóng góp của từng lớp thay đổi.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-levers.ts:load",
+      "type": "function",
+      "name": "load",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "lineRange": [
+        33,
+        43
+      ],
+      "summary": "Hàm `load` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-levers.ts:windowOf",
+      "type": "function",
+      "name": "windowOf",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "lineRange": [
+        47,
+        63
+      ],
+      "summary": "Hàm `windowOf` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-levers.ts:show",
+      "type": "function",
+      "name": "show",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "lineRange": [
+        65,
+        83
+      ],
+      "summary": "Hàm `show` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-levers.ts:l1",
+      "type": "function",
+      "name": "l1",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "lineRange": [
+        88,
+        121
+      ],
+      "summary": "Hàm `l1` thực hiện logic miền trong exp-portfolio-levers.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-levers.ts:l2",
+      "type": "function",
+      "name": "l2",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "lineRange": [
+        123,
+        160
+      ],
+      "summary": "Hàm `l2` thực hiện logic miền trong exp-portfolio-levers.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-portfolio-levers.ts:l3",
+      "type": "function",
+      "name": "l3",
+      "filePath": "scripts/exp-portfolio-levers.ts",
+      "lineRange": [
+        162,
+        190
+      ],
+      "summary": "Hàm `l3` thực hiện logic miền trong exp-portfolio-levers.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/fast-trend-audit.ts",
+      "type": "file",
+      "name": "fast-trend-audit.ts",
+      "filePath": "scripts/fast-trend-audit.ts",
+      "summary": "Audit Fast Trend strategy trên backtest để kiểm tra chất lượng và độ bền của tín hiệu.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/fast-trend-audit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/fast-trend-audit.ts",
+      "lineRange": [
+        22,
+        87
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: audit Fast Trend strategy trên backtest để kiểm tra chất lượng và độ bền của tín hiệu.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/portfolio-engine.ts",
+      "type": "file",
+      "name": "portfolio-engine.ts",
+      "filePath": "scripts/portfolio-engine.ts",
+      "summary": "Cung cấp engine mô phỏng Turtle portfolio, quản lý nhiều book, compound equity, hiệu chỉnh risk theo target drawdown và tính portfolio stats.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Các type và pure calculation tách khỏi vòng lặp mô phỏng, giúp tái sử dụng cùng engine cho nhiều experiment."
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:tradeCostR",
+      "type": "function",
+      "name": "tradeCostR",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        20,
+        31
+      ],
+      "summary": "Hàm `tradeCostR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:runTurtlePortfolio",
+      "type": "function",
+      "name": "runTurtlePortfolio",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        135,
+        144
+      ],
+      "summary": "Khởi tạo và chạy Turtle portfolio bằng engine nhiều book với cấu hình risk đã chọn.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:runBooks",
+      "type": "function",
+      "name": "runBooks",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        146,
+        487
+      ],
+      "summary": "Điều phối nhiều portfolio book qua thời gian, áp risk cap và ghi nhận trade/equity cho từng cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:compoundedEquity",
+      "type": "function",
+      "name": "compoundedEquity",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        511,
+        523
+      ],
+      "summary": "Hàm `compoundedEquity` thực hiện logic miền trong portfolio-engine.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:riskForTargetDD",
+      "type": "function",
+      "name": "riskForTargetDD",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        526,
+        535
+      ],
+      "summary": "Hàm `riskForTargetDD` thực hiện logic miền trong portfolio-engine.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "research"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:riskMetrics",
+      "type": "function",
+      "name": "riskMetrics",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        554,
+        610
+      ],
+      "summary": "Hàm `riskMetrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/portfolio-engine.ts:portfolioStats",
+      "type": "function",
+      "name": "portfolioStats",
+      "filePath": "scripts/portfolio-engine.ts",
+      "lineRange": [
+        612,
+        661
+      ],
+      "summary": "Hàm `portfolioStats` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/portfolio-equivalence.ts",
+      "type": "file",
+      "name": "portfolio-equivalence.ts",
+      "filePath": "scripts/portfolio-equivalence.ts",
+      "summary": "Chuẩn hóa cách nạp basket và dựng gate để các thí nghiệm portfolio dùng dữ liệu và điều kiện tương đương.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "portfolio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/portfolio-equivalence.ts:loadBasket",
+      "type": "function",
+      "name": "loadBasket",
+      "filePath": "scripts/portfolio-equivalence.ts",
+      "lineRange": [
+        16,
+        25
+      ],
+      "summary": "Hàm `loadBasket` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích.",
+      "tags": [
+        "data-access",
+        "market-data",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-equivalence.ts:buildGate",
+      "type": "function",
+      "name": "buildGate",
+      "filePath": "scripts/portfolio-equivalence.ts",
+      "lineRange": [
+        27,
+        35
+      ],
+      "summary": "Hàm `buildGate` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/portfolio-equivalence.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/portfolio-equivalence.ts",
+      "lineRange": [
+        37,
+        74
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chuẩn hóa cách nạp basket và dựng gate để các thí nghiệm portfolio dùng dữ liệu và điều kiện tương đương.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/turtle-attribution.ts",
+      "type": "file",
+      "name": "turtle-attribution.ts",
+      "filePath": "scripts/turtle-attribution.ts",
+      "summary": "Phân rã kết quả Turtle portfolio theo thành phần để xác định nguồn đóng góp lợi nhuận và rủi ro.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/turtle-attribution.ts:line",
+      "type": "function",
+      "name": "line",
+      "filePath": "scripts/turtle-attribution.ts",
+      "lineRange": [
+        14,
+        30
+      ],
+      "summary": "Hàm `line` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-attribution.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-attribution.ts",
+      "lineRange": [
+        34,
+        111
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: phân rã kết quả Turtle portfolio theo thành phần để xác định nguồn đóng góp lợi nhuận và rủi ro.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-before-after.ts",
+      "type": "file",
+      "name": "turtle-before-after.ts",
+      "filePath": "scripts/turtle-before-after.ts",
+      "summary": "So sánh before/after cho một tập thay đổi Turtle bằng cùng dữ liệu, portfolio engine và metric.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/turtle-before-after.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-before-after.ts",
+      "lineRange": [
+        24,
+        118
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: so sánh before/after cho một tập thay đổi Turtle bằng cùng dữ liệu, portfolio engine và metric.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:turtle.ts",
+      "type": "file",
+      "name": "turtle.ts",
+      "filePath": "turtle.ts",
+      "summary": "Cài đặt Turtle strategy dùng Donchian breakout, ATR, BTC gate, initial stop và logic mô phỏng/report cho backtest.",
+      "tags": [
+        "strategy",
+        "turtle-trading",
+        "backtest",
+        "risk-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:turtle.ts:turtleConfigLine",
+      "type": "function",
+      "name": "turtleConfigLine",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        106,
+        125
+      ],
+      "summary": "Định dạng cấu hình Turtle thành một dòng ổn định để log và so sánh experiment.",
+      "tags": [
+        "formatting",
+        "reporting",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:ema",
+      "type": "function",
+      "name": "ema",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        134,
+        144
+      ],
+      "summary": "Hàm `ema` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:atrSeries",
+      "type": "function",
+      "name": "atrSeries",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        147,
+        169
+      ],
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:buildBtcGateLongs",
+      "type": "function",
+      "name": "buildBtcGateLongs",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        214,
+        239
+      ],
+      "summary": "Hàm `buildBtcGateLongs` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:priorDonchian",
+      "type": "function",
+      "name": "priorDonchian",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        242,
+        256
+      ],
+      "summary": "Hàm `priorDonchian` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:turtleInitialStop",
+      "type": "function",
+      "name": "turtleInitialStop",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        268,
+        298
+      ],
+      "summary": "Hàm `turtleInitialStop` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "order-execution",
+        "live-trading",
+        "risk-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:runTurtle",
+      "type": "function",
+      "name": "runTurtle",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        300,
+        457
+      ],
+      "summary": "Mô phỏng Turtle strategy với Donchian breakout, ATR stop, pyramid và gate thị trường.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:turtle.ts:bootstrap",
+      "type": "function",
+      "name": "bootstrap",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        469,
+        481
+      ],
+      "summary": "Hàm `bootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:summarize",
+      "type": "function",
+      "name": "summarize",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        487,
+        497
+      ],
+      "summary": "Hàm `summarize` tổng hợp trades/equity thành các metric hiệu suất và rủi ro.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:turtle.ts:report",
+      "type": "function",
+      "name": "report",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        503,
+        564
+      ],
+      "summary": "Hàm `report` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:turtle.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "turtle.ts",
+      "lineRange": [
+        569,
+        643
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: cài đặt Turtle strategy dùng Donchian breakout, ATR, BTC gate, initial stop và logic mô phỏng/report cho backtest.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:hardCap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:hardCap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:softCap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:softCap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:decayH",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:decayH",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:decaySqrt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:decaySqrt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:decayTotal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:decayTotal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:volTarget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:volTarget",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:setupBasket",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:setupBasket",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:evaluate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:evaluate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "function:scripts/exp-portfolio-caps.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-caps.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "function:scripts/exp-portfolio-levers.ts:load",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "function:scripts/exp-portfolio-levers.ts:windowOf",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "function:scripts/exp-portfolio-levers.ts:show",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "function:scripts/exp-portfolio-levers.ts:l1",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "function:scripts/exp-portfolio-levers.ts:l2",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "function:scripts/exp-portfolio-levers.ts:l3",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/exp-portfolio-caps.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-portfolio-levers.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "function:scripts/fast-trend-audit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/fast-trend-audit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:tradeCostR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:tradeCostR",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:runTurtlePortfolio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:runTurtlePortfolio",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:runBooks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:runBooks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:compoundedEquity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:compoundedEquity",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:riskForTargetDD",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:riskForTargetDD",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:riskMetrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:riskMetrics",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:portfolioStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "function:scripts/portfolio-engine.ts:portfolioStats",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-engine.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "function:scripts/portfolio-equivalence.ts:loadBasket",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "function:scripts/portfolio-equivalence.ts:loadBasket",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "function:scripts/portfolio-equivalence.ts:buildGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "function:scripts/portfolio-equivalence.ts:buildGate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "function:scripts/portfolio-equivalence.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:kline-fetch.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/portfolio-equivalence.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "function:scripts/turtle-attribution.ts:line",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "function:scripts/turtle-attribution.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-attribution.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "function:scripts/turtle-before-after.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-before-after.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:turtleConfigLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:turtleConfigLine",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:ema",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:ema",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:atrSeries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:atrSeries",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:buildBtcGateLongs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:buildBtcGateLongs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:priorDonchian",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:priorDonchian",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:turtleInitialStop",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:turtleInitialStop",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:runTurtle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:runTurtle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:bootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:summarize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "function:turtle.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:turtle.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

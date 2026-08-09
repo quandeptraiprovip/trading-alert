@@ -1,0 +1,147 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 2,
+  "filesSkipped": [
+    ".dockerignore"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 2,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 2
+    }
+  },
+  "results": [
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra",
+      "totalLines": 26,
+      "nonEmptyLines": 23,
+      "services": [
+        {
+          "name": "builder",
+          "image": "node:20-alpine",
+          "ports": [],
+          "startLine": 3,
+          "endLine": 13
+        },
+        {
+          "name": "node",
+          "image": "node:20-alpine",
+          "ports": [
+            3847,
+            3848
+          ],
+          "startLine": 14,
+          "endLine": 27
+        }
+      ],
+      "steps": [
+        {
+          "name": "FROM node:20-alpine AS builder",
+          "startLine": 3,
+          "endLine": 3
+        },
+        {
+          "name": "WORKDIR /src",
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "COPY package.json ./",
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "RUN npm install --no-save --no-package-lock axios@1 dotenv@16 es",
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "COPY . .",
+          "startLine": 8,
+          "endLine": 8
+        },
+        {
+          "name": "RUN npx esbuild btc-alert-bot.ts   --bundle --platform=node --ta",
+          "startLine": 9,
+          "endLine": 9
+        },
+        {
+          "name": "FROM node:20-alpine",
+          "startLine": 14,
+          "endLine": 14
+        },
+        {
+          "name": "RUN apk add --no-cache tzdata",
+          "startLine": 15,
+          "endLine": 15
+        },
+        {
+          "name": "ENV TZ=Asia/Ho_Chi_Minh \\",
+          "startLine": 16,
+          "endLine": 16
+        },
+        {
+          "name": "WORKDIR /app",
+          "startLine": 18,
+          "endLine": 18
+        },
+        {
+          "name": "COPY --from=builder /src/dist/ ./",
+          "startLine": 19,
+          "endLine": 19
+        },
+        {
+          "name": "COPY --from=builder /src/public/ ./public/",
+          "startLine": 20,
+          "endLine": 20
+        },
+        {
+          "name": "EXPOSE 3847 3848",
+          "startLine": 23,
+          "endLine": 23
+        },
+        {
+          "name": "CMD [\"node\", \"bot.js\"]",
+          "startLine": 26,
+          "endLine": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "serviceCount": 2,
+        "stepCount": 14
+      }
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra",
+      "totalLines": 71,
+      "nonEmptyLines": 69,
+      "sections": [
+        {
+          "heading": "services",
+          "level": 1,
+          "line": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": "planning/mexc-futures/claude-interview.md",
+      "language": "markdown",
+      "sizeLines": 100,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-plan.md",
+      "language": "markdown",
+      "sizeLines": 455,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-research.md",
+      "language": "markdown",
+      "sizeLines": 235,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/claude-synthesized-spec.md",
+      "language": "markdown",
+      "sizeLines": 167,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/mexc-futures/mexc-futures-integration.md",
+      "language": "markdown",
+      "sizeLines": 53,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "planning/mexc-futures/claude-interview.md": [],
+    "planning/mexc-futures/claude-plan.md": [],
+    "planning/mexc-futures/claude-research.md": [],
+    "planning/mexc-futures/claude-synthesized-spec.md": [],
+    "planning/mexc-futures/mexc-futures-integration.md": []
+  }
+}

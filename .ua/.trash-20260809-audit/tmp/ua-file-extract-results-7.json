@@ -1,0 +1,314 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 3,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 3,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "app/api/chart/route.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "GET",
+          "startLine": 8,
+          "endLine": 21,
+          "params": [
+            "request"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runtime",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "maxDuration",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "GET",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GET",
+          "callee": "request.nextUrl.searchParams.get",
+          "lineNumber": 9
+        },
+        {
+          "caller": "GET",
+          "callee": "Math.min",
+          "lineNumber": 10
+        },
+        {
+          "caller": "GET",
+          "callee": "Math.max",
+          "lineNumber": 10
+        },
+        {
+          "caller": "GET",
+          "callee": "parseInt",
+          "lineNumber": 10
+        },
+        {
+          "caller": "GET",
+          "callee": "buildChartPayload",
+          "lineNumber": 13
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GET",
+          "callee": "String",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GET",
+          "callee": "NextResponse.json",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "chart-payload.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 59,
+      "functions": [
+        {
+          "name": "buildChartPayload",
+          "startLine": 16,
+          "endLine": 64,
+          "params": [
+            "days",
+            "symbol"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildChartPayload",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildChartPayload",
+          "callee": "symbol.trim().toLowerCase",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "symbol.trim",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "/^[a-z0-9]+$/.test",
+          "lineNumber": 18
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "Math.ceil",
+          "lineNumber": 22
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "fetchKlinesPaged",
+          "lineNumber": 23
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "runBacktest",
+          "lineNumber": 24
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "Math.max",
+          "lineNumber": 27
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "Math.ceil",
+          "lineNumber": 27
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "ltf\n    .filter((c) => c.openTime >= displayStart)\n    .map",
+          "lineNumber": 28
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "ltf\n    .filter",
+          "lineNumber": 28
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "trades\n    .filter((t) => t.entryTime >= displayStart)\n    .map",
+          "lineNumber": 41
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "trades\n    .filter",
+          "lineNumber": 41
+        },
+        {
+          "caller": "buildChartPayload",
+          "callee": "sym.toUpperCase",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "chart-server.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "sendJson",
+          "startLine": 16,
+          "endLine": 22,
+          "params": [
+            "res",
+            "status",
+            "body"
+          ]
+        },
+        {
+          "name": "serveStatic",
+          "startLine": 24,
+          "endLine": 51,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "sendJson",
+          "callee": "res.writeHead",
+          "lineNumber": 17
+        },
+        {
+          "caller": "sendJson",
+          "callee": "res.end",
+          "lineNumber": 21
+        },
+        {
+          "caller": "sendJson",
+          "callee": "JSON.stringify",
+          "lineNumber": 21
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "req.url?.split",
+          "lineNumber": 25
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "path.normalize(urlPath).replace",
+          "lineNumber": 26
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "path.normalize",
+          "lineNumber": 26
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "path.join",
+          "lineNumber": 27
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "filePath.startsWith",
+          "lineNumber": 28
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "res.writeHead",
+          "lineNumber": 29
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "res.end",
+          "lineNumber": 30
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "fs.readFile",
+          "lineNumber": 33
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "res.writeHead",
+          "lineNumber": 35
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "res.end",
+          "lineNumber": 36
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "path.extname",
+          "lineNumber": 39
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "res.writeHead",
+          "lineNumber": 45
+        },
+        {
+          "caller": "serveStatic",
+          "callee": "res.end",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

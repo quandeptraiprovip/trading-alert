@@ -1,0 +1,575 @@
+{
+  "nodes": [
+    {
+      "id": "file:exp-turtle-improve.ts",
+      "type": "file",
+      "name": "exp-turtle-improve.ts",
+      "filePath": "exp-turtle-improve.ts",
+      "summary": "Chạy thí nghiệm cải thiện Turtle strategy và so sánh trực tiếp các candidate với baseline backtest.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:exp-turtle-improve.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "exp-turtle-improve.ts",
+      "lineRange": [
+        26,
+        90
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chạy thí nghiệm cải thiện Turtle strategy và so sánh trực tiếp các candidate với baseline backtest.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/audit-candidates.ts",
+      "type": "file",
+      "name": "audit-candidates.ts",
+      "filePath": "scripts/audit-candidates.ts",
+      "summary": "Audit các candidate portfolio/Turtle bằng cùng engine, gate và thống kê để chọn cấu hình có độ bền tốt hơn.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/audit-candidates.ts:pairedBootstrap",
+      "type": "function",
+      "name": "pairedBootstrap",
+      "filePath": "scripts/audit-candidates.ts",
+      "lineRange": [
+        49,
+        67
+      ],
+      "summary": "Hàm `pairedBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/audit-candidates.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/audit-candidates.ts",
+      "lineRange": [
+        69,
+        190
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: audit các candidate portfolio/Turtle bằng cùng engine, gate và thống kê để chọn cấu hình có độ bền tốt hơn.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-direction.ts",
+      "type": "file",
+      "name": "exp-direction.ts",
+      "filePath": "scripts/exp-direction.ts",
+      "summary": "Thử nghiệm policy theo hướng long/short và đo đóng góp của từng direction vào hiệu suất danh mục.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-direction.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-direction.ts",
+      "lineRange": [
+        32,
+        93
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: thử nghiệm policy theo hướng long/short và đo đóng góp của từng direction vào hiệu suất danh mục.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-exit-pyramid.ts",
+      "type": "file",
+      "name": "exp-exit-pyramid.ts",
+      "filePath": "scripts/exp-exit-pyramid.ts",
+      "summary": "Đánh giá tương tác giữa exit policy và pyramid entries trong Turtle portfolio.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-exit-pyramid.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-exit-pyramid.ts",
+      "lineRange": [
+        28,
+        81
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá tương tác giữa exit policy và pyramid entries trong Turtle portfolio.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-exit-ratio.ts",
+      "type": "file",
+      "name": "exp-exit-ratio.ts",
+      "filePath": "scripts/exp-exit-ratio.ts",
+      "summary": "Quét tỷ lệ exit và so sánh Sharpe cùng các portfolio metric giữa những cấu hình.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-exit-ratio.ts:sharpeIn",
+      "type": "function",
+      "name": "sharpeIn",
+      "filePath": "scripts/exp-exit-ratio.ts",
+      "lineRange": [
+        23,
+        35
+      ],
+      "summary": "Hàm `sharpeIn` thực hiện logic miền trong exp-exit-ratio.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "analytics",
+        "statistics",
+        "risk-metrics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/exp-exit-ratio.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-exit-ratio.ts",
+      "lineRange": [
+        37,
+        132
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: quét tỷ lệ exit và so sánh Sharpe cùng các portfolio metric giữa những cấu hình.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-heat-shape.ts",
+      "type": "file",
+      "name": "exp-heat-shape.ts",
+      "filePath": "scripts/exp-heat-shape.ts",
+      "summary": "Thử nghiệm cách phân bổ portfolio heat theo hình dạng khác nhau để kiểm soát concentration risk.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-heat-shape.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-heat-shape.ts",
+      "lineRange": [
+        23,
+        115
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: thử nghiệm cách phân bổ portfolio heat theo hình dạng khác nhau để kiểm soát concentration risk.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-joint-audit.ts",
+      "type": "file",
+      "name": "exp-joint-audit.ts",
+      "filePath": "scripts/exp-joint-audit.ts",
+      "summary": "Audit đồng thời nhiều lever của portfolio nhằm phát hiện cải thiện phụ thuộc lẫn nhau hoặc không bền.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-joint-audit.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-joint-audit.ts",
+      "lineRange": [
+        21,
+        106
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: audit đồng thời nhiều lever của portfolio nhằm phát hiện cải thiện phụ thuộc lẫn nhau hoặc không bền.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/exp-placebo.ts",
+      "type": "file",
+      "name": "exp-placebo.ts",
+      "filePath": "scripts/exp-placebo.ts",
+      "summary": "Chạy placebo experiments để kiểm tra liệu cải thiện quan sát được có vượt nhiễu và lựa chọn ngẫu nhiên hay không.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/exp-placebo.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/exp-placebo.ts",
+      "lineRange": [
+        38,
+        132
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: chạy placebo experiments để kiểm tra liệu cải thiện quan sát được có vượt nhiễu và lựa chọn ngẫu nhiên hay không.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "function:exp-turtle-improve.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:exp-turtle-improve.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "function:scripts/audit-candidates.ts:pairedBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "function:scripts/audit-candidates.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/audit-candidates.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "function:scripts/exp-direction.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-direction.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "function:scripts/exp-exit-pyramid.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-pyramid.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "function:scripts/exp-exit-ratio.ts:sharpeIn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "function:scripts/exp-exit-ratio.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-exit-ratio.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "function:scripts/exp-heat-shape.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-heat-shape.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "function:scripts/exp-joint-audit.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-joint-audit.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "function:scripts/exp-placebo.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:scripts/portfolio-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:scripts/portfolio-equivalence.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/exp-placebo.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

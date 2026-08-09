@@ -6,45 +6,25 @@
  * An toàn theo thiết kế:
  *   - KHÔNG đụng state/journal của turtle (turtle-state.json) hay SMC (bot-state.json).
  *     Dùng file RIÊNG: fast-trend-mexc-state.json + fast-trend-mexc-trades.jsonl.
- *   - LONG: close phá high 10d. SHORT: close phá close-low 30d, rồi nến 4h kế tiếp phải tiếp
- *     tục đóng dưới mức breakout đã đóng băng mới vào. Exit vẫn Chandelier 3×ATR hai hướng.
+ *   - LONG: close phá high 10d, thoát khi nến đóng dưới MIDPOINT kênh close 20d (chỉ ratchet lên),
+ *     hard SL 3×ATR vẫn nằm trên sàn. SHORT: close phá close-low 30d, rồi nến 4h kế tiếp phải tiếp
+ *     tục đóng dưới mức breakout đã đóng băng mới vào; exit Chandelier 3×ATR.
  *   - Cold-start: replay IM LẶNG lịch sử để dựng lại vị thế hiện tại, KHÔNG spam alert quá khứ.
  */
 import fs from "fs";
 import path from "path";
-import { fetchKlinesPaged } from "./backtest";
+import { fetchFuturesKlinesPaged } from "./backtest";
 import { Candle, TF_MS } from "./strategy";
 import { T, buildBtcGateLongs, ema, atrSeries } from "./turtle";
 import { FastExecution, FastExecutionPositionIntent } from "./fast-trend-execution";
 import { TelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn, escapeMarkdown } from "./telegram";
+import { atomicWriteFileSync } from "./atomic-file";
+
+export { atomicWriteFileSync } from "./atomic-file";
 
 const DATA_DIR = path.resolve(process.env.FAST_TREND_DATA_DIR?.trim() || process.cwd());
 const STATE_FILE = path.join(DATA_DIR, "fast-trend-mexc-state.json");
 const JOURNAL_FILE = path.join(DATA_DIR, "fast-trend-mexc-trades.jsonl");
-
-/** Temp + fsync + same-directory rename. The target must not itself be a bind-mount point. */
-export function atomicWriteFileSync(
-  target: string,
-  data: string,
-  renameFile: typeof fs.renameSync = fs.renameSync,
-): void {
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  const tmp = `${target}.tmp`;
-  fs.writeFileSync(tmp, data);
-  const fd = fs.openSync(tmp, "r");
-  try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
-  renameFile(tmp, target);
-  let dirFd: number | undefined;
-  try {
-    dirFd = fs.openSync(path.dirname(target), "r");
-    fs.fsyncSync(dirFd);
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (!code || !["EINVAL", "ENOTSUP", "EPERM", "EISDIR"].includes(code)) throw error;
-  } finally {
-    if (dirFd != null) fs.closeSync(dirFd);
-  }
-}
 
 const TF = T.tf; // 4h — cùng khung turtle
 const tfMs = TF_MS[TF];
@@ -57,13 +37,27 @@ const RECONCILE_MS = 10 * 60_000; // lưới an toàn: đối soát vị thế t
 export const FAST_SHORT_ENTRY_DAYS = 30;
 export const FAST_SHORT_CONFIRM_BARS = 1;
 /**
- * Trần unit RIÊNG của Fast — GHIM 4, không dùng `FAST_MAX_UNITS`.
- * Turtle hạ 4→3 ngày 2026-08-04 dựa trên audit CỦA TURTLE (planning/portfolio-risk-and-exit-2026-08.md);
- * audit của Fast (planning/trend-method-remediation-research-2026-08.md) là một bảng khác
- * (NET +85/+162/+211/+244R theo 1/2/3/4 unit). Không để thay đổi của sleeve này trôi sang sleeve kia.
+ * Kênh THOÁT của LONG (midpoint close, chỉ ratchet lên) — TÁCH khỏi kênh VÀO, giống Turtle.
+ *
+ * Trước 2026-08-09 LONG của Fast thoát bằng Chandelier 3×ATR và đó là điểm yếu lớn nhất của sleeve:
+ * winner chỉ giữ 3,9 ngày, top-5 winner chỉ chiếm 10,9% tổng R dương (Turtle 24,6%) — tức là gần
+ * như không có ĐUÔI PHẢI, thứ mà toàn bộ lợi nhuận trend-following dựa vào.
+ * Audit 2.025 ngày (scripts/rx-lab.ts): Sharpe 0,64 → 1,47; NET quy đổi cùng maxDD +241%; cả ba era
+ * đều tăng (0,13/0,16/1,39 → 1,50/1,29/1,61). Xem planning/fast-exit-channel-2026-08.md
+ *
+ * 20 ngày chọn theo lưới 2 chiều entryDays × longExitDays: với MỌI kênh vào 6/8/10/13/15 ngày,
+ * argmax đều rơi vào 20d ⇒ đây là độ rộng TUYỆT ĐỐI của trend crypto (~3 tuần), không phải tỉ lệ
+ * theo kênh vào. Cao nguyên 18-25d phẳng nên giá trị chính xác không nhạy.
  */
-const FAST_MAX_UNITS = 4;
+export const FAST_LONG_EXIT_DAYS = 20;
+/**
+ * Trần unit RIÊNG của Fast (Turtle có bảng audit khác — không để thay đổi sleeve này trôi sang sleeve kia).
+ * 4 → 3 ngày 2026-08-09: các unit trong cùng một symbol tương quan đúng bằng 1 nên unit thứ 4 chỉ thêm
+ * drawdown; NET/maxDD 8,67 → 9,84 và NET quy đổi cùng maxDD +241% → +287% khi hạ xuống 3.
+ */
+const FAST_MAX_UNITS = 3;
 const FAST_SHORT_ENTRY_BARS = Math.max(2, Math.round(FAST_SHORT_ENTRY_DAYS * BARS_PER_DAY));
+const FAST_LONG_EXIT_BARS = Math.max(2, Math.round(FAST_LONG_EXIT_DAYS * BARS_PER_DAY));
 
 export type FastShortEntrySetup = {
   breakoutLevel: number;
@@ -88,6 +82,42 @@ export function priorFastShortCloseLow(candles: Candle[], index: number): number
   return closeLow;
 }
 
+/** Midpoint của kênh CLOSE `FAST_LONG_EXIT_DAYS` ngày trước nến `index` (không gồm nến đó). */
+export function priorFastLongMidClose(candles: Candle[], index: number): number {
+  if (index < FAST_LONG_EXIT_BARS) return -Infinity;
+  let hi = -Infinity;
+  let lo = Infinity;
+  for (let k = index - FAST_LONG_EXIT_BARS; k < index; k++) {
+    hi = Math.max(hi, candles[k].close);
+    lo = Math.min(lo, candles[k].close);
+  }
+  return (hi + lo) / 2;
+}
+
+/**
+ * Một dòng mô tả LUẬT Fast đang chạy + fingerprint — để `/health` chứng minh process đang chạy
+ * đúng cấu hình nào (giống `turtleConfigLine`). Đổi bất kỳ tham số nào là fingerprint đổi.
+ */
+export function fastConfigLine(entryDays: number): string {
+  const f = {
+    e: entryDays, x: FAST_LONG_EXIT_DAYS, s: FAST_SHORT_ENTRY_DAYS, k: FAST_SHORT_CONFIRM_BARS,
+    c: T.chandelierMult, u: FAST_MAX_UNITS, p: T.pyramidStepAtr, a: T.atrPeriod, t: T.trendLen,
+    h: T.maxHoldDays, g: `${T.btcGateFast}/${T.btcGateSlow}`,
+  };
+  let hash = 0x811c9dc5;
+  const s = JSON.stringify(f);
+  for (let i = 0; i < s.length; i++) {
+    hash ^= s.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return (
+    `long high-${entryDays}d/exit mid-close ${FAST_LONG_EXIT_DAYS}d · ` +
+    `short close-${FAST_SHORT_ENTRY_DAYS}d +${FAST_SHORT_CONFIRM_BARS} nến/chand ${T.chandelierMult}×ATR · ` +
+    `pyramid ${T.pyramidStepAtr}×ATR max${FAST_MAX_UNITS} · gate ${T.btcGateFast / BARS_PER_DAY}/${T.btcGateSlow / BARS_PER_DAY}d · ` +
+    `fp \`${hash.toString(16).padStart(8, "0").slice(0, 6)}\``
+  );
+}
+
 type Unit = {
   entry: number;
   initialSL: number;
@@ -101,6 +131,8 @@ type Pos = {
   dir: "long" | "short";
   units: Unit[];
   sl: number;
+  /** LONG: mức thoát close-based (midpoint kênh thoát, chỉ ratchet LÊN). undefined = state cũ, sẽ tự khởi tạo. */
+  midTrail?: number;
   extreme: number;
   real: boolean;
   positionId?: string;
@@ -114,7 +146,7 @@ type PendingAction = {
   startedAt: number;
   unit?: Unit;
   exitPrice?: number;
-  exitReason?: "trail" | "time" | "reconcile";
+  exitReason?: "trail" | "mid" | "time" | "reconcile";
   exitTime?: number;
 };
 type SymState = {
@@ -306,14 +338,21 @@ export class FastTrendLive {
   private async tg(msg: string): Promise<void> { await sendTelegram(this.o.telegram, msg); }
 
   // ── Sự kiện ──────────────────────────────────────────────────────────────
-  private async openPosition(st: SymState, bar: Candle, dir: "long" | "short", atrNow: number, silent: boolean): Promise<void> {
+  private async openPosition(st: SymState, bar: Candle, dir: "long" | "short", atrNow: number, silent: boolean, longMidClose = -Infinity): Promise<void> {
     const entry = bar.close;
     const initialSL = dir === "long" ? entry - T.chandelierMult * atrNow : entry + T.chandelierMult * atrNow;
     if (dir === "long" && !(initialSL > 0 && initialSL < entry)) return;
     if (dir === "short" && !(initialSL > entry)) return;
 
     const unit: Unit = { entry, initialSL, entryTime: bar.openTime };
-    const pos: Pos = { dir, units: [unit], sl: initialSL, extreme: dir === "long" ? bar.high : bar.low, real: false };
+    const pos: Pos = {
+      dir,
+      units: [unit],
+      sl: initialSL,
+      midTrail: dir === "long" ? Math.max(initialSL, longMidClose) : undefined,
+      extreme: dir === "long" ? bar.high : bar.low,
+      real: false,
+    };
 
     if (silent) {
       st.pos = pos; // cold-start dựng lại lịch sử (paper) — không lệnh, không alert
@@ -388,8 +427,11 @@ export class FastTrendLive {
     const entryRule = dir === "short"
       ? `Close-low ${FAST_SHORT_ENTRY_DAYS}d + ${FAST_SHORT_CONFIRM_BARS} nến 4h xác nhận`
       : `High breakout ${this.o.entryDays}d`;
+    const exitRule = dir === "long"
+      ? `thoát mid-close ${FAST_LONG_EXIT_DAYS}d`
+      : `${T.chandelierMult}×ATR trail`;
     let msg = `⚡${dir === "long" ? "🟢" : "🔴"} *FAST-${this.o.entryDays}d ${dir.toUpperCase()}* ${formatSymbol(st.symbol)} @ $${fmtPrice(entry)}\n` +
-      `${entryRule} · SL $${fmtPrice(initialSL)} (${T.chandelierMult}×ATR trail) · unit 1/${FAST_MAX_UNITS}`;
+      `${entryRule} · SL $${fmtPrice(initialSL)} (${exitRule}) · unit 1/${FAST_MAX_UNITS}`;
     if (unit.qty != null) msg += `\n💵 Lệnh thật: ${unit.qty} @ $${fmtPrice(unit.realEntry ?? entry)}${unit.riskUsd != null ? ` · risk $${unit.riskUsd.toFixed(2)}` : ""}`;
     else msg += `\n📋 Alert-only (không đặt lệnh)`;
     await this.tg(msg);
@@ -401,8 +443,12 @@ export class FastTrendLive {
     if (pos.dir === "long" && !(initialSL > 0)) return;
 
     const unit: Unit = { entry, initialSL, entryTime: bar.openTime };
+    // LONG thoát bằng kênh midpoint nên hard SL không tự trail — unit mới không được để cả vị thế
+    // rủi ro rộng hơn stop danh nghĩa của chính nó (bất biến giống Turtle).
+    const nextSharedSl = pos.dir === "long" ? Math.max(pos.sl, initialSL) : pos.sl;
 
     if (silent) {
+      pos.sl = nextSharedSl;
       pos.units.push(unit);
       return;
     }
@@ -440,6 +486,7 @@ export class FastTrendLive {
         unit.riskFrac = res.equity ? (res.riskUsd ?? 0) / res.equity : this.o.riskPct;
         pos.positionId = res.positionId ?? pos.positionId;
         pos.units.push(unit); // persist fill before protection resize
+        pos.sl = nextSharedSl; // ensureStop bên dưới đẩy mức mới lên sàn
         st.pending = { kind: "stop", key: `${key}:stop`, startedAt: Date.now() };
         this.persist();
         await this.ensureStop(st.symbol, pos);
@@ -454,6 +501,7 @@ export class FastTrendLive {
         return;
       }
     } else {
+      pos.sl = nextSharedSl;
       pos.units.push(unit);
     }
 
@@ -466,7 +514,7 @@ export class FastTrendLive {
     st: SymState,
     pos: Pos,
     exitPrice: number,
-    reason: "trail" | "time" | "reconcile",
+    reason: "trail" | "mid" | "time" | "reconcile",
     exitTime: number,
     silent: boolean,
     opts?: { flatten?: boolean }
@@ -516,12 +564,18 @@ export class FastTrendLive {
     if (pos) {
       if (st.pending?.kind === "exit") return; // reconciliation owns an ambiguous exit
       const heldBars = Math.round((bar.openTime - pos.units[0].entryTime) / tfMs);
+      const longMidClose = pos.dir === "long" ? priorFastLongMidClose(c, i) : -Infinity;
+      // State ghi trước 2026-08-09 chưa có midTrail: khởi tạo từ kênh hiện tại, KHÔNG nới hard SL.
+      if (pos.dir === "long" && !Number.isFinite(pos.midTrail as number)) {
+        pos.midTrail = Math.max(pos.sl, longMidClose);
+      }
       const hitStop = pos.dir === "long" ? bar.low <= pos.sl : bar.high >= pos.sl;
       if (hitStop) { await this.exitPosition(st, pos, pos.sl, "trail", bar.openTime, silent); return; }
+      if (pos.dir === "long" && bar.close <= pos.midTrail!) { await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent); return; }
       if (heldBars >= this.maxHoldBars) { await this.exitPosition(st, pos, bar.close, "time", bar.openTime, silent); return; }
-      // chandelier trail (ratchet)
+      // LONG: ratchet midpoint close (hard SL đứng yên trên sàn). SHORT: chandelier trail như cũ.
       const oldSl = pos.sl;
-      if (pos.dir === "long") { pos.extreme = Math.max(pos.extreme, bar.high); const t = pos.extreme - T.chandelierMult * atr[i]; if (t > pos.sl) pos.sl = t; }
+      if (pos.dir === "long") { pos.midTrail = Math.max(pos.midTrail!, longMidClose); }
       else { pos.extreme = Math.min(pos.extreme, bar.low); const t = pos.extreme + T.chandelierMult * atr[i]; if (t < pos.sl) pos.sl = t; }
       if (!silent && pos.real && pos.sl !== oldSl) {
         if (!this.canManageLive()) {
@@ -577,7 +631,7 @@ export class FastTrendLive {
     let longHigh = -Infinity;
     for (let k = i - this.dcEntry; k < i; k++) longHigh = Math.max(longHigh, c[k].high);
     if (uptrend && gate(bar.openTime, "long") && bar.close > longHigh) {
-      await this.openPosition(st, bar, "long", atr[i], silent);
+      await this.openPosition(st, bar, "long", atr[i], silent, priorFastLongMidClose(c, i));
       return;
     }
 
@@ -606,7 +660,7 @@ export class FastTrendLive {
   }
 
   private async fetchClosed(symbol: string): Promise<Candle[]> {
-    const c = await fetchKlinesPaged(symbol, TF, FETCH_BARS);
+    const c = await fetchFuturesKlinesPaged(symbol, TF, FETCH_BARS);
     const now = Date.now();
     while (c.length && c[c.length - 1].openTime + tfMs > now) c.pop(); // bỏ nến chưa đóng
     return c;

@@ -1,0 +1,2077 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [
+    ".ua/.understandignore",
+    "public/index.html",
+    "tsconfig.tsbuildinfo"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 7,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 5,
+      "failed": 0,
+      "skipped": 2
+    }
+  },
+  "results": [
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 3,
+      "nonEmptyLines": 3,
+      "sections": [
+        {
+          "heading": "outputLanguage",
+          "level": 1,
+          "line": 2
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "app/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 7,
+      "functions": [
+        {
+          "name": "RootLayout",
+          "startLine": 1,
+          "endLine": 7,
+          "params": [
+            "{ children }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RootLayout",
+          "line": 1,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "next-env.d.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "next.config.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "planning/mexc-futures/reviews/external-review-status.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 12,
+      "nonEmptyLines": 9,
+      "sections": [
+        {
+          "heading": "External Review Status",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "scripts/random-maturity-carry.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 752,
+      "nonEmptyLines": 700,
+      "functions": [
+        {
+          "name": "args",
+          "startLine": 80,
+          "endLine": 91,
+          "params": []
+        },
+        {
+          "name": "fairRatio",
+          "startLine": 93,
+          "endLine": 96,
+          "params": [
+            "apr"
+          ]
+        },
+        {
+          "name": "signalDeviation",
+          "startLine": 98,
+          "endLine": 100,
+          "params": [
+            "spot",
+            "perp"
+          ]
+        },
+        {
+          "name": "signalRoundTripCost",
+          "startLine": 102,
+          "endLine": 104,
+          "params": [
+            "spot",
+            "perp"
+          ]
+        },
+        {
+          "name": "cachePath",
+          "startLine": 106,
+          "endLine": 108,
+          "params": [
+            "kind",
+            "symbol"
+          ]
+        },
+        {
+          "name": "coveragePath",
+          "startLine": 110,
+          "endLine": 112,
+          "params": [
+            "kind",
+            "symbol"
+          ]
+        },
+        {
+          "name": "readCache",
+          "startLine": 114,
+          "endLine": 121,
+          "params": [
+            "kind",
+            "symbol"
+          ]
+        },
+        {
+          "name": "writeCache",
+          "startLine": 123,
+          "endLine": 127,
+          "params": [
+            "kind",
+            "symbol",
+            "values"
+          ]
+        },
+        {
+          "name": "readCoverage",
+          "startLine": 129,
+          "endLine": 136,
+          "params": [
+            "kind",
+            "symbol"
+          ]
+        },
+        {
+          "name": "addCoverage",
+          "startLine": 138,
+          "endLine": 153,
+          "params": [
+            "kind",
+            "symbol",
+            "coverage"
+          ]
+        },
+        {
+          "name": "covers",
+          "startLine": 155,
+          "endLine": 157,
+          "params": [
+            "kind",
+            "symbol",
+            "start",
+            "end"
+          ]
+        },
+        {
+          "name": "mergeByTime",
+          "startLine": 159,
+          "endLine": 163,
+          "params": [
+            "values",
+            "more",
+            "timeOf"
+          ]
+        },
+        {
+          "name": "getWithRetry",
+          "startLine": 165,
+          "endLine": 175,
+          "params": [
+            "url",
+            "params"
+          ]
+        },
+        {
+          "name": "fetchBars",
+          "startLine": 177,
+          "endLine": 234,
+          "params": [
+            "kind",
+            "symbol",
+            "start",
+            "end"
+          ]
+        },
+        {
+          "name": "fetchFunding",
+          "startLine": 236,
+          "endLine": 266,
+          "params": [
+            "symbol",
+            "start",
+            "end"
+          ]
+        },
+        {
+          "name": "alignBars",
+          "startLine": 268,
+          "endLine": 284,
+          "params": [
+            "spot",
+            "perp"
+          ]
+        },
+        {
+          "name": "hydrateFundingMarks",
+          "startLine": 286,
+          "endLine": 298,
+          "params": [
+            "funding",
+            "mark",
+            "perp"
+          ]
+        },
+        {
+          "name": "addPnl",
+          "startLine": 300,
+          "endLine": 302,
+          "params": [
+            "series",
+            "time",
+            "value"
+          ]
+        },
+        {
+          "name": "settleTrade",
+          "startLine": 304,
+          "endLine": 388,
+          "params": [
+            "symbol",
+            "bars",
+            "funding",
+            "position",
+            "exitIndex",
+            "reason",
+            "costs",
+            "financingApr",
+            "hourlyPnl"
+          ]
+        },
+        {
+          "name": "simulate",
+          "startLine": 390,
+          "endLine": 460,
+          "params": [
+            "symbol",
+            "bars",
+            "funding",
+            "costMultiplier",
+            "financingApr"
+          ]
+        },
+        {
+          "name": "mean",
+          "startLine": 462,
+          "endLine": 464,
+          "params": [
+            "values"
+          ]
+        },
+        {
+          "name": "std",
+          "startLine": 466,
+          "endLine": 470,
+          "params": [
+            "values"
+          ]
+        },
+        {
+          "name": "portfolioReturns",
+          "startLine": 472,
+          "endLine": 481,
+          "params": [
+            "simulations",
+            "phase"
+          ]
+        },
+        {
+          "name": "equityStats",
+          "startLine": 483,
+          "endLine": 498,
+          "params": [
+            "returns"
+          ]
+        },
+        {
+          "name": "dailyReturns",
+          "startLine": 500,
+          "endLine": 508,
+          "params": [
+            "hourly"
+          ]
+        },
+        {
+          "name": "mulberry32",
+          "startLine": 510,
+          "endLine": 518,
+          "params": [
+            "seed"
+          ]
+        },
+        {
+          "name": "blockBootstrap",
+          "startLine": 520,
+          "endLine": 542,
+          "params": [
+            "values",
+            "samples",
+            "block"
+          ]
+        },
+        {
+          "name": "pct",
+          "startLine": 544,
+          "endLine": 546,
+          "params": [
+            "value",
+            "digits"
+          ]
+        },
+        {
+          "name": "report",
+          "startLine": 548,
+          "endLine": 629,
+          "params": [
+            "label",
+            "simulations",
+            "phase"
+          ]
+        },
+        {
+          "name": "assertClose",
+          "startLine": 631,
+          "endLine": 635,
+          "params": [
+            "actual",
+            "expected",
+            "label",
+            "tolerance"
+          ]
+        },
+        {
+          "name": "selfTest",
+          "startLine": 637,
+          "endLine": 690,
+          "params": []
+        },
+        {
+          "name": "main",
+          "startLine": 692,
+          "endLine": 747,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "args",
+          "callee": "process.argv.slice",
+          "lineNumber": 81
+        },
+        {
+          "caller": "args",
+          "callee": "values.find((value) => value.startsWith(\"--phase=\"))?.split",
+          "lineNumber": 82
+        },
+        {
+          "caller": "args",
+          "callee": "values.find",
+          "lineNumber": 82
+        },
+        {
+          "caller": "args",
+          "callee": "value.startsWith",
+          "lineNumber": 82
+        },
+        {
+          "caller": "args",
+          "callee": "values.includes",
+          "lineNumber": 88
+        },
+        {
+          "caller": "args",
+          "callee": "values.find((value) => value.startsWith(\"--unseal-holdout=\"))?.split",
+          "lineNumber": 89
+        },
+        {
+          "caller": "args",
+          "callee": "values.find",
+          "lineNumber": 89
+        },
+        {
+          "caller": "args",
+          "callee": "value.startsWith",
+          "lineNumber": 89
+        },
+        {
+          "caller": "signalDeviation",
+          "callee": "fairRatio",
+          "lineNumber": 99
+        },
+        {
+          "caller": "cachePath",
+          "callee": "path.join",
+          "lineNumber": 107
+        },
+        {
+          "caller": "coveragePath",
+          "callee": "path.join",
+          "lineNumber": 111
+        },
+        {
+          "caller": "readCache",
+          "callee": "JSON.parse",
+          "lineNumber": 116
+        },
+        {
+          "caller": "readCache",
+          "callee": "fs.readFileSync",
+          "lineNumber": 116
+        },
+        {
+          "caller": "readCache",
+          "callee": "cachePath",
+          "lineNumber": 116
+        },
+        {
+          "caller": "readCache",
+          "callee": "Array.isArray",
+          "lineNumber": 117
+        },
+        {
+          "caller": "writeCache",
+          "callee": "cachePath",
+          "lineNumber": 124
+        },
+        {
+          "caller": "writeCache",
+          "callee": "fs.mkdirSync",
+          "lineNumber": 125
+        },
+        {
+          "caller": "writeCache",
+          "callee": "path.dirname",
+          "lineNumber": 125
+        },
+        {
+          "caller": "writeCache",
+          "callee": "fs.writeFileSync",
+          "lineNumber": 126
+        },
+        {
+          "caller": "writeCache",
+          "callee": "JSON.stringify",
+          "lineNumber": 126
+        },
+        {
+          "caller": "readCoverage",
+          "callee": "JSON.parse",
+          "lineNumber": 131
+        },
+        {
+          "caller": "readCoverage",
+          "callee": "fs.readFileSync",
+          "lineNumber": 131
+        },
+        {
+          "caller": "readCoverage",
+          "callee": "coveragePath",
+          "lineNumber": 131
+        },
+        {
+          "caller": "readCoverage",
+          "callee": "Array.isArray",
+          "lineNumber": 132
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "[...readCoverage(kind, symbol), coverage].sort",
+          "lineNumber": 143
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "readCoverage",
+          "lineNumber": 143
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "Math.max",
+          "lineNumber": 147
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "merged.push",
+          "lineNumber": 148
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "coveragePath",
+          "lineNumber": 150
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "fs.mkdirSync",
+          "lineNumber": 151
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "path.dirname",
+          "lineNumber": 151
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "fs.writeFileSync",
+          "lineNumber": 152
+        },
+        {
+          "caller": "addCoverage",
+          "callee": "JSON.stringify",
+          "lineNumber": 152
+        },
+        {
+          "caller": "covers",
+          "callee": "readCoverage(kind, symbol).some",
+          "lineNumber": 156
+        },
+        {
+          "caller": "covers",
+          "callee": "readCoverage",
+          "lineNumber": 156
+        },
+        {
+          "caller": "mergeByTime",
+          "callee": "map.set",
+          "lineNumber": 161
+        },
+        {
+          "caller": "mergeByTime",
+          "callee": "timeOf",
+          "lineNumber": 161
+        },
+        {
+          "caller": "mergeByTime",
+          "callee": "[...map.values()].sort",
+          "lineNumber": 162
+        },
+        {
+          "caller": "mergeByTime",
+          "callee": "map.values",
+          "lineNumber": 162
+        },
+        {
+          "caller": "mergeByTime",
+          "callee": "timeOf",
+          "lineNumber": 162
+        },
+        {
+          "caller": "mergeByTime",
+          "callee": "timeOf",
+          "lineNumber": 162
+        },
+        {
+          "caller": "getWithRetry",
+          "callee": "axios.get",
+          "lineNumber": 169
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "readCache",
+          "lineNumber": 183
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "covers",
+          "lineNumber": 184
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "cached.filter",
+          "lineNumber": 185
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "getWithRetry",
+          "lineNumber": 204
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "symbol.toUpperCase",
+          "lineNumber": 205
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "data.map((row) => ({\n      openTime: Number(row[0]),\n      open: Number(row[1]),\n      close: Number(row[4]),\n    })).filter",
+          "lineNumber": 218
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "data.map",
+          "lineNumber": 218
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "Number",
+          "lineNumber": 219
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "Number",
+          "lineNumber": 220
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "Number",
+          "lineNumber": 221
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "Number.isFinite",
+          "lineNumber": 222
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "Number.isFinite",
+          "lineNumber": 222
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "fetched.push",
+          "lineNumber": 224
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "mergeByTime",
+          "lineNumber": 230
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "writeCache",
+          "lineNumber": 231
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "addCoverage",
+          "lineNumber": 232
+        },
+        {
+          "caller": "fetchBars",
+          "callee": "merged.filter",
+          "lineNumber": 233
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "readCache",
+          "lineNumber": 237
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "covers",
+          "lineNumber": 238
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "cached.filter",
+          "lineNumber": 239
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "getWithRetry",
+          "lineNumber": 245
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "symbol.toUpperCase",
+          "lineNumber": 247
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "data.map((row) => ({\n      fundingTime: Number(row.fundingTime),\n      fundingRate: Number(row.fundingRate),\n      markPrice: Number(row.markPrice),\n    })).filter",
+          "lineNumber": 250
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "data.map",
+          "lineNumber": 250
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "Number",
+          "lineNumber": 251
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "Number",
+          "lineNumber": 252
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "Number",
+          "lineNumber": 253
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "Number.isFinite",
+          "lineNumber": 254
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "Number.isFinite",
+          "lineNumber": 254
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "fetched.push",
+          "lineNumber": 256
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "mergeByTime",
+          "lineNumber": 262
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "writeCache",
+          "lineNumber": 263
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "addCoverage",
+          "lineNumber": 264
+        },
+        {
+          "caller": "fetchFunding",
+          "callee": "merged.filter",
+          "lineNumber": 265
+        },
+        {
+          "caller": "alignBars",
+          "callee": "perp.map",
+          "lineNumber": 269
+        },
+        {
+          "caller": "alignBars",
+          "callee": "spot.flatMap",
+          "lineNumber": 270
+        },
+        {
+          "caller": "alignBars",
+          "callee": "perpByTime.get",
+          "lineNumber": 271
+        },
+        {
+          "caller": "hydrateFundingMarks",
+          "callee": "mark.map",
+          "lineNumber": 287
+        },
+        {
+          "caller": "hydrateFundingMarks",
+          "callee": "perp.map",
+          "lineNumber": 288
+        },
+        {
+          "caller": "hydrateFundingMarks",
+          "callee": "funding.map",
+          "lineNumber": 289
+        },
+        {
+          "caller": "hydrateFundingMarks",
+          "callee": "Math.floor",
+          "lineNumber": 291
+        },
+        {
+          "caller": "hydrateFundingMarks",
+          "callee": "markByTime.get",
+          "lineNumber": 292
+        },
+        {
+          "caller": "hydrateFundingMarks",
+          "callee": "perpByTime.get",
+          "lineNumber": 292
+        },
+        {
+          "caller": "addPnl",
+          "callee": "series.set",
+          "lineNumber": 301
+        },
+        {
+          "caller": "addPnl",
+          "callee": "series.get",
+          "lineNumber": 301
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "funding.filter",
+          "lineNumber": 335
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "Math.floor",
+          "lineNumber": 336
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "applicableFunding.reduce",
+          "lineNumber": 339
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "addPnl",
+          "lineNumber": 345
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "addPnl",
+          "lineNumber": 354
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "addPnl",
+          "lineNumber": 357
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "Math.floor",
+          "lineNumber": 364
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "addPnl",
+          "lineNumber": 365
+        },
+        {
+          "caller": "settleTrade",
+          "callee": "addPnl",
+          "lineNumber": 367
+        },
+        {
+          "caller": "simulate",
+          "callee": "trades.push",
+          "lineNumber": 411
+        },
+        {
+          "caller": "simulate",
+          "callee": "settleTrade",
+          "lineNumber": 411
+        },
+        {
+          "caller": "simulate",
+          "callee": "signalDeviation",
+          "lineNumber": 425
+        },
+        {
+          "caller": "simulate",
+          "callee": "signalDeviation",
+          "lineNumber": 431
+        },
+        {
+          "caller": "simulate",
+          "callee": "signalRoundTripCost",
+          "lineNumber": 434
+        },
+        {
+          "caller": "simulate",
+          "callee": "trades.push",
+          "lineNumber": 440
+        },
+        {
+          "caller": "simulate",
+          "callee": "settleTrade",
+          "lineNumber": 440
+        },
+        {
+          "caller": "simulate",
+          "callee": "trades.reduce",
+          "lineNumber": 452
+        },
+        {
+          "caller": "simulate",
+          "callee": "[...hourlyPnl.values()].reduce",
+          "lineNumber": 453
+        },
+        {
+          "caller": "simulate",
+          "callee": "hourlyPnl.values",
+          "lineNumber": 453
+        },
+        {
+          "caller": "simulate",
+          "callee": "Math.abs",
+          "lineNumber": 454
+        },
+        {
+          "caller": "mean",
+          "callee": "values.reduce",
+          "lineNumber": 463
+        },
+        {
+          "caller": "std",
+          "callee": "mean",
+          "lineNumber": 468
+        },
+        {
+          "caller": "std",
+          "callee": "Math.sqrt",
+          "lineNumber": 469
+        },
+        {
+          "caller": "std",
+          "callee": "values.reduce",
+          "lineNumber": 469
+        },
+        {
+          "caller": "portfolioReturns",
+          "callee": "returns.push",
+          "lineNumber": 475
+        },
+        {
+          "caller": "portfolioReturns",
+          "callee": "simulations.reduce",
+          "lineNumber": 475
+        },
+        {
+          "caller": "portfolioReturns",
+          "callee": "simulation.hourlyPnl.get",
+          "lineNumber": 476
+        },
+        {
+          "caller": "equityStats",
+          "callee": "Math.max",
+          "lineNumber": 489
+        },
+        {
+          "caller": "equityStats",
+          "callee": "Math.max",
+          "lineNumber": 490
+        },
+        {
+          "caller": "equityStats",
+          "callee": "std",
+          "lineNumber": 492
+        },
+        {
+          "caller": "equityStats",
+          "callee": "mean",
+          "lineNumber": 495
+        },
+        {
+          "caller": "equityStats",
+          "callee": "Math.sqrt",
+          "lineNumber": 495
+        },
+        {
+          "caller": "dailyReturns",
+          "callee": "hourly.slice",
+          "lineNumber": 504
+        },
+        {
+          "caller": "dailyReturns",
+          "callee": "days.push",
+          "lineNumber": 505
+        },
+        {
+          "caller": "mulberry32",
+          "callee": "Math.imul",
+          "lineNumber": 514
+        },
+        {
+          "caller": "mulberry32",
+          "callee": "Math.imul",
+          "lineNumber": 515
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "mulberry32",
+          "lineNumber": 524
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.floor",
+          "lineNumber": 529
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "random",
+          "lineNumber": 529
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "drawn.push",
+          "lineNumber": 531
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "totals.push",
+          "lineNumber": 534
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "drawn.reduce",
+          "lineNumber": 534
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "totals.sort",
+          "lineNumber": 536
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.floor",
+          "lineNumber": 538
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "Math.floor",
+          "lineNumber": 539
+        },
+        {
+          "caller": "blockBootstrap",
+          "callee": "totals.filter",
+          "lineNumber": 540
+        },
+        {
+          "caller": "pct",
+          "callee": "(100 * value).toFixed",
+          "lineNumber": 545
+        },
+        {
+          "caller": "report",
+          "callee": "simulations.flatMap",
+          "lineNumber": 549
+        },
+        {
+          "caller": "report",
+          "callee": "portfolioReturns",
+          "lineNumber": 550
+        },
+        {
+          "caller": "report",
+          "callee": "equityStats",
+          "lineNumber": 551
+        },
+        {
+          "caller": "report",
+          "callee": "blockBootstrap",
+          "lineNumber": 552
+        },
+        {
+          "caller": "report",
+          "callee": "dailyReturns",
+          "lineNumber": 552
+        },
+        {
+          "caller": "report",
+          "callee": "trades.reduce",
+          "lineNumber": 553
+        },
+        {
+          "caller": "report",
+          "callee": "trades.filter",
+          "lineNumber": 555
+        },
+        {
+          "caller": "report",
+          "callee": "simulations\n    .map((simulation) => simulation.trades.reduce((sum, trade) => sum + trade.netPct, 0))\n    .filter",
+          "lineNumber": 556
+        },
+        {
+          "caller": "report",
+          "callee": "simulations\n    .map",
+          "lineNumber": 556
+        },
+        {
+          "caller": "report",
+          "callee": "simulation.trades.reduce",
+          "lineNumber": 557
+        },
+        {
+          "caller": "report",
+          "callee": "Math.max",
+          "lineNumber": 560
+        },
+        {
+          "caller": "report",
+          "callee": "positiveContributions.reduce",
+          "lineNumber": 560
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 563
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 564
+        },
+        {
+          "caller": "sum",
+          "callee": "values.reduce",
+          "lineNumber": 568
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 570
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 571
+        },
+        {
+          "caller": "report",
+          "callee": "simulation.symbol.toUpperCase().padEnd",
+          "lineNumber": 572
+        },
+        {
+          "caller": "report",
+          "callee": "simulation.symbol.toUpperCase",
+          "lineNumber": 572
+        },
+        {
+          "caller": "report",
+          "callee": "String(values.length).padStart",
+          "lineNumber": 572
+        },
+        {
+          "caller": "report",
+          "callee": "String",
+          "lineNumber": 572
+        },
+        {
+          "caller": "report",
+          "callee": "(100 * (values.length ? values.filter((trade) => trade.netPct > 0).length / values.length : 0)).toFixed(1).padStart",
+          "lineNumber": 573
+        },
+        {
+          "caller": "report",
+          "callee": "(100 * (values.length ? values.filter((trade) => trade.netPct > 0).length / values.length : 0)).toFixed",
+          "lineNumber": 573
+        },
+        {
+          "caller": "report",
+          "callee": "values.filter",
+          "lineNumber": 573
+        },
+        {
+          "caller": "report",
+          "callee": "pct(sum(\"pricePct\")).padStart",
+          "lineNumber": 574
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 574
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 574
+        },
+        {
+          "caller": "report",
+          "callee": "pct(sum(\"fundingPct\")).padStart",
+          "lineNumber": 574
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 574
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 574
+        },
+        {
+          "caller": "report",
+          "callee": "pct(sum(\"feePct\")).padStart",
+          "lineNumber": 575
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 575
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 575
+        },
+        {
+          "caller": "report",
+          "callee": "pct(sum(\"slippagePct\")).padStart",
+          "lineNumber": 575
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 575
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 575
+        },
+        {
+          "caller": "report",
+          "callee": "pct(sum(\"financingPct\")).padStart",
+          "lineNumber": 576
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 576
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 576
+        },
+        {
+          "caller": "report",
+          "callee": "pct(sum(\"netPct\")).padStart",
+          "lineNumber": 576
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 576
+        },
+        {
+          "caller": "report",
+          "callee": "sum",
+          "lineNumber": 576
+        },
+        {
+          "caller": "report",
+          "callee": "symbolR.toFixed(2).padStart",
+          "lineNumber": 577
+        },
+        {
+          "caller": "report",
+          "callee": "symbolR.toFixed",
+          "lineNumber": 577
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 580
+        },
+        {
+          "caller": "report",
+          "callee": "(100 * wins / trades.length).toFixed",
+          "lineNumber": 581
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 582
+        },
+        {
+          "caller": "report",
+          "callee": "stats.sharpe.toFixed",
+          "lineNumber": 582
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 582
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 584
+        },
+        {
+          "caller": "report",
+          "callee": "pairR.toFixed",
+          "lineNumber": 585
+        },
+        {
+          "caller": "report",
+          "callee": "portfolioR.toFixed",
+          "lineNumber": 585
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 588
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 589
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 589
+        },
+        {
+          "caller": "report",
+          "callee": "(100 * bootstrap.pPositive).toFixed",
+          "lineNumber": 590
+        },
+        {
+          "caller": "report",
+          "callee": "(100 * concentration).toFixed",
+          "lineNumber": 591
+        },
+        {
+          "caller": "report",
+          "callee": "trades.map((trade) => trade.durationHours).sort",
+          "lineNumber": 593
+        },
+        {
+          "caller": "report",
+          "callee": "trades.map",
+          "lineNumber": 593
+        },
+        {
+          "caller": "report",
+          "callee": "Math.floor",
+          "lineNumber": 594
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 596
+        },
+        {
+          "caller": "report",
+          "callee": "medianDuration.toFixed",
+          "lineNumber": 596
+        },
+        {
+          "caller": "report",
+          "callee": "maxDuration.toFixed",
+          "lineNumber": 596
+        },
+        {
+          "caller": "report",
+          "callee": "trades.map",
+          "lineNumber": 597
+        },
+        {
+          "caller": "report",
+          "callee": "Math.max",
+          "lineNumber": 598
+        },
+        {
+          "caller": "report",
+          "callee": "trades.map",
+          "lineNumber": 598
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 599
+        },
+        {
+          "caller": "report",
+          "callee": "fundingCounts.reduce",
+          "lineNumber": 600
+        },
+        {
+          "caller": "report",
+          "callee": "Math.max",
+          "lineNumber": 601
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 602
+        },
+        {
+          "caller": "report",
+          "callee": "[...trades].sort",
+          "lineNumber": 605
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 606
+        },
+        {
+          "caller": "report",
+          "callee": "topFunding.symbol.toUpperCase",
+          "lineNumber": 607
+        },
+        {
+          "caller": "report",
+          "callee": "new Date(topFunding.entryTime).toISOString",
+          "lineNumber": 608
+        },
+        {
+          "caller": "report",
+          "callee": "new Date(topFunding.exitTime).toISOString",
+          "lineNumber": 608
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 609
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 613
+        },
+        {
+          "caller": "report",
+          "callee": "new Date(phase.start).getUTCFullYear",
+          "lineNumber": 614
+        },
+        {
+          "caller": "report",
+          "callee": "new Date(phase.end).getUTCFullYear",
+          "lineNumber": 614
+        },
+        {
+          "caller": "report",
+          "callee": "Math.max",
+          "lineNumber": 615
+        },
+        {
+          "caller": "report",
+          "callee": "Date.UTC",
+          "lineNumber": 615
+        },
+        {
+          "caller": "report",
+          "callee": "Math.min",
+          "lineNumber": 616
+        },
+        {
+          "caller": "report",
+          "callee": "Date.UTC",
+          "lineNumber": 616
+        },
+        {
+          "caller": "report",
+          "callee": "Math.floor",
+          "lineNumber": 617
+        },
+        {
+          "caller": "report",
+          "callee": "Math.floor",
+          "lineNumber": 618
+        },
+        {
+          "caller": "report",
+          "callee": "equityStats",
+          "lineNumber": 619
+        },
+        {
+          "caller": "report",
+          "callee": "returns.slice",
+          "lineNumber": 619
+        },
+        {
+          "caller": "report",
+          "callee": "trades.filter",
+          "lineNumber": 620
+        },
+        {
+          "caller": "report",
+          "callee": "yearTrades.reduce",
+          "lineNumber": 623
+        },
+        {
+          "caller": "report",
+          "callee": "console.log",
+          "lineNumber": 624
+        },
+        {
+          "caller": "report",
+          "callee": "String(year).padEnd",
+          "lineNumber": 625
+        },
+        {
+          "caller": "report",
+          "callee": "String",
+          "lineNumber": 625
+        },
+        {
+          "caller": "report",
+          "callee": "String(yearTrades.length).padStart",
+          "lineNumber": 625
+        },
+        {
+          "caller": "report",
+          "callee": "String",
+          "lineNumber": 625
+        },
+        {
+          "caller": "report",
+          "callee": "pct(yearStats.total).padStart",
+          "lineNumber": 626
+        },
+        {
+          "caller": "report",
+          "callee": "pct",
+          "lineNumber": 626
+        },
+        {
+          "caller": "report",
+          "callee": "yearR.toFixed(2).padStart",
+          "lineNumber": 626
+        },
+        {
+          "caller": "report",
+          "callee": "yearR.toFixed",
+          "lineNumber": 626
+        },
+        {
+          "caller": "assertClose",
+          "callee": "Math.abs",
+          "lineNumber": 632
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 638
+        },
+        {
+          "caller": "selfTest",
+          "callee": "fairRatio",
+          "lineNumber": 638
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 639
+        },
+        {
+          "caller": "selfTest",
+          "callee": "fairRatio",
+          "lineNumber": 639
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 640
+        },
+        {
+          "caller": "selfTest",
+          "callee": "signalRoundTripCost",
+          "lineNumber": 640
+        },
+        {
+          "caller": "selfTest",
+          "callee": "hydrateFundingMarks",
+          "lineNumber": 641
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 646
+        },
+        {
+          "caller": "selfTest",
+          "callee": "simulate",
+          "lineNumber": 659
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 664
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 665
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 666
+        },
+        {
+          "caller": "selfTest",
+          "callee": "settleTrade",
+          "lineNumber": 669
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 685
+        },
+        {
+          "caller": "selfTest",
+          "callee": "assertClose",
+          "lineNumber": 686
+        },
+        {
+          "caller": "selfTest",
+          "callee": "console.log",
+          "lineNumber": 687
+        },
+        {
+          "caller": "main",
+          "callee": "args",
+          "lineNumber": 693
+        },
+        {
+          "caller": "main",
+          "callee": "selfTest",
+          "lineNumber": 695
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 703
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(phase.start).toISOString",
+          "lineNumber": 704
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(phase.end).toISOString",
+          "lineNumber": 704
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 706
+        },
+        {
+          "caller": "main",
+          "callee": "(100 * SIGNAL_FINANCING_APR).toFixed",
+          "lineNumber": 707
+        },
+        {
+          "caller": "main",
+          "callee": "(1e4 * SPOT_FEE).toFixed",
+          "lineNumber": 708
+        },
+        {
+          "caller": "main",
+          "callee": "(1e4 * PERP_FEE).toFixed",
+          "lineNumber": 708
+        },
+        {
+          "caller": "main",
+          "callee": "(1e4 * SLIPPAGE).toFixed",
+          "lineNumber": 709
+        },
+        {
+          "caller": "main",
+          "callee": "Promise.all",
+          "lineNumber": 712
+        },
+        {
+          "caller": "main",
+          "callee": "SYMBOLS.map",
+          "lineNumber": 712
+        },
+        {
+          "caller": "main",
+          "callee": "Promise.all",
+          "lineNumber": 713
+        },
+        {
+          "caller": "main",
+          "callee": "fetchBars",
+          "lineNumber": 714
+        },
+        {
+          "caller": "main",
+          "callee": "fetchBars",
+          "lineNumber": 715
+        },
+        {
+          "caller": "main",
+          "callee": "fetchBars",
+          "lineNumber": 716
+        },
+        {
+          "caller": "main",
+          "callee": "alignBars",
+          "lineNumber": 718
+        },
+        {
+          "caller": "main",
+          "callee": "fetchFunding",
+          "lineNumber": 720
+        },
+        {
+          "caller": "main",
+          "callee": "hydrateFundingMarks",
+          "lineNumber": 725
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 726
+        },
+        {
+          "caller": "main",
+          "callee": "symbol.toUpperCase",
+          "lineNumber": 727
+        },
+        {
+          "caller": "main",
+          "callee": "data.map",
+          "lineNumber": 742
+        },
+        {
+          "caller": "main",
+          "callee": "simulate",
+          "lineNumber": 743
+        },
+        {
+          "caller": "main",
+          "callee": "report",
+          "lineNumber": 745
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 32,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "scripts/turtle-live-parity.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 123,
+      "nonEmptyLines": 111,
+      "functions": [
+        {
+          "name": "main",
+          "startLine": 35,
+          "endLine": 118,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "main",
+          "callee": "parseInt",
+          "lineNumber": 36
+        },
+        {
+          "caller": "main",
+          "callee": "Math.round",
+          "lineNumber": 37
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 38
+        },
+        {
+          "caller": "main",
+          "callee": "data.set",
+          "lineNumber": 41
+        },
+        {
+          "caller": "main",
+          "callee": "fetchKlinesPaged",
+          "lineNumber": 41
+        },
+        {
+          "caller": "main",
+          "callee": "Math.min",
+          "lineNumber": 42
+        },
+        {
+          "caller": "main",
+          "callee": "[...data.values()].map",
+          "lineNumber": 42
+        },
+        {
+          "caller": "main",
+          "callee": "data.values",
+          "lineNumber": 42
+        },
+        {
+          "caller": "main",
+          "callee": "live.loadState",
+          "lineNumber": 59
+        },
+        {
+          "caller": "main",
+          "callee": "live.openPosition.bind",
+          "lineNumber": 62
+        },
+        {
+          "caller": "main",
+          "callee": "live.addUnit.bind",
+          "lineNumber": 63
+        },
+        {
+          "caller": "main",
+          "callee": "origOpen",
+          "lineNumber": 66
+        },
+        {
+          "caller": "main",
+          "callee": "seen.push",
+          "lineNumber": 67
+        },
+        {
+          "caller": "main",
+          "callee": "origAdd",
+          "lineNumber": 72
+        },
+        {
+          "caller": "main",
+          "callee": "seen.push",
+          "lineNumber": 75
+        },
+        {
+          "caller": "main",
+          "callee": "data.get(symbol)!.slice",
+          "lineNumber": 81
+        },
+        {
+          "caller": "main",
+          "callee": "data.get",
+          "lineNumber": 81
+        },
+        {
+          "caller": "main",
+          "callee": "live.cycle",
+          "lineNumber": 83
+        },
+        {
+          "caller": "main",
+          "callee": "data.get",
+          "lineNumber": 84
+        },
+        {
+          "caller": "main",
+          "callee": "live.cycle",
+          "lineNumber": 86
+        },
+        {
+          "caller": "main",
+          "callee": "data.get",
+          "lineNumber": 87
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 88
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(firstTime).toISOString().slice",
+          "lineNumber": 88
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(firstTime).toISOString",
+          "lineNumber": 88
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(lastTime).toISOString().slice",
+          "lineNumber": 88
+        },
+        {
+          "caller": "main",
+          "callee": "new Date(lastTime).toISOString",
+          "lineNumber": 88
+        },
+        {
+          "caller": "main",
+          "callee": "buildBtcGateLongs",
+          "lineNumber": 91
+        },
+        {
+          "caller": "main",
+          "callee": "data.get",
+          "lineNumber": 91
+        },
+        {
+          "caller": "main",
+          "callee": "runBooks",
+          "lineNumber": 92
+        },
+        {
+          "caller": "main",
+          "callee": "[...data.entries()].map",
+          "lineNumber": 93
+        },
+        {
+          "caller": "main",
+          "callee": "data.entries",
+          "lineNumber": 93
+        },
+        {
+          "caller": "main",
+          "callee": "res.trades\n    .filter((t) => t.entryTime > firstTime && t.entryTime <= lastTime)\n    .map",
+          "lineNumber": 96
+        },
+        {
+          "caller": "main",
+          "callee": "res.trades\n    .filter",
+          "lineNumber": 96
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 99
+        },
+        {
+          "caller": "main",
+          "callee": "seen.map",
+          "lineNumber": 101
+        },
+        {
+          "caller": "main",
+          "callee": "engine.map",
+          "lineNumber": 102
+        },
+        {
+          "caller": "main",
+          "callee": "liveMap.has",
+          "lineNumber": 105
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 105
+        },
+        {
+          "caller": "main",
+          "callee": "Math.abs",
+          "lineNumber": 106
+        },
+        {
+          "caller": "main",
+          "callee": "liveMap.get",
+          "lineNumber": 106
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "liveMap.get(k)!.toFixed",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "liveMap.get",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "w.toFixed",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "liveMap.keys",
+          "lineNumber": 111
+        },
+        {
+          "caller": "main",
+          "callee": "engMap.has",
+          "lineNumber": 111
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 111
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 113
+        },
+        {
+          "caller": "main",
+          "callee": "console.log",
+          "lineNumber": 115
+        },
+        {
+          "caller": "main",
+          "callee": "fs.rmSync",
+          "lineNumber": 116
+        },
+        {
+          "caller": "main",
+          "callee": "process.exit",
+          "lineNumber": 117
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

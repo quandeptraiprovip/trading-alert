@@ -99,6 +99,11 @@ export interface PortfolioResult {
   /** Số unit bị admit từ chối (chẩn đoán). */
   rejectedEntries: number;
   rejectedAdds: number;
+  /**
+   * Unit CÒN MỞ ở nến cuối. `trades` chỉ sinh ra lúc thoát, nên nếu thiếu danh sách này thì mọi
+   * so sánh "engine vs live" sẽ báo nhầm là live thừa lệnh (xem scripts/fast-live-parity.ts).
+   */
+  openAtEnd: OpenUnit[];
 }
 
 type Unit = { entryIndex: number; entry: number; initialSL: number; unitIndex: number; weight: number };
@@ -122,7 +127,40 @@ type Pos = {
  * Tham số mở rộng CHỈ DÙNG CHO THÍ NGHIỆM (`longExitDays` đã lên production trong `T`).
  * `0`/undefined = giữ nguyên hành vi production.
  */
-export type ExtParams = TurtleParams & { shortExitDays?: number };
+export type ExtParams = TurtleParams & {
+  shortExitDays?: number;
+  /**
+   * Số nến 4h phải TIẾP TỤC đóng dưới mức breakout đã đóng băng trước khi vào SHORT
+   * (rule của sleeve Fast — `decideFastShortConfirmation` trong fast-trend-live.ts).
+   * 0/undefined = vào ngay tại nến phá vỡ (hành vi Turtle).
+   */
+  shortConfirmBars?: number;
+  /**
+   * Phí MỘT CHIỀU của sổ này (%), ghi đè `CONFIG.costs` — cần khi hai sleeve chạy trên hai sàn
+   * khác phí trong CÙNG một danh mục (Turtle/Binance 0,05 vs Fast/MEXC 0,08 taker).
+   */
+  takerFeePct?: number;
+  slippagePct?: number;
+};
+
+/** costR cho một unit, tôn trọng phí riêng của sổ nếu có. */
+function unitCostR(p: ExtParams, entry: number, initialSL: number, entryTime: number, exitTime: number): number {
+  if (p.takerFeePct === undefined && p.slippagePct === undefined) {
+    return tradeCostR(entry, initialSL, entryTime, exitTime);
+  }
+  if (!CONFIG.costs.enabled) return 0;
+  const riskFrac = Math.abs(entry - initialSL) / entry;
+  if (riskFrac <= 0) return 0;
+  const taker = p.takerFeePct ?? CONFIG.costs.takerFeePct;
+  const slip = p.slippagePct ?? CONFIG.costs.slippagePct;
+  const feeFrac = ((taker + slip) / 100) * 2;
+  const periods = Math.max(
+    0,
+    Math.floor(exitTime / FUNDING_INTERVAL_MS) - Math.floor(entryTime / FUNDING_INTERVAL_MS),
+  );
+  const fundingFrac = (periods * CONFIG.costs.fundingPer8hPct) / 100;
+  return (feeFrac + fundingFrac) / riskFrac;
+}
 
 /** Một "sổ" độc lập = (symbol, bộ tham số). Nhiều sổ trên cùng symbol = nhiều tốc độ tín hiệu. */
 export interface Book {
@@ -162,6 +200,8 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
     idxOf: Map<number, number>;
     pos: Pos | null;
     cooldownUntil: number;
+    /** Setup SHORT đã "arm" ở nến phá vỡ, chờ xác nhận (chỉ khi p.shortConfirmBars > 0). */
+    shortSetup: { level: number; signalIndex: number } | null;
   };
   const ctxs = new Map<string, Ctx>();
   const allTimes = new Set<number>();
@@ -207,6 +247,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       idxOf,
       pos: null,
       cooldownUntil: -1,
+      shortSetup: null,
     });
   }
   const symbols = books.map((b) => b.key);
@@ -329,7 +370,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
           const pnl = pos.dir === "long" ? exitPrice - u.entry : u.entry - exitPrice;
           const grossR = risk > 0 ? pnl / risk : 0;
           const entryTime = c[u.entryIndex].openTime;
-          const costR = tradeCostR(u.entry, u.initialSL, entryTime, t);
+          const costR = unitCostR(p, u.entry, u.initialSL, entryTime, t);
           const netR = grossR - costR;
           realized += netR * u.weight;
           trades.push({
@@ -419,6 +460,38 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
         !ctx.volSma || (i > 0 && ctx.volSma[i - 1] > 0 && bar.volume >= p.confirmVolMult * ctx.volSma[i - 1]);
       const longBreakout = p.longEntrySource === "close" ? longChannel.closeHigh : longChannel.high;
       const shortBreakout = p.shortEntrySource === "close" ? shortChannel.closeLow : shortChannel.low;
+      const shortGateOk = p.allowShort && downtrend && volOk && (!p.gate || p.gate(bar.openTime, "short"));
+
+      const openShort = (entry: number, initialSL: number) => {
+        if (!(initialSL > entry)) return;
+        const w = askAdmit("entry", t, sym, "short");
+        if (w <= 0) {
+          rejectedEntries++;
+          return;
+        }
+        ctx.pos = {
+          dir: "short",
+          positionId: nextPositionId++,
+          units: [{ entryIndex: i, entry, initialSL, unitIndex: 0, weight: w }],
+          sl: initialSL,
+          extreme: bar.low,
+          midTrail: p.shortExitMode === "mid" ? Math.min(initialSL, shortMidClose) : null,
+        };
+      };
+
+      // ── SHORT có XÁC NHẬN (sleeve Fast): nến phá vỡ chỉ "arm", nến kế tiếp phải giữ dưới mức đã
+      //    đóng băng mới vào. Thứ tự trùng `FastTrendLive.step`: xác nhận → breakout LONG → arm mới.
+      const sc = p.shortConfirmBars ?? 0;
+      if (sc > 0 && ctx.shortSetup) {
+        const setup = ctx.shortSetup;
+        ctx.shortSetup = null;
+        const onConfirmBar = bar.openTime === c[setup.signalIndex].openTime + sc * TF_MS[p.tf];
+        if (onConfirmBar && shortGateOk && bar.close < setup.level) {
+          openShort(bar.close, turtleInitialStop(c, i, "short", bar.close, ctx.atr[i], p).price);
+          if (ctx.pos) return;
+        }
+        // huỷ setup → rơi xuống nhánh LONG của chính nến này (giống live)
+      }
 
       if (uptrend && volOk && (!p.gate || p.gate(bar.openTime, "long")) && bar.close > longBreakout + buf) {
         const entry = bar.close;
@@ -436,27 +509,12 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
             };
           } else rejectedEntries++;
         }
-      } else if (
-        p.allowShort &&
-        downtrend &&
-        volOk &&
-        (!p.gate || p.gate(bar.openTime, "short")) &&
-        bar.close < shortBreakout - buf
-      ) {
-        const entry = bar.close;
-        const initialSL = turtleInitialStop(c, i, "short", entry, ctx.atr[i], p).price;
-        if (initialSL > entry) {
-          const w = askAdmit("entry", t, sym, "short");
-          if (w > 0) {
-            ctx.pos = {
-              dir: "short",
-              positionId: nextPositionId++,
-              units: [{ entryIndex: i, entry, initialSL, unitIndex: 0, weight: w }],
-              sl: initialSL,
-              extreme: bar.low,
-              midTrail: p.shortExitMode === "mid" ? Math.min(initialSL, shortMidClose) : null,
-            };
-          } else rejectedEntries++;
+      } else if (shortGateOk && bar.close < shortBreakout - buf) {
+        if (sc > 0) {
+          ctx.shortSetup = { level: shortBreakout, signalIndex: i };
+        } else {
+          const entry = bar.close;
+          openShort(entry, turtleInitialStop(c, i, "short", entry, ctx.atr[i], p).price);
         }
       }
     }
@@ -483,7 +541,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
     equity.push({ time: t, realized, mtm: realized + unreal, openUnits: openCount, longUnits, shortUnits });
   }
 
-  return { trades, equity, rejectedEntries, rejectedAdds };
+  return { trades, equity, rejectedEntries, rejectedAdds, openAtEnd: snapshotOpen() };
 }
 
 // ─────────────────────────────────────────────

@@ -17,15 +17,17 @@
  */
 import fs from "fs";
 import path from "path";
-import { fetchKlinesPaged } from "./backtest";
+import { fetchFuturesKlinesPaged } from "./backtest";
 import { Candle, TF_MS } from "./strategy";
 import { T, buildBtcGateLongs, ema, atrSeries, priorDonchian, turtleInitialStop } from "./turtle";
 import { BinanceFutures } from "./binance-futures";
 import { LiveTrader, PosInfo } from "./live-trade";
 import { TelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn } from "./telegram";
+import { atomicWriteFileSync } from "./atomic-file";
 
-const STATE_FILE = path.join(process.cwd(), "turtle-state.json");
-const JOURNAL_FILE = path.join(process.cwd(), "turtle-trades.jsonl");
+const DATA_DIR = path.resolve(process.env.TRADING_DATA_DIR?.trim() || process.cwd());
+const STATE_FILE = path.join(DATA_DIR, "turtle-state.json");
+const JOURNAL_FILE = path.join(DATA_DIR, "turtle-trades.jsonl");
 
 const TF = T.tf; // 4h
 const tfMs = TF_MS[TF];
@@ -104,7 +106,7 @@ export class TurtleLive {
   // ── State & journal ─────────────────────────────────────────────────────
   private persist(): void {
     try {
-      fs.writeFileSync(STATE_FILE, JSON.stringify([...this.states.values()], null, 2));
+      atomicWriteFileSync(STATE_FILE, JSON.stringify([...this.states.values()], null, 2));
     } catch (e) {
       console.error("[Turtle] ghi turtle-state.json lỗi:", e instanceof Error ? e.message : e);
     }
@@ -613,7 +615,7 @@ export class TurtleLive {
 
   // ── Dữ liệu ──────────────────────────────────────────────────────────────
   private async fetchClosed(symbol: string): Promise<Candle[]> {
-    const c = await fetchKlinesPaged(symbol, TF, FETCH_BARS);
+    const c = await fetchFuturesKlinesPaged(symbol, TF, FETCH_BARS);
     const now = Date.now();
     while (c.length && c[c.length - 1].openTime + tfMs > now) c.pop(); // bỏ nến chưa đóng
     return c;

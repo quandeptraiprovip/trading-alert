@@ -1,0 +1,3132 @@
+{
+  "scriptCompleted": true,
+  "entryPointCandidates": [
+    {
+      "id": "document:README.md",
+      "score": 5,
+      "name": "README.md",
+      "summary": "Tài liệu tổng quan vận hành bot swing alert đa coin, kiến trúc chiến lược SMC/Key Volume/Turtle/Fast Trend, kết quả backtest và các giới hạn overfit. Đồng thời hướng dẫn Telegram, giao dịch Binance/MEXC, Docker và dashboard."
+    },
+    {
+      "id": "file:btc-alert-bot.ts",
+      "score": 3,
+      "name": "btc-alert-bot.ts",
+      "summary": "Entry point của bot cảnh báo và giao dịch live; điều phối dữ liệu nến, signal strategy, state persistence, exchange execution, health monitoring và Telegram commands."
+    },
+    {
+      "id": "file:dashboard-server.ts",
+      "score": 3,
+      "name": "dashboard-server.ts",
+      "summary": "Phục vụ dashboard read-only cho bot, kết hợp state/journal cục bộ với dữ liệu tài khoản Binance để hiển thị vị thế và thống kê giao dịch."
+    },
+    {
+      "id": "file:exp-turtle-levers.ts",
+      "score": 3,
+      "name": "exp-turtle-levers.ts",
+      "summary": "Quét các lever của Turtle strategy trên dữ liệu nhiều symbol và định dạng bảng metric để so sánh candidate."
+    },
+    {
+      "id": "file:live-state.ts",
+      "score": 3,
+      "name": "live-state.ts",
+      "summary": "Persist trạng thái vị thế live qua restart và ghi journal JSONL cho entry/exit để đối chiếu vận hành với backtest."
+    }
+  ],
+  "fanInRanking": [
+    {
+      "id": "file:strategy.ts",
+      "fanIn": 75,
+      "name": "strategy.ts"
+    },
+    {
+      "id": "file:backtest.ts",
+      "fanIn": 40,
+      "name": "backtest.ts"
+    },
+    {
+      "id": "file:turtle.ts",
+      "fanIn": 27,
+      "name": "turtle.ts"
+    },
+    {
+      "id": "file:load-env.ts",
+      "fanIn": 23,
+      "name": "load-env.ts"
+    },
+    {
+      "id": "file:kline-fetch.ts",
+      "fanIn": 18,
+      "name": "kline-fetch.ts"
+    },
+    {
+      "id": "file:scripts/portfolio-engine.ts",
+      "fanIn": 12,
+      "name": "portfolio-engine.ts"
+    },
+    {
+      "id": "file:scripts/portfolio-equivalence.ts",
+      "fanIn": 11,
+      "name": "portfolio-equivalence.ts"
+    },
+    {
+      "id": "file:binance-futures.ts",
+      "fanIn": 6,
+      "name": "binance-futures.ts"
+    },
+    {
+      "id": "file:telegram.ts",
+      "fanIn": 5,
+      "name": "telegram.ts"
+    },
+    {
+      "id": "function:alt-trend.ts:runAltTrendPortfolio",
+      "fanIn": 5,
+      "name": "runAltTrendPortfolio"
+    },
+    {
+      "id": "function:alt-trend.ts:selectAltTrendCandidates",
+      "fanIn": 5,
+      "name": "selectAltTrendCandidates"
+    },
+    {
+      "id": "function:smallcap-research.ts:evaluateSmallCapPeriod",
+      "fanIn": 5,
+      "name": "evaluateSmallCapPeriod"
+    },
+    {
+      "id": "function:smallcap-reversal.ts:buildSmallCapReversalSignals",
+      "fanIn": 5,
+      "name": "buildSmallCapReversalSignals"
+    },
+    {
+      "id": "document:planning/mexc-futures/claude-synthesized-spec.md",
+      "fanIn": 4,
+      "name": "claude-synthesized-spec.md"
+    },
+    {
+      "id": "file:key-volume.ts",
+      "fanIn": 4,
+      "name": "key-volume.ts"
+    },
+    {
+      "id": "file:live-trade.ts",
+      "fanIn": 4,
+      "name": "live-trade.ts"
+    },
+    {
+      "id": "file:smallcap-research.ts",
+      "fanIn": 4,
+      "name": "smallcap-research.ts"
+    },
+    {
+      "id": "function:alt-trend.ts:evaluateTradability",
+      "fanIn": 4,
+      "name": "evaluateTradability"
+    },
+    {
+      "id": "function:smallcap-reversal.ts:quotePassiveOrder",
+      "fanIn": 4,
+      "name": "quotePassiveOrder"
+    },
+    {
+      "id": "function:smallcap-reversal.ts:simulateConservativeMakerFill",
+      "fanIn": 4,
+      "name": "simulateConservativeMakerFill"
+    }
+  ],
+  "fanOutRanking": [
+    {
+      "id": "file:key-volume.ts",
+      "fanOut": 58,
+      "name": "key-volume.ts"
+    },
+    {
+      "id": "file:strategy.ts",
+      "fanOut": 44,
+      "name": "strategy.ts"
+    },
+    {
+      "id": "file:btc-alert-bot.ts",
+      "fanOut": 38,
+      "name": "btc-alert-bot.ts"
+    },
+    {
+      "id": "file:telegram.ts",
+      "fanOut": 31,
+      "name": "telegram.ts"
+    },
+    {
+      "id": "file:scripts/exp-portfolio-caps.ts",
+      "fanOut": 21,
+      "name": "exp-portfolio-caps.ts"
+    },
+    {
+      "id": "file:turtle.ts",
+      "fanOut": 20,
+      "name": "turtle.ts"
+    },
+    {
+      "id": "file:scripts/extreme-volume-retest-audit.ts",
+      "fanOut": 18,
+      "name": "extreme-volume-retest-audit.ts"
+    },
+    {
+      "id": "file:scripts/turtle-era-diagnosis.ts",
+      "fanOut": 17,
+      "name": "turtle-era-diagnosis.ts"
+    },
+    {
+      "id": "file:scripts/portfolio-engine.ts",
+      "fanOut": 16,
+      "name": "portfolio-engine.ts"
+    },
+    {
+      "id": "file:test-key-volume.ts",
+      "fanOut": 16,
+      "name": "test-key-volume.ts"
+    },
+    {
+      "id": "file:scripts/random-maturity-carry.ts",
+      "fanOut": 15,
+      "name": "random-maturity-carry.ts"
+    },
+    {
+      "id": "file:key-volume-backtest.ts",
+      "fanOut": 14,
+      "name": "key-volume-backtest.ts"
+    },
+    {
+      "id": "file:mexc-futures.ts",
+      "fanOut": 14,
+      "name": "mexc-futures.ts"
+    },
+    {
+      "id": "file:backtest.ts",
+      "fanOut": 13,
+      "name": "backtest.ts"
+    },
+    {
+      "id": "file:fast-trend-live.ts",
+      "fanOut": 13,
+      "name": "fast-trend-live.ts"
+    },
+    {
+      "id": "file:alt-trend.ts",
+      "fanOut": 12,
+      "name": "alt-trend.ts"
+    },
+    {
+      "id": "file:scripts/exp-portfolio-levers.ts",
+      "fanOut": 12,
+      "name": "exp-portfolio-levers.ts"
+    },
+    {
+      "id": "file:kline-fetch.ts",
+      "fanOut": 11,
+      "name": "kline-fetch.ts"
+    },
+    {
+      "id": "file:scripts/cross-sectional-basis.ts",
+      "fanOut": 11,
+      "name": "cross-sectional-basis.ts"
+    },
+    {
+      "id": "file:scripts/funding-tail-reversal.ts",
+      "fanOut": 10,
+      "name": "funding-tail-reversal.ts"
+    }
+  ],
+  "bfsTraversal": {
+    "startNode": "file:btc-alert-bot.ts",
+    "order": [
+      "file:btc-alert-bot.ts",
+      "file:backtest.ts",
+      "file:binance-futures.ts",
+      "file:fast-trend-live.ts",
+      "file:live-state.ts",
+      "file:live-trade.ts",
+      "file:load-env.ts",
+      "file:mexc-fast-execution.ts",
+      "file:mexc-futures.ts",
+      "file:strategy.ts",
+      "file:telegram.ts",
+      "file:turtle-live.ts",
+      "file:turtle.ts",
+      "file:fast-trend-execution.ts"
+    ],
+    "depthMap": {
+      "file:btc-alert-bot.ts": 0,
+      "file:backtest.ts": 1,
+      "file:binance-futures.ts": 1,
+      "file:fast-trend-live.ts": 1,
+      "file:live-state.ts": 1,
+      "file:live-trade.ts": 1,
+      "file:load-env.ts": 1,
+      "file:mexc-fast-execution.ts": 1,
+      "file:mexc-futures.ts": 1,
+      "file:strategy.ts": 1,
+      "file:telegram.ts": 1,
+      "file:turtle-live.ts": 1,
+      "file:turtle.ts": 1,
+      "file:fast-trend-execution.ts": 2
+    },
+    "byDepth": {
+      "0": [
+        "file:btc-alert-bot.ts"
+      ],
+      "1": [
+        "file:backtest.ts",
+        "file:binance-futures.ts",
+        "file:fast-trend-live.ts",
+        "file:live-state.ts",
+        "file:live-trade.ts",
+        "file:load-env.ts",
+        "file:mexc-fast-execution.ts",
+        "file:mexc-futures.ts",
+        "file:strategy.ts",
+        "file:telegram.ts",
+        "file:turtle-live.ts",
+        "file:turtle.ts"
+      ],
+      "2": [
+        "file:fast-trend-execution.ts"
+      ]
+    }
+  },
+  "nonCodeFiles": {
+    "documentation": [
+      {
+        "id": "document:AGENTS.md",
+        "name": "AGENTS.md",
+        "type": "document",
+        "summary": "Quy định cách coding agent làm việc trong repo: nêu giả định trước khi sửa, ưu tiên giải pháp đơn giản, thay đổi surgical và xác minh theo tiêu chí thành công."
+      },
+      {
+        "id": "document:CLAUDE.md",
+        "name": "CLAUDE.md",
+        "type": "document",
+        "summary": "Bản hướng dẫn dành cho Claude khi thay đổi code, nhấn mạnh việc làm rõ yêu cầu, tránh overengineering, giữ diff nhỏ và gắn từng bước với phép kiểm tra cụ thể."
+      },
+      {
+        "id": "document:planning/alt-trend-implementation-2026-08.md",
+        "name": "alt-trend-implementation-2026-08.md",
+        "type": "document",
+        "summary": "Định nghĩa ranh giới triển khai và research protocol cho Alt Trend, từ current-universe scanner đến backtest, promotion gate và bước verification."
+      },
+      {
+        "id": "document:planning/fxdream-keyvolume-method.md",
+        "name": "fxdream-keyvolume-method.md",
+        "type": "document",
+        "summary": "Đặc tả nghiên cứu toàn diện phương pháp Key Volume của FX Dream Trading, bao gồm quy trình top-down, setup, entry/SL/TP, quản trị vốn và khả năng số hóa. Tài liệu còn audit sai lệch giữa nguồn gốc với code, kết quả ablation và benchmark sau remediation."
+      },
+      {
+        "id": "document:planning/independent-strategy-research-2026-08.md",
+        "name": "independent-strategy-research-2026-08.md",
+        "type": "document",
+        "summary": "Tổng hợp nghiên cứu các strategy crypto độc lập với bot hiện tại, ưu tiên staggered cross-sectional momentum sau kiểm định 2.000 ngày trên tám major. Tài liệu cũng ghi nhận edge carry đã decay và loại các giả thuyết funding-tail, basis cùng order-flow không đạt tiêu chí."
+      },
+      {
+        "id": "document:planning/mexc-futures/claude-interview.md",
+        "name": "claude-interview.md",
+        "type": "document",
+        "summary": "Bộ câu hỏi và giả định đã chốt cho tích hợp MEXC Futures, bao quát routing strategy, nguồn market data, account mode, protection policy, network ambiguity, rollout và security."
+      },
+      {
+        "id": "document:planning/mexc-futures/claude-plan.md",
+        "name": "claude-plan.md",
+        "type": "document",
+        "summary": "Implementation plan theo giai đoạn để chuyển Fast Trend sang MEXC Futures: sửa state safety, tạo execution boundary, xây adapter, recovery/reconciliation và tách venue trong bot. Kế hoạch kèm test matrix, shadow rollout, mainnet canary và definition of done."
+      },
+      {
+        "id": "document:planning/mexc-futures/claude-research.md",
+        "name": "claude-research.md",
+        "type": "document",
+        "summary": "Nghiên cứu nền cho tích hợp MEXC Futures, đối chiếu coupling hiện tại và các safety gap của Fast Trend với API chính thức. Phạm vi gồm authentication, metadata/sizing, order idempotency, WebSocket reconciliation, rate limits, fees và architecture decision."
+      },
+      {
+        "id": "document:planning/mexc-futures/claude-synthesized-spec.md",
+        "name": "claude-synthesized-spec.md",
+        "type": "document",
+        "summary": "Đặc tả tổng hợp các functional requirement cho execution MEXC-native, recovery sau partial failure, phân tách ownership/risk và giữ nguyên semantics của strategy. Tài liệu cũng định nghĩa state/audit schema, preflight gate, rollout requirement, acceptance criteria và non-goals."
+      },
+      {
+        "id": "document:planning/mexc-futures/mexc-futures-integration.md",
+        "name": "mexc-futures-integration.md",
+        "type": "document",
+        "summary": "Đặc tả ban đầu cho việc route Fast Trend sang MEXC Futures, xác định mục tiêu, signal/risk intent, yêu cầu an toàn, rollout và những nội dung ngoài phạm vi."
+      },
+      {
+        "id": "document:planning/mexc-futures/reviews/external-review-status.md",
+        "name": "external-review-status.md",
+        "type": "document",
+        "summary": "Biên bản trạng thái external review cho kế hoạch MEXC Futures: Gemini bị bỏ qua do thiếu CLI, còn Codex thoát trước khi tạo review. Việc tích hợp review và chia section đang tạm dừng chờ quyết định retry hoặc skip rõ ràng."
+      },
+      {
+        "id": "document:planning/portfolio-risk-and-exit-2026-08.md",
+        "name": "portfolio-risk-and-exit-2026-08.md",
+        "type": "document",
+        "summary": "Ghi lại quyết định cải tiến Turtle ở cấp danh mục: heat-decay theo cùng hướng, tách kênh thoát long và giảm số unit pyramid. Kết quả được đối chiếu bằng audit, placebo test, rollback criteria và hướng dẫn tái lập."
+      },
+      {
+        "id": "document:planning/random-maturity-carry-protocol-2026-08.md",
+        "name": "random-maturity-carry-protocol-2026-08.md",
+        "type": "document",
+        "summary": "Pre-registered protocol cho chiến lược random-maturity spot–perpetual carry, khóa trước giả thuyết, implementation, các giai đoạn time isolation và robustness gates trước validation."
+      },
+      {
+        "id": "document:planning/remediation-plan-2026-08.md",
+        "name": "remediation-plan-2026-08.md",
+        "type": "document",
+        "summary": "Kế hoạch remediation sau chuỗi thua, tách rõ sửa lỗi cấu trúc khỏi thay đổi có tuyên bố alpha để chống overfit. Lộ trình ưu tiên dedup xuyên sàn, risk budget theo tổng equity, trần cùng hướng, forensic journal và shadow testing có preregistration."
+      },
+      {
+        "id": "document:planning/smallcap-native-implementation-2026-08.md",
+        "name": "smallcap-native-implementation-2026-08.md",
+        "type": "document",
+        "summary": "Mô tả implementation research biệt lập cho small-cap gồm hai engine reversal và supply, offline runner cùng các bước verification để tránh ảnh hưởng đường chạy production."
+      },
+      {
+        "id": "document:planning/trend-method-remediation-research-2026-08.md",
+        "name": "trend-method-remediation-research-2026-08.md",
+        "type": "document",
+        "summary": "Phân tích điểm yếu của Turtle và Fast Trend sau các lệnh thua, liệt kê biến thể đã kiểm tra và đánh giá mức đa dạng hóa giữa hai sleeve. Tài liệu chốt các thay đổi đã chấp nhận, các hạng mục còn chờ và ràng buộc Binance signal/MEXC execution."
+      },
+      {
+        "id": "document:README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "Tài liệu tổng quan vận hành bot swing alert đa coin, kiến trúc chiến lược SMC/Key Volume/Turtle/Fast Trend, kết quả backtest và các giới hạn overfit. Đồng thời hướng dẫn Telegram, giao dịch Binance/MEXC, Docker và dashboard."
+      }
+    ],
+    "infrastructure": [
+      {
+        "id": "service:.dockerignore",
+        "name": ".dockerignore",
+        "type": "service",
+        "summary": "Giới hạn Docker build context bằng cách loại dependency, build artifacts, runtime state, IDE metadata và secrets, đồng thời vẫn cho phép `.env.example`."
+      },
+      {
+        "id": "service:docker-compose.yml",
+        "name": "docker-compose.yml",
+        "type": "service",
+        "summary": "Điều phối ba container dùng chung image cho swing bot, Chart UI và trading dashboard, kèm env files, DNS, state volumes, restart policy và port binding an toàn."
+      },
+      {
+        "id": "service:Dockerfile",
+        "name": "Dockerfile",
+        "type": "service",
+        "summary": "Định nghĩa multi-stage Docker build dùng esbuild để bundle bot, Chart UI và dashboard thành các file Node.js độc lập, rồi tạo runtime image tối giản với timezone Việt Nam."
+      },
+      {
+        "id": "service:Dockerfile:builder",
+        "name": "builder",
+        "type": "service",
+        "summary": "Builder stage cài tối thiểu axios, dotenv và esbuild rồi bundle ba entry point TypeScript cho môi trường Node.js 20."
+      },
+      {
+        "id": "service:Dockerfile:node",
+        "name": "node",
+        "type": "service",
+        "summary": "Runtime stage nhận các bundle và public assets từ builder, expose cổng 3847/3848 và mặc định khởi chạy bot alert."
+      }
+    ],
+    "data": [],
+    "config": [
+      {
+        "id": "config:.env.example",
+        "name": ".env.example",
+        "type": "config",
+        "summary": "Mẫu biến môi trường cho Telegram, Binance Futures, MEXC Futures, các sleeve SMC/Turtle/Fast Trend và giới hạn rủi ro danh mục. Các cờ giao dịch được thiết kế theo hướng fail-closed, còn API credentials chỉ xuất hiện dưới dạng placeholder."
+      },
+      {
+        "id": "config:.ua/config.json",
+        "name": "config.json",
+        "type": "config",
+        "summary": "Cấu hình Understand Anything yêu cầu sinh nội dung phân tích bằng tiếng Việt."
+      },
+      {
+        "id": "config:package.json",
+        "name": "package.json",
+        "type": "config",
+        "summary": "Manifest npm của `btc-alert-bot`, khai báo các lệnh chạy bot, dashboard, test và backtest cùng runtime Next.js, React, Axios, WebSocket và dotenv."
+      },
+      {
+        "id": "config:tsconfig.json",
+        "name": "tsconfig.json",
+        "type": "config",
+        "summary": "Cấu hình TypeScript strict cho cả script Node.js và ứng dụng Next.js, dùng CommonJS, JSX preserve, incremental checking và `ts-node` ở chế độ transpile-only."
+      },
+      {
+        "id": "config:vercel.json",
+        "name": "vercel.json",
+        "type": "config",
+        "summary": "Cấu hình Vercel xác định framework Next.js và cố định lệnh cài dependency cùng lệnh build production."
+      }
+    ]
+  },
+  "clusters": [],
+  "layers": {
+    "count": 8,
+    "list": [
+      {
+        "id": "layer:strategy-core",
+        "name": "Lõi chiến lược và mô phỏng",
+        "description": "Chứa các mô hình SMC, Turtle, Key Volume, alt/small-cap, dữ liệu nến và engine mô phỏng dùng chung để sinh tín hiệu và đo hiệu suất."
+      },
+      {
+        "id": "layer:live-execution",
+        "name": "Thực thi giao dịch trực tiếp",
+        "description": "Điều phối bot, quản lý trạng thái và rủi ro lệnh, kết nối Binance/MEXC và phát thông báo Telegram trong runtime giao dịch."
+      },
+      {
+        "id": "layer:research-audit",
+        "name": "Nghiên cứu và kiểm toán định lượng",
+        "description": "Tập hợp các sweep, ablation, stress test, phân tích overfit, attribution và nghiên cứu danh mục dùng để thẩm định các phương pháp giao dịch."
+      },
+      {
+        "id": "layer:test-validation",
+        "name": "Kiểm thử và đối chiếu parity",
+        "description": "Kiểm tra hồi quy, no-lookahead, mô phỏng execution và sự tương đương giữa tín hiệu live với engine nghiên cứu."
+      },
+      {
+        "id": "layer:monitoring-ui",
+        "name": "Giám sát và giao diện",
+        "description": "Cung cấp dashboard, API dữ liệu biểu đồ và giao diện Next.js/HTML để quan sát kết quả backtest và trạng thái hệ thống."
+      },
+      {
+        "id": "layer:configuration",
+        "name": "Cấu hình và công cụ build",
+        "description": "Quản lý biến môi trường, cấu hình Node/TypeScript/Next/Vercel, metadata phân tích codebase và cache build sinh tự động."
+      },
+      {
+        "id": "layer:infrastructure",
+        "name": "Hạ tầng triển khai",
+        "description": "Định nghĩa build nhiều giai đoạn, runtime container, Docker Compose và phạm vi build cho dịch vụ cảnh báo giao dịch."
+      },
+      {
+        "id": "layer:documentation",
+        "name": "Tài liệu và kế hoạch",
+        "description": "Ghi lại kiến trúc vận hành, phương pháp nghiên cứu, kế hoạch khắc phục, đặc tả MEXC và hướng dẫn cộng tác của dự án."
+      }
+    ]
+  },
+  "nodeSummaryIndex": {
+    "class:binance-futures.ts:BinanceFutures": {
+      "name": "BinanceFutures",
+      "type": "class",
+      "summary": "Typed client bao bọc Binance Futures REST API, chịu trách nhiệm ký request, đồng bộ thời gian và thao tác account/order."
+    },
+    "class:fast-trend-live.ts:FastTrendLive": {
+      "name": "FastTrendLive",
+      "type": "class",
+      "summary": "State machine vận hành Fast Trend theo từng candle, quản lý setup, vị thế, persistence và execution side effects."
+    },
+    "class:live-trade.ts:LiveTrader": {
+      "name": "LiveTrader",
+      "type": "class",
+      "summary": "Dịch signal intent thành lệnh Binance thực tế với position sizing, stop replacement, reconcile và xử lý lỗi an toàn."
+    },
+    "class:mexc-fast-execution.ts:MexcFastExecution": {
+      "name": "MexcFastExecution",
+      "type": "class",
+      "summary": "Adapter triển khai contract `FastExecution` trên MEXC với operation key idempotent và protection order."
+    },
+    "class:mexc-futures.ts:MexcApiError": {
+      "name": "MexcApiError",
+      "type": "class",
+      "summary": "Error type giữ HTTP status và payload của lỗi MEXC để caller phân loại sự cố API."
+    },
+    "class:mexc-futures.ts:MexcFutures": {
+      "name": "MexcFutures",
+      "type": "class",
+      "summary": "Typed client cho MEXC Futures REST API, bao gồm auth, market/account queries và order lifecycle."
+    },
+    "class:strategy.ts:SetupTracker": {
+      "name": "SetupTracker",
+      "type": "class",
+      "summary": "Theo dõi setup đang arm theo symbol, quản lý thời hạn và chuyển trạng thái khi điều kiện entry được xác nhận."
+    },
+    "class:turtle-live.ts:TurtleLive": {
+      "name": "TurtleLive",
+      "type": "class",
+      "summary": "State machine chạy Turtle strategy live, quản lý breakout entry, pyramid, trailing stop và thông báo theo symbol."
+    },
+    "config:.env.example": {
+      "name": ".env.example",
+      "type": "config",
+      "summary": "Mẫu biến môi trường cho Telegram, Binance Futures, MEXC Futures, các sleeve SMC/Turtle/Fast Trend và giới hạn rủi ro danh mục. Các cờ giao dịch được thiết kế theo hướng fail-closed, còn API credentials chỉ xuất hiện dưới dạng placeholder."
+    },
+    "config:.ua/config.json": {
+      "name": "config.json",
+      "type": "config",
+      "summary": "Cấu hình Understand Anything yêu cầu sinh nội dung phân tích bằng tiếng Việt."
+    },
+    "config:package.json": {
+      "name": "package.json",
+      "type": "config",
+      "summary": "Manifest npm của `btc-alert-bot`, khai báo các lệnh chạy bot, dashboard, test và backtest cùng runtime Next.js, React, Axios, WebSocket và dotenv."
+    },
+    "config:tsconfig.json": {
+      "name": "tsconfig.json",
+      "type": "config",
+      "summary": "Cấu hình TypeScript strict cho cả script Node.js và ứng dụng Next.js, dùng CommonJS, JSX preserve, incremental checking và `ts-node` ở chế độ transpile-only."
+    },
+    "config:vercel.json": {
+      "name": "vercel.json",
+      "type": "config",
+      "summary": "Cấu hình Vercel xác định framework Next.js và cố định lệnh cài dependency cùng lệnh build production."
+    },
+    "document:AGENTS.md": {
+      "name": "AGENTS.md",
+      "type": "document",
+      "summary": "Quy định cách coding agent làm việc trong repo: nêu giả định trước khi sửa, ưu tiên giải pháp đơn giản, thay đổi surgical và xác minh theo tiêu chí thành công."
+    },
+    "document:CLAUDE.md": {
+      "name": "CLAUDE.md",
+      "type": "document",
+      "summary": "Bản hướng dẫn dành cho Claude khi thay đổi code, nhấn mạnh việc làm rõ yêu cầu, tránh overengineering, giữ diff nhỏ và gắn từng bước với phép kiểm tra cụ thể."
+    },
+    "document:planning/alt-trend-implementation-2026-08.md": {
+      "name": "alt-trend-implementation-2026-08.md",
+      "type": "document",
+      "summary": "Định nghĩa ranh giới triển khai và research protocol cho Alt Trend, từ current-universe scanner đến backtest, promotion gate và bước verification."
+    },
+    "document:planning/fxdream-keyvolume-method.md": {
+      "name": "fxdream-keyvolume-method.md",
+      "type": "document",
+      "summary": "Đặc tả nghiên cứu toàn diện phương pháp Key Volume của FX Dream Trading, bao gồm quy trình top-down, setup, entry/SL/TP, quản trị vốn và khả năng số hóa. Tài liệu còn audit sai lệch giữa nguồn gốc với code, kết quả ablation và benchmark sau remediation."
+    },
+    "document:planning/independent-strategy-research-2026-08.md": {
+      "name": "independent-strategy-research-2026-08.md",
+      "type": "document",
+      "summary": "Tổng hợp nghiên cứu các strategy crypto độc lập với bot hiện tại, ưu tiên staggered cross-sectional momentum sau kiểm định 2.000 ngày trên tám major. Tài liệu cũng ghi nhận edge carry đã decay và loại các giả thuyết funding-tail, basis cùng order-flow không đạt tiêu chí."
+    },
+    "document:planning/mexc-futures/claude-interview.md": {
+      "name": "claude-interview.md",
+      "type": "document",
+      "summary": "Bộ câu hỏi và giả định đã chốt cho tích hợp MEXC Futures, bao quát routing strategy, nguồn market data, account mode, protection policy, network ambiguity, rollout và security."
+    },
+    "document:planning/mexc-futures/claude-plan.md": {
+      "name": "claude-plan.md",
+      "type": "document",
+      "summary": "Implementation plan theo giai đoạn để chuyển Fast Trend sang MEXC Futures: sửa state safety, tạo execution boundary, xây adapter, recovery/reconciliation và tách venue trong bot. Kế hoạch kèm test matrix, shadow rollout, mainnet canary và definition of done."
+    },
+    "document:planning/mexc-futures/claude-research.md": {
+      "name": "claude-research.md",
+      "type": "document",
+      "summary": "Nghiên cứu nền cho tích hợp MEXC Futures, đối chiếu coupling hiện tại và các safety gap của Fast Trend với API chính thức. Phạm vi gồm authentication, metadata/sizing, order idempotency, WebSocket reconciliation, rate limits, fees và architecture decision."
+    },
+    "document:planning/mexc-futures/claude-synthesized-spec.md": {
+      "name": "claude-synthesized-spec.md",
+      "type": "document",
+      "summary": "Đặc tả tổng hợp các functional requirement cho execution MEXC-native, recovery sau partial failure, phân tách ownership/risk và giữ nguyên semantics của strategy. Tài liệu cũng định nghĩa state/audit schema, preflight gate, rollout requirement, acceptance criteria và non-goals."
+    },
+    "document:planning/mexc-futures/mexc-futures-integration.md": {
+      "name": "mexc-futures-integration.md",
+      "type": "document",
+      "summary": "Đặc tả ban đầu cho việc route Fast Trend sang MEXC Futures, xác định mục tiêu, signal/risk intent, yêu cầu an toàn, rollout và những nội dung ngoài phạm vi."
+    },
+    "document:planning/mexc-futures/reviews/external-review-status.md": {
+      "name": "external-review-status.md",
+      "type": "document",
+      "summary": "Biên bản trạng thái external review cho kế hoạch MEXC Futures: Gemini bị bỏ qua do thiếu CLI, còn Codex thoát trước khi tạo review. Việc tích hợp review và chia section đang tạm dừng chờ quyết định retry hoặc skip rõ ràng."
+    },
+    "document:planning/portfolio-risk-and-exit-2026-08.md": {
+      "name": "portfolio-risk-and-exit-2026-08.md",
+      "type": "document",
+      "summary": "Ghi lại quyết định cải tiến Turtle ở cấp danh mục: heat-decay theo cùng hướng, tách kênh thoát long và giảm số unit pyramid. Kết quả được đối chiếu bằng audit, placebo test, rollback criteria và hướng dẫn tái lập."
+    },
+    "document:planning/random-maturity-carry-protocol-2026-08.md": {
+      "name": "random-maturity-carry-protocol-2026-08.md",
+      "type": "document",
+      "summary": "Pre-registered protocol cho chiến lược random-maturity spot–perpetual carry, khóa trước giả thuyết, implementation, các giai đoạn time isolation và robustness gates trước validation."
+    },
+    "document:planning/remediation-plan-2026-08.md": {
+      "name": "remediation-plan-2026-08.md",
+      "type": "document",
+      "summary": "Kế hoạch remediation sau chuỗi thua, tách rõ sửa lỗi cấu trúc khỏi thay đổi có tuyên bố alpha để chống overfit. Lộ trình ưu tiên dedup xuyên sàn, risk budget theo tổng equity, trần cùng hướng, forensic journal và shadow testing có preregistration."
+    },
+    "document:planning/smallcap-native-implementation-2026-08.md": {
+      "name": "smallcap-native-implementation-2026-08.md",
+      "type": "document",
+      "summary": "Mô tả implementation research biệt lập cho small-cap gồm hai engine reversal và supply, offline runner cùng các bước verification để tránh ảnh hưởng đường chạy production."
+    },
+    "document:planning/trend-method-remediation-research-2026-08.md": {
+      "name": "trend-method-remediation-research-2026-08.md",
+      "type": "document",
+      "summary": "Phân tích điểm yếu của Turtle và Fast Trend sau các lệnh thua, liệt kê biến thể đã kiểm tra và đánh giá mức đa dạng hóa giữa hai sleeve. Tài liệu chốt các thay đổi đã chấp nhận, các hạng mục còn chờ và ràng buộc Binance signal/MEXC execution."
+    },
+    "document:README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "Tài liệu tổng quan vận hành bot swing alert đa coin, kiến trúc chiến lược SMC/Key Volume/Turtle/Fast Trend, kết quả backtest và các giới hạn overfit. Đồng thời hướng dẫn Telegram, giao dịch Binance/MEXC, Docker và dashboard."
+    },
+    "file:.ua/.understandignore": {
+      "name": ".understandignore",
+      "type": "file",
+      "summary": "Mẫu ignore cho Understand Anything, ghi lại default exclusions và các pattern gợi ý cho secrets, runtime state, logs, scripts cùng test files. Toàn bộ rule dự án hiện vẫn được comment nên scanner không loại thêm file nào."
+    },
+    "file:alt-trend.ts": {
+      "name": "alt-trend.ts",
+      "type": "file",
+      "summary": "Triển khai research-only dual-momentum engine cho altcoin perpetual thanh khoản cao, gồm tradability gate, BTC regime filter, relative-strength ranking và mô phỏng portfolio với stop/cost/delist."
+    },
+    "file:app/api/chart/route.ts": {
+      "name": "route.ts",
+      "type": "file",
+      "summary": "Cung cấp route handler GET của Next.js để dựng payload biểu đồ theo số ngày đã giới hạn, trả JSON không cache và chuẩn hóa lỗi thành HTTP 500."
+    },
+    "file:app/layout.tsx": {
+      "name": "layout.tsx",
+      "type": "file",
+      "summary": "Root layout tối giản của Next.js App Router, đặt ngôn ngữ tài liệu là tiếng Việt và render toàn bộ route content trong thẻ `body`."
+    },
+    "file:backtest.ts": {
+      "name": "backtest.ts",
+      "type": "file",
+      "summary": "Cung cấp engine backtest chung: tải dữ liệu nến, mô phỏng giao dịch, bootstrap và Monte Carlo để đánh giá độ bền của chiến lược."
+    },
+    "file:binance-futures.ts": {
+      "name": "binance-futures.ts",
+      "type": "file",
+      "summary": "Cung cấp typed REST client cho Binance Futures, bao gồm ký request, đồng bộ thời gian, đọc tài khoản/vị thế và quản lý order."
+    },
+    "file:btc-alert-bot.ts": {
+      "name": "btc-alert-bot.ts",
+      "type": "file",
+      "summary": "Entry point của bot cảnh báo và giao dịch live; điều phối dữ liệu nến, signal strategy, state persistence, exchange execution, health monitoring và Telegram commands."
+    },
+    "file:chart-payload.ts": {
+      "name": "chart-payload.ts",
+      "type": "file",
+      "summary": "Kết nối dữ liệu nến và backtest để tạo payload gọn cho biểu đồ, gồm candle OHLCV và các marker giao dịch trong cửa sổ hiển thị."
+    },
+    "file:chart-server.ts": {
+      "name": "chart-server.ts",
+      "type": "file",
+      "summary": "Triển khai HTTP server độc lập cho Chart UI, phục vụ static assets và hai API lấy danh sách symbol hoặc dữ liệu backtest cho biểu đồ."
+    },
+    "file:dashboard-server.ts": {
+      "name": "dashboard-server.ts",
+      "type": "file",
+      "summary": "Phục vụ dashboard read-only cho bot, kết hợp state/journal cục bộ với dữ liệu tài khoản Binance để hiển thị vị thế và thống kê giao dịch."
+    },
+    "file:exp-overfit.ts": {
+      "name": "exp-overfit.ts",
+      "type": "file",
+      "summary": "Chạy thí nghiệm overfit cho chiến lược nền, so sánh các cấu hình trên dữ liệu lịch sử và tổng hợp kết quả."
+    },
+    "file:exp-turtle-improve.ts": {
+      "name": "exp-turtle-improve.ts",
+      "type": "file",
+      "summary": "Chạy thí nghiệm cải thiện Turtle strategy và so sánh trực tiếp các candidate với baseline backtest."
+    },
+    "file:exp-turtle-levers.ts": {
+      "name": "exp-turtle-levers.ts",
+      "type": "file",
+      "summary": "Quét các lever của Turtle strategy trên dữ liệu nhiều symbol và định dạng bảng metric để so sánh candidate."
+    },
+    "file:exp-turtle-overfit.ts": {
+      "name": "exp-turtle-overfit.ts",
+      "type": "file",
+      "summary": "Đánh giá nguy cơ overfit của Turtle strategy bằng các biến thể cấu hình và kết quả backtest có thể đối chiếu."
+    },
+    "file:fast-trend-execution.ts": {
+      "name": "fast-trend-execution.ts",
+      "type": "file",
+      "summary": "Định nghĩa type và interface trung lập với venue cho các thao tác open, add, stop sync, flatten, reconcile và recovery của Fast Trend."
+    },
+    "file:fast-trend-live.ts": {
+      "name": "fast-trend-live.ts",
+      "type": "file",
+      "summary": "Cài đặt state machine Fast Trend live, xử lý xác nhận short, quản lý vị thế/persistence và gọi execution adapter theo từng candle."
+    },
+    "file:key-volume-backtest.ts": {
+      "name": "key-volume-backtest.ts",
+      "type": "file",
+      "summary": "Điều phối backtest Key Volume, áp leverage cap, tổng hợp diagnostics theo symbol và dùng weekly bootstrap để đánh giá kết quả."
+    },
+    "file:key-volume.ts": {
+      "name": "key-volume.ts",
+      "type": "file",
+      "summary": "Cài đặt Key Volume strategy hoàn chỉnh: phát hiện level, chọn retest/confluence, xác nhận candle, dựng trade plan và mô phỏng vòng đời lệnh."
+    },
+    "file:kline-fetch.ts": {
+      "name": "kline-fetch.ts",
+      "type": "file",
+      "summary": "Tải dữ liệu kline theo trang với cache cục bộ, parallel fetch, backfill phần cũ và cập nhật phần mới."
+    },
+    "file:live-state.ts": {
+      "name": "live-state.ts",
+      "type": "file",
+      "summary": "Persist trạng thái vị thế live qua restart và ghi journal JSONL cho entry/exit để đối chiếu vận hành với backtest."
+    },
+    "file:live-trade.ts": {
+      "name": "live-trade.ts",
+      "type": "file",
+      "summary": "Điều phối order execution trên Binance, từ sizing và mở vị thế đến thay stop an toàn, reconcile và flatten."
+    },
+    "file:load-env.ts": {
+      "name": "load-env.ts",
+      "type": "file",
+      "summary": "Nạp biến môi trường từ tệp `.env` vào runtime để các script và bot dùng chung cấu hình cục bộ."
+    },
+    "file:mexc-fast-execution.ts": {
+      "name": "mexc-fast-execution.ts",
+      "type": "file",
+      "summary": "Adapter `FastExecution` cho MEXC, chuyển intent của chiến lược thành thao tác order idempotent và quản lý protection order."
+    },
+    "file:mexc-futures.ts": {
+      "name": "mexc-futures.ts",
+      "type": "file",
+      "summary": "Cung cấp signed REST client cho MEXC Futures, chuẩn hóa symbol, tính contracts và quản lý account, position cùng order."
+    },
+    "file:next-env.d.ts": {
+      "name": "next-env.d.ts",
+      "type": "file",
+      "summary": "File declaration do Next.js sinh để đưa type definitions lõi và image types vào môi trường TypeScript của dự án."
+    },
+    "file:next.config.js": {
+      "name": "next.config.js",
+      "type": "file",
+      "summary": "Cấu hình Next.js rewrite route `/` sang static dashboard `/index.html`, cho phép trang biểu đồ trong `public` trở thành trang mặc định."
+    },
+    "file:public/index.html": {
+      "name": "index.html",
+      "type": "file",
+      "summary": "Dashboard single-page hiển thị nến, volume quote và marker vào/ra từ backtest bằng Lightweight Charts. UI hỗ trợ chọn symbol/khoảng thời gian, đồng bộ zoom giữa hai chart, thống kê NET R và danh sách giao dịch tương tác."
+    },
+    "file:scripts/alt-trend-backtest.ts": {
+      "name": "alt-trend-backtest.ts",
+      "type": "file",
+      "summary": "Chạy backtest Alt Trend trên universe do người dùng chỉ định, stress nhiều mức cost, báo cáo theo era/symbol và ước lượng CI bằng 28-day block bootstrap."
+    },
+    "file:scripts/alt-universe-scanner.ts": {
+      "name": "alt-universe-scanner.ts",
+      "type": "file",
+      "summary": "Quét Binance Futures hiện tại để tạo tradability snapshot cho perpetual USDT, đo depth/OI/ADL risk và tùy chọn lưu universe forward theo ngày."
+    },
+    "file:scripts/audit-candidates.ts": {
+      "name": "audit-candidates.ts",
+      "type": "file",
+      "summary": "Audit các candidate portfolio/Turtle bằng cùng engine, gate và thống kê để chọn cấu hình có độ bền tốt hơn."
+    },
+    "file:scripts/baseline-gate.sh": {
+      "name": "baseline-gate.sh",
+      "type": "file",
+      "summary": "Quality gate chạy backtest BTC 250 ngày, parse NET R và số lệnh rồi chỉ PASS khi kết quả không thấp hơn baseline cấu hình. Script trả exit code riêng khi không parse được output hoặc khi strategy suy giảm."
+    },
+    "file:scripts/coin-features.ts": {
+      "name": "coin-features.ts",
+      "type": "file",
+      "summary": "Trích xuất feature theo từng coin, gồm hành vi giá và hiệu quả xu hướng, để phân tích khác biệt hiệu suất giữa các symbol."
+    },
+    "file:scripts/coin-fit.ts": {
+      "name": "coin-fit.ts",
+      "type": "file",
+      "summary": "Đo độ phù hợp của chiến lược theo từng coin và xếp hạng kết quả backtest để nhận diện universe phù hợp."
+    },
+    "file:scripts/confirm-quality-gate.ts": {
+      "name": "confirm-quality-gate.ts",
+      "type": "file",
+      "summary": "Kiểm định quality gate của tín hiệu xác nhận bằng cách so sánh hiệu suất các nhóm setup trên cùng dữ liệu backtest."
+    },
+    "file:scripts/cross-asset-2817.ts": {
+      "name": "cross-asset-2817.ts",
+      "type": "file",
+      "summary": "Đánh giá cấu hình cross-asset mang nhãn 28/17 trên nhiều symbol và tổng hợp độ ổn định của kết quả."
+    },
+    "file:scripts/cross-asset-baseline.ts": {
+      "name": "cross-asset-baseline.ts",
+      "type": "file",
+      "summary": "Thiết lập baseline cross-asset để so sánh nhất quán các thử nghiệm chiến lược trên nhiều symbol."
+    },
+    "file:scripts/cross-sectional-basis.ts": {
+      "name": "cross-sectional-basis.ts",
+      "type": "file",
+      "summary": "Nghiên cứu cross-sectional basis bằng funding/premium data, mô phỏng tín hiệu và block bootstrap kết quả."
+    },
+    "file:scripts/daily-relative-momentum.ts": {
+      "name": "daily-relative-momentum.ts",
+      "type": "file",
+      "summary": "Nghiên cứu daily relative momentum trên nhiều symbol, mô phỏng portfolio và kiểm tra độ bền bằng block bootstrap."
+    },
+    "file:scripts/dedup-crossvenue-impact.ts": {
+      "name": "dedup-crossvenue-impact.ts",
+      "type": "file",
+      "summary": "Đo tác động của việc deduplicate position giữa nhiều venue đối với exposure và kết quả Turtle."
+    },
+    "file:scripts/entry-ablation.sh": {
+      "name": "entry-ablation.sh",
+      "type": "file",
+      "summary": "Script ablation các điều kiện entry SMC bằng cách patch `strategy.ts`, chạy nhiều tổ hợp pullback/rejection/discount-premium và lọc các metric backtest quan trọng. Cuối cùng script phục hồi cấu hình baseline."
+    },
+    "file:scripts/entry-frequency-sweep.ts": {
+      "name": "entry-frequency-sweep.ts",
+      "type": "file",
+      "summary": "Quét các tham số ảnh hưởng đến tần suất entry và báo cáo trade-off giữa số lệnh, lợi nhuận và drawdown."
+    },
+    "file:scripts/entry-volume-audit.ts": {
+      "name": "entry-volume-audit.ts",
+      "type": "file",
+      "summary": "Audit tác động của volume tại entry theo bucket và dùng paired weekly bootstrap để kiểm tra độ tin cậy thống kê."
+    },
+    "file:scripts/exit-sweep.ts": {
+      "name": "exit-sweep.ts",
+      "type": "file",
+      "summary": "Quét các biến thể exit trên basket backtest và so sánh kết quả net sau chi phí giao dịch."
+    },
+    "file:scripts/exp-direction.ts": {
+      "name": "exp-direction.ts",
+      "type": "file",
+      "summary": "Thử nghiệm policy theo hướng long/short và đo đóng góp của từng direction vào hiệu suất danh mục."
+    },
+    "file:scripts/exp-exit-pyramid.ts": {
+      "name": "exp-exit-pyramid.ts",
+      "type": "file",
+      "summary": "Đánh giá tương tác giữa exit policy và pyramid entries trong Turtle portfolio."
+    },
+    "file:scripts/exp-exit-ratio.ts": {
+      "name": "exp-exit-ratio.ts",
+      "type": "file",
+      "summary": "Quét tỷ lệ exit và so sánh Sharpe cùng các portfolio metric giữa những cấu hình."
+    },
+    "file:scripts/exp-heat-shape.ts": {
+      "name": "exp-heat-shape.ts",
+      "type": "file",
+      "summary": "Thử nghiệm cách phân bổ portfolio heat theo hình dạng khác nhau để kiểm soát concentration risk."
+    },
+    "file:scripts/exp-joint-audit.ts": {
+      "name": "exp-joint-audit.ts",
+      "type": "file",
+      "summary": "Audit đồng thời nhiều lever của portfolio nhằm phát hiện cải thiện phụ thuộc lẫn nhau hoặc không bền."
+    },
+    "file:scripts/exp-placebo.ts": {
+      "name": "exp-placebo.ts",
+      "type": "file",
+      "summary": "Chạy placebo experiments để kiểm tra liệu cải thiện quan sát được có vượt nhiễu và lựa chọn ngẫu nhiên hay không."
+    },
+    "file:scripts/exp-portfolio-caps.ts": {
+      "name": "exp-portfolio-caps.ts",
+      "type": "file",
+      "summary": "Định nghĩa và đánh giá hard cap, soft cap, decay và volatility targeting cho portfolio risk."
+    },
+    "file:scripts/exp-portfolio-levers.ts": {
+      "name": "exp-portfolio-levers.ts",
+      "type": "file",
+      "summary": "So sánh tuần tự các nhóm portfolio lever trên dữ liệu đã tải và báo cáo đóng góp của từng lớp thay đổi."
+    },
+    "file:scripts/extreme-volume-retest-audit.ts": {
+      "name": "extreme-volume-retest-audit.ts",
+      "type": "file",
+      "summary": "Phân tích chuyên sâu setup extreme-volume retest, từ HTF alignment và xác nhận entry đến mô phỏng stop, bootstrap và báo cáo confluence."
+    },
+    "file:scripts/fast-trend-audit.ts": {
+      "name": "fast-trend-audit.ts",
+      "type": "file",
+      "summary": "Audit Fast Trend strategy trên backtest để kiểm tra chất lượng và độ bền của tín hiệu."
+    },
+    "file:scripts/ftr-experiments.ts": {
+      "name": "ftr-experiments.ts",
+      "type": "file",
+      "summary": "Chạy nhóm thí nghiệm FTR trên dữ liệu backtest để so sánh các biến thể tín hiệu và tham số."
+    },
+    "file:scripts/funding-tail-reversal.ts": {
+      "name": "funding-tail-reversal.ts",
+      "type": "file",
+      "summary": "Nghiên cứu funding-tail reversal bằng dữ liệu funding, ATR, cashflow theo R và backtest theo symbol."
+    },
+    "file:scripts/indicator-ablation.sh": {
+      "name": "indicator-ablation.sh",
+      "type": "file",
+      "summary": "Chạy ma trận A/B cho các filter RSI, EMA 15m, EMA 1h và ADX của entry, đồng thời thu gọn output về số lệnh, NET R và p-value. Baseline all-off được phục hồi sau loạt thử nghiệm."
+    },
+    "file:scripts/key-volume-ablation.ts": {
+      "name": "key-volume-ablation.ts",
+      "type": "file",
+      "summary": "Thực hiện ablation study cho Key Volume strategy, tách ảnh hưởng của từng rule lên frequency và payoff."
+    },
+    "file:scripts/key-volume-method-audit.ts": {
+      "name": "key-volume-method-audit.ts",
+      "type": "file",
+      "summary": "Audit phương pháp Key Volume bằng cấu hình backtest thống nhất và các summary metric có thể so sánh."
+    },
+    "file:scripts/liquidity-experiments.ts": {
+      "name": "liquidity-experiments.ts",
+      "type": "file",
+      "summary": "Thử nghiệm các điều kiện liquidity trong logic entry và đo ảnh hưởng của chúng lên chất lượng giao dịch."
+    },
+    "file:scripts/liquidity-rule-validate.ts": {
+      "name": "liquidity-rule-validate.ts",
+      "type": "file",
+      "summary": "Xác thực một liquidity rule đề xuất trên nhiều symbol trước khi đưa vào chiến lược chính."
+    },
+    "file:scripts/liquidity-soft.ts": {
+      "name": "liquidity-soft.ts",
+      "type": "file",
+      "summary": "Đánh giá phiên bản soft gate cho liquidity nhằm giảm tín hiệu yếu mà không loại bỏ quá nhiều cơ hội."
+    },
+    "file:scripts/maxhold-validate.ts": {
+      "name": "maxhold-validate.ts",
+      "type": "file",
+      "summary": "Kiểm định giới hạn thời gian giữ lệnh (`max hold`) bằng kết quả net trên nhiều cửa sổ backtest."
+    },
+    "file:scripts/mm-experiments.ts": {
+      "name": "mm-experiments.ts",
+      "type": "file",
+      "summary": "Chạy các thí nghiệm money management để so sánh quy tắc phân bổ risk và ảnh hưởng đến danh mục."
+    },
+    "file:scripts/mm-sizing.ts": {
+      "name": "mm-sizing.ts",
+      "type": "file",
+      "summary": "Phân tích position sizing có trọng số và tổng hợp tác động của từng cách sizing lên net return."
+    },
+    "file:scripts/overfit-audit.ts": {
+      "name": "overfit-audit.ts",
+      "type": "file",
+      "summary": "Audit độ bền của các candidate strategy bằng các lát cắt dữ liệu và tiêu chí phát hiện overfit."
+    },
+    "file:scripts/portfolio-basket.ts": {
+      "name": "portfolio-basket.ts",
+      "type": "file",
+      "summary": "Mô phỏng basket portfolio, đo mức chồng lấp vị thế, tương quan và max drawdown để đánh giá diversification."
+    },
+    "file:scripts/portfolio-engine.ts": {
+      "name": "portfolio-engine.ts",
+      "type": "file",
+      "summary": "Cung cấp engine mô phỏng Turtle portfolio, quản lý nhiều book, compound equity, hiệu chỉnh risk theo target drawdown và tính portfolio stats."
+    },
+    "file:scripts/portfolio-equivalence.ts": {
+      "name": "portfolio-equivalence.ts",
+      "type": "file",
+      "summary": "Chuẩn hóa cách nạp basket và dựng gate để các thí nghiệm portfolio dùng dữ liệu và điều kiện tương đương."
+    },
+    "file:scripts/pullback-zone-gate.ts": {
+      "name": "pullback-zone-gate.ts",
+      "type": "file",
+      "summary": "Kiểm định gate yêu cầu pullback quay lại vùng giá trước khi cho phép entry."
+    },
+    "file:scripts/quarter-hour-order-flow.ts": {
+      "name": "quarter-hour-order-flow.ts",
+      "type": "file",
+      "summary": "Nghiên cứu order flow theo khung 15 phút, kết hợp realized volatility với mô phỏng và metric theo symbol."
+    },
+    "file:scripts/random-maturity-carry.ts": {
+      "name": "random-maturity-carry.ts",
+      "type": "file",
+      "summary": "Research runner cho random-maturity spot–perpetual carry trên năm crypto, với dữ liệu Binance theo giờ, cache có coverage, mô phỏng hedge bốn legs và hạch toán fees/funding/slippage/financing. Script khóa dev/validation/holdout, chạy stress scenarios, block bootstrap và self-test chống lookahead."
+    },
+    "file:scripts/rsi-ablation.sh": {
+      "name": "rsi-ablation.sh",
+      "type": "file",
+      "summary": "So sánh các RSI mode trên baseline BOS+ARM và EMA50 1h, chạy backtest cho từng mode rồi in metric trên một dòng. Khi hoàn tất, script đặt `entryRsiMode` trở lại `off`."
+    },
+    "file:scripts/smallcap-native-research.ts": {
+      "name": "smallcap-native-research.ts",
+      "type": "file",
+      "summary": "Cung cấp offline runner cho các kỳ nghiên cứu small-cap reversal và supply, đọc snapshot point-in-time cục bộ rồi tổng hợp signal, maker fill và lợi nhuận sau chi phí."
+    },
+    "file:scripts/symbol-correlation.ts": {
+      "name": "symbol-correlation.ts",
+      "type": "file",
+      "summary": "Tính tương quan lợi nhuận giữa các symbol và mức tương quan trung bình của basket chiến lược."
+    },
+    "file:scripts/turtle-attribution.ts": {
+      "name": "turtle-attribution.ts",
+      "type": "file",
+      "summary": "Phân rã kết quả Turtle portfolio theo thành phần để xác định nguồn đóng góp lợi nhuận và rủi ro."
+    },
+    "file:scripts/turtle-baseline-sig.ts": {
+      "name": "turtle-baseline-sig.ts",
+      "type": "file",
+      "summary": "Đo statistical significance của Turtle baseline để làm mốc cho các cải tiến tiếp theo."
+    },
+    "file:scripts/turtle-before-after.ts": {
+      "name": "turtle-before-after.ts",
+      "type": "file",
+      "summary": "So sánh before/after cho một tập thay đổi Turtle bằng cùng dữ liệu, portfolio engine và metric."
+    },
+    "file:scripts/turtle-era-diagnosis.ts": {
+      "name": "turtle-era-diagnosis.ts",
+      "type": "file",
+      "summary": "Chẩn đoán hiệu suất Turtle theo era, market regime, MFE và counterfactual gate bằng bootstrap và breakdown chi tiết."
+    },
+    "file:scripts/turtle-live-parity.ts": {
+      "name": "turtle-live-parity.ts",
+      "type": "file",
+      "summary": "Parity test chạy `TurtleLive` ở paper mode từng nến trong sandbox tạm rồi so từng unit, hướng, timestamp và risk weight với portfolio engine đã audit. Script không tải credentials và xóa state tạm sau khi kiểm tra."
+    },
+    "file:scripts/turtle-losing-streak.ts": {
+      "name": "turtle-losing-streak.ts",
+      "type": "file",
+      "summary": "Tính chuỗi thua liên tiếp của Turtle trên dữ liệu nhiều symbol để định lượng tail risk vận hành."
+    },
+    "file:scripts/turtle-overfit-ablation.ts": {
+      "name": "turtle-overfit-ablation.ts",
+      "type": "file",
+      "summary": "Thực hiện ablation các cải tiến Turtle để phát hiện lever overfit hoặc thiếu đóng góp độc lập."
+    },
+    "file:scripts/turtle-prefetch.ts": {
+      "name": "turtle-prefetch.ts",
+      "type": "file",
+      "summary": "Prefetch dữ liệu nến cần cho các backtest Turtle nhằm giảm thời gian chạy thí nghiệm lặp lại."
+    },
+    "file:scripts/turtle-pyramid-spotcheck.ts": {
+      "name": "turtle-pyramid-spotcheck.ts",
+      "type": "file",
+      "summary": "Spot-check logic pyramid của Turtle trên một tập dữ liệu nhỏ và in các sai khác đáng chú ý."
+    },
+    "file:scripts/volume-sweep.ts": {
+      "name": "volume-sweep.ts",
+      "type": "file",
+      "summary": "Quét ngưỡng volume của tín hiệu entry và so sánh hiệu suất giữa các cấu hình."
+    },
+    "file:scripts/weakness-gate-3.ts": {
+      "name": "weakness-gate-3.ts",
+      "type": "file",
+      "summary": "Đánh giá biến thể thứ ba của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "file:scripts/weakness-gate-4.ts": {
+      "name": "weakness-gate-4.ts",
+      "type": "file",
+      "summary": "Đánh giá biến thể thứ tư của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "file:scripts/weakness-gate-5.ts": {
+      "name": "weakness-gate-5.ts",
+      "type": "file",
+      "summary": "Đánh giá biến thể thứ năm của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "file:scripts/weakness-gate-6.ts": {
+      "name": "weakness-gate-6.ts",
+      "type": "file",
+      "summary": "Đánh giá biến thể thứ sáu của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "file:scripts/weakness-gate-7.ts": {
+      "name": "weakness-gate-7.ts",
+      "type": "file",
+      "summary": "Đánh giá biến thể thứ bảy của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "file:scripts/weakness-gate-8.ts": {
+      "name": "weakness-gate-8.ts",
+      "type": "file",
+      "summary": "Chạy kiểm tra gọn cho biến thể thứ tám của weakness gate bằng các primitive backtest dùng chung."
+    },
+    "file:scripts/whale-sweep.ts": {
+      "name": "whale-sweep.ts",
+      "type": "file",
+      "summary": "Quét các ngưỡng nhận diện hoạt động whale và đo tác động của chúng lên chất lượng entry."
+    },
+    "file:smallcap-research.ts": {
+      "name": "smallcap-research.ts",
+      "type": "file",
+      "summary": "Định nghĩa hợp đồng signal/result dùng chung và thực hiện portfolio accounting cho nghiên cứu small-cap, bao gồm normalized weights, exposure và chi phí giao dịch."
+    },
+    "file:smallcap-reversal.ts": {
+      "name": "smallcap-reversal.ts",
+      "type": "file",
+      "summary": "Triển khai research engine reversal cho small-cap: lọc universe point-in-time, xếp hạng residual return trong nhóm volume shock thấp và mô phỏng passive maker fill bảo thủ."
+    },
+    "file:smallcap-supply.ts": {
+      "name": "smallcap-supply.ts",
+      "type": "file",
+      "summary": "Triển khai factor supply pressure point-in-time cho small-cap bằng rank của FDV premium, dilution, unlock, exchange inflow và usage growth để chọn cặp long/short."
+    },
+    "file:strategy.ts": {
+      "name": "strategy.ts",
+      "type": "file",
+      "summary": "Định nghĩa lõi signal strategy dùng chung: tổng hợp nến đa khung, phân tích market structure và volume, dựng zone/FVG, chấm quality và đánh giá entry."
+    },
+    "file:telegram-test.ts": {
+      "name": "telegram-test.ts",
+      "type": "file",
+      "summary": "Smoke test cấu hình Telegram bằng cách nạp environment và gửi một test message thực tế."
+    },
+    "file:telegram.ts": {
+      "name": "telegram.ts",
+      "type": "file",
+      "summary": "Cung cấp Telegram integration cho bot: gửi retryable message, đọc updates và dựng thông báo startup, arm, entry, exit cùng trạng thái test."
+    },
+    "file:test-alt-trend.ts": {
+      "name": "test-alt-trend.ts",
+      "type": "file",
+      "summary": "Kiểm thử tradability gates, momentum ranking, BTC regime filter, next-open execution, no-future-leak và tác động của transaction cost lên Alt Trend."
+    },
+    "file:test-binance.ts": {
+      "name": "test-binance.ts",
+      "type": "file",
+      "summary": "Integration smoke test cho Binance Futures client, gồm kết nối, account data và các thao tác an toàn theo cấu hình test."
+    },
+    "file:test-key-volume.ts": {
+      "name": "test-key-volume.ts",
+      "type": "file",
+      "summary": "Bộ regression test cho Key Volume: no-lookahead, level activation, candle bias, reentry, leverage cap, retest state machine và các pattern xác nhận."
+    },
+    "file:test-live-trade.ts": {
+      "name": "test-live-trade.ts",
+      "type": "file",
+      "summary": "Regression test cho quy trình thay stop của `LiveTrader`, bao gồm rollback khi lỗi và kết quả order không rõ ràng."
+    },
+    "file:test-mexc.ts": {
+      "name": "test-mexc.ts",
+      "type": "file",
+      "summary": "Kiểm thử execution flow và close direction ở one-way mode cho MEXC Fast Trend adapter."
+    },
+    "file:test-smallcap-native.ts": {
+      "name": "test-smallcap-native.ts",
+      "type": "file",
+      "summary": "Kiểm thử deterministic cho reversal ranking, event quarantine, maker-fill bảo thủ, supply-pressure ranking, point-in-time integrity và cost stress của nghiên cứu small-cap."
+    },
+    "file:tsconfig.tsbuildinfo": {
+      "name": "tsconfig.tsbuildinfo",
+      "type": "file",
+      "summary": "Artifact incremental build do TypeScript sinh, lưu metadata về source graph và trạng thái type-check để tăng tốc các lần compile sau."
+    },
+    "file:turtle-live.ts": {
+      "name": "turtle-live.ts",
+      "type": "file",
+      "summary": "Cài đặt Turtle strategy live trên Binance, duy trì state theo candle và điều phối entry, pyramid, stop cùng Telegram notification."
+    },
+    "file:turtle.ts": {
+      "name": "turtle.ts",
+      "type": "file",
+      "summary": "Cài đặt Turtle strategy dùng Donchian breakout, ATR, BTC gate, initial stop và logic mô phỏng/report cho backtest."
+    },
+    "function:alt-trend.ts:atrAt": {
+      "name": "atrAt",
+      "type": "function",
+      "summary": "Tính Average True Range tại một candle index từ high-low và gap so với previous close trong lookback chỉ định."
+    },
+    "function:alt-trend.ts:closeTrade": {
+      "name": "closeTrade",
+      "type": "function",
+      "summary": "Chuyển một position thành trade result theo đơn vị R, khấu trừ entry/exit cost và funding theo số chu kỳ 8 giờ đã nắm giữ."
+    },
+    "function:alt-trend.ts:evaluateTradability": {
+      "name": "evaluateTradability",
+      "type": "function",
+      "summary": "Đánh giá một perpetual snapshot theo tuổi listing, volume, spread, depth, open interest và ADL risk, đồng thời ước lượng capacity USD."
+    },
+    "function:alt-trend.ts:exactIndex": {
+      "name": "exactIndex",
+      "type": "function",
+      "summary": "Dùng binary search để tìm chính xác index của candle theo openTime trong chuỗi đã sắp xếp."
+    },
+    "function:alt-trend.ts:medianQuoteVolume": {
+      "name": "medianQuoteVolume",
+      "type": "function",
+      "summary": "Tính median quote volume trong cửa sổ candle, suy ra từ volume và close khi trường quoteVolume không có."
+    },
+    "function:alt-trend.ts:runAltTrendPortfolio": {
+      "name": "runAltTrendPortfolio",
+      "type": "function",
+      "summary": "Mô phỏng portfolio alt-trend theo từng ngày: xử lý exit, cooldown, vacancies, next-open entries, intraday hard stop, trailing stop và mark-to-market cuối kỳ."
+    },
+    "function:alt-trend.ts:selectAltTrendCandidates": {
+      "name": "selectAltTrendCandidates",
+      "type": "function",
+      "summary": "Chỉ chọn long khi BTC fast SMA vượt slow SMA, sau đó lọc altcoin theo history, trend, ATR và liquidity trước khi xếp hạng formation return."
+    },
+    "function:app/api/chart/route.ts:GET": {
+      "name": "GET",
+      "type": "function",
+      "summary": "Đọc tham số days, ép vào khoảng 30–400 ngày, gọi bộ dựng dữ liệu biểu đồ và trả phản hồi JSON hoặc thông báo lỗi."
+    },
+    "function:app/layout.tsx:RootLayout": {
+      "name": "RootLayout",
+      "type": "function",
+      "summary": "Bao bọc React children bằng cấu trúc HTML gốc với locale `vi` cho mọi trang trong ứng dụng."
+    },
+    "function:backtest.ts:bootstrap": {
+      "name": "bootstrap",
+      "type": "function",
+      "summary": "Hàm `bootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:backtest.ts:fetchKlinesFromSource": {
+      "name": "fetchKlinesFromSource",
+      "type": "function",
+      "summary": "Hàm `fetchKlinesFromSource` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:backtest.ts:fetchKlinesPaged": {
+      "name": "fetchKlinesPaged",
+      "type": "function",
+      "summary": "Hàm `fetchKlinesPaged` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:backtest.ts:fmtTime": {
+      "name": "fmtTime",
+      "type": "function",
+      "summary": "Hàm `fmtTime` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:backtest.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: cung cấp engine backtest chung: tải dữ liệu nến, mô phỏng giao dịch, bootstrap và Monte Carlo để đánh giá độ bền của chiến lược."
+    },
+    "function:backtest.ts:monteCarloRandomEntry": {
+      "name": "monteCarloRandomEntry",
+      "type": "function",
+      "summary": "Chạy Monte Carlo với entry ngẫu nhiên để tạo baseline và kiểm tra edge của strategy so với nhiễu."
+    },
+    "function:backtest.ts:report": {
+      "name": "report",
+      "type": "function",
+      "summary": "Hàm `report` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:backtest.ts:runBacktest": {
+      "name": "runBacktest",
+      "type": "function",
+      "summary": "Mô phỏng strategy trên chuỗi nến, quản lý entry/exit và trả về danh sách trade cùng thống kê phục vụ các experiment."
+    },
+    "function:backtest.ts:simRandomTrade": {
+      "name": "simRandomTrade",
+      "type": "function",
+      "summary": "Hàm `simRandomTrade` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy."
+    },
+    "function:backtest.ts:tradeCostR": {
+      "name": "tradeCostR",
+      "type": "function",
+      "summary": "Hàm `tradeCostR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:binance-futures.ts:createBinanceFromEnv": {
+      "name": "createBinanceFromEnv",
+      "type": "function",
+      "summary": "Khởi tạo Binance Futures client từ biến môi trường, hoặc trả về trạng thái không cấu hình khi thiếu credential."
+    },
+    "function:btc-alert-bot.ts:adoptPosition": {
+      "name": "adoptPosition",
+      "type": "function",
+      "summary": "Hàm `adoptPosition` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:buildHealthMessage": {
+      "name": "buildHealthMessage",
+      "type": "function",
+      "summary": "Hàm `buildHealthMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:btc-alert-bot.ts:buildStatusMessage": {
+      "name": "buildStatusMessage",
+      "type": "function",
+      "summary": "Hàm `buildStatusMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:btc-alert-bot.ts:createState": {
+      "name": "createState",
+      "type": "function",
+      "summary": "Hàm `createState` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:btc-alert-bot.ts:evaluateNewEntry": {
+      "name": "evaluateNewEntry",
+      "type": "function",
+      "summary": "Hàm `evaluateNewEntry` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:execFlatten": {
+      "name": "execFlatten",
+      "type": "function",
+      "summary": "Hàm `execFlatten` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:execOpen": {
+      "name": "execOpen",
+      "type": "function",
+      "summary": "Hàm `execOpen` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:execSyncStops": {
+      "name": "execSyncStops",
+      "type": "function",
+      "summary": "Hàm `execSyncStops` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:fetchClosedSince": {
+      "name": "fetchClosedSince",
+      "type": "function",
+      "summary": "Hàm `fetchClosedSince` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:btc-alert-bot.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: entry point của bot cảnh báo và giao dịch live; điều phối dữ liệu nến, signal strategy, state persistence, exchange execution, health monitoring và Telegram commands."
+    },
+    "function:btc-alert-bot.ts:maybeSendArmAlert": {
+      "name": "maybeSendArmAlert",
+      "type": "function",
+      "summary": "Hàm `maybeSendArmAlert` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:notifyEntry": {
+      "name": "notifyEntry",
+      "type": "function",
+      "summary": "Hàm `notifyEntry` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:notifyExit": {
+      "name": "notifyExit",
+      "type": "function",
+      "summary": "Hàm `notifyExit` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:onCandleClose": {
+      "name": "onCandleClose",
+      "type": "function",
+      "summary": "Hàm `onCandleClose` thực hiện logic miền trong btc-alert-bot.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:btc-alert-bot.ts:openLivePosition": {
+      "name": "openLivePosition",
+      "type": "function",
+      "summary": "Hàm `openLivePosition` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:persist": {
+      "name": "persist",
+      "type": "function",
+      "summary": "Hàm `persist` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit."
+    },
+    "function:btc-alert-bot.ts:prefetchHistory": {
+      "name": "prefetchHistory",
+      "type": "function",
+      "summary": "Hàm `prefetchHistory` thực hiện logic miền trong btc-alert-bot.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:btc-alert-bot.ts:reconcileFlat": {
+      "name": "reconcileFlat",
+      "type": "function",
+      "summary": "Hàm `reconcileFlat` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:reconcileStartup": {
+      "name": "reconcileStartup",
+      "type": "function",
+      "summary": "Hàm `reconcileStartup` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:startBinanceHealthMonitor": {
+      "name": "startBinanceHealthMonitor",
+      "type": "function",
+      "summary": "Hàm `startBinanceHealthMonitor` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:startCommandListener": {
+      "name": "startCommandListener",
+      "type": "function",
+      "summary": "Hàm `startCommandListener` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:startDailyHeartbeat": {
+      "name": "startDailyHeartbeat",
+      "type": "function",
+      "summary": "Hàm `startDailyHeartbeat` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:startHealthMonitor": {
+      "name": "startHealthMonitor",
+      "type": "function",
+      "summary": "Hàm `startHealthMonitor` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:startMexcHealthMonitor": {
+      "name": "startMexcHealthMonitor",
+      "type": "function",
+      "summary": "Hàm `startMexcHealthMonitor` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:startPolling": {
+      "name": "startPolling",
+      "type": "function",
+      "summary": "Hàm `startPolling` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:btc-alert-bot.ts:tryExitAndTrail": {
+      "name": "tryExitAndTrail",
+      "type": "function",
+      "summary": "Hàm `tryExitAndTrail` xử lý một bước trong vòng đời bot live, đồng bộ state và side effect liên quan."
+    },
+    "function:chart-payload.ts:buildChartPayload": {
+      "name": "buildChartPayload",
+      "type": "function",
+      "summary": "Xác thực symbol, tải đủ nến theo timeframe cấu hình, chạy backtest rồi chuyển dữ liệu nến và giao dịch sang payload phục vụ biểu đồ."
+    },
+    "function:chart-server.ts:serveStatic": {
+      "name": "serveStatic",
+      "type": "function",
+      "summary": "Chuẩn hóa URL thành đường dẫn trong thư mục public, chặn path traversal và phục vụ HTML, JavaScript hoặc CSS với cache header phù hợp."
+    },
+    "function:dashboard-server.ts:buildPayload": {
+      "name": "buildPayload",
+      "type": "function",
+      "summary": "Tổng hợp state, journal và dữ liệu account/position từ exchange thành payload read-only cho dashboard."
+    },
+    "function:dashboard-server.ts:journalStats": {
+      "name": "journalStats",
+      "type": "function",
+      "summary": "Tính win rate, tổng R, profit factor, drawdown, streak và breakdown từ journal giao dịch live."
+    },
+    "function:exp-overfit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chạy thí nghiệm overfit cho chiến lược nền, so sánh các cấu hình trên dữ liệu lịch sử và tổng hợp kết quả."
+    },
+    "function:exp-turtle-improve.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chạy thí nghiệm cải thiện Turtle strategy và so sánh trực tiếp các candidate với baseline backtest."
+    },
+    "function:exp-turtle-levers.ts:fetchAll": {
+      "name": "fetchAll",
+      "type": "function",
+      "summary": "Hàm `fetchAll` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:exp-turtle-levers.ts:fmtRow": {
+      "name": "fmtRow",
+      "type": "function",
+      "summary": "Hàm `fmtRow` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:exp-turtle-levers.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: quét các lever của Turtle strategy trên dữ liệu nhiều symbol và định dạng bảng metric để so sánh candidate."
+    },
+    "function:exp-turtle-levers.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:exp-turtle-overfit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá nguy cơ overfit của Turtle strategy bằng các biến thể cấu hình và kết quả backtest có thể đối chiếu."
+    },
+    "function:fast-trend-live.ts:atomicWriteFileSync": {
+      "name": "atomicWriteFileSync",
+      "type": "function",
+      "summary": "Ghi file theo kiểu atomic replace để tránh state bị hỏng nếu process dừng giữa lúc persist."
+    },
+    "function:fast-trend-live.ts:decideFastShortConfirmation": {
+      "name": "decideFastShortConfirmation",
+      "type": "function",
+      "summary": "Hàm `decideFastShortConfirmation` thực hiện logic miền trong fast-trend-live.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:fast-trend-live.ts:priorFastShortCloseLow": {
+      "name": "priorFastShortCloseLow",
+      "type": "function",
+      "summary": "Hàm `priorFastShortCloseLow` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume-backtest.ts:applyLeverageCap": {
+      "name": "applyLeverageCap",
+      "type": "function",
+      "summary": "Hàm `applyLeverageCap` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:key-volume-backtest.ts:fmtRow": {
+      "name": "fmtRow",
+      "type": "function",
+      "summary": "Hàm `fmtRow` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:key-volume-backtest.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: điều phối backtest Key Volume, áp leverage cap, tổng hợp diagnostics theo symbol và dùng weekly bootstrap để đánh giá kết quả."
+    },
+    "function:key-volume-backtest.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:key-volume-backtest.ts:printPerSymbol": {
+      "name": "printPerSymbol",
+      "type": "function",
+      "summary": "Hàm `printPerSymbol` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:key-volume-backtest.ts:sumDiagnostics": {
+      "name": "sumDiagnostics",
+      "type": "function",
+      "summary": "Hàm `sumDiagnostics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:key-volume-backtest.ts:weeklyBootstrap": {
+      "name": "weeklyBootstrap",
+      "type": "function",
+      "summary": "Hàm `weeklyBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:key-volume.ts:approximateHvnEdge": {
+      "name": "approximateHvnEdge",
+      "type": "function",
+      "summary": "Hàm `approximateHvnEdge` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:key-volume.ts:atrSeriesForward": {
+      "name": "atrSeriesForward",
+      "type": "function",
+      "summary": "Hàm `atrSeriesForward` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:key-volume.ts:buildDocumentEntryPlans": {
+      "name": "buildDocumentEntryPlans",
+      "type": "function",
+      "summary": "Dựng biến thể entry plan theo bộ rule được mô tả trong tài liệu phương pháp Key Volume."
+    },
+    "function:key-volume.ts:buildEntryPlans": {
+      "name": "buildEntryPlans",
+      "type": "function",
+      "summary": "Hàm `buildEntryPlans` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:key-volume.ts:buildVolumeRetestPlans": {
+      "name": "buildVolumeRetestPlans",
+      "type": "function",
+      "summary": "Dựng trade plan cho setup volume retest, gồm entry, stop, target và các điều kiện xác nhận."
+    },
+    "function:key-volume.ts:candleChainBias": {
+      "name": "candleChainBias",
+      "type": "function",
+      "summary": "Hàm `candleChainBias` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:canReenterKey": {
+      "name": "canReenterKey",
+      "type": "function",
+      "summary": "Hàm `canReenterKey` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:crossedSwing": {
+      "name": "crossedSwing",
+      "type": "function",
+      "summary": "Hàm `crossedSwing` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:dailyTrapGate": {
+      "name": "dailyTrapGate",
+      "type": "function",
+      "summary": "Hàm `dailyTrapGate` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:key-volume.ts:detectKeyVolumeLevels": {
+      "name": "detectKeyVolumeLevels",
+      "type": "function",
+      "summary": "Phát hiện các Key Volume level từ dữ liệu nến mà không dùng thông tin tương lai và gắn metadata cho quá trình retest."
+    },
+    "function:key-volume.ts:entryCandleMatches": {
+      "name": "entryCandleMatches",
+      "type": "function",
+      "summary": "Hàm `entryCandleMatches` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:findEntryOrderBlock": {
+      "name": "findEntryOrderBlock",
+      "type": "function",
+      "summary": "Hàm `findEntryOrderBlock` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:finishTrade": {
+      "name": "finishTrade",
+      "type": "function",
+      "summary": "Hàm `finishTrade` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:key-volume.ts:hasDoubleTopBottom": {
+      "name": "hasDoubleTopBottom",
+      "type": "function",
+      "summary": "Hàm `hasDoubleTopBottom` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:hasReversalCandlePattern": {
+      "name": "hasReversalCandlePattern",
+      "type": "function",
+      "summary": "Hàm `hasReversalCandlePattern` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:hasShortHigherLowPressure": {
+      "name": "hasShortHigherLowPressure",
+      "type": "function",
+      "summary": "Hàm `hasShortHigherLowPressure` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:higherTimeframeBias": {
+      "name": "higherTimeframeBias",
+      "type": "function",
+      "summary": "Hàm `higherTimeframeBias` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:key-volume.ts:isEngulfing": {
+      "name": "isEngulfing",
+      "type": "function",
+      "summary": "Hàm `isEngulfing` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:isInsideBar": {
+      "name": "isInsideBar",
+      "type": "function",
+      "summary": "Hàm `isInsideBar` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:isKeyVolumeLevelActive": {
+      "name": "isKeyVolumeLevelActive",
+      "type": "function",
+      "summary": "Hàm `isKeyVolumeLevelActive` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:isThreeBarReversal": {
+      "name": "isThreeBarReversal",
+      "type": "function",
+      "summary": "Hàm `isThreeBarReversal` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:isWithinSession": {
+      "name": "isWithinSession",
+      "type": "function",
+      "summary": "Hàm `isWithinSession` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:latestClosedIndex": {
+      "name": "latestClosedIndex",
+      "type": "function",
+      "summary": "Hàm `latestClosedIndex` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:lowerBoundTime": {
+      "name": "lowerBoundTime",
+      "type": "function",
+      "summary": "Hàm `lowerBoundTime` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:medianPrior": {
+      "name": "medianPrior",
+      "type": "function",
+      "summary": "Hàm `medianPrior` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:key-volume.ts:nearestOpposingTarget": {
+      "name": "nearestOpposingTarget",
+      "type": "function",
+      "summary": "Hàm `nearestOpposingTarget` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:persistentCandleChainBias": {
+      "name": "persistentCandleChainBias",
+      "type": "function",
+      "summary": "Hàm `persistentCandleChainBias` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit."
+    },
+    "function:key-volume.ts:resolveTargetR": {
+      "name": "resolveTargetR",
+      "type": "function",
+      "summary": "Hàm `resolveTargetR` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:runKeyVolume": {
+      "name": "runKeyVolume",
+      "type": "function",
+      "summary": "Chạy toàn bộ Key Volume strategy trên dữ liệu đầu vào và trả về trades cùng diagnostics."
+    },
+    "function:key-volume.ts:selectConfluentTouch": {
+      "name": "selectConfluentTouch",
+      "type": "function",
+      "summary": "Hàm `selectConfluentTouch` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:selectKeyTouch": {
+      "name": "selectKeyTouch",
+      "type": "function",
+      "summary": "Hàm `selectKeyTouch` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:key-volume.ts:simulatePlans": {
+      "name": "simulatePlans",
+      "type": "function",
+      "summary": "Mô phỏng vòng đời các Key Volume plan, xử lý trigger, reentry, stop, target và trade cost."
+    },
+    "function:key-volume.ts:strictCandleChainBias": {
+      "name": "strictCandleChainBias",
+      "type": "function",
+      "summary": "Hàm `strictCandleChainBias` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:key-volume.ts:structuralCandleChainBias": {
+      "name": "structuralCandleChainBias",
+      "type": "function",
+      "summary": "Hàm `structuralCandleChainBias` thực hiện logic miền trong key-volume.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:key-volume.ts:sweptAndReclaimed": {
+      "name": "sweptAndReclaimed",
+      "type": "function",
+      "summary": "Hàm `sweptAndReclaimed` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:key-volume.ts:tradeCostR": {
+      "name": "tradeCostR",
+      "type": "function",
+      "summary": "Hàm `tradeCostR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:kline-fetch.ts:backfillOlder": {
+      "name": "backfillOlder",
+      "type": "function",
+      "summary": "Hàm `backfillOlder` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:kline-fetch.ts:fetchForward": {
+      "name": "fetchForward",
+      "type": "function",
+      "summary": "Hàm `fetchForward` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:kline-fetch.ts:fetchKlinesFromSourceParallel": {
+      "name": "fetchKlinesFromSourceParallel",
+      "type": "function",
+      "summary": "Hàm `fetchKlinesFromSourceParallel` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:kline-fetch.ts:fetchKlinesPaged": {
+      "name": "fetchKlinesPaged",
+      "type": "function",
+      "summary": "Hàm `fetchKlinesPaged` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:kline-fetch.ts:fetchOnePage": {
+      "name": "fetchOnePage",
+      "type": "function",
+      "summary": "Hàm `fetchOnePage` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:kline-fetch.ts:fetchWithSource": {
+      "name": "fetchWithSource",
+      "type": "function",
+      "summary": "Hàm `fetchWithSource` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:kline-fetch.ts:parseKlineBatch": {
+      "name": "parseKlineBatch",
+      "type": "function",
+      "summary": "Hàm `parseKlineBatch` thực hiện logic miền trong kline-fetch.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:kline-fetch.ts:readCache": {
+      "name": "readCache",
+      "type": "function",
+      "summary": "Hàm `readCache` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:kline-fetch.ts:writeCache": {
+      "name": "writeCache",
+      "type": "function",
+      "summary": "Hàm `writeCache` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit."
+    },
+    "function:live-state.ts:appendJournal": {
+      "name": "appendJournal",
+      "type": "function",
+      "summary": "Ghi thêm một event entry/exit dạng JSONL vào journal audit của bot."
+    },
+    "function:live-state.ts:loadState": {
+      "name": "loadState",
+      "type": "function",
+      "summary": "Đọc state JSON đã persist và phục hồi map trạng thái theo symbol, với fallback an toàn khi dữ liệu lỗi."
+    },
+    "function:live-state.ts:saveState": {
+      "name": "saveState",
+      "type": "function",
+      "summary": "Ghi snapshot trạng thái live ra JSON để bot có thể phục hồi sau restart."
+    },
+    "function:live-trade.ts:loadExecConfig": {
+      "name": "loadExecConfig",
+      "type": "function",
+      "summary": "Hàm `loadExecConfig` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:mexc-fast-execution.ts:makeMexcExternalOid": {
+      "name": "makeMexcExternalOid",
+      "type": "function",
+      "summary": "Hàm `makeMexcExternalOid` thực hiện logic miền trong mexc-fast-execution.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:mexc-futures.ts:calculateMexcContracts": {
+      "name": "calculateMexcContracts",
+      "type": "function",
+      "summary": "Chuyển risk/quantity mong muốn thành số contract hợp lệ theo contract size và precision của MEXC."
+    },
+    "function:mexc-futures.ts:createMexcFromEnv": {
+      "name": "createMexcFromEnv",
+      "type": "function",
+      "summary": "Khởi tạo MEXC Futures client từ biến môi trường với endpoint và credential phù hợp."
+    },
+    "function:mexc-futures.ts:mexcQueryString": {
+      "name": "mexcQueryString",
+      "type": "function",
+      "summary": "Hàm `mexcQueryString` thực hiện logic miền trong mexc-futures.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:mexc-futures.ts:signMexcRequest": {
+      "name": "signMexcRequest",
+      "type": "function",
+      "summary": "Ký request MEXC bằng HMAC để xác thực các thao tác private API."
+    },
+    "function:mexc-futures.ts:toMexcSymbol": {
+      "name": "toMexcSymbol",
+      "type": "function",
+      "summary": "Hàm `toMexcSymbol` thực hiện logic miền trong mexc-futures.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/alt-trend-backtest.ts:blockBootstrap": {
+      "name": "blockBootstrap",
+      "type": "function",
+      "summary": "Gom trade returns theo block 28 ngày và resample 5.000 lần bằng seeded RNG để ước lượng CI90 cùng xác suất NET dương."
+    },
+    "function:scripts/alt-trend-backtest.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Xác thực CLI input, tải closed daily candles, chạy các cost scenarios và in báo cáo tổng thể, theo era, theo symbol cùng sensitivity bỏ coin tốt nhất."
+    },
+    "function:scripts/alt-trend-backtest.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Sắp xếp trade theo thời gian và tính win rate, gross/cost/net R, expectancy, equity curve cùng maximum drawdown."
+    },
+    "function:scripts/alt-universe-scanner.ts:adlRisk": {
+      "name": "adlRisk",
+      "type": "function",
+      "summary": "Truy vấn ADL risk cho symbol và chuẩn hóa kết quả thành low/medium/high, trả unknown khi endpoint lỗi hoặc dữ liệu không hợp lệ."
+    },
+    "function:scripts/alt-universe-scanner.ts:depthUsd": {
+      "name": "depthUsd",
+      "type": "function",
+      "summary": "Cộng notional của order-book levels nằm trong biên 20 bps quanh mid price cho phía bid hoặc ask."
+    },
+    "function:scripts/alt-universe-scanner.ts:inspect": {
+      "name": "inspect",
+      "type": "function",
+      "summary": "Kết hợp ticker/book với depth, open interest và ADL risk để dựng TradabilitySnapshot point-in-time cho một perpetual symbol."
+    },
+    "function:scripts/alt-universe-scanner.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Tải exchange metadata/tickers/books, lọc top perpetual universe, inspect theo concurrency batches, đánh giá capacity và in hoặc lưu snapshot đã xếp hạng."
+    },
+    "function:scripts/audit-candidates.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: audit các candidate portfolio/Turtle bằng cùng engine, gate và thống kê để chọn cấu hình có độ bền tốt hơn."
+    },
+    "function:scripts/audit-candidates.ts:pairedBootstrap": {
+      "name": "pairedBootstrap",
+      "type": "function",
+      "summary": "Hàm `pairedBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/coin-features.ts:efficiencyRatio": {
+      "name": "efficiencyRatio",
+      "type": "function",
+      "summary": "Hàm `efficiencyRatio` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/coin-features.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: trích xuất feature theo từng coin, gồm hành vi giá và hiệu quả xu hướng, để phân tích khác biệt hiệu suất giữa các symbol."
+    },
+    "function:scripts/coin-fit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đo độ phù hợp của chiến lược theo từng coin và xếp hạng kết quả backtest để nhận diện universe phù hợp."
+    },
+    "function:scripts/confirm-quality-gate.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: kiểm định quality gate của tín hiệu xác nhận bằng cách so sánh hiệu suất các nhóm setup trên cùng dữ liệu backtest."
+    },
+    "function:scripts/cross-asset-2817.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá cấu hình cross-asset mang nhãn 28/17 trên nhiều symbol và tổng hợp độ ổn định của kết quả."
+    },
+    "function:scripts/cross-asset-baseline.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: thiết lập baseline cross-asset để so sánh nhất quán các thử nghiệm chiến lược trên nhiều symbol."
+    },
+    "function:scripts/cross-sectional-basis.ts:atrSeries": {
+      "name": "atrSeries",
+      "type": "function",
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/cross-sectional-basis.ts:blockBootstrap": {
+      "name": "blockBootstrap",
+      "type": "function",
+      "summary": "Hàm `blockBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/cross-sectional-basis.ts:fetchFunding": {
+      "name": "fetchFunding",
+      "type": "function",
+      "summary": "Hàm `fetchFunding` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:scripts/cross-sectional-basis.ts:fetchPremium": {
+      "name": "fetchPremium",
+      "type": "function",
+      "summary": "Hàm `fetchPremium` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:scripts/cross-sectional-basis.ts:fundingR": {
+      "name": "fundingR",
+      "type": "function",
+      "summary": "Hàm `fundingR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/cross-sectional-basis.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu cross-sectional basis bằng funding/premium data, mô phỏng tín hiệu và block bootstrap kết quả."
+    },
+    "function:scripts/cross-sectional-basis.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/cross-sectional-basis.ts:readCache": {
+      "name": "readCache",
+      "type": "function",
+      "summary": "Hàm `readCache` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:scripts/cross-sectional-basis.ts:simulate": {
+      "name": "simulate",
+      "type": "function",
+      "summary": "Hàm `simulate` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy."
+    },
+    "function:scripts/daily-relative-momentum.ts:atrSeries": {
+      "name": "atrSeries",
+      "type": "function",
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/daily-relative-momentum.ts:blockBootstrap": {
+      "name": "blockBootstrap",
+      "type": "function",
+      "summary": "Hàm `blockBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/daily-relative-momentum.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu daily relative momentum trên nhiều symbol, mô phỏng portfolio và kiểm tra độ bền bằng block bootstrap."
+    },
+    "function:scripts/daily-relative-momentum.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/daily-relative-momentum.ts:simulate": {
+      "name": "simulate",
+      "type": "function",
+      "summary": "Hàm `simulate` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy."
+    },
+    "function:scripts/dedup-crossvenue-impact.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đo tác động của việc deduplicate position giữa nhiều venue đối với exposure và kết quả Turtle."
+    },
+    "function:scripts/dedup-crossvenue-impact.ts:toPositions": {
+      "name": "toPositions",
+      "type": "function",
+      "summary": "Hàm `toPositions` thực hiện logic miền trong dedup-crossvenue-impact.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/entry-ablation.sh:patch": {
+      "name": "patch",
+      "type": "function",
+      "summary": "Thay các cờ pullback, rejection mode và discount/premium trong `strategy.ts` theo JSON của kịch bản ablation."
+    },
+    "function:scripts/entry-frequency-sweep.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: quét các tham số ảnh hưởng đến tần suất entry và báo cáo trade-off giữa số lệnh, lợi nhuận và drawdown."
+    },
+    "function:scripts/entry-volume-audit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: audit tác động của volume tại entry theo bucket và dùng paired weekly bootstrap để kiểm tra độ tin cậy thống kê."
+    },
+    "function:scripts/entry-volume-audit.ts:pairedWeeklyBootstrap": {
+      "name": "pairedWeeklyBootstrap",
+      "type": "function",
+      "summary": "Hàm `pairedWeeklyBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/entry-volume-audit.ts:printBucket": {
+      "name": "printBucket",
+      "type": "function",
+      "summary": "Hàm `printBucket` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/exit-sweep.ts:basketNet": {
+      "name": "basketNet",
+      "type": "function",
+      "summary": "Hàm `basketNet` thực hiện logic miền trong exit-sweep.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/exit-sweep.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: quét các biến thể exit trên basket backtest và so sánh kết quả net sau chi phí giao dịch."
+    },
+    "function:scripts/exp-direction.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: thử nghiệm policy theo hướng long/short và đo đóng góp của từng direction vào hiệu suất danh mục."
+    },
+    "function:scripts/exp-exit-pyramid.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá tương tác giữa exit policy và pyramid entries trong Turtle portfolio."
+    },
+    "function:scripts/exp-exit-ratio.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: quét tỷ lệ exit và so sánh Sharpe cùng các portfolio metric giữa những cấu hình."
+    },
+    "function:scripts/exp-exit-ratio.ts:sharpeIn": {
+      "name": "sharpeIn",
+      "type": "function",
+      "summary": "Hàm `sharpeIn` thực hiện logic miền trong exp-exit-ratio.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/exp-heat-shape.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: thử nghiệm cách phân bổ portfolio heat theo hình dạng khác nhau để kiểm soát concentration risk."
+    },
+    "function:scripts/exp-joint-audit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: audit đồng thời nhiều lever của portfolio nhằm phát hiện cải thiện phụ thuộc lẫn nhau hoặc không bền."
+    },
+    "function:scripts/exp-placebo.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chạy placebo experiments để kiểm tra liệu cải thiện quan sát được có vượt nhiễu và lựa chọn ngẫu nhiên hay không."
+    },
+    "function:scripts/exp-portfolio-caps.ts:decayH": {
+      "name": "decayH",
+      "type": "function",
+      "summary": "Hàm `decayH` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:scripts/exp-portfolio-caps.ts:decaySqrt": {
+      "name": "decaySqrt",
+      "type": "function",
+      "summary": "Hàm `decaySqrt` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:scripts/exp-portfolio-caps.ts:decayTotal": {
+      "name": "decayTotal",
+      "type": "function",
+      "summary": "Hàm `decayTotal` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:scripts/exp-portfolio-caps.ts:evaluate": {
+      "name": "evaluate",
+      "type": "function",
+      "summary": "Hàm `evaluate` thực hiện logic miền trong exp-portfolio-caps.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/exp-portfolio-caps.ts:hardCap": {
+      "name": "hardCap",
+      "type": "function",
+      "summary": "Hàm `hardCap` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:scripts/exp-portfolio-caps.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: định nghĩa và đánh giá hard cap, soft cap, decay và volatility targeting cho portfolio risk."
+    },
+    "function:scripts/exp-portfolio-caps.ts:setupBasket": {
+      "name": "setupBasket",
+      "type": "function",
+      "summary": "Hàm `setupBasket` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:scripts/exp-portfolio-caps.ts:softCap": {
+      "name": "softCap",
+      "type": "function",
+      "summary": "Hàm `softCap` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:scripts/exp-portfolio-caps.ts:volTarget": {
+      "name": "volTarget",
+      "type": "function",
+      "summary": "Hàm `volTarget` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:scripts/exp-portfolio-levers.ts:l1": {
+      "name": "l1",
+      "type": "function",
+      "summary": "Hàm `l1` thực hiện logic miền trong exp-portfolio-levers.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/exp-portfolio-levers.ts:l2": {
+      "name": "l2",
+      "type": "function",
+      "summary": "Hàm `l2` thực hiện logic miền trong exp-portfolio-levers.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/exp-portfolio-levers.ts:l3": {
+      "name": "l3",
+      "type": "function",
+      "summary": "Hàm `l3` thực hiện logic miền trong exp-portfolio-levers.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/exp-portfolio-levers.ts:load": {
+      "name": "load",
+      "type": "function",
+      "summary": "Hàm `load` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:scripts/exp-portfolio-levers.ts:show": {
+      "name": "show",
+      "type": "function",
+      "summary": "Hàm `show` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/exp-portfolio-levers.ts:windowOf": {
+      "name": "windowOf",
+      "type": "function",
+      "summary": "Hàm `windowOf` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:aggregateBuyRatio": {
+      "name": "aggregateBuyRatio",
+      "type": "function",
+      "summary": "Hàm `aggregateBuyRatio` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:analyzeSymbol": {
+      "name": "analyzeSymbol",
+      "type": "function",
+      "summary": "Hàm `analyzeSymbol` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:atr": {
+      "name": "atr",
+      "type": "function",
+      "summary": "Hàm `atr` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:buildHtfAlignment": {
+      "name": "buildHtfAlignment",
+      "type": "function",
+      "summary": "Hàm `buildHtfAlignment` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:confirmedBootstrap": {
+      "name": "confirmedBootstrap",
+      "type": "function",
+      "summary": "Hàm `confirmedBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:findConfirmation": {
+      "name": "findConfirmation",
+      "type": "function",
+      "summary": "Hàm `findConfirmation` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: phân tích chuyên sâu setup extreme-volume retest, từ HTF alignment và xác nhận entry đến mô phỏng stop, bootstrap và báo cáo confluence."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:printBaselineConfluence": {
+      "name": "printBaselineConfluence",
+      "type": "function",
+      "summary": "Hàm `printBaselineConfluence` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:printConfirmedEntries": {
+      "name": "printConfirmedEntries",
+      "type": "function",
+      "summary": "Hàm `printConfirmedEntries` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:runConfirmedVariant": {
+      "name": "runConfirmedVariant",
+      "type": "function",
+      "summary": "Hàm `runConfirmedVariant` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:simulateConfirmedTrade": {
+      "name": "simulateConfirmedTrade",
+      "type": "function",
+      "summary": "Hàm `simulateConfirmedTrade` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:simulateOneAtr": {
+      "name": "simulateOneAtr",
+      "type": "function",
+      "summary": "Hàm `simulateOneAtr` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:simulateWideStopTime": {
+      "name": "simulateWideStopTime",
+      "type": "function",
+      "summary": "Hàm `simulateWideStopTime` mô phỏng scenario trên chuỗi dữ liệu và thu thập kết quả để đánh giá strategy."
+    },
+    "function:scripts/extreme-volume-retest-audit.ts:weeklyBootstrap": {
+      "name": "weeklyBootstrap",
+      "type": "function",
+      "summary": "Hàm `weeklyBootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/fast-trend-audit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: audit Fast Trend strategy trên backtest để kiểm tra chất lượng và độ bền của tín hiệu."
+    },
+    "function:scripts/ftr-experiments.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chạy nhóm thí nghiệm FTR trên dữ liệu backtest để so sánh các biến thể tín hiệu và tham số."
+    },
+    "function:scripts/funding-tail-reversal.ts:atrSeries": {
+      "name": "atrSeries",
+      "type": "function",
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/funding-tail-reversal.ts:fetchFunding": {
+      "name": "fetchFunding",
+      "type": "function",
+      "summary": "Hàm `fetchFunding` tải và hợp nhất market data theo ranh giới thời gian cần thiết cho backtest hoặc live processing."
+    },
+    "function:scripts/funding-tail-reversal.ts:firstCandleAfter": {
+      "name": "firstCandleAfter",
+      "type": "function",
+      "summary": "Hàm `firstCandleAfter` thực hiện logic miền trong funding-tail-reversal.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/funding-tail-reversal.ts:fundingCashflowR": {
+      "name": "fundingCashflowR",
+      "type": "function",
+      "summary": "Hàm `fundingCashflowR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/funding-tail-reversal.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu funding-tail reversal bằng dữ liệu funding, ATR, cashflow theo R và backtest theo symbol."
+    },
+    "function:scripts/funding-tail-reversal.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/funding-tail-reversal.ts:readFundingCache": {
+      "name": "readFundingCache",
+      "type": "function",
+      "summary": "Hàm `readFundingCache` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:scripts/funding-tail-reversal.ts:runSymbol": {
+      "name": "runSymbol",
+      "type": "function",
+      "summary": "Hàm `runSymbol` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment."
+    },
+    "function:scripts/indicator-ablation.sh:patch": {
+      "name": "patch",
+      "type": "function",
+      "summary": "Áp một tổ hợp bật/tắt RSI, EMA LTF, EMA HTF và ADX vào cấu hình entry trong `strategy.ts`."
+    },
+    "function:scripts/key-volume-ablation.ts:frequencyDetail": {
+      "name": "frequencyDetail",
+      "type": "function",
+      "summary": "Hàm `frequencyDetail` thực hiện logic miền trong key-volume-ablation.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/key-volume-ablation.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: thực hiện ablation study cho Key Volume strategy, tách ảnh hưởng của từng rule lên frequency và payoff."
+    },
+    "function:scripts/key-volume-ablation.ts:payoffDetail": {
+      "name": "payoffDetail",
+      "type": "function",
+      "summary": "Hàm `payoffDetail` thực hiện logic miền trong key-volume-ablation.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/key-volume-ablation.ts:summarize": {
+      "name": "summarize",
+      "type": "function",
+      "summary": "Hàm `summarize` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/key-volume-method-audit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: audit phương pháp Key Volume bằng cấu hình backtest thống nhất và các summary metric có thể so sánh."
+    },
+    "function:scripts/key-volume-method-audit.ts:summarize": {
+      "name": "summarize",
+      "type": "function",
+      "summary": "Hàm `summarize` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/liquidity-experiments.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: thử nghiệm các điều kiện liquidity trong logic entry và đo ảnh hưởng của chúng lên chất lượng giao dịch."
+    },
+    "function:scripts/liquidity-rule-validate.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: xác thực một liquidity rule đề xuất trên nhiều symbol trước khi đưa vào chiến lược chính."
+    },
+    "function:scripts/liquidity-soft.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá phiên bản soft gate cho liquidity nhằm giảm tín hiệu yếu mà không loại bỏ quá nhiều cơ hội."
+    },
+    "function:scripts/maxhold-validate.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: kiểm định giới hạn thời gian giữ lệnh (`max hold`) bằng kết quả net trên nhiều cửa sổ backtest."
+    },
+    "function:scripts/maxhold-validate.ts:netWindow": {
+      "name": "netWindow",
+      "type": "function",
+      "summary": "Hàm `netWindow` thực hiện logic miền trong maxhold-validate.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/mm-experiments.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chạy các thí nghiệm money management để so sánh quy tắc phân bổ risk và ảnh hưởng đến danh mục."
+    },
+    "function:scripts/mm-sizing.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: phân tích position sizing có trọng số và tổng hợp tác động của từng cách sizing lên net return."
+    },
+    "function:scripts/mm-sizing.ts:weightedNet": {
+      "name": "weightedNet",
+      "type": "function",
+      "summary": "Hàm `weightedNet` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/overfit-audit.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: audit độ bền của các candidate strategy bằng các lát cắt dữ liệu và tiêu chí phát hiện overfit."
+    },
+    "function:scripts/portfolio-basket.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: mô phỏng basket portfolio, đo mức chồng lấp vị thế, tương quan và max drawdown để đánh giá diversification."
+    },
+    "function:scripts/portfolio-basket.ts:maxDrawdownR": {
+      "name": "maxDrawdownR",
+      "type": "function",
+      "summary": "Hàm `maxDrawdownR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/portfolio-basket.ts:overlapMs": {
+      "name": "overlapMs",
+      "type": "function",
+      "summary": "Hàm `overlapMs` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/portfolio-basket.ts:pearson": {
+      "name": "pearson",
+      "type": "function",
+      "summary": "Hàm `pearson` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/portfolio-engine.ts:compoundedEquity": {
+      "name": "compoundedEquity",
+      "type": "function",
+      "summary": "Hàm `compoundedEquity` thực hiện logic miền trong portfolio-engine.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/portfolio-engine.ts:portfolioStats": {
+      "name": "portfolioStats",
+      "type": "function",
+      "summary": "Hàm `portfolioStats` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/portfolio-engine.ts:riskForTargetDD": {
+      "name": "riskForTargetDD",
+      "type": "function",
+      "summary": "Hàm `riskForTargetDD` thực hiện logic miền trong portfolio-engine.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/portfolio-engine.ts:riskMetrics": {
+      "name": "riskMetrics",
+      "type": "function",
+      "summary": "Hàm `riskMetrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/portfolio-engine.ts:runBooks": {
+      "name": "runBooks",
+      "type": "function",
+      "summary": "Điều phối nhiều portfolio book qua thời gian, áp risk cap và ghi nhận trade/equity cho từng cấu hình."
+    },
+    "function:scripts/portfolio-engine.ts:runTurtlePortfolio": {
+      "name": "runTurtlePortfolio",
+      "type": "function",
+      "summary": "Khởi tạo và chạy Turtle portfolio bằng engine nhiều book với cấu hình risk đã chọn."
+    },
+    "function:scripts/portfolio-engine.ts:tradeCostR": {
+      "name": "tradeCostR",
+      "type": "function",
+      "summary": "Hàm `tradeCostR` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/portfolio-equivalence.ts:buildGate": {
+      "name": "buildGate",
+      "type": "function",
+      "summary": "Hàm `buildGate` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:scripts/portfolio-equivalence.ts:loadBasket": {
+      "name": "loadBasket",
+      "type": "function",
+      "summary": "Hàm `loadBasket` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:scripts/portfolio-equivalence.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chuẩn hóa cách nạp basket và dựng gate để các thí nghiệm portfolio dùng dữ liệu và điều kiện tương đương."
+    },
+    "function:scripts/pullback-zone-gate.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: kiểm định gate yêu cầu pullback quay lại vùng giá trước khi cho phép entry."
+    },
+    "function:scripts/quarter-hour-order-flow.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: nghiên cứu order flow theo khung 15 phút, kết hợp realized volatility với mô phỏng và metric theo symbol."
+    },
+    "function:scripts/quarter-hour-order-flow.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/quarter-hour-order-flow.ts:realizedVolPrice": {
+      "name": "realizedVolPrice",
+      "type": "function",
+      "summary": "Hàm `realizedVolPrice` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/quarter-hour-order-flow.ts:runSymbol": {
+      "name": "runSymbol",
+      "type": "function",
+      "summary": "Hàm `runSymbol` chạy quy trình phân tích và tổng hợp kết quả cho báo cáo hoặc so sánh experiment."
+    },
+    "function:scripts/random-maturity-carry.ts:addCoverage": {
+      "name": "addCoverage",
+      "type": "function",
+      "summary": "Gộp các khoảng thời gian cache liền kề hoặc chồng lấn rồi lưu coverage đã chuẩn hóa theo kind và symbol."
+    },
+    "function:scripts/random-maturity-carry.ts:alignBars": {
+      "name": "alignBars",
+      "type": "function",
+      "summary": "Inner-join nến spot và perpetual theo `openTime`, tạo chuỗi aligned bar rồi xác minh timestamp tăng nghiêm ngặt."
+    },
+    "function:scripts/random-maturity-carry.ts:args": {
+      "name": "args",
+      "type": "function",
+      "summary": "Parse phase, self-test flag và holdout confirmation từ CLI, đồng thời từ chối phase không thuộc protocol đã khóa."
+    },
+    "function:scripts/random-maturity-carry.ts:blockBootstrap": {
+      "name": "blockBootstrap",
+      "type": "function",
+      "summary": "Resample các block return bằng PRNG có seed cố định để ước lượng CI90 và xác suất total return dương."
+    },
+    "function:scripts/random-maturity-carry.ts:equityStats": {
+      "name": "equityStats",
+      "type": "function",
+      "summary": "Compounding chuỗi return để tính total return, annualized Sharpe và maximum drawdown của danh mục."
+    },
+    "function:scripts/random-maturity-carry.ts:fetchBars": {
+      "name": "fetchBars",
+      "type": "function",
+      "summary": "Tải tuần tự các batch nến 1h cho spot, perpetual hoặc mark price từ Binance, có fallback endpoint cho spot và kiểm tra pagination stall. Dữ liệu được merge theo timestamp, cache và ghi coverage trước khi trả đúng cửa sổ yêu cầu."
+    },
+    "function:scripts/random-maturity-carry.ts:fetchFunding": {
+      "name": "fetchFunding",
+      "type": "function",
+      "summary": "Thu thập funding history theo trang từ Binance Futures, chuẩn hóa rate/mark price và cập nhật cache cùng coverage cho từng symbol."
+    },
+    "function:scripts/random-maturity-carry.ts:getWithRetry": {
+      "name": "getWithRetry",
+      "type": "function",
+      "summary": "Gọi HTTP GET bằng Axios với timeout 30 giây và thử lại tối đa ba lần trước khi ném lỗi cuối cùng."
+    },
+    "function:scripts/random-maturity-carry.ts:hydrateFundingMarks": {
+      "name": "hydrateFundingMarks",
+      "type": "function",
+      "summary": "Điền mark price còn thiếu trong funding record từ mark-price bars, fallback sang perpetual bars và fail khi không có giá hợp lệ."
+    },
+    "function:scripts/random-maturity-carry.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối research run: khóa holdout, tải và align market data cho năm symbol, hydrate funding rồi chạy baseline cùng các stress scenario về cost và financing."
+    },
+    "function:scripts/random-maturity-carry.ts:portfolioReturns": {
+      "name": "portfolioReturns",
+      "type": "function",
+      "summary": "Tổng hợp hourly PnL của các symbol thành chuỗi return danh mục equal-weight trong phase nghiên cứu đã chọn."
+    },
+    "function:scripts/random-maturity-carry.ts:report": {
+      "name": "report",
+      "type": "function",
+      "summary": "Tạo báo cáo theo symbol và toàn danh mục cho mỗi scenario, gồm PnL decomposition, Sharpe, max drawdown, normalized R, bootstrap interval, concentration, thời gian giữ và thống kê theo năm."
+    },
+    "function:scripts/random-maturity-carry.ts:selfTest": {
+      "name": "selfTest",
+      "type": "function",
+      "summary": "Kiểm tra các invariant về fair ratio, four-leg costs, mark-price fallback, next-open execution, funding timestamps và đối soát PnL trên dữ liệu tổng hợp."
+    },
+    "function:scripts/random-maturity-carry.ts:settleTrade": {
+      "name": "settleTrade",
+      "type": "function",
+      "summary": "Tất toán một cặp long spot/short perpetual và phân rã PnL thành price, funding, fees, slippage cùng financing. Hàm đồng thời ghi từng thành phần vào hourly ledger để phục vụ đối soát danh mục."
+    },
+    "function:scripts/random-maturity-carry.ts:simulate": {
+      "name": "simulate",
+      "type": "function",
+      "summary": "Mô phỏng entry/exit ở next open theo độ lệch perpetual so với fair ratio sau chi phí, với tối đa một vị thế mỗi symbol. Cuối phiên hàm đối chiếu tổng trade PnL với hourly ledger và báo lỗi nếu sai lệch."
+    },
+    "function:scripts/smallcap-native-research.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Đọc file JSON đầu vào, chạy toàn bộ reversal/supply periods và in báo cáo JSON gồm chi tiết từng kỳ cùng compounded return."
+    },
+    "function:scripts/smallcap-native-research.ts:reversalResult": {
+      "name": "reversalResult",
+      "type": "function",
+      "summary": "Dựng reversal signals cho một kỳ, mô phỏng passive maker orders từ book/trades và chỉ đánh giá các symbol thực sự được fill."
+    },
+    "function:scripts/smallcap-native-research.ts:supplyResult": {
+      "name": "supplyResult",
+      "type": "function",
+      "summary": "Dựng supply-pressure signals cho một snapshot và tính kết quả portfolio sau round-trip cost khi có forward returns."
+    },
+    "function:scripts/symbol-correlation.ts:avgPairCorr": {
+      "name": "avgPairCorr",
+      "type": "function",
+      "summary": "Hàm `avgPairCorr` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/symbol-correlation.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: tính tương quan lợi nhuận giữa các symbol và mức tương quan trung bình của basket chiến lược."
+    },
+    "function:scripts/symbol-correlation.ts:pearson": {
+      "name": "pearson",
+      "type": "function",
+      "summary": "Hàm `pearson` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:scripts/turtle-attribution.ts:line": {
+      "name": "line",
+      "type": "function",
+      "summary": "Hàm `line` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-attribution.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: phân rã kết quả Turtle portfolio theo thành phần để xác định nguồn đóng góp lợi nhuận và rủi ro."
+    },
+    "function:scripts/turtle-baseline-sig.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đo statistical significance của Turtle baseline để làm mốc cho các cải tiến tiếp theo."
+    },
+    "function:scripts/turtle-before-after.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: so sánh before/after cho một tập thay đổi Turtle bằng cùng dữ liệu, portfolio engine và metric."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:bootstrapWeeklyDifference": {
+      "name": "bootstrapWeeklyDifference",
+      "type": "function",
+      "summary": "Hàm `bootstrapWeeklyDifference` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:buildBtcLongGate": {
+      "name": "buildBtcLongGate",
+      "type": "function",
+      "summary": "Hàm `buildBtcLongGate` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:buildBtcTwoSidedGate": {
+      "name": "buildBtcTwoSidedGate",
+      "type": "function",
+      "summary": "Hàm `buildBtcTwoSidedGate` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: chẩn đoán hiệu suất Turtle theo era, market regime, MFE và counterfactual gate bằng bootstrap và breakdown chi tiết."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:metrics": {
+      "name": "metrics",
+      "type": "function",
+      "summary": "Hàm `metrics` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:monthlyTotals": {
+      "name": "monthlyTotals",
+      "type": "function",
+      "summary": "Hàm `monthlyTotals` thực hiện logic miền trong turtle-era-diagnosis.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:positionsOf": {
+      "name": "positionsOf",
+      "type": "function",
+      "summary": "Hàm `positionsOf` thực hiện logic miền trong turtle-era-diagnosis.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:printBreakdown": {
+      "name": "printBreakdown",
+      "type": "function",
+      "summary": "Hàm `printBreakdown` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:printCandidateRobustness": {
+      "name": "printCandidateRobustness",
+      "type": "function",
+      "summary": "Hàm `printCandidateRobustness` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:printCounterfactuals": {
+      "name": "printCounterfactuals",
+      "type": "function",
+      "summary": "Hàm `printCounterfactuals` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:printEraSummary": {
+      "name": "printEraSummary",
+      "type": "function",
+      "summary": "Hàm `printEraSummary` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:printMarketRegimes": {
+      "name": "printMarketRegimes",
+      "type": "function",
+      "summary": "Hàm `printMarketRegimes` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:printMfe": {
+      "name": "printMfe",
+      "type": "function",
+      "summary": "Hàm `printMfe` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:scripts/turtle-era-diagnosis.ts:tradeMfeR": {
+      "name": "tradeMfeR",
+      "type": "function",
+      "summary": "Hàm `tradeMfeR` thực hiện logic miền trong turtle-era-diagnosis.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/turtle-live-parity.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Replay Turtle live candle-by-candle, thu các unit đã mở hoặc pyramid và đối chiếu chúng với kết quả `runBooks`, bao gồm cả heat-decay weight. Hàm báo thiếu/thừa/sai weight, dọn sandbox và fail nếu không đạt parity."
+    },
+    "function:scripts/turtle-losing-streak.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: tính chuỗi thua liên tiếp của Turtle trên dữ liệu nhiều symbol để định lượng tail risk vận hành."
+    },
+    "function:scripts/turtle-losing-streak.ts:streak": {
+      "name": "streak",
+      "type": "function",
+      "summary": "Hàm `streak` thực hiện logic miền trong turtle-losing-streak.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:scripts/turtle-overfit-ablation.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: thực hiện ablation các cải tiến Turtle để phát hiện lever overfit hoặc thiếu đóng góp độc lập."
+    },
+    "function:scripts/turtle-prefetch.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: prefetch dữ liệu nến cần cho các backtest Turtle nhằm giảm thời gian chạy thí nghiệm lặp lại."
+    },
+    "function:scripts/turtle-pyramid-spotcheck.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: spot-check logic pyramid của Turtle trên một tập dữ liệu nhỏ và in các sai khác đáng chú ý."
+    },
+    "function:scripts/volume-sweep.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: quét ngưỡng volume của tín hiệu entry và so sánh hiệu suất giữa các cấu hình."
+    },
+    "function:scripts/weakness-gate-3.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ ba của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "function:scripts/weakness-gate-4.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ tư của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "function:scripts/weakness-gate-5.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ năm của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "function:scripts/weakness-gate-6.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ sáu của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "function:scripts/weakness-gate-7.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ bảy của weakness gate trên kết quả backtest và các lát cắt symbol."
+    },
+    "function:scripts/whale-sweep.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: quét các ngưỡng nhận diện hoạt động whale và đo tác động của chúng lên chất lượng entry."
+    },
+    "function:smallcap-research.ts:evaluateSmallCapPeriod": {
+      "name": "evaluateSmallCapPeriod",
+      "type": "function",
+      "summary": "Xác thực hướng và dữ liệu return, lọc theo filled symbols, chuẩn hóa weight theo target exposure rồi tính gross return, cost return và net return cho một kỳ."
+    },
+    "function:smallcap-reversal.ts:buildSmallCapReversalSignals": {
+      "name": "buildSmallCapReversalSignals",
+      "type": "function",
+      "summary": "Tạo long/short reversal signals từ lịch sử hoàn tất tại signalTime, loại event/pump/volume shock, de-trend return theo median thị trường và cân bằng weight hai phía."
+    },
+    "function:smallcap-reversal.ts:eligibleCurrent": {
+      "name": "eligibleCurrent",
+      "type": "function",
+      "summary": "Áp dụng các gate về trạng thái tài sản, event risk, tuổi niêm yết, market cap, volume, spread và depth cho quan sát hiện tại."
+    },
+    "function:smallcap-reversal.ts:quotePassiveOrder": {
+      "name": "quotePassiveOrder",
+      "type": "function",
+      "summary": "Xác thực top-of-book và TTL rồi đặt limit order tại best bid cho long hoặc best ask cho short nhằm giữ tính post-only."
+    },
+    "function:smallcap-reversal.ts:simulateConservativeMakerFill": {
+      "name": "simulateConservativeMakerFill",
+      "type": "function",
+      "summary": "Mô phỏng maker fill bảo thủ: từ chối lệnh crossing và chỉ coi là filled khi aggregate trade đi xuyên qua limit price trong TTL với maker side phù hợp."
+    },
+    "function:smallcap-reversal.ts:validateParams": {
+      "name": "validateParams",
+      "type": "function",
+      "summary": "Kiểm tra tính hợp lệ của market-cap range, lịch sử/lookback, low-volume fraction và số lượng picks mỗi phía trước khi tạo signal."
+    },
+    "function:smallcap-supply.ts:buildSmallCapSupplySignals": {
+      "name": "buildSmallCapSupplySignals",
+      "type": "function",
+      "summary": "Xác thực snapshot đồng thời, tính năm thành phần supply pressure theo percentile rank rồi chọn tài sản áp lực thấp để long và áp lực cao có thể short để short."
+    },
+    "function:smallcap-supply.ts:eligible": {
+      "name": "eligible",
+      "type": "function",
+      "summary": "Lọc snapshot theo trạng thái tài sản, market cap, thanh khoản, tuổi listing và tính hợp lệ của các biến supply đầu vào."
+    },
+    "function:smallcap-supply.ts:percentileRanks": {
+      "name": "percentileRanks",
+      "type": "function",
+      "summary": "Chuyển dãy số thành percentile ranks, gán average rank cho các giá trị bằng nhau và trả lại đúng thứ tự đầu vào."
+    },
+    "function:strategy.ts:aggregate": {
+      "name": "aggregate",
+      "type": "function",
+      "summary": "Hàm `aggregate` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:strategy.ts:avgVol": {
+      "name": "avgVol",
+      "type": "function",
+      "summary": "Hàm `avgVol` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:strategy.ts:buildFvgZones": {
+      "name": "buildFvgZones",
+      "type": "function",
+      "summary": "Hàm `buildFvgZones` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:strategy.ts:buildHtfContext": {
+      "name": "buildHtfContext",
+      "type": "function",
+      "summary": "Hàm `buildHtfContext` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:strategy.ts:buildZones": {
+      "name": "buildZones",
+      "type": "function",
+      "summary": "Hàm `buildZones` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:strategy.ts:candleBuyRatio": {
+      "name": "candleBuyRatio",
+      "type": "function",
+      "summary": "Hàm `candleBuyRatio` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:candleVol": {
+      "name": "candleVol",
+      "type": "function",
+      "summary": "Hàm `candleVol` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:confirmCandleQuality": {
+      "name": "confirmCandleQuality",
+      "type": "function",
+      "summary": "Hàm `confirmCandleQuality` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:confirmExtensionOk": {
+      "name": "confirmExtensionOk",
+      "type": "function",
+      "summary": "Hàm `confirmExtensionOk` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:confirmVolumeRatio": {
+      "name": "confirmVolumeRatio",
+      "type": "function",
+      "summary": "Hàm `confirmVolumeRatio` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:displacementAtr": {
+      "name": "displacementAtr",
+      "type": "function",
+      "summary": "Hàm `displacementAtr` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:strategy.ts:evaluateEntry": {
+      "name": "evaluateEntry",
+      "type": "function",
+      "summary": "Kết hợp HTF context, market structure, volume và zone để quyết định một setup entry có hợp lệ hay không."
+    },
+    "function:strategy.ts:findSwings": {
+      "name": "findSwings",
+      "type": "function",
+      "summary": "Hàm `findSwings` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:strategy.ts:htfClosedCount": {
+      "name": "htfClosedCount",
+      "type": "function",
+      "summary": "Hàm `htfClosedCount` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:strategy.ts:lastConfirmedSwing": {
+      "name": "lastConfirmedSwing",
+      "type": "function",
+      "summary": "Hàm `lastConfirmedSwing` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:strategy.ts:minPullbackDepthOk": {
+      "name": "minPullbackDepthOk",
+      "type": "function",
+      "summary": "Hàm `minPullbackDepthOk` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:pullbackRetestedZone": {
+      "name": "pullbackRetestedZone",
+      "type": "function",
+      "summary": "Hàm `pullbackRetestedZone` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:strategy.ts:qualitySizeMult": {
+      "name": "qualitySizeMult",
+      "type": "function",
+      "summary": "Hàm `qualitySizeMult` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:strategy.ts:qualityTier": {
+      "name": "qualityTier",
+      "type": "function",
+      "summary": "Hàm `qualityTier` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "function:strategy.ts:rollingAvgVolume": {
+      "name": "rollingAvgVolume",
+      "type": "function",
+      "summary": "Hàm `rollingAvgVolume` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:strategy.ts:rvolByTimeOfDay": {
+      "name": "rvolByTimeOfDay",
+      "type": "function",
+      "summary": "Hàm `rvolByTimeOfDay` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:strategy.ts:structureBias": {
+      "name": "structureBias",
+      "type": "function",
+      "summary": "Hàm `structureBias` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:strategy.ts:sweptAndReclaimed": {
+      "name": "sweptAndReclaimed",
+      "type": "function",
+      "summary": "Hàm `sweptAndReclaimed` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:strategy.ts:windowBuyRatio": {
+      "name": "windowBuyRatio",
+      "type": "function",
+      "summary": "Hàm `windowBuyRatio` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:telegram-test.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: smoke test cấu hình Telegram bằng cách nạp environment và gửi một test message thực tế."
+    },
+    "function:telegram.ts:buildArmMessage": {
+      "name": "buildArmMessage",
+      "type": "function",
+      "summary": "Hàm `buildArmMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:telegram.ts:buildEntryMessage": {
+      "name": "buildEntryMessage",
+      "type": "function",
+      "summary": "Hàm `buildEntryMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:telegram.ts:buildExitMessage": {
+      "name": "buildExitMessage",
+      "type": "function",
+      "summary": "Hàm `buildExitMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:telegram.ts:buildOfflineEntryMessage": {
+      "name": "buildOfflineEntryMessage",
+      "type": "function",
+      "summary": "Hàm `buildOfflineEntryMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:telegram.ts:buildStartupMessage": {
+      "name": "buildStartupMessage",
+      "type": "function",
+      "summary": "Hàm `buildStartupMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:telegram.ts:buildTestMessage": {
+      "name": "buildTestMessage",
+      "type": "function",
+      "summary": "Hàm `buildTestMessage` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:telegram.ts:escapeMarkdown": {
+      "name": "escapeMarkdown",
+      "type": "function",
+      "summary": "Hàm `escapeMarkdown` thực hiện logic miền trong telegram.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:telegram.ts:flushPendingTelegram": {
+      "name": "flushPendingTelegram",
+      "type": "function",
+      "summary": "Thử gửi lại các Telegram message đang chờ sau lỗi kết nối trước đó."
+    },
+    "function:telegram.ts:fmtPrice": {
+      "name": "fmtPrice",
+      "type": "function",
+      "summary": "Hàm `fmtPrice` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:telegram.ts:formatSymbol": {
+      "name": "formatSymbol",
+      "type": "function",
+      "summary": "Hàm `formatSymbol` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:telegram.ts:formatTimeVn": {
+      "name": "formatTimeVn",
+      "type": "function",
+      "summary": "Hàm `formatTimeVn` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:telegram.ts:getTelegramUpdates": {
+      "name": "getTelegramUpdates",
+      "type": "function",
+      "summary": "Đọc Telegram updates để bot xử lý command và duy trì offset nhận tin."
+    },
+    "function:telegram.ts:loadTelegramConfig": {
+      "name": "loadTelegramConfig",
+      "type": "function",
+      "summary": "Hàm `loadTelegramConfig` đọc dữ liệu từ nguồn cục bộ và chuẩn hóa thành cấu trúc dùng trong phân tích."
+    },
+    "function:telegram.ts:sendTelegram": {
+      "name": "sendTelegram",
+      "type": "function",
+      "summary": "Hàm `sendTelegram` thực hiện logic miền trong telegram.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích."
+    },
+    "function:telegram.ts:sendTelegramReliable": {
+      "name": "sendTelegramReliable",
+      "type": "function",
+      "summary": "Gửi Telegram message theo cơ chế tin cậy, giữ lại lỗi tạm thời để có thể retry."
+    },
+    "function:test-alt-trend.ts:series": {
+      "name": "series",
+      "type": "function",
+      "summary": "Sinh chuỗi Candle deterministic với daily return và quote volume cố định để làm fixture cho các test trend và execution."
+    },
+    "function:test-alt-trend.ts:testNoFutureLeakAndCostStress": {
+      "name": "testNoFutureLeakAndCostStress",
+      "type": "function",
+      "summary": "Xác nhận dữ liệu sau entryTime không đổi signal cũ, cost cao chỉ giảm net R và entryStartTime cô lập đúng evaluation window."
+    },
+    "function:test-alt-trend.ts:testRankingRegimeAndNextOpen": {
+      "name": "testRankingRegimeAndNextOpen",
+      "type": "function",
+      "summary": "Kiểm tra ranking ưu tiên altcoin mạnh, entry tại open kế tiếp và BTC bear regime chặn toàn bộ long trades."
+    },
+    "function:test-alt-trend.ts:testTradabilityGate": {
+      "name": "testTradabilityGate",
+      "type": "function",
+      "summary": "Xác nhận snapshot đủ thanh khoản vượt gate và snapshot yếu bị gắn đầy đủ lý do volume, spread, depth, open interest và ADL risk."
+    },
+    "function:test-binance.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: integration smoke test cho Binance Futures client, gồm kết nối, account data và các thao tác an toàn theo cấu hình test."
+    },
+    "function:test-key-volume.ts:appendM15": {
+      "name": "appendM15",
+      "type": "function",
+      "summary": "Hàm `appendM15` ghi dữ liệu theo định dạng ổn định để phục vụ phục hồi hoặc audit."
+    },
+    "function:test-key-volume.ts:candle": {
+      "name": "candle",
+      "type": "function",
+      "summary": "Hàm `candle` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine."
+    },
+    "function:test-key-volume.ts:testCandleChainBias": {
+      "name": "testCandleChainBias",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testCandleChainBias` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testConditionalReentryAndLeverageCap": {
+      "name": "testConditionalReentryAndLeverageCap",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testConditionalReentryAndLeverageCap` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testDailyTrapGate": {
+      "name": "testDailyTrapGate",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testDailyTrapGate` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testDoubleTopBottom": {
+      "name": "testDoubleTopBottom",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testDoubleTopBottom` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testHvnProxyAndWeeklyAlignment": {
+      "name": "testHvnProxyAndWeeklyAlignment",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testHvnProxyAndWeeklyAlignment` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testKeyActivationAndNoLookahead": {
+      "name": "testKeyActivationAndNoLookahead",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testKeyActivationAndNoLookahead` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testReentryModes": {
+      "name": "testReentryModes",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testReentryModes` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testReversalCandlePatterns": {
+      "name": "testReversalCandlePatterns",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testReversalCandlePatterns` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testSourceBackedDefaults": {
+      "name": "testSourceBackedDefaults",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testSourceBackedDefaults` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testSweepAndReclaim": {
+      "name": "testSweepAndReclaim",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testSweepAndReclaim` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-key-volume.ts:testVolumeRetestStateMachine": {
+      "name": "testVolumeRetestStateMachine",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testVolumeRetestStateMachine` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-live-trade.ts:testAmbiguousNewStopAccepted": {
+      "name": "testAmbiguousNewStopAccepted",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testAmbiguousNewStopAccepted` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-live-trade.ts:testOldStopRestoredOnFailure": {
+      "name": "testOldStopRestoredOnFailure",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testOldStopRestoredOnFailure` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-live-trade.ts:testStopReplacementOrder": {
+      "name": "testStopReplacementOrder",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testStopReplacementOrder` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-mexc.ts:testExecutionFlow": {
+      "name": "testExecutionFlow",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testExecutionFlow` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-mexc.ts:testOneWayCloseDirections": {
+      "name": "testOneWayCloseDirections",
+      "type": "function",
+      "summary": "Kiểm thử scenario `testOneWayCloseDirections` bằng fixture và assertion nhằm ngăn regression."
+    },
+    "function:test-smallcap-native.ts:reversalSeries": {
+      "name": "reversalSeries",
+      "type": "function",
+      "summary": "Tạo chuỗi ReversalObservation giả lập theo symbol, final return và final volume để tái sử dụng trong các test xếp hạng."
+    },
+    "function:test-smallcap-native.ts:supply": {
+      "name": "supply",
+      "type": "function",
+      "summary": "Tạo SupplyObservation fixture với các giá trị mặc định hợp lệ và cho phép override biến supply hoặc trạng thái tài sản."
+    },
+    "function:test-smallcap-native.ts:testConservativeMakerFill": {
+      "name": "testConservativeMakerFill",
+      "type": "function",
+      "summary": "Xác minh maker order dùng best bid và chỉ được fill khi giao dịch đi xuyên giá, không giả định fill khi thị trường chỉ chạm limit."
+    },
+    "function:test-smallcap-native.ts:testNativeReversalRankingAndQuarantine": {
+      "name": "testNativeReversalRankingAndQuarantine",
+      "type": "function",
+      "summary": "Xác nhận reversal engine chọn loser/winner đúng phía, loại event/pump và không thay đổi signal lịch sử khi nối thêm dữ liệu tương lai."
+    },
+    "function:test-smallcap-native.ts:testResearchCostStress": {
+      "name": "testResearchCostStress",
+      "type": "function",
+      "summary": "Xác nhận tăng transaction cost không đổi gross return nhưng làm giảm net return và filledSymbols giới hạn số trade được ghi nhận."
+    },
+    "function:test-smallcap-native.ts:testSupplyPressureRanking": {
+      "name": "testSupplyPressureRanking",
+      "type": "function",
+      "summary": "Kiểm tra tài sản áp lực supply thấp/cao được xếp long/short đúng, shortability được tôn trọng và snapshot trộn thời điểm bị từ chối."
+    },
+    "function:turtle.ts:atrSeries": {
+      "name": "atrSeries",
+      "type": "function",
+      "summary": "Hàm `atrSeries` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:turtle.ts:bootstrap": {
+      "name": "bootstrap",
+      "type": "function",
+      "summary": "Hàm `bootstrap` resample các block thời gian để ước lượng độ bất định và statistical significance."
+    },
+    "function:turtle.ts:buildBtcGateLongs": {
+      "name": "buildBtcGateLongs",
+      "type": "function",
+      "summary": "Hàm `buildBtcGateLongs` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo."
+    },
+    "function:turtle.ts:ema": {
+      "name": "ema",
+      "type": "function",
+      "summary": "Hàm `ema` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro."
+    },
+    "function:turtle.ts:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Điều phối toàn bộ quy trình của script: cài đặt Turtle strategy dùng Donchian breakout, ATR, BTC gate, initial stop và logic mô phỏng/report cho backtest."
+    },
+    "function:turtle.ts:priorDonchian": {
+      "name": "priorDonchian",
+      "type": "function",
+      "summary": "Hàm `priorDonchian` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào."
+    },
+    "function:turtle.ts:report": {
+      "name": "report",
+      "type": "function",
+      "summary": "Hàm `report` định dạng và trình bày output để so sánh các cấu hình một cách nhất quán."
+    },
+    "function:turtle.ts:runTurtle": {
+      "name": "runTurtle",
+      "type": "function",
+      "summary": "Mô phỏng Turtle strategy với Donchian breakout, ATR stop, pyramid và gate thị trường."
+    },
+    "function:turtle.ts:summarize": {
+      "name": "summarize",
+      "type": "function",
+      "summary": "Hàm `summarize` tổng hợp trades/equity thành các metric hiệu suất và rủi ro."
+    },
+    "function:turtle.ts:turtleConfigLine": {
+      "name": "turtleConfigLine",
+      "type": "function",
+      "summary": "Định dạng cấu hình Turtle thành một dòng ổn định để log và so sánh experiment."
+    },
+    "function:turtle.ts:turtleInitialStop": {
+      "name": "turtleInitialStop",
+      "type": "function",
+      "summary": "Hàm `turtleInitialStop` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình."
+    },
+    "service:.dockerignore": {
+      "name": ".dockerignore",
+      "type": "service",
+      "summary": "Giới hạn Docker build context bằng cách loại dependency, build artifacts, runtime state, IDE metadata và secrets, đồng thời vẫn cho phép `.env.example`."
+    },
+    "service:docker-compose.yml": {
+      "name": "docker-compose.yml",
+      "type": "service",
+      "summary": "Điều phối ba container dùng chung image cho swing bot, Chart UI và trading dashboard, kèm env files, DNS, state volumes, restart policy và port binding an toàn."
+    },
+    "service:Dockerfile": {
+      "name": "Dockerfile",
+      "type": "service",
+      "summary": "Định nghĩa multi-stage Docker build dùng esbuild để bundle bot, Chart UI và dashboard thành các file Node.js độc lập, rồi tạo runtime image tối giản với timezone Việt Nam."
+    },
+    "service:Dockerfile:builder": {
+      "name": "builder",
+      "type": "service",
+      "summary": "Builder stage cài tối thiểu axios, dotenv và esbuild rồi bundle ba entry point TypeScript cho môi trường Node.js 20."
+    },
+    "service:Dockerfile:node": {
+      "name": "node",
+      "type": "service",
+      "summary": "Runtime stage nhận các bundle và public assets từ builder, expose cổng 3847/3848 và mặc định khởi chạy bot alert."
+    }
+  },
+  "totalNodes": 523,
+  "totalEdges": 818
+}

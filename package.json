@@ -12,6 +12,8 @@
     "test:key-volume": "ts-node test-key-volume.ts",
     "test:alt-trend": "ts-node test-alt-trend.ts",
     "test:smallcap-native": "ts-node test-smallcap-native.ts",
+    "test:kline-fetch": "ts-node test-kline-fetch.ts",
+    "test:state-persistence": "ts-node test-state-persistence.ts",
     "backtest:key-volume": "ts-node key-volume-backtest.ts",
     "backtest:alt-trend": "ts-node scripts/alt-trend-backtest.ts",
     "scan:alt-universe": "ts-node scripts/alt-universe-scanner.ts",

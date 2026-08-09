@@ -1,0 +1,63 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": "planning/alt-trend-implementation-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 91,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/fxdream-keyvolume-method.md",
+      "language": "markdown",
+      "sizeLines": 771,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/independent-strategy-research-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 221,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/portfolio-risk-and-exit-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 236,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/random-maturity-carry-protocol-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 63,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/remediation-plan-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 250,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/smallcap-native-implementation-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "planning/trend-method-remediation-research-2026-08.md",
+      "language": "markdown",
+      "sizeLines": 175,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "planning/alt-trend-implementation-2026-08.md": [],
+    "planning/fxdream-keyvolume-method.md": [],
+    "planning/independent-strategy-research-2026-08.md": [],
+    "planning/portfolio-risk-and-exit-2026-08.md": [],
+    "planning/random-maturity-carry-protocol-2026-08.md": [],
+    "planning/remediation-plan-2026-08.md": [],
+    "planning/smallcap-native-implementation-2026-08.md": [],
+    "planning/trend-method-remediation-research-2026-08.md": []
+  }
+}

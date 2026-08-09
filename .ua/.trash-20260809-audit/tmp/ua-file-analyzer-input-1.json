@@ -1,0 +1,370 @@
+{
+  "projectRoot": "/Users/quanton/Desktop/alert",
+  "batchFiles": [
+    {
+      "path": "backtest.ts",
+      "language": "typescript",
+      "sizeLines": 603,
+      "fileCategory": "code"
+    },
+    {
+      "path": "exp-overfit.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "exp-turtle-overfit.ts",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "load-env.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/coin-features.ts",
+      "language": "typescript",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/coin-fit.ts",
+      "language": "typescript",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/confirm-quality-gate.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/cross-asset-2817.ts",
+      "language": "typescript",
+      "sizeLines": 81,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/cross-asset-baseline.ts",
+      "language": "typescript",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/entry-frequency-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/entry-volume-audit.ts",
+      "language": "typescript",
+      "sizeLines": 228,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/exit-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/extreme-volume-retest-audit.ts",
+      "language": "typescript",
+      "sizeLines": 783,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/ftr-experiments.ts",
+      "language": "typescript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/liquidity-experiments.ts",
+      "language": "typescript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/liquidity-rule-validate.ts",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/liquidity-soft.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/maxhold-validate.ts",
+      "language": "typescript",
+      "sizeLines": 58,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/mm-experiments.ts",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/mm-sizing.ts",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/overfit-audit.ts",
+      "language": "typescript",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/portfolio-basket.ts",
+      "language": "typescript",
+      "sizeLines": 266,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/pullback-zone-gate.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/symbol-correlation.ts",
+      "language": "typescript",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-baseline-sig.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/turtle-prefetch.ts",
+      "language": "typescript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/volume-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-3.ts",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-4.ts",
+      "language": "typescript",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-5.ts",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-6.ts",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-7.ts",
+      "language": "typescript",
+      "sizeLines": 82,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/weakness-gate-8.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/whale-sweep.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "strategy.ts",
+      "language": "typescript",
+      "sizeLines": 1117,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "backtest.ts": [
+      "strategy.ts"
+    ],
+    "exp-overfit.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "exp-turtle-overfit.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "load-env.ts": [],
+    "scripts/coin-features.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/coin-fit.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/confirm-quality-gate.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/cross-asset-2817.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/cross-asset-baseline.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/entry-frequency-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/entry-volume-audit.ts": [
+      "backtest.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/exit-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/extreme-volume-retest-audit.ts": [
+      "backtest.ts",
+      "kline-fetch.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/ftr-experiments.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/liquidity-experiments.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/liquidity-rule-validate.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/liquidity-soft.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/maxhold-validate.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/mm-experiments.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/mm-sizing.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/overfit-audit.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/portfolio-basket.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/pullback-zone-gate.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/symbol-correlation.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/turtle-baseline-sig.ts": [
+      "backtest.ts",
+      "strategy.ts",
+      "turtle.ts"
+    ],
+    "scripts/turtle-prefetch.ts": [
+      "backtest.ts",
+      "strategy.ts"
+    ],
+    "scripts/volume-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-3.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-4.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-5.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-6.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-7.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/weakness-gate-8.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "scripts/whale-sweep.ts": [
+      "backtest.ts",
+      "load-env.ts",
+      "strategy.ts"
+    ],
+    "strategy.ts": []
+  }
+}

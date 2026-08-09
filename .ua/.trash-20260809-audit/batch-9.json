@@ -1,0 +1,78 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Mẫu biến môi trường cho Telegram, Binance Futures, MEXC Futures, các sleeve SMC/Turtle/Fast Trend và giới hạn rủi ro danh mục. Các cờ giao dịch được thiết kế theo hướng fail-closed, còn API credentials chỉ xuất hiện dưới dạng placeholder.",
+      "tags": ["cấu-hình", "biến-môi-trường", "quản-trị-rủi-ro", "giao-dịch-live"],
+      "complexity": "moderate",
+      "languageNotes": "Định dạng dotenv kết hợp giá trị mặc định với chú thích vận hành và cảnh báo bảo mật bằng tiếng Việt."
+    },
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "Quy định cách coding agent làm việc trong repo: nêu giả định trước khi sửa, ưu tiên giải pháp đơn giản, thay đổi surgical và xác minh theo tiêu chí thành công.",
+      "tags": ["tài-liệu", "hướng-dẫn-agent", "quy-trình-phát-triển", "kiểm-chứng"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "Bản hướng dẫn dành cho Claude khi thay đổi code, nhấn mạnh việc làm rõ yêu cầu, tránh overengineering, giữ diff nhỏ và gắn từng bước với phép kiểm tra cụ thể.",
+      "tags": ["tài-liệu", "hướng-dẫn-agent", "thay-đổi-surgical", "kiểm-chứng"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Tài liệu tổng quan vận hành bot swing alert đa coin, kiến trúc chiến lược SMC/Key Volume/Turtle/Fast Trend, kết quả backtest và các giới hạn overfit. Đồng thời hướng dẫn Telegram, giao dịch Binance/MEXC, Docker và dashboard.",
+      "tags": ["tài-liệu", "tổng-quan", "backtest", "vận-hành", "crypto-trading"],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Manifest npm của `btc-alert-bot`, khai báo các lệnh chạy bot, dashboard, test và backtest cùng runtime Next.js, React, Axios, WebSocket và dotenv.",
+      "tags": ["cấu-hình", "npm", "build-system", "dependency-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "tsconfig.json",
+      "summary": "Cấu hình TypeScript strict cho cả script Node.js và ứng dụng Next.js, dùng CommonJS, JSX preserve, incremental checking và `ts-node` ở chế độ transpile-only.",
+      "tags": ["cấu-hình", "typescript", "build-system", "type-checking"],
+      "complexity": "simple",
+      "languageNotes": "Cấu hình dùng chung hai ngữ cảnh: CommonJS cho script CLI và plugin `next` cho App Router."
+    },
+    {
+      "id": "config:vercel.json",
+      "type": "config",
+      "name": "vercel.json",
+      "filePath": "vercel.json",
+      "summary": "Cấu hình Vercel xác định framework Next.js và cố định lệnh cài dependency cùng lệnh build production.",
+      "tags": ["cấu-hình", "vercel", "deployment", "nextjs"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:AGENTS.md",
+      "target": "document:CLAUDE.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

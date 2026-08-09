@@ -1,0 +1,831 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 8,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 8,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 8
+    }
+  },
+  "results": [
+    {
+      "path": "planning/alt-trend-implementation-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 91,
+      "nonEmptyLines": 67,
+      "sections": [
+        {
+          "heading": "Alt Trend — implementation boundary and research protocol",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Status",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Current-universe scanner",
+          "level": 2,
+          "line": 23
+        },
+        {
+          "heading": "Backtest",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "First diagnostic result — 2026-08-02",
+          "level": 3,
+          "line": 54
+        },
+        {
+          "heading": "Promotion gate",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "Verification",
+          "level": 2,
+          "line": 81
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "planning/fxdream-keyvolume-method.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 771,
+      "nonEmptyLines": 571,
+      "sections": [
+        {
+          "heading": "Phương pháp \"Key Volume\" — FX Dream Trading",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Mục lục",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "1. Triết lý gốc",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "2. Key Volume — hạt nhân hệ thống",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "Cách xác định trong thực tế",
+          "level": 3,
+          "line": 59
+        },
+        {
+          "heading": "Bộ lọc phủ định (quan trọng)",
+          "level": 3,
+          "line": 67
+        },
+        {
+          "heading": "3. Từ vựng phải nắm",
+          "level": 2,
+          "line": 74
+        },
+        {
+          "heading": "4. Quy trình 4 bước top-down",
+          "level": 2,
+          "line": 91
+        },
+        {
+          "heading": "Bước 1 — Tuần: xác định bias",
+          "level": 3,
+          "line": 97
+        },
+        {
+          "heading": "Bước 2 — Ngày: xác nhận cấu trúc + tìm key",
+          "level": 3,
+          "line": 103
+        },
+        {
+          "heading": "Bước 3 — M15: xác nhận + chờ trap",
+          "level": 3,
+          "line": 109
+        },
+        {
+          "heading": "Bước 4 — M5: tìm entry",
+          "level": 3,
+          "line": 116
+        },
+        {
+          "heading": "5. Checklist vào lệnh",
+          "level": 2,
+          "line": 124
+        },
+        {
+          "heading": "6. Ba dạng setup",
+          "level": 2,
+          "line": 141
+        },
+        {
+          "heading": "A. Follow trend — khuyến nghị cho người mới, an toàn nhất",
+          "level": 3,
+          "line": 143
+        },
+        {
+          "heading": "B. Trap / đảo chiều — nâng cao",
+          "level": 3,
+          "line": 147
+        },
+        {
+          "heading": "C. Sideway",
+          "level": 3,
+          "line": 152
+        },
+        {
+          "heading": "7. Entry / SL / TP / quản lý lệnh",
+          "level": 2,
+          "line": 160
+        },
+        {
+          "heading": "Stop loss",
+          "level": 3,
+          "line": 162
+        },
+        {
+          "heading": "Take profit",
+          "level": 3,
+          "line": 169
+        },
+        {
+          "heading": "Điều kiện bỏ lệnh sớm (không đợi SL)",
+          "level": 3,
+          "line": 176
+        },
+        {
+          "heading": "8. Quản trị vốn",
+          "level": 2,
+          "line": 194
+        },
+        {
+          "heading": "9. Lớp vĩ mô — chi phí vốn",
+          "level": 2,
+          "line": 213
+        },
+        {
+          "heading": "Bộ công cụ",
+          "level": 3,
+          "line": 220
+        },
+        {
+          "heading": "Ví dụ thực tế kênh dùng",
+          "level": 3,
+          "line": 224
+        },
+        {
+          "heading": "Về tin tức",
+          "level": 3,
+          "line": 232
+        },
+        {
+          "heading": "10. Lộ trình học",
+          "level": 2,
+          "line": 240
+        },
+        {
+          "heading": "11. Đánh giá thẳng thắn",
+          "level": 2,
+          "line": 259
+        },
+        {
+          "heading": "Điểm mạnh thật sự",
+          "level": 3,
+          "line": 261
+        },
+        {
+          "heading": "Cần thận trọng",
+          "level": 3,
+          "line": 272
+        },
+        {
+          "heading": "12. Ghi chú số hoá / code hoá",
+          "level": 2,
+          "line": 288
+        },
+        {
+          "heading": "Số hoá được",
+          "level": 3,
+          "line": 290
+        },
+        {
+          "heading": "Không số hoá được",
+          "level": 3,
+          "line": 300
+        },
+        {
+          "heading": "Hai giả thuyết nghiên cứu, không phải luật định lượng của kênh",
+          "level": 3,
+          "line": 308
+        },
+        {
+          "heading": "Audit nguồn chính chủ bổ sung — 2026-07-30",
+          "level": 3,
+          "line": 319
+        },
+        {
+          "heading": "Audit tần suất bổ sung — 2026-07-30",
+          "level": 3,
+          "line": 378
+        },
+        {
+          "heading": "13. Audit lại từ transcript gốc — 2026-08-01",
+          "level": 2,
+          "line": 421
+        },
+        {
+          "heading": "13.1 Lỗi nghiêm trọng — gate \"dư địa 3R\" bị đảo ngược",
+          "level": 3,
+          "line": 427
+        },
+        {
+          "heading": "13.2 Đặt stop sai chỗ",
+          "level": 3,
+          "line": 455
+        },
+        {
+          "heading": "13.3 Thiếu luật \"không chạy liền là bỏ\"",
+          "level": 3,
+          "line": 471
+        },
+        {
+          "heading": "13.4 Key không có yêu cầu lịch sử phản ứng",
+          "level": 3,
+          "line": 485
+        },
+        {
+          "heading": "13.5 Những phần kênh dạy mà code vẫn chưa có",
+          "level": 3,
+          "line": 495
+        },
+        {
+          "heading": "13.6 Kết quả ablation — tách riêng từng sai lệch",
+          "level": 3,
+          "line": 506
+        },
+        {
+          "heading": "13.7 Ràng buộc thật: chi phí thực thi, không phải logic tín hiệu",
+          "level": 3,
+          "line": 541
+        },
+        {
+          "heading": "13.8 Benchmark sau khi sửa",
+          "level": 3,
+          "line": 558
+        },
+        {
+          "heading": "13.9 Vì sao bản code vẫn thua kết quả giao dịch tay",
+          "level": 3,
+          "line": 579
+        },
+        {
+          "heading": "14. Audit toàn bộ + cài đặt phần còn thiếu — 2026-08-01 (vòng 2)",
+          "level": 2,
+          "line": 593
+        },
+        {
+          "heading": "14.1 Sai lệch lớn nhất còn lại: entry chờ BOS",
+          "level": 3,
+          "line": 600
+        },
+        {
+          "heading": "14.2 `#31` — quy trình Daily định lượng được mà code chưa có",
+          "level": 3,
+          "line": 621
+        },
+        {
+          "heading": "14.3 Ablation các luật mới",
+          "level": 3,
+          "line": 633
+        },
+        {
+          "heading": "14.4 Bảng đối chiếu từng luật với nguồn",
+          "level": 3,
+          "line": 662
+        },
+        {
+          "heading": "14.5 Điều `#25` nói mà code không bao giờ đạt được",
+          "level": 3,
+          "line": 688
+        },
+        {
+          "heading": "14.6 Benchmark cuối và cách đọc đúng",
+          "level": 3,
+          "line": 704
+        },
+        {
+          "heading": "14.7 Điều đã cài nhưng cố ý KHÔNG bật mặc định",
+          "level": 3,
+          "line": 731
+        },
+        {
+          "heading": "Nguồn",
+          "level": 2,
+          "line": 740
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 55
+      }
+    },
+    {
+      "path": "planning/independent-strategy-research-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 221,
+      "nonEmptyLines": 168,
+      "sections": [
+        {
+          "heading": "Nghiên cứu chiến lược crypto độc lập — 2026-08-01",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Kết luận ngắn",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Khác gì với bot hiện tại?",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "Dữ liệu và giả định chung",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "1. Ứng viên tốt nhất: staggered cross-sectional momentum",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Luật",
+          "level": 3,
+          "line": 46
+        },
+        {
+          "heading": "Kết quả 2.000 ngày, 8 majors",
+          "level": 3,
+          "line": 54
+        },
+        {
+          "heading": "Robustness quan trọng",
+          "level": 3,
+          "line": 76
+        },
+        {
+          "heading": "Verdict",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "2. Random-maturity spot–perpetual carry — lợi nhuận cũ cao, edge hiện tại đã decay",
+          "level": 2,
+          "line": 101
+        },
+        {
+          "heading": "Kết quả time-isolated",
+          "level": 3,
+          "line": 115
+        },
+        {
+          "heading": "Verdict",
+          "level": 3,
+          "line": 132
+        },
+        {
+          "heading": "3. Funding-tail reversal — loại",
+          "level": 2,
+          "line": 146
+        },
+        {
+          "heading": "4. Cross-sectional perpetual basis — loại",
+          "level": 2,
+          "line": 160
+        },
+        {
+          "heading": "5. Quarter-hour order-flow — proxy 5m bị loại",
+          "level": 2,
+          "line": 176
+        },
+        {
+          "heading": "Tài liệu chính",
+          "level": 2,
+          "line": 196
+        },
+        {
+          "heading": "Đề xuất hành động",
+          "level": 2,
+          "line": 213
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 17
+      }
+    },
+    {
+      "path": "planning/portfolio-risk-and-exit-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 236,
+      "nonEmptyLines": 188,
+      "sections": [
+        {
+          "heading": "Turtle — chính sách rủi ro cấp danh mục + tách kênh thoát (2026-08-04)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Kết quả (2.086 ngày, 2020-11-17 → 2026-08-04, rổ 8 coin, phí thật)",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "NET R tăng bao nhiêu? — phải chốt mức drawdown trước",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "Ba thay đổi",
+          "level": 2,
+          "line": 56
+        },
+        {
+          "heading": "1. Chính sách rủi ro theo \"heat\" cùng hướng (`T.heatDecayK = 4`) — lớp A",
+          "level": 3,
+          "line": 58
+        },
+        {
+          "heading": "2. Kênh THOÁT của LONG tách khỏi kênh VÀO (`T.longExitDays = 20`) — lớp B",
+          "level": 3,
+          "line": 77
+        },
+        {
+          "heading": "3. Pyramid ≤3 unit thay vì ≤4 (`T.pyramidMaxUnits = 3`) — lớp A/B",
+          "level": 3,
+          "line": 90
+        },
+        {
+          "heading": "Kiểm định (`scripts/audit-candidates.ts`)",
+          "level": 2,
+          "line": 98
+        },
+        {
+          "heading": "PLACEBO TEST — \"có overfit không\" trả lời bằng thực nghiệm",
+          "level": 2,
+          "line": 124
+        },
+        {
+          "heading": "Kết quả ÂM (đừng lặp lại)",
+          "level": 2,
+          "line": 157
+        },
+        {
+          "heading": "Hạ tầng mới",
+          "level": 2,
+          "line": 179
+        },
+        {
+          "heading": "Tiêu chí ROLLBACK (viết TRƯỚC khi bật)",
+          "level": 2,
+          "line": 197
+        },
+        {
+          "heading": "Tái lập",
+          "level": 2,
+          "line": 211
+        },
+        {
+          "heading": "Tài liệu",
+          "level": 2,
+          "line": 229
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 14
+      }
+    },
+    {
+      "path": "planning/random-maturity-carry-protocol-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 63,
+      "nonEmptyLines": 46,
+      "sections": [
+        {
+          "heading": "Pre-registered protocol: random-maturity spot–perpetual carry",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Hypothesis and source",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Locked implementation",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "Time isolation",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "Robustness gates",
+          "level": 2,
+          "line": 48
+        },
+        {
+          "heading": "Pre-validation implementation note",
+          "level": 2,
+          "line": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "planning/remediation-plan-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 250,
+      "nonEmptyLines": 188,
+      "sections": [
+        {
+          "heading": "Kế hoạch khắc phục sau chuỗi thua 23/07–02/08 — kỷ luật chống overfit",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "0. Nguyên tắc: định tuyến sửa lỗi qua kênh không cần fit",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "Lớp A — sửa cấu trúc (không tuyên bố alpha)",
+          "level": 2,
+          "line": 28
+        },
+        {
+          "heading": "A0. Xác định instance nào đang thực sự chạy",
+          "level": 3,
+          "line": 30
+        },
+        {
+          "heading": "A1. Khử trùng lặp lệnh xuyên sàn",
+          "level": 3,
+          "line": 46
+        },
+        {
+          "heading": "A2. Ngân sách rủi ro tính bằng USD trên tổng equity hai sàn",
+          "level": 3,
+          "line": 111
+        },
+        {
+          "heading": "A3. Trần theo *cùng hướng*, thay cho hàng loạt luật vụn",
+          "level": 3,
+          "line": 145
+        },
+        {
+          "heading": "A4. Journal đủ để forensic + cảnh báo lệch cấu hình",
+          "level": 3,
+          "line": 162
+        },
+        {
+          "heading": "Lớp B — thay đổi rule (phải đăng ký trước, chạy shadow)",
+          "level": 2,
+          "line": 180
+        },
+        {
+          "heading": "B1. Cooldown 24h sau lệnh thua (Fast) — ứng viên đã đăng ký",
+          "level": 3,
+          "line": 185
+        },
+        {
+          "heading": "B2. Giãn pyramid theo thời gian — ứng viên tiếp theo (chưa chạy)",
+          "level": 3,
+          "line": 194
+        },
+        {
+          "heading": "Giao thức bắt buộc cho mọi ứng viên lớp B",
+          "level": 3,
+          "line": 205
+        },
+        {
+          "heading": "Lớp C — cấm làm",
+          "level": 2,
+          "line": 222
+        },
+        {
+          "heading": "Thứ tự thực hiện",
+          "level": 2,
+          "line": 237
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 14
+      }
+    },
+    {
+      "path": "planning/smallcap-native-implementation-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 69,
+      "nonEmptyLines": 50,
+      "sections": [
+        {
+          "heading": "Native small-cap research implementation",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Status and isolation",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Engines",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "`smallcap-reversal.ts`",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "`smallcap-supply.ts`",
+          "level": 3,
+          "line": 30
+        },
+        {
+          "heading": "Offline runner",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Verification",
+          "level": 2,
+          "line": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "planning/trend-method-remediation-research-2026-08.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 175,
+      "nonEmptyLines": 135,
+      "sections": [
+        {
+          "heading": "Turtle/Fast — nghiên cứu điểm yếu và hướng khắc phục (2026-08)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Trạng thái quyết định",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Phạm vi và giao thức",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "Lệnh thua thực tế làm khởi phát audit",
+          "level": 2,
+          "line": 32
+        },
+        {
+          "heading": "Turtle: điểm yếu và kết quả khắc phục",
+          "level": 2,
+          "line": 43
+        },
+        {
+          "heading": "Bản chất loss",
+          "level": 3,
+          "line": 45
+        },
+        {
+          "heading": "Biến thể đã kiểm tra",
+          "level": 3,
+          "line": 60
+        },
+        {
+          "heading": "Fast: điểm yếu và kết quả khắc phục",
+          "level": 2,
+          "line": 77
+        },
+        {
+          "heading": "Bản chất loss",
+          "level": 3,
+          "line": 79
+        },
+        {
+          "heading": "Biến thể đã kiểm tra",
+          "level": 3,
+          "line": 92
+        },
+        {
+          "heading": "Hai sleeve có thực sự đa dạng hóa không?",
+          "level": 2,
+          "line": 112
+        },
+        {
+          "heading": "Binance signal / MEXC execution",
+          "level": 2,
+          "line": 128
+        },
+        {
+          "heading": "Action đã chấp nhận và action còn chờ",
+          "level": 2,
+          "line": 140
+        },
+        {
+          "heading": "Đã làm",
+          "level": 3,
+          "line": 142
+        },
+        {
+          "heading": "Nên làm tiếp, nhưng chưa triển khai trong vòng nghiên cứu này",
+          "level": 3,
+          "line": 148
+        },
+        {
+          "heading": "Tài liệu phương pháp",
+          "level": 2,
+          "line": 158
+        },
+        {
+          "heading": "Kết luận cuối",
+          "level": 2,
+          "line": 169
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 17
+      }
+    }
+  ]
+}

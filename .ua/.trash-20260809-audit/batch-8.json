@@ -1,0 +1,59 @@
+{
+  "nodes": [
+    {
+      "id": "service:.dockerignore",
+      "type": "service",
+      "name": ".dockerignore",
+      "filePath": ".dockerignore",
+      "summary": "Giới hạn Docker build context bằng cách loại dependency, build artifacts, runtime state, IDE metadata và secrets, đồng thời vẫn cho phép `.env.example`.",
+      "tags": ["containerization", "build-context", "security", "configuration"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "Định nghĩa multi-stage Docker build dùng esbuild để bundle bot, Chart UI và dashboard thành các file Node.js độc lập, rồi tạo runtime image tối giản với timezone Việt Nam.",
+      "tags": ["containerization", "multi-stage-build", "deployment", "esbuild"],
+      "complexity": "simple",
+      "languageNotes": "Multi-stage build tách dependency phục vụ bundle khỏi runtime image; runtime chỉ giữ Node.js, tzdata, các bundle và public assets."
+    },
+    {
+      "id": "service:Dockerfile:builder",
+      "type": "service",
+      "name": "builder",
+      "filePath": "Dockerfile",
+      "summary": "Builder stage cài tối thiểu axios, dotenv và esbuild rồi bundle ba entry point TypeScript cho môi trường Node.js 20.",
+      "tags": ["build-stage", "esbuild", "typescript", "containerization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile:node",
+      "type": "service",
+      "name": "node",
+      "filePath": "Dockerfile",
+      "summary": "Runtime stage nhận các bundle và public assets từ builder, expose cổng 3847/3848 và mặc định khởi chạy bot alert.",
+      "tags": ["runtime-stage", "nodejs", "deployment", "containerization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Điều phối ba container dùng chung image cho swing bot, Chart UI và trading dashboard, kèm env files, DNS, state volumes, restart policy và port binding an toàn.",
+      "tags": ["orchestration", "containerization", "deployment", "persistent-state", "security"],
+      "complexity": "moderate",
+      "languageNotes": "Compose bind dashboard vào localhost trên cổng 3848 và mount dữ liệu bot ở chế độ read-only cho dashboard."
+    }
+  ],
+  "edges": [
+    {"source": "service:.dockerignore", "target": "service:Dockerfile", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "service:Dockerfile", "target": "service:Dockerfile:builder", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:Dockerfile", "target": "service:Dockerfile:node", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:Dockerfile:node", "target": "service:Dockerfile:builder", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "service:docker-compose.yml", "target": "service:Dockerfile", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "service:docker-compose.yml", "target": "service:Dockerfile:node", "type": "serves", "direction": "forward", "weight": 0.7}
+  ]
+}

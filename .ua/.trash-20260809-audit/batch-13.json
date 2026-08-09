@@ -1,0 +1,399 @@
+{
+  "nodes": [
+    {
+      "id": "file:.ua/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".ua/.understandignore",
+      "summary": "Mẫu ignore cho Understand Anything, ghi lại default exclusions và các pattern gợi ý cho secrets, runtime state, logs, scripts cùng test files. Toàn bộ rule dự án hiện vẫn được comment nên scanner không loại thêm file nào.",
+      "tags": ["cấu-hình", "ignore-patterns", "phân-tích-codebase", "bảo-mật"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.ua/config.json",
+      "type": "config",
+      "name": "config.json",
+      "filePath": ".ua/config.json",
+      "summary": "Cấu hình Understand Anything yêu cầu sinh nội dung phân tích bằng tiếng Việt.",
+      "tags": ["cấu-hình", "understand-anything", "ngôn-ngữ-đầu-ra"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "app/layout.tsx",
+      "summary": "Root layout tối giản của Next.js App Router, đặt ngôn ngữ tài liệu là tiếng Việt và render toàn bộ route content trong thẻ `body`.",
+      "tags": ["component", "nextjs", "app-router", "layout"],
+      "complexity": "simple",
+      "languageNotes": "React Server Component dùng typed `children` và default export theo convention của Next.js App Router."
+    },
+    {
+      "id": "function:app/layout.tsx:RootLayout",
+      "type": "function",
+      "name": "RootLayout",
+      "filePath": "app/layout.tsx",
+      "lineRange": [1, 7],
+      "summary": "Bao bọc React children bằng cấu trúc HTML gốc với locale `vi` cho mọi trang trong ứng dụng.",
+      "tags": ["component", "layout", "nextjs", "entry-point"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:next-env.d.ts",
+      "type": "file",
+      "name": "next-env.d.ts",
+      "filePath": "next-env.d.ts",
+      "summary": "File declaration do Next.js sinh để đưa type definitions lõi và image types vào môi trường TypeScript của dự án.",
+      "tags": ["type-definition", "nextjs", "generated-file", "typescript"],
+      "complexity": "simple",
+      "languageNotes": "Dùng triple-slash reference và được Next.js quản lý tự động."
+    },
+    {
+      "id": "file:next.config.js",
+      "type": "file",
+      "name": "next.config.js",
+      "filePath": "next.config.js",
+      "summary": "Cấu hình Next.js rewrite route `/` sang static dashboard `/index.html`, cho phép trang biểu đồ trong `public` trở thành trang mặc định.",
+      "tags": ["cấu-hình", "nextjs", "routing", "rewrite"],
+      "complexity": "simple",
+      "languageNotes": "CommonJS config dùng JSDoc type import để nhận type checking mà không chuyển file sang TypeScript."
+    },
+    {
+      "id": "document:planning/mexc-futures/reviews/external-review-status.md",
+      "type": "document",
+      "name": "external-review-status.md",
+      "filePath": "planning/mexc-futures/reviews/external-review-status.md",
+      "summary": "Biên bản trạng thái external review cho kế hoạch MEXC Futures: Gemini bị bỏ qua do thiếu CLI, còn Codex thoát trước khi tạo review. Việc tích hợp review và chia section đang tạm dừng chờ quyết định retry hoặc skip rõ ràng.",
+      "tags": ["tài-liệu", "external-review", "mexc-futures", "trạng-thái"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:public/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "public/index.html",
+      "summary": "Dashboard single-page hiển thị nến, volume quote và marker vào/ra từ backtest bằng Lightweight Charts. UI hỗ trợ chọn symbol/khoảng thời gian, đồng bộ zoom giữa hai chart, thống kê NET R và danh sách giao dịch tương tác.",
+      "tags": ["dashboard", "visualization", "backtest", "lightweight-charts", "client-side"],
+      "complexity": "complex",
+      "languageNotes": "Một file HTML độc lập nhúng CSS responsive và vanilla JavaScript, tải Lightweight Charts từ CDN và gọi các endpoint `/api/symbols` cùng `/api/chart`."
+    },
+    {
+      "id": "file:scripts/random-maturity-carry.ts",
+      "type": "file",
+      "name": "random-maturity-carry.ts",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "summary": "Research runner cho random-maturity spot–perpetual carry trên năm crypto, với dữ liệu Binance theo giờ, cache có coverage, mô phỏng hedge bốn legs và hạch toán fees/funding/slippage/financing. Script khóa dev/validation/holdout, chạy stress scenarios, block bootstrap và self-test chống lookahead.",
+      "tags": ["research", "carry", "backtest", "risk-analysis", "data-pipeline"],
+      "complexity": "complex",
+      "languageNotes": "TypeScript mô hình hóa riêng bar, funding, position và trade; toàn bộ return được đối soát giữa trade ledger và hourly PnL trước khi báo cáo."
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:args",
+      "type": "function",
+      "name": "args",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [80, 91],
+      "summary": "Parse phase, self-test flag và holdout confirmation từ CLI, đồng thời từ chối phase không thuộc protocol đã khóa.",
+      "tags": ["utility", "cli", "validation", "research-protocol"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:addCoverage",
+      "type": "function",
+      "name": "addCoverage",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [138, 153],
+      "summary": "Gộp các khoảng thời gian cache liền kề hoặc chồng lấn rồi lưu coverage đã chuẩn hóa theo kind và symbol.",
+      "tags": ["utility", "cache", "interval-merging", "data-integrity"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:getWithRetry",
+      "type": "function",
+      "name": "getWithRetry",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [165, 175],
+      "summary": "Gọi HTTP GET bằng Axios với timeout 30 giây và thử lại tối đa ba lần trước khi ném lỗi cuối cùng.",
+      "tags": ["utility", "http-client", "retry", "resilience"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:fetchBars",
+      "type": "function",
+      "name": "fetchBars",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [177, 234],
+      "summary": "Tải tuần tự các batch nến 1h cho spot, perpetual hoặc mark price từ Binance, có fallback endpoint cho spot và kiểm tra pagination stall. Dữ liệu được merge theo timestamp, cache và ghi coverage trước khi trả đúng cửa sổ yêu cầu.",
+      "tags": ["data-pipeline", "binance-api", "pagination", "cache", "market-data"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:fetchFunding",
+      "type": "function",
+      "name": "fetchFunding",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [236, 266],
+      "summary": "Thu thập funding history theo trang từ Binance Futures, chuẩn hóa rate/mark price và cập nhật cache cùng coverage cho từng symbol.",
+      "tags": ["data-pipeline", "funding-rate", "binance-api", "cache"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:alignBars",
+      "type": "function",
+      "name": "alignBars",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [268, 284],
+      "summary": "Inner-join nến spot và perpetual theo `openTime`, tạo chuỗi aligned bar rồi xác minh timestamp tăng nghiêm ngặt.",
+      "tags": ["utility", "data-alignment", "market-data", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:hydrateFundingMarks",
+      "type": "function",
+      "name": "hydrateFundingMarks",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [286, 298],
+      "summary": "Điền mark price còn thiếu trong funding record từ mark-price bars, fallback sang perpetual bars và fail khi không có giá hợp lệ.",
+      "tags": ["utility", "funding-rate", "data-repair", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:settleTrade",
+      "type": "function",
+      "name": "settleTrade",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [304, 388],
+      "summary": "Tất toán một cặp long spot/short perpetual và phân rã PnL thành price, funding, fees, slippage cùng financing. Hàm đồng thời ghi từng thành phần vào hourly ledger để phục vụ đối soát danh mục.",
+      "tags": ["backtest", "trade-accounting", "funding-rate", "transaction-cost", "pnl"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:simulate",
+      "type": "function",
+      "name": "simulate",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [390, 460],
+      "summary": "Mô phỏng entry/exit ở next open theo độ lệch perpetual so với fair ratio sau chi phí, với tối đa một vị thế mỗi symbol. Cuối phiên hàm đối chiếu tổng trade PnL với hourly ledger và báo lỗi nếu sai lệch.",
+      "tags": ["backtest", "simulation", "carry", "no-lookahead", "data-integrity"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:portfolioReturns",
+      "type": "function",
+      "name": "portfolioReturns",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [472, 481],
+      "summary": "Tổng hợp hourly PnL của các symbol thành chuỗi return danh mục equal-weight trong phase nghiên cứu đã chọn.",
+      "tags": ["utility", "portfolio", "return-series", "aggregation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:equityStats",
+      "type": "function",
+      "name": "equityStats",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [483, 498],
+      "summary": "Compounding chuỗi return để tính total return, annualized Sharpe và maximum drawdown của danh mục.",
+      "tags": ["utility", "risk-metrics", "drawdown", "sharpe-ratio"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:blockBootstrap",
+      "type": "function",
+      "name": "blockBootstrap",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [520, 542],
+      "summary": "Resample các block return bằng PRNG có seed cố định để ước lượng CI90 và xác suất total return dương.",
+      "tags": ["statistics", "bootstrap", "robustness", "reproducibility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:report",
+      "type": "function",
+      "name": "report",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [548, 629],
+      "summary": "Tạo báo cáo theo symbol và toàn danh mục cho mỗi scenario, gồm PnL decomposition, Sharpe, max drawdown, normalized R, bootstrap interval, concentration, thời gian giữ và thống kê theo năm.",
+      "tags": ["reporting", "risk-metrics", "pnl-analysis", "bootstrap", "portfolio"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:selfTest",
+      "type": "function",
+      "name": "selfTest",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [637, 690],
+      "summary": "Kiểm tra các invariant về fair ratio, four-leg costs, mark-price fallback, next-open execution, funding timestamps và đối soát PnL trên dữ liệu tổng hợp.",
+      "tags": ["test", "validation", "no-lookahead", "trade-accounting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/random-maturity-carry.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/random-maturity-carry.ts",
+      "lineRange": [692, 747],
+      "summary": "Điều phối research run: khóa holdout, tải và align market data cho năm symbol, hydrate funding rồi chạy baseline cùng các stress scenario về cost và financing.",
+      "tags": ["entry-point", "orchestration", "research-protocol", "stress-test", "market-data"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/turtle-live-parity.ts",
+      "type": "file",
+      "name": "turtle-live-parity.ts",
+      "filePath": "scripts/turtle-live-parity.ts",
+      "summary": "Parity test chạy `TurtleLive` ở paper mode từng nến trong sandbox tạm rồi so từng unit, hướng, timestamp và risk weight với portfolio engine đã audit. Script không tải credentials và xóa state tạm sau khi kiểm tra.",
+      "tags": ["test", "turtle", "live-parity", "risk-validation", "sandbox"],
+      "complexity": "moderate",
+      "languageNotes": "Dùng dynamic `require` sau `chdir` để cô lập các đường dẫn state được tính lúc module load, rồi monkey-patch entry/add hooks để ghi nhận unit."
+    },
+    {
+      "id": "function:scripts/turtle-live-parity.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-live-parity.ts",
+      "lineRange": [35, 118],
+      "summary": "Replay Turtle live candle-by-candle, thu các unit đã mở hoặc pyramid và đối chiếu chúng với kết quả `runBooks`, bao gồm cả heat-decay weight. Hàm báo thiếu/thừa/sai weight, dọn sandbox và fail nếu không đạt parity.",
+      "tags": ["test", "live-parity", "turtle", "risk-validation", "orchestration"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tsconfig.tsbuildinfo",
+      "type": "file",
+      "name": "tsconfig.tsbuildinfo",
+      "filePath": "tsconfig.tsbuildinfo",
+      "summary": "Artifact incremental build do TypeScript sinh, lưu metadata về source graph và trạng thái type-check để tăng tốc các lần compile sau.",
+      "tags": ["generated-file", "typescript", "build-cache", "incremental-build"],
+      "complexity": "simple",
+      "languageNotes": "Đây là dữ liệu máy sinh một dòng, không phải source cần chỉnh sửa thủ công."
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/layout.tsx",
+      "target": "function:app/layout.tsx:RootLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/layout.tsx",
+      "target": "function:app/layout.tsx:RootLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:args",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:addCoverage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:getWithRetry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:fetchBars",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:fetchFunding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:alignBars",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:hydrateFundingMarks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:settleTrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:simulate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:portfolioReturns",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:equityStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:blockBootstrap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:selfTest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/random-maturity-carry.ts",
+      "target": "function:scripts/random-maturity-carry.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scripts/turtle-live-parity.ts",
+      "target": "function:scripts/turtle-live-parity.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

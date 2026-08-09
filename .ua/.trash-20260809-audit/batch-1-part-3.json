@@ -1,0 +1,1313 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/turtle-baseline-sig.ts",
+      "type": "file",
+      "name": "turtle-baseline-sig.ts",
+      "filePath": "scripts/turtle-baseline-sig.ts",
+      "summary": "Đo statistical significance của Turtle baseline để làm mốc cho các cải tiến tiếp theo.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-baseline-sig.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-baseline-sig.ts",
+      "lineRange": [
+        24,
+        36
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đo statistical significance của Turtle baseline để làm mốc cho các cải tiến tiếp theo.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/turtle-prefetch.ts",
+      "type": "file",
+      "name": "turtle-prefetch.ts",
+      "filePath": "scripts/turtle-prefetch.ts",
+      "summary": "Prefetch dữ liệu nến cần cho các backtest Turtle nhằm giảm thời gian chạy thí nghiệm lặp lại.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/turtle-prefetch.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/turtle-prefetch.ts",
+      "lineRange": [
+        13,
+        25
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: prefetch dữ liệu nến cần cho các backtest Turtle nhằm giảm thời gian chạy thí nghiệm lặp lại.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/volume-sweep.ts",
+      "type": "file",
+      "name": "volume-sweep.ts",
+      "filePath": "scripts/volume-sweep.ts",
+      "summary": "Quét ngưỡng volume của tín hiệu entry và so sánh hiệu suất giữa các cấu hình.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/volume-sweep.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/volume-sweep.ts",
+      "lineRange": [
+        39,
+        94
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: quét ngưỡng volume của tín hiệu entry và so sánh hiệu suất giữa các cấu hình.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-3.ts",
+      "type": "file",
+      "name": "weakness-gate-3.ts",
+      "filePath": "scripts/weakness-gate-3.ts",
+      "summary": "Đánh giá biến thể thứ ba của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/weakness-gate-3.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/weakness-gate-3.ts",
+      "lineRange": [
+        18,
+        108
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ ba của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-4.ts",
+      "type": "file",
+      "name": "weakness-gate-4.ts",
+      "filePath": "scripts/weakness-gate-4.ts",
+      "summary": "Đánh giá biến thể thứ tư của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/weakness-gate-4.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/weakness-gate-4.ts",
+      "lineRange": [
+        13,
+        97
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ tư của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-5.ts",
+      "type": "file",
+      "name": "weakness-gate-5.ts",
+      "filePath": "scripts/weakness-gate-5.ts",
+      "summary": "Đánh giá biến thể thứ năm của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/weakness-gate-5.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/weakness-gate-5.ts",
+      "lineRange": [
+        13,
+        82
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ năm của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-6.ts",
+      "type": "file",
+      "name": "weakness-gate-6.ts",
+      "filePath": "scripts/weakness-gate-6.ts",
+      "summary": "Đánh giá biến thể thứ sáu của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/weakness-gate-6.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/weakness-gate-6.ts",
+      "lineRange": [
+        13,
+        85
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ sáu của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-7.ts",
+      "type": "file",
+      "name": "weakness-gate-7.ts",
+      "filePath": "scripts/weakness-gate-7.ts",
+      "summary": "Đánh giá biến thể thứ bảy của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/weakness-gate-7.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/weakness-gate-7.ts",
+      "lineRange": [
+        14,
+        77
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: đánh giá biến thể thứ bảy của weakness gate trên kết quả backtest và các lát cắt symbol.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/weakness-gate-8.ts",
+      "type": "file",
+      "name": "weakness-gate-8.ts",
+      "filePath": "scripts/weakness-gate-8.ts",
+      "summary": "Chạy kiểm tra gọn cho biến thể thứ tám của weakness gate bằng các primitive backtest dùng chung.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/whale-sweep.ts",
+      "type": "file",
+      "name": "whale-sweep.ts",
+      "filePath": "scripts/whale-sweep.ts",
+      "summary": "Quét các ngưỡng nhận diện hoạt động whale và đo tác động của chúng lên chất lượng entry.",
+      "tags": [
+        "research",
+        "backtest",
+        "experiment",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/whale-sweep.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/whale-sweep.ts",
+      "lineRange": [
+        43,
+        92
+      ],
+      "summary": "Điều phối toàn bộ quy trình của script: quét các ngưỡng nhận diện hoạt động whale và đo tác động của chúng lên chất lượng entry.",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "experiment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:strategy.ts",
+      "type": "file",
+      "name": "strategy.ts",
+      "filePath": "strategy.ts",
+      "summary": "Định nghĩa lõi signal strategy dùng chung: tổng hợp nến đa khung, phân tích market structure và volume, dựng zone/FVG, chấm quality và đánh giá entry.",
+      "tags": [
+        "strategy",
+        "signal-generation",
+        "market-structure",
+        "volume-analysis"
+      ],
+      "complexity": "complex",
+      "languageNotes": "TypeScript được tổ chức quanh các pure function có typed domain model; `SetupTracker` giữ phần stateful riêng biệt."
+    },
+    {
+      "id": "function:strategy.ts:aggregate",
+      "type": "function",
+      "name": "aggregate",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        196,
+        226
+      ],
+      "summary": "Hàm `aggregate` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:htfClosedCount",
+      "type": "function",
+      "name": "htfClosedCount",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        229,
+        238
+      ],
+      "summary": "Hàm `htfClosedCount` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:candleVol",
+      "type": "function",
+      "name": "candleVol",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        249,
+        252
+      ],
+      "summary": "Hàm `candleVol` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:candleBuyRatio",
+      "type": "function",
+      "name": "candleBuyRatio",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        255,
+        260
+      ],
+      "summary": "Hàm `candleBuyRatio` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:windowBuyRatio",
+      "type": "function",
+      "name": "windowBuyRatio",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        271,
+        283
+      ],
+      "summary": "Hàm `windowBuyRatio` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:rollingAvgVolume",
+      "type": "function",
+      "name": "rollingAvgVolume",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        296,
+        301
+      ],
+      "summary": "Hàm `rollingAvgVolume` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:rvolByTimeOfDay",
+      "type": "function",
+      "name": "rvolByTimeOfDay",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        304,
+        316
+      ],
+      "summary": "Hàm `rvolByTimeOfDay` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:avgVol",
+      "type": "function",
+      "name": "avgVol",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        319,
+        325
+      ],
+      "summary": "Hàm `avgVol` tính feature hoặc metric đầu vào cho backtest và phân tích rủi ro.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:confirmVolumeRatio",
+      "type": "function",
+      "name": "confirmVolumeRatio",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        341,
+        351
+      ],
+      "summary": "Hàm `confirmVolumeRatio` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:findSwings",
+      "type": "function",
+      "name": "findSwings",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        364,
+        383
+      ],
+      "summary": "Hàm `findSwings` chọn giá trị phù hợp từ dữ liệu hiện có mà không làm thay đổi state đầu vào.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:lastConfirmedSwing",
+      "type": "function",
+      "name": "lastConfirmedSwing",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        386,
+        410
+      ],
+      "summary": "Hàm `lastConfirmedSwing` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:structureBias",
+      "type": "function",
+      "name": "structureBias",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        413,
+        433
+      ],
+      "summary": "Hàm `structureBias` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:displacementAtr",
+      "type": "function",
+      "name": "displacementAtr",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        450,
+        468
+      ],
+      "summary": "Hàm `displacementAtr` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:buildZones",
+      "type": "function",
+      "name": "buildZones",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        474,
+        542
+      ],
+      "summary": "Hàm `buildZones` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:strategy.ts:buildFvgZones",
+      "type": "function",
+      "name": "buildFvgZones",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        550,
+        587
+      ],
+      "summary": "Hàm `buildFvgZones` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:buildHtfContext",
+      "type": "function",
+      "name": "buildHtfContext",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        606,
+        622
+      ],
+      "summary": "Hàm `buildHtfContext` dựng cấu trúc miền từ cấu hình và dữ liệu đầu vào cho bước xử lý tiếp theo.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:sweptAndReclaimed",
+      "type": "function",
+      "name": "sweptAndReclaimed",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        634,
+        669
+      ],
+      "summary": "Hàm `sweptAndReclaimed` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:confirmCandleQuality",
+      "type": "function",
+      "name": "confirmCandleQuality",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        701,
+        722
+      ],
+      "summary": "Hàm `confirmCandleQuality` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:pullbackRetestedZone",
+      "type": "function",
+      "name": "pullbackRetestedZone",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        734,
+        746
+      ],
+      "summary": "Hàm `pullbackRetestedZone` thực hiện logic miền trong strategy.ts và cung cấp kết quả cho strategy hoặc quy trình phân tích.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:minPullbackDepthOk",
+      "type": "function",
+      "name": "minPullbackDepthOk",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        748,
+        765
+      ],
+      "summary": "Hàm `minPullbackDepthOk` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:confirmExtensionOk",
+      "type": "function",
+      "name": "confirmExtensionOk",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        767,
+        776
+      ],
+      "summary": "Hàm `confirmExtensionOk` kiểm tra một điều kiện và trả về quyết định cho signal gate hoặc trade state machine.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:qualitySizeMult",
+      "type": "function",
+      "name": "qualitySizeMult",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        782,
+        787
+      ],
+      "summary": "Hàm `qualitySizeMult` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:qualityTier",
+      "type": "function",
+      "name": "qualityTier",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        788,
+        790
+      ],
+      "summary": "Hàm `qualityTier` áp dụng quy tắc biến đổi sizing, risk hoặc quality của setup theo cấu hình.",
+      "tags": [
+        "utility",
+        "data-processing",
+        "strategy"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:strategy.ts:evaluateEntry",
+      "type": "function",
+      "name": "evaluateEntry",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        804,
+        905
+      ],
+      "summary": "Kết hợp HTF context, market structure, volume và zone để quyết định một setup entry có hợp lệ hay không.",
+      "tags": [
+        "strategy-logic",
+        "signal-generation",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:strategy.ts:SetupTracker",
+      "type": "class",
+      "name": "SetupTracker",
+      "filePath": "strategy.ts",
+      "lineRange": [
+        925,
+        1117
+      ],
+      "summary": "Theo dõi setup đang arm theo symbol, quản lý thời hạn và chuyển trạng thái khi điều kiện entry được xác nhận.",
+      "tags": [
+        "state-management",
+        "strategy",
+        "event-handler"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "function:scripts/turtle-baseline-sig.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-baseline-sig.ts",
+      "target": "file:turtle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "function:scripts/turtle-prefetch.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/turtle-prefetch.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "function:scripts/volume-sweep.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/volume-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "function:scripts/weakness-gate-3.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-3.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "function:scripts/weakness-gate-4.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-4.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "function:scripts/weakness-gate-5.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-5.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "function:scripts/weakness-gate-6.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-6.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "function:scripts/weakness-gate-7.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-7.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/weakness-gate-8.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "function:scripts/whale-sweep.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:backtest.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:load-env.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/whale-sweep.ts",
+      "target": "file:strategy.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:aggregate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:aggregate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:htfClosedCount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:htfClosedCount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:candleVol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:candleVol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:candleBuyRatio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:candleBuyRatio",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:windowBuyRatio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:windowBuyRatio",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:rollingAvgVolume",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:rollingAvgVolume",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:rvolByTimeOfDay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:rvolByTimeOfDay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:avgVol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:avgVol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:confirmVolumeRatio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:confirmVolumeRatio",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:findSwings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:findSwings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:lastConfirmedSwing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:lastConfirmedSwing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:structureBias",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:structureBias",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:displacementAtr",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:buildZones",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:buildZones",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:buildFvgZones",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:buildFvgZones",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:buildHtfContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:buildHtfContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:sweptAndReclaimed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:confirmCandleQuality",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:pullbackRetestedZone",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:minPullbackDepthOk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:confirmExtensionOk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:qualitySizeMult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:qualitySizeMult",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:qualityTier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:qualityTier",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:evaluateEntry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "function:strategy.ts:evaluateEntry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "class:strategy.ts:SetupTracker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:strategy.ts",
+      "target": "class:strategy.ts:SetupTracker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

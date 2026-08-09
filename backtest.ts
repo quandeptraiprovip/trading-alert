@@ -32,15 +32,18 @@ import {
 
 const FUNDING_INTERVAL_MS = 8 * 60 * 60 * 1000;
 
-// ─── NGUỒN KLINE (có fallback khi bị chặn địa lý 451) ─────────
-// Binance Futures (fapi) bị chặn IP datacenter (Vercel/AWS) -> HTTP 451.
-// data-api.binance.vision là endpoint dữ liệu công khai KHÔNG bị chặn (spot,
-// định dạng mảng giống hệt futures, nhưng limit tối đa 1000/req).
+// ─── NGUỒN KLINE TÁCH BIỆT THEO VENUE ─────────────────────────
+// Backtest/live perpetual mặc định fail-closed trên Futures. Spot chỉ được gọi
+// explicit để không vô tình thay đổi price/volume/delta khi fapi lỗi hoặc bị 451.
 type KlineSource = { url: string; maxLimit: number };
-const KLINE_SOURCES: KlineSource[] = [
-  { url: "https://fapi.binance.com/fapi/v1/klines", maxLimit: 1500 }, // futures (local)
-  { url: "https://data-api.binance.vision/api/v3/klines", maxLimit: 1000 }, // spot mirror (cloud)
-];
+const FUTURES_SOURCE: KlineSource = {
+  url: "https://fapi.binance.com/fapi/v1/klines",
+  maxLimit: 1500,
+};
+const SPOT_SOURCE: KlineSource = {
+  url: "https://data-api.binance.vision/api/v3/klines",
+  maxLimit: 1000,
+};
 
 async function fetchKlinesFromSource(
   src: KlineSource,
@@ -79,19 +82,17 @@ async function fetchKlinesFromSource(
   return [...map.values()].sort((a, b) => a.openTime - b.openTime);
 }
 
-// ─── FETCH 15m CÓ PHÂN TRANG (thử lần lượt các nguồn) ────────
-export async function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
-  let lastErr: unknown;
-  for (const src of KLINE_SOURCES) {
-    try {
-      return await fetchKlinesFromSource(src, symbol, tf, totalBars);
-    } catch (err: any) {
-      lastErr = err;
-      const status = err?.response?.status;
-      console.warn(`[Fetch] ${src.url} lỗi${status ? ` (HTTP ${status})` : ""}, thử nguồn kế tiếp...`);
-    }
-  }
-  throw lastErr; // hết nguồn vẫn lỗi
+export function fetchFuturesKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  return fetchKlinesFromSource(FUTURES_SOURCE, symbol, tf, totalBars);
+}
+
+export function fetchSpotKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  return fetchKlinesFromSource(SPOT_SOURCE, symbol, tf, totalBars);
+}
+
+/** Mặc định dùng Futures và không fallback; giữ tên cũ để các backtest hiện tại không phải đổi import. */
+export function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
+  return fetchFuturesKlinesPaged(symbol, tf, totalBars);
 }
 
 // ─── TRADE TYPES ─────────────────────────────────────────────

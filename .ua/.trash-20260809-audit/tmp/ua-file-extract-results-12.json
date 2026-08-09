@@ -1,0 +1,112 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": "scripts/baseline-gate.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 40,
+      "nonEmptyLines": 34,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "scripts/entry-ablation.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 36,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "patch",
+          "startLine": 6,
+          "endLine": 16,
+          "params": []
+        },
+        {
+          "name": "run_one",
+          "startLine": 18,
+          "endLine": 25,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "scripts/indicator-ablation.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "patch",
+          "startLine": 7,
+          "endLine": 19,
+          "params": []
+        },
+        {
+          "name": "run",
+          "startLine": 21,
+          "endLine": 26,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "scripts/rsi-ablation.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 32,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "patch_mode",
+          "startLine": 7,
+          "endLine": 15,
+          "params": []
+        },
+        {
+          "name": "run",
+          "startLine": 17,
+          "endLine": 22,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

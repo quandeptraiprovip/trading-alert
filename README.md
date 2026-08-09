@@ -408,19 +408,21 @@ Hiện $68,100 (+1.1R) · giữ 1.2d
 `docker-compose.yml` chạy **cả 3 service**: bot alert (`swing-bot`), chart perpetual (`swing-chart` — cổng 3847), dashboard (`swing-dashboard` — cổng 3848, chỉ localhost).
 
 ```bash
-# LẦN ĐẦU: state Fast/MEXC dùng directory mount để temp+rename luôn atomic.
-touch bot-state.json trades-live.jsonl turtle-state.json turtle-trades.jsonl
-mkdir -p fast-trend-mexc-runtime
+# LẦN ĐẦU: mọi state atomic dùng directory mount để temp+rename cùng filesystem.
+mkdir -p trading-runtime fast-trend-mexc-runtime
+touch trading-runtime/bot-state.json trading-runtime/trades-live.jsonl \
+      trading-runtime/turtle-state.json trading-runtime/turtle-trades.jsonl
 
 docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
 docker compose logs -f swing-bot  # xem log (tìm "🐢 Turtle:" và "THỰC THI BẬT")
 docker compose restart swing-bot  # sau khi đổi CONFIG/.env.local (kèm --build nếu đổi code)
 docker compose down               # dừng tất cả
 ```
-Không bind-mount riêng `fast-trend-mexc-state.json`: file đích sẽ thành mountpoint và Docker trả
-`EBUSY` khi bot atomic-rename file `.tmp`. Compose hiện mount cả `fast-trend-mexc-runtime/`; state,
-journal và file tạm nằm cùng filesystem. Nếu nâng cấp từ cấu hình cũ, dừng bot rồi copy snapshot
-JSON hợp lệ mới nhất và journal cũ vào thư mục này trước khi recreate container.
+Không bind-mount riêng từng file state: file đích sẽ thành mountpoint và Docker trả `EBUSY` khi bot
+atomic-rename file `.tmp`. Compose mount `trading-runtime/` cho SMC/Turtle và
+`fast-trend-mexc-runtime/` cho Fast; state, journal và file tạm của mỗi nhóm nằm cùng filesystem.
+Nếu nâng cấp từ cấu hình cũ, dừng bot rồi copy `bot-state.json`, `trades-live.jsonl`,
+`turtle-state.json`, `turtle-trades.jsonl` vào `trading-runtime/` trước khi recreate container.
 `restart: unless-stopped` trong compose → container tự sống lại khi crash / khi Docker Desktop khởi động lại. Chart perpetual xem tại `http://localhost:3847`.
 
 > **Để chạy 24/7 trên máy local:** bật Docker Desktop **tự khởi động khi đăng nhập** (Settings → General → *Start Docker Desktop when you sign in*), và **tắt sleep** để máy không ngủ (macOS: `caffeinate -s`, hoặc System Settings → chống ngủ khi cắm điện). Máy ngủ = bot dừng nhận nến; khi thức dậy bot **replay nến nhỡ** nên không sai lệch, nhưng alert/lệnh sẽ trễ tới lúc thức.
@@ -466,6 +468,14 @@ giữa hai sàn.
 Luật entry hiện tại: **LONG** đóng trên high 10 ngày; **SHORT** đóng dưới close-low 30 ngày để arm,
 rồi chỉ vào nếu nến 4h kế tiếp vẫn đóng dưới mức breakout đã đóng băng và còn dưới EMA50. Fast mặc
 định chạy shadow; không bật tiền thật chỉ vì MEXC preflight đã pass.
+
+Luật exit (đổi 2026-08-09): **LONG** thoát khi nến 4h đóng dưới **midpoint kênh close 20 ngày** (mức
+này chỉ ratchet lên), hard SL 3×ATR vẫn nằm trên sàn; **SHORT** giữ Chandelier 3×ATR như cũ. Trần
+pyramid 4 → 3 unit. Trước đó LONG thoát bằng Chandelier và đó là điểm yếu lớn nhất của sleeve: winner
+chỉ giữ 3,9 ngày và gần như không có đuôi phải. Audit 2.025 ngày: Sharpe 0,64 → 1,46, NET R 268 →
+1.337 (cùng risk/unit), NET/maxDD 2,54 → 9,84, cả ba era đều tăng — chi tiết và các cảnh báo trung
+thực trong `planning/fast-exit-channel-2026-08.md`. Kiểm chứng lại bằng
+`ts-node scripts/rx-lab.ts ship` và `ts-node scripts/fast-live-parity.ts`.
 
 MEXC cần đúng **2 secret value**: `MEXC_API_KEY` và `MEXC_API_SECRET`. API key phải có KYC và các
 quyền **View Account Details**, **View Order Details**, **Order Placing**; không cấp withdrawal và nên
