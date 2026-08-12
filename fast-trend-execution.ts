@@ -79,4 +79,16 @@ export interface FastExecution {
   reconcile(symbol: string): Promise<FastVenuePosition>;
   recoverOrder(symbol: string, operationKey: string): Promise<FastRecoveredOrder | null>;
   syncTime(): Promise<void>;
+
+  /**
+   * CHỈ ĐỌC, TUỲ CHỌN — giá khớp thật + trượt giá của lần thoát vừa rồi (xem exit-fill-audit.ts).
+   * Tuỳ chọn để implementation nào chưa hỗ trợ vẫn hợp lệ; người gọi phải chịu được `undefined`/`null`.
+   */
+  realizedExit?(
+    symbol: string,
+    dir: FastDirection,
+    assumedExit: number,
+    positionId?: number,
+    atrNow?: number,
+  ): Promise<import("./exit-fill-audit").ExitFillAudit | null>;
 }

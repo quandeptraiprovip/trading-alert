@@ -22,6 +22,7 @@ import { Candle, TF_MS } from "./strategy";
 import { T, buildBtcGateLongs, ema, atrSeries, priorDonchian, turtleInitialStop } from "./turtle";
 import { BinanceFutures } from "./binance-futures";
 import { LiveTrader, PosInfo } from "./live-trade";
+import { ExitFillAudit, formatExitFillAudit } from "./exit-fill-audit";
 import { TelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn } from "./telegram";
 import { atomicWriteFileSync } from "./atomic-file";
 
@@ -423,7 +424,7 @@ export class TurtleLive {
     reason: TurtleExitReason,
     exitTime: number,
     silent: boolean,
-    opts?: { flatten?: boolean }
+    opts?: { flatten?: boolean; atrNow?: number }
   ): Promise<void> {
     if (!silent && pos.real && opts?.flatten !== false) {
       if (!this.tradingLive()) {
@@ -457,10 +458,31 @@ export class TurtleLive {
     st.pos = null;
     if (silent) return; // replay dựng lại lịch sử — không journal/alert các exit cũ
 
+    // ĐO TRƯỢT GIÁ THẬT (chỉ đọc, không đổi gì). `exitPrice` ở trên là giá TÍN HIỆU; nếu không ghi
+    // giá khớp thật thì `totalGrossR` mãi mãi là con số giả định và trượt giá không bao giờ đo được.
+    // Xem exit-fill-audit.ts. Lỗi ở đây phải im lặng — phép đo không được ảnh hưởng việc thoát lệnh.
+    let fillAudit: ExitFillAudit | null = null;
+    if (pos.real && this.o.trader && this.tradingLive()) {
+      fillAudit = await this.o.trader.realizedExit(
+        st.symbol, pos.dir, exitPrice, pos.units[0].entryTime, opts?.atrNow
+      );
+      if (fillAudit) console.log(`[Turtle] fill ${formatSymbol(st.symbol)} — ${formatExitFillAudit(fillAudit)}`);
+    }
+
     this.journal({
       event: "exit", real: pos.real, symbol: st.symbol, dir: pos.dir, time: exitTime, timeVn: formatTimeVn(exitTime),
       exitPrice, reason, units: pos.units.length, unitR: rs.map((r) => +r.toFixed(3)), totalGrossR: +totalR.toFixed(3),
       heldDays: +heldDays.toFixed(2),
+      // Giá khớp THẬT + trượt giá. Thiếu field này = không đo được (paper, hoặc API lỗi).
+      ...(fillAudit
+        ? {
+            realExitAvg: fillAudit.realExitAvg,
+            slipBps: +fillAudit.slipBps.toFixed(2),
+            slipAtr: fillAudit.slipAtr === null ? null : +fillAudit.slipAtr.toFixed(4),
+            realizedUsd: fillAudit.realizedUsd === null ? null : +fillAudit.realizedUsd.toFixed(4),
+            fills: fillAudit.fills,
+          }
+        : {}),
     });
     console.log(`[Turtle] EXIT ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${totalR >= 0 ? "+" : ""}${totalR.toFixed(2)}R, ${pos.units.length} unit)`);
     await this.tg(
@@ -494,7 +516,7 @@ export class TurtleLive {
 
       if (pos.pendingExit) {
         const x = pos.pendingExit;
-        await this.exitPosition(st, pos, x.exitPrice, x.reason, x.exitTime, silent);
+        await this.exitPosition(st, pos, x.exitPrice, x.reason, x.exitTime, silent, { atrNow: atr[i] });
         return;
       }
 
@@ -508,19 +530,19 @@ export class TurtleLive {
       // 1) Exit theo nến (stop sàn đã khớp intra-bar với vị thế thật; giấy thì mô phỏng)
       const hitStop = pos.dir === "long" ? bar.low <= pos.sl : bar.high >= pos.sl;
       if (hitStop) {
-        await this.exitPosition(st, pos, pos.sl, "trail", bar.openTime, silent);
+        await this.exitPosition(st, pos, pos.sl, "trail", bar.openTime, silent, { atrNow: atr[i] });
         return;
       }
       if (pos.dir === "long" && T.longExitMode === "mid" && bar.close <= pos.midTrail!) {
-        await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent);
+        await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent, { atrNow: atr[i] });
         return;
       }
       if (pos.dir === "short" && T.shortExitMode === "mid" && bar.close >= pos.midTrail!) {
-        await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent);
+        await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent, { atrNow: atr[i] });
         return;
       }
       if (heldBars >= MAX_HOLD_BARS) {
-        await this.exitPosition(st, pos, bar.close, "time", bar.openTime, silent);
+        await this.exitPosition(st, pos, bar.close, "time", bar.openTime, silent, { atrNow: atr[i] });
         return;
       }
 

@@ -45,6 +45,16 @@ export interface NewOrderResult {
   executedQty: number;
 }
 
+/** Một lần khớp thật (fill) từ `/fapi/v1/userTrades` — nguồn DUY NHẤT biết giá khớp của STOP đã bắn. */
+export interface UserTrade {
+  time: number;
+  price: number;
+  qty: number;
+  realizedPnl: number; // ≠0 ⇒ fill này ĐÓNG (giảm) vị thế
+  commission: number;
+  side: OrderSide;
+}
+
 const httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30_000 });
 
 export class BinanceFutures {
@@ -259,6 +269,29 @@ export class BinanceFutures {
       avgPrice: parseFloat(r.avgPrice ?? "0"),
       executedQty: parseFloat(r.executedQty ?? "0"),
     };
+  }
+
+  /**
+   * Các lần khớp thật của symbol từ `startTime` — CHỈ ĐỌC (USER_DATA).
+   *
+   * Đây là cách DUY NHẤT biết giá khớp của một STOP_MARKET đã tự bắn trên sàn: bot không đặt lệnh nào
+   * trong tình huống đó nên không có `avgPrice` nào để bắt, và `stopMarketClose` chỉ trả về algoId mà
+   * mã hiện tại không lưu. `realizedPnl ≠ 0` đánh dấu fill ĐÓNG vị thế.
+   */
+  async getUserTrades(symbol: string, startTime: number, limit = 200): Promise<UserTrade[]> {
+    const r = await this.signed<any[]>("GET", "/fapi/v1/userTrades", {
+      symbol: symbol.toUpperCase(),
+      startTime: Math.floor(startTime),
+      limit,
+    });
+    return (r ?? []).map((t) => ({
+      time: Number(t.time),
+      price: parseFloat(t.price ?? "0"),
+      qty: parseFloat(t.qty ?? "0"),
+      realizedPnl: parseFloat(t.realizedPnl ?? "0"),
+      commission: parseFloat(t.commission ?? "0"),
+      side: t.side as OrderSide,
+    }));
   }
 
   /** SL trên sàn: STOP_MARKET algo + closePosition=true (đóng toàn bộ khi chạm). */

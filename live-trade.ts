@@ -11,6 +11,7 @@
  */
 import { BinanceFutures, OrderSide, PositionRisk } from "./binance-futures";
 import { CONFIG } from "./strategy";
+import { ExitFillAudit, computeExitFillAudit } from "./exit-fill-audit";
 
 export interface ExecConfig {
   riskPct: number; // 0.05 = 5% equity / lệnh (trước sizeMult)
@@ -348,6 +349,30 @@ export class LiveTrader {
     const amt = Math.abs(p.positionAmt);
     if (amt > 0) {
       await this.api.marketClose(symbol, sideToClose(dir), this.api.roundQty(symbol, amt));
+    }
+  }
+
+  /**
+   * CHỈ ĐỌC — đo trượt giá thật ở chiều thoát. Không gửi lệnh nào, không đổi state nào.
+   * Lấy các fill có `realizedPnl ≠ 0` (fill ĐÓNG vị thế) kể từ `sinceMs`. Dùng được cho CẢ hai đường:
+   * bot tự đóng bằng MARKET, và STOP_MARKET tự bắn trên sàn (trường hợp chiếm ~97% số lệnh thoát).
+   * Trả `null` nếu không đọc được — người gọi phải coi phép đo là tuỳ chọn.
+   */
+  async realizedExit(
+    symbol: string,
+    dir: "long" | "short",
+    assumedExit: number,
+    sinceMs: number,
+    atrNow?: number
+  ): Promise<ExitFillAudit | null> {
+    try {
+      const trades = await this.api.getUserTrades(symbol, sinceMs);
+      const closing = trades
+        .filter((t) => t.realizedPnl !== 0)
+        .map((t) => ({ price: t.price, qty: t.qty, realizedUsd: t.realizedPnl, commissionUsd: t.commission }));
+      return computeExitFillAudit({ venue: "binance", dir, assumedExit, fills: closing, atrNow });
+    } catch {
+      return null; // phép đo không bao giờ được làm hỏng việc thoát lệnh
     }
   }
 

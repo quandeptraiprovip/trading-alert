@@ -363,6 +363,28 @@ export class MexcFutures {
     };
   }
 
+  /**
+   * Vị thế ĐÃ ĐÓNG của symbol — CHỈ ĐỌC. Dùng để đo trượt giá thật ở chiều thoát: khi stop trên sàn
+   * tự bắn thì bot không tạo lệnh nào nên không có `dealAvgPrice` nào để bắt, và id lệnh stop không
+   * trở thành id order. Endpoint này trả `closeAvgPrice` + `realised` của chính vị thế vừa đóng.
+   */
+  async getHistoryPositions(symbol: string, pageSize = 20): Promise<
+    { positionId: number; closeAvgPrice: number; closeVol: number; realised: number; updateTime: number }[]
+  > {
+    const data = await this.signed<any[]>("GET", "/api/v1/private/position/list/history_positions", {
+      symbol: toMexcSymbol(symbol),
+      page_num: 1,
+      page_size: pageSize,
+    });
+    return (data ?? []).map((p) => ({
+      positionId: Number(p.positionId),
+      closeAvgPrice: Number(p.closeAvgPrice ?? 0),
+      closeVol: Number(p.closeVol ?? 0),
+      realised: Number(p.realised ?? 0),
+      updateTime: Number(p.updateTime ?? 0),
+    }));
+  }
+
   async getOrderById(orderId: string): Promise<MexcOrder> {
     return this.normalizeOrder(await this.signed<any>("GET", `/api/v1/private/order/get/${encodeURIComponent(orderId)}`));
   }

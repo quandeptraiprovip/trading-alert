@@ -17,6 +17,7 @@ import { fetchFuturesKlinesPaged } from "./backtest";
 import { Candle, TF_MS } from "./strategy";
 import { T, buildBtcGateLongs, ema, atrSeries } from "./turtle";
 import { FastExecution, FastExecutionPositionIntent } from "./fast-trend-execution";
+import { ExitFillAudit, formatExitFillAudit } from "./exit-fill-audit";
 import { TelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn, escapeMarkdown } from "./telegram";
 import { atomicWriteFileSync } from "./atomic-file";
 
@@ -517,7 +518,7 @@ export class FastTrendLive {
     reason: "trail" | "mid" | "time" | "reconcile",
     exitTime: number,
     silent: boolean,
-    opts?: { flatten?: boolean }
+    opts?: { flatten?: boolean; atrNow?: number }
   ): Promise<void> {
     if (!silent && pos.real && opts?.flatten !== false) {
       if (!this.o.execution) {
@@ -549,7 +550,25 @@ export class FastTrendLive {
     st.quarantined = undefined;
     this.persist();
     if (silent) return;
-    this.journal({ event: "exit", venue: pos.real ? this.o.execution?.venueLabel : "paper", real: pos.real, symbol: st.symbol, dir: pos.dir, time: exitTime, timeVn: formatTimeVn(exitTime), exitPrice, reason, units: pos.units.length, unitR: rs.map((r) => +r.toFixed(3)), totalR: +totalR.toFixed(3), heldDays: +heldDays.toFixed(2), positionId: pos.positionId });
+
+    // ĐO TRƯỢT GIÁ THẬT (chỉ đọc). `exitPrice` là giá TÍN HIỆU; không ghi giá khớp thật thì `totalR`
+    // mãi là con số giả định. Xem exit-fill-audit.ts. Lỗi ở đây im lặng, không ảnh hưởng việc thoát.
+    let fillAudit: ExitFillAudit | null = null;
+    if (pos.real && this.o.execution?.realizedExit) {
+      fillAudit = await this.o.execution.realizedExit(st.symbol, pos.dir, exitPrice, undefined, opts?.atrNow);
+      if (fillAudit) console.log(`[Fast] fill ${formatSymbol(st.symbol)} — ${formatExitFillAudit(fillAudit)}`);
+    }
+
+    this.journal({ event: "exit", venue: pos.real ? this.o.execution?.venueLabel : "paper", real: pos.real, symbol: st.symbol, dir: pos.dir, time: exitTime, timeVn: formatTimeVn(exitTime), exitPrice, reason, units: pos.units.length, unitR: rs.map((r) => +r.toFixed(3)), totalR: +totalR.toFixed(3), heldDays: +heldDays.toFixed(2), positionId: pos.positionId,
+      ...(fillAudit
+        ? {
+            realExitAvg: fillAudit.realExitAvg,
+            slipBps: +fillAudit.slipBps.toFixed(2),
+            slipAtr: fillAudit.slipAtr === null ? null : +fillAudit.slipAtr.toFixed(4),
+            realizedUsd: fillAudit.realizedUsd === null ? null : +fillAudit.realizedUsd.toFixed(4),
+            fills: fillAudit.fills,
+          }
+        : {}) });
     console.log(`[Fast] EXIT ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} ${reason} @ $${fmtPrice(exitPrice)} (${totalR >= 0 ? "+" : ""}${totalR.toFixed(2)}R)`);
     await this.tg(
       `⚡🔚 *FAST-${this.o.entryDays}d EXIT* ${formatSymbol(st.symbol)} ${pos.dir.toUpperCase()} (${reason}) @ $${fmtPrice(exitPrice)}\n` +
@@ -570,9 +589,9 @@ export class FastTrendLive {
         pos.midTrail = Math.max(pos.sl, longMidClose);
       }
       const hitStop = pos.dir === "long" ? bar.low <= pos.sl : bar.high >= pos.sl;
-      if (hitStop) { await this.exitPosition(st, pos, pos.sl, "trail", bar.openTime, silent); return; }
-      if (pos.dir === "long" && bar.close <= pos.midTrail!) { await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent); return; }
-      if (heldBars >= this.maxHoldBars) { await this.exitPosition(st, pos, bar.close, "time", bar.openTime, silent); return; }
+      if (hitStop) { await this.exitPosition(st, pos, pos.sl, "trail", bar.openTime, silent, { atrNow: atr[i] }); return; }
+      if (pos.dir === "long" && bar.close <= pos.midTrail!) { await this.exitPosition(st, pos, bar.close, "mid", bar.openTime, silent, { atrNow: atr[i] }); return; }
+      if (heldBars >= this.maxHoldBars) { await this.exitPosition(st, pos, bar.close, "time", bar.openTime, silent, { atrNow: atr[i] }); return; }
       // LONG: ratchet midpoint close (hard SL đứng yên trên sàn). SHORT: chandelier trail như cũ.
       const oldSl = pos.sl;
       if (pos.dir === "long") { pos.midTrail = Math.max(pos.midTrail!, longMidClose); }

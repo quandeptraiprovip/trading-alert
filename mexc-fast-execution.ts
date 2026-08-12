@@ -16,6 +16,7 @@ import {
   MexcOrder,
   MexcPosition,
 } from "./mexc-futures";
+import { ExitFillAudit, computeExitFillAudit } from "./exit-fill-audit";
 
 export interface MexcFastConfig {
   riskPct: number;
@@ -386,6 +387,36 @@ export class MexcFastExecution implements FastExecution {
       await sleep(300);
     }
     throw new Error(`${symbol}: MEXC exit chưa xác nhận flat`);
+  }
+
+  /**
+   * CHỈ ĐỌC — đo trượt giá thật ở chiều thoát (xem exit-fill-audit.ts). Không gửi lệnh, không đổi state.
+   * `positionId` là vị thế vừa đóng; nếu không truyền thì lấy bản ghi đóng gần nhất của symbol.
+   * Trả `null` khi không đọc được — người gọi phải coi phép đo là tuỳ chọn.
+   */
+  async realizedExit(
+    symbol: string,
+    dir: FastDirection,
+    assumedExit: number,
+    positionId?: number,
+    atrNow?: number
+  ): Promise<ExitFillAudit | null> {
+    try {
+      const hist = await this.api.getHistoryPositions(symbol);
+      const rec = positionId != null
+        ? hist.find((p) => p.positionId === positionId)
+        : hist.sort((a, b) => b.updateTime - a.updateTime)[0];
+      if (!rec || !(rec.closeAvgPrice > 0) || !(rec.closeVol > 0)) return null;
+      return computeExitFillAudit({
+        venue: "mexc",
+        dir,
+        assumedExit,
+        fills: [{ price: rec.closeAvgPrice, qty: rec.closeVol, realizedUsd: rec.realised }],
+        atrNow,
+      });
+    } catch {
+      return null; // phép đo không bao giờ được làm hỏng việc thoát lệnh
+    }
   }
 
   async reconcile(symbol: string): Promise<FastVenuePosition> {
