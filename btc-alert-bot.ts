@@ -55,6 +55,7 @@ import { createMexcFromEnv } from "./mexc-futures";
 import { LiveTrader, loadExecConfig, PosInfo, OpenResult } from "./live-trade";
 import { TurtleLive } from "./turtle-live";
 import { T as TURTLE_CONFIG, turtleConfigLine } from "./turtle";
+import { buildLine } from "./build-info";
 import { FastTrendLive, fastConfigLine } from "./fast-trend-live";
 import { MexcFastExecution } from "./mexc-fast-execution";
 
@@ -906,6 +907,10 @@ async function buildHealthMessage(): Promise<string> {
     `Routing: Turtle → Binance · Fast → MEXC`,
     `Binance entry: ${tradingReady ? "✅ READY" : "⚠️ OFF"} · MEXC entry: ${mexcTradingReady ? "✅ READY" : "⚠️ OFF"}`,
     `SMC ${SMC_ENABLED ? (trader && tradingReady ? "LIVE" : "alert-only") : states.some((s) => s.livePos) ? "DRAIN-ONLY" : "TẮT"} · Turtle ${turtleTrader && tradingReady ? "BINANCE LIVE" : "alert-only"} · Fast ${fastTrendExecution && mexcTradingReady ? "MEXC LIVE" : "alert-only"}`,
+    // CODE đang chạy. Fingerprint dưới chỉ hash THAM SỐ LUẬT, nên thay đổi code không đụng tham số
+    // (vd thêm đo trượt giá) để fingerprint y nguyên ⇒ fingerprint một mình KHÔNG chứng minh được đã
+    // deploy hay chưa. BUILD_ID đóng đúng khoảng trống đó. Xem build-info.ts.
+    `Build: ${buildLine()}`,
     // Luật ĐANG CHẠY của process này — để xác nhận deploy từ Telegram, không cần đọc log container.
     `Turtle rule: ${turtleConfigLine()}`,
     ...(FAST_TREND_ENABLED ? [`Fast rule: ${fastConfigLine(FAST_TREND_ENTRY_DAYS)}`] : []),
@@ -1254,6 +1259,13 @@ async function main(): Promise<void> {
   for (const st of openedWhileOffline) {
     await sendTelegram(telegram, buildOfflineEntryMessage(st.livePos!, st.symbol));
   }
+  // FX Dream / Key Volume KHÔNG chạy trong bot chính. Engine V2 đã được sửa theo biến thể V7 và
+  // self-check trùng đường backtest, nhưng kiểm định 365 ngày vẫn âm sau ma sát Binance (−32R ở 0,14%).
+  // Kiểm định 1.095 ngày chỉ thấy sleeve XRP dương ở cả hai nửa khi ma sát là 0,02%; cấu hình Binance
+  // hiện tại 0,09% nên scanner độc lập sẽ fail-closed trước khi fetch/gửi Telegram. Không bật lại trong
+  // bot cho tới khi có venue/feed đúng, chi phí <=0,02% và forward test độc lập đạt tiêu chí promote.
+  // Chạy kiểm tra fail-closed: `npm run alert:fxdream`.
+
   startCommandListener();
   startDailyHeartbeat();
   if (SMC_ENABLED) startHealthMonitor();
