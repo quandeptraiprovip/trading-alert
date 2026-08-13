@@ -78,6 +78,14 @@ export interface AdmitCtx {
   /** Tổng tỉ trọng risk đang mở cùng hướng / toàn bộ. */
   sameDirHeat: number;
   totalHeat: number;
+  /**
+   * Giá vào và stop ban đầu của chính unit đang xin vào. Có để `AdmitFn` dựng được RÀNG BUỘC THỰC
+   * THI, thứ chỉ tính được khi biết khoảng stop:
+   *     notional = equity × risk% × weight ÷ (|entry − initialSL| / entry)
+   * Dùng cho sàn `minNotional` của sàn giao dịch. Optional để mọi `AdmitFn` cũ chạy y nguyên.
+   */
+  entryPrice?: number;
+  initialSL?: number;
 }
 
 /** Trả 0 = từ chối unit; 1 = full risk; 0<w<1 = vào với size nhỏ hơn. */
@@ -141,6 +149,59 @@ export type ExtParams = TurtleParams & {
    */
   takerFeePct?: number;
   slippagePct?: number;
+  /**
+   * Hệ số ATR của INITIAL STOP, tách khỏi `chandelierMult`.
+   * Trong `turtle.ts` một hằng số duy nhất làm hai việc: mẫu số R lúc vào lệnh (fallback khi stop
+   * cấu trúc nằm ngoài envelope) VÀ khoảng trail Chandelier của SHORT. Vì thế mọi lần quét
+   * `chandelierMult` trước đây đều đổi cả hai cùng lúc, và ảnh hưởng riêng của MẪU SỐ R chưa bao giờ
+   * được đo. undefined = dùng `chandelierMult` ⇒ hành vi không đổi một bit.
+   */
+  initialStopMult?: number;
+  /**
+   * ĐỘ TRƯỢT GIÁ BẤT LỢI THÊM khi thoát bằng STOP (`trail`), đo bằng ATR — để stress-test giả định
+   * lạc quan nhất của cả chuỗi đo: engine cho khớp ĐÚNG BẰNG `pos.sl` mỗi khi `bar.low <= pos.sl`.
+   * Thực tế lệnh STOP_MARKET trên nến 4h xuyên qua stop khớp xấu hơn, và `CONFIG.costs.slippagePct`
+   * (0,02%) là một hằng số không phụ thuộc biên độ nên không bao giờ mô hình hoá được việc đó.
+   * Chuẩn hoá theo ATR vì mẫu số R = 3×ATR ⇒ trượt 0,1×ATR = đúng 0,033R, so được giữa mọi coin/era.
+   * undefined/0 = hành vi không đổi một bit.
+   */
+  slipTrailAtr?: number;
+  /**
+   * ĐỘ TRƯỢT GIÁ BẤT LỢI THÊM khi thoát bằng giá ĐÓNG NẾN (`mid`/`time`), đo bằng ATR. Live thức dậy
+   * `SETTLE_MS` = 90s SAU khi nến 4h đóng rồi mới gửi market order, nên không bao giờ khớp đúng giá
+   * close mà engine dùng. undefined/0 = hành vi không đổi một bit.
+   */
+  slipCloseAtr?: number;
+  /**
+   * `false` = unit pyramid KHÔNG kéo hard stop chung lên theo stop ban đầu của chính nó.
+   * Mặc định (undefined) = `true` = hành vi production. Chỉ ảnh hưởng nhánh `longExitMode="mid"`
+   * (short dùng chandelier nên add không siết stop) — tức đúng nhánh chứa toàn bộ edge lịch sử.
+   */
+  pyramidTightensStop?: boolean;
+  /**
+   * `true` = hard stop chỉ kích hoạt khi nến ĐÓNG vượt stop (khớp tại giá close), thay vì kích hoạt
+   * ngay khi `low`/`high` chạm stop trong nến (khớp tại đúng giá stop).
+   *
+   * Vì sao đáng đo: W1 cho thấy 81-88% risk của hệ thoát qua nhánh stop, và đó đúng là nhánh mà giả
+   * định "khớp đúng giá stop" sai nhiều nhất — lệnh STOP_MARKET xuyên qua stop trong nến 4h trượt
+   * bao nhiêu là điều engine không biết. Đổi sang xác nhận-bằng-close biến một fill KHÔNG đo được
+   * thành một market order tại thời điểm biết trước (đúng cơ chế nhánh `mid` đang chạy live). Giá
+   * phải trả: có nến ăn hết phần còn lại của cú giảm. Cái được: không bị quét bởi RÂU NẾN.
+   * So sánh chỉ có nghĩa khi BẬT trượt giá thực tế — dưới giả định fill hoàn hảo thì stop trong nến
+   * luôn thắng vì nó thoát sớm hơn ở giá tốt hơn.
+   */
+  stopOnCloseOnly?: boolean;
+  /**
+   * `true` = mọi tín hiệu trong CÙNG một nến chấm heat theo ảnh chụp trạng thái ĐẦU NẾN, nên chúng
+   * không nhìn thấy nhau ⇒ tỉ trọng risk KHÔNG còn phụ thuộc thứ tự duyệt symbol.
+   *
+   * Vì sao cần: `runBooks` duyệt symbol theo thứ tự mảng, nên symbol đứng trước gặp heat thấp hơn và
+   * được size lớn hơn. Đo được (`exp-stop-mechanics.ts r5`): đổi thứ tự mảng làm lệch 9% vốn cuối kỳ
+   * ở k=4 và tới 68% ở k=0,1. Đó là một chi tiết CÀI ĐẶT đang quyết định phân bổ vốn giữa các symbol
+   * phá vỡ cùng lúc — không phải một luật ai từng chọn.
+   * undefined/false = hành vi production (tuần tự).
+   */
+  admitBarSnapshot?: boolean;
 };
 
 /** costR cho một unit, tôn trọng phí riêng của sổ nếu có. */
@@ -187,6 +248,8 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
     book: Book;
     c: Candle[];
     p: ExtParams;
+    /** `p` với chandelierMult thay bằng initialStopMult — CHỈ dùng cho turtleInitialStop. */
+    stopP: ExtParams;
     dcEntry: number;
     dcShortEntry: number;
     dcLongExit: number;
@@ -234,6 +297,9 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       book,
       c,
       p,
+      stopP: p.initialStopMult && p.initialStopMult !== p.chandelierMult
+        ? { ...p, chandelierMult: p.initialStopMult }
+        : p,
       dcEntry,
       dcShortEntry,
       dcLongExit,
@@ -283,9 +349,16 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
   };
 
   /** Trả tỉ trọng risk cho unit sắp mở (0 = bỏ). */
-  const askAdmit = (kind: "entry" | "add", time: number, symbol: string, dir: "long" | "short"): number => {
+  // Ảnh chụp trạng thái đầu nến, dùng chung cho mọi tín hiệu trong nến đó (xem `admitBarSnapshot`).
+  const barSnapshotMode = books.some((b) => b.p.admitBarSnapshot);
+  let barSnapshot: OpenUnit[] | null = null;
+
+  const askAdmit = (
+    kind: "entry" | "add", time: number, symbol: string, dir: "long" | "short",
+    entryPrice?: number, initialSL?: number,
+  ): number => {
     if (!admit) return 1;
-    const open = snapshotOpen();
+    const open = barSnapshot ?? snapshotOpen();
     let same = 0,
       sameHeat = 0,
       totalHeat = 0;
@@ -306,13 +379,19 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       oppDirUnits: open.length - same,
       sameDirHeat: sameHeat,
       totalHeat,
+      entryPrice,
+      initialSL,
     });
-    return Math.max(0, Math.min(1, w));
+    // Trần 1 đã được BỎ (2026-08-13): cần biểu diễn được unit bị NÂNG LÊN SÀN minNotional của sàn
+    // giao dịch, tức unit buộc phải mang risk LỚN HƠN dự định (weight > 1). Mọi `AdmitFn` hiện có
+    // đều trả 1/(1+heat/k) ≤ 1 nên đây là no-op với chúng — `portfolio-equivalence.ts` vẫn khớp 100%.
+    return Math.max(0, w);
   };
 
   for (const t of times) {
     // Symbol vừa exit trong bar này KHÔNG được vào lệnh mới cùng bar (giữ đúng `continue` của runTurtle).
     const exitedThisBar = new Set<string>();
+    barSnapshot = barSnapshotMode ? snapshotOpen() : null;
 
     // ── Bước 1/2 cho MỖI symbol: quản lý vị thế đang mở (exit → trail → pyramid add) ──
     // Hai vòng lặp dưới đây LỒNG NHAU theo symbol trong `stepSymbol` để khớp ĐÚNG thứ tự của
@@ -340,11 +419,20 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       let exitPrice: number | null = null;
       let reason: UnitTrade["exitReason"] | null = null;
 
-      if (pos.dir === "long") {
-        if (bar.low <= pos.sl) {
-          exitPrice = pos.sl;
-          reason = "trail";
-        } else if (p.longExitMode === "mid" && pos.midTrail !== null && bar.close <= pos.midTrail) {
+      // Trượt giá phụ thuộc CÁCH khớp, không phụ thuộc nhãn lý do: fill tại giá stop trong nến là
+      // đại lượng không đo được (`slipTrailAtr`); fill bằng market order tại giá đóng nến là đại
+      // lượng khác hẳn (`slipCloseAtr`).
+      let fillKind: "stop" | "close" = "close";
+      const stopHit = p.stopOnCloseOnly
+        ? (pos.dir === "long" ? bar.close <= pos.sl : bar.close >= pos.sl)
+        : (pos.dir === "long" ? bar.low <= pos.sl : bar.high >= pos.sl);
+
+      if (stopHit) {
+        exitPrice = p.stopOnCloseOnly ? bar.close : pos.sl;
+        reason = "trail";
+        fillKind = p.stopOnCloseOnly ? "close" : "stop";
+      } else if (pos.dir === "long") {
+        if (p.longExitMode === "mid" && pos.midTrail !== null && bar.close <= pos.midTrail) {
           exitPrice = bar.close;
           reason = "mid";
         } else if (held >= maxHoldBars) {
@@ -352,15 +440,20 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
           reason = "time";
         }
       } else {
-        if (bar.high >= pos.sl) {
-          exitPrice = pos.sl;
-          reason = "trail";
-        } else if (p.shortExitMode === "mid" && pos.midTrail !== null && bar.close >= pos.midTrail) {
+        if (p.shortExitMode === "mid" && pos.midTrail !== null && bar.close >= pos.midTrail) {
           exitPrice = bar.close;
           reason = "mid";
         } else if (held >= maxHoldBars) {
           exitPrice = bar.close;
           reason = "time";
+        }
+      }
+
+      // Trượt giá bất lợi khi khớp lệnh thoát (stress-test giả định fill hoàn hảo của engine).
+      if (exitPrice !== null && reason !== null) {
+        const slipAtr = fillKind === "stop" ? (p.slipTrailAtr ?? 0) : (p.slipCloseAtr ?? 0);
+        if (slipAtr > 0 && ctx.atr[i] > 0) {
+          exitPrice += (pos.dir === "long" ? -1 : 1) * slipAtr * ctx.atr[i];
         }
       }
 
@@ -419,20 +512,20 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       if (p.pyramidStepAtr > 0 && pos.units.length < p.pyramidMaxUnits && ctx.atr[i] > 0) {
         const last = pos.units[pos.units.length - 1];
         if (pos.dir === "long" && bar.close >= last.entry + p.pyramidStepAtr * ctx.atr[i]) {
-          const initialSL = turtleInitialStop(c, i, "long", bar.close, ctx.atr[i], p).price;
+          const initialSL = turtleInitialStop(c, i, "long", bar.close, ctx.atr[i], ctx.stopP).price;
           if (initialSL > 0) {
-            const w = askAdmit("add", t, sym, "long");
+            const w = askAdmit("add", t, sym, "long", bar.close, initialSL);
             if (w > 0) {
               pos.units.push({ entryIndex: i, entry: bar.close, initialSL, unitIndex: pos.units.length, weight: w });
-              if (p.longExitMode === "mid") pos.sl = Math.max(pos.sl, initialSL);
+              if (p.longExitMode === "mid" && p.pyramidTightensStop !== false) pos.sl = Math.max(pos.sl, initialSL);
             } else rejectedAdds++;
           }
         } else if (pos.dir === "short" && bar.close <= last.entry - p.pyramidStepAtr * ctx.atr[i]) {
-          const initialSL = turtleInitialStop(c, i, "short", bar.close, ctx.atr[i], p).price;
-          const w = askAdmit("add", t, sym, "short");
+          const initialSL = turtleInitialStop(c, i, "short", bar.close, ctx.atr[i], ctx.stopP).price;
+          const w = askAdmit("add", t, sym, "short", bar.close, initialSL);
           if (w > 0) {
             pos.units.push({ entryIndex: i, entry: bar.close, initialSL, unitIndex: pos.units.length, weight: w });
-            if (p.shortExitMode === "mid") pos.sl = Math.min(pos.sl, initialSL);
+            if (p.shortExitMode === "mid" && p.pyramidTightensStop !== false) pos.sl = Math.min(pos.sl, initialSL);
           } else rejectedAdds++;
         }
       }
@@ -464,7 +557,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
 
       const openShort = (entry: number, initialSL: number) => {
         if (!(initialSL > entry)) return;
-        const w = askAdmit("entry", t, sym, "short");
+        const w = askAdmit("entry", t, sym, "short", entry, initialSL);
         if (w <= 0) {
           rejectedEntries++;
           return;
@@ -487,7 +580,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
         ctx.shortSetup = null;
         const onConfirmBar = bar.openTime === c[setup.signalIndex].openTime + sc * TF_MS[p.tf];
         if (onConfirmBar && shortGateOk && bar.close < setup.level) {
-          openShort(bar.close, turtleInitialStop(c, i, "short", bar.close, ctx.atr[i], p).price);
+          openShort(bar.close, turtleInitialStop(c, i, "short", bar.close, ctx.atr[i], ctx.stopP).price);
           if (ctx.pos) return;
         }
         // huỷ setup → rơi xuống nhánh LONG của chính nến này (giống live)
@@ -495,9 +588,9 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
 
       if (uptrend && volOk && (!p.gate || p.gate(bar.openTime, "long")) && bar.close > longBreakout + buf) {
         const entry = bar.close;
-        const initialSL = turtleInitialStop(c, i, "long", entry, ctx.atr[i], p).price;
+        const initialSL = turtleInitialStop(c, i, "long", entry, ctx.atr[i], ctx.stopP).price;
         if (initialSL > 0 && initialSL < entry) {
-          const w = askAdmit("entry", t, sym, "long");
+          const w = askAdmit("entry", t, sym, "long", entry, initialSL);
           if (w > 0) {
             ctx.pos = {
               dir: "long",
@@ -514,7 +607,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
           ctx.shortSetup = { level: shortBreakout, signalIndex: i };
         } else {
           const entry = bar.close;
-          openShort(entry, turtleInitialStop(c, i, "short", entry, ctx.atr[i], p).price);
+          openShort(entry, turtleInitialStop(c, i, "short", entry, ctx.atr[i], ctx.stopP).price);
         }
       }
     }

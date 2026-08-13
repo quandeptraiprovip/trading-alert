@@ -101,6 +101,11 @@ export class TurtleLive {
   private readonly states = new Map<string, TurtleSymbolState>();
   private lastBoundary = 0;
   private cycling = false; // khoá chống 2 cycle chồng nhau
+  /**
+   * Ảnh chụp heat ĐẦU NẾN theo hướng; null = chấm tức thời (ngoài vòng replay).
+   * Xem `heatWeight` — đây là thứ làm tỉ trọng risk KHÔNG phụ thuộc thứ tự symbol.
+   */
+  private barHeat: Map<"long" | "short", number> | null = null;
 
   constructor(private readonly o: TurtleLiveOpts) {}
 
@@ -170,15 +175,28 @@ export class TurtleLive {
    * (Spearman(heat, netR) = −0,025) nên ta chỉ NHỎ SIZE, KHÔNG BAO GIỜ bỏ lệnh.
    *
    * Đếm cả vị thế "giấy" để live khớp đúng backtest đã audit (backtest không phân biệt giấy/thật).
+   *
+   * HEAT LẤY TỪ ẢNH CHỤP ĐẦU NẾN, không đọc sổ tức thời. Vì sao: trong một mốc thời gian, `replay`
+   * duyệt lần lượt từng symbol; nếu chấm tức thời thì symbol đứng TRƯỚC trong mảng gặp sổ vắng hơn
+   * và được size to hơn — một chênh lệch sinh ra từ vị trí trong mảng, không phải từ luật giao dịch.
+   * Đo được: đổi thứ tự symbol làm vốn cuối chênh 9% (k=4) đến 40% (k=0,25). Chấm theo ảnh chụp đầu
+   * nến đưa biên độ đó về ĐÚNG 0%. Đây chính là `admitBarSnapshot` của engine nghiên cứu
+   * (`scripts/portfolio-engine.ts`), nay có mặt ở live để hai bên khớp nhau.
    */
   private heatWeight(dir: "long" | "short"): number {
     if (!(T.heatDecayK > 0)) return 1;
+    const heat = this.barHeat?.get(dir) ?? this.currentHeat(dir);
+    return 1 / (1 + heat / T.heatDecayK);
+  }
+
+  /** Tổng tỉ trọng các unit đang mở cùng hướng, đọc tức thời từ sổ. */
+  private currentHeat(dir: "long" | "short"): number {
     let heat = 0;
     for (const st of this.states.values()) {
       if (st.pos?.dir !== dir) continue;
       for (const u of st.pos.units) heat += u.weight ?? 1;
     }
-    return 1 / (1 + heat / T.heatDecayK);
+    return heat;
   }
 
   /** Tổng risk frac hiệu dụng các unit thật của một vị thế. */
@@ -620,17 +638,23 @@ export class TurtleLive {
       idxOf: new Map(f.candles.map((c, i) => [c.openTime, i])),
     }));
     const times = [...new Set(prep.flatMap((f) => f.candles.slice(WARMUP_BARS).map((c) => c.openTime)))].sort((a, b) => a - b);
-    for (const t of times) {
-      for (const f of prep) {
-        const i = f.idxOf.get(t);
-        if (i === undefined || i < WARMUP_BARS || t <= f.st.lastBarTime) continue;
-        try {
-          await this.step(f.st, f.candles, i, f.emaArr, f.atr, gate, f.cold);
-        } catch (err) {
-          console.error(`[Turtle] ${formatSymbol(f.st.symbol)} lỗi nến ${new Date(t).toISOString()}:`, err instanceof Error ? err.message : err);
+    try {
+      for (const t of times) {
+        // Chốt heat MỘT LẦN cho cả mốc này; mọi symbol trong mốc chấm trên cùng trạng thái sổ.
+        this.barHeat = new Map([["long", this.currentHeat("long")], ["short", this.currentHeat("short")]]);
+        for (const f of prep) {
+          const i = f.idxOf.get(t);
+          if (i === undefined || i < WARMUP_BARS || t <= f.st.lastBarTime) continue;
+          try {
+            await this.step(f.st, f.candles, i, f.emaArr, f.atr, gate, f.cold);
+          } catch (err) {
+            console.error(`[Turtle] ${formatSymbol(f.st.symbol)} lỗi nến ${new Date(t).toISOString()}:`, err instanceof Error ? err.message : err);
+          }
+          f.st.lastBarTime = t;
         }
-        f.st.lastBarTime = t;
       }
+    } finally {
+      this.barHeat = null; // ngoài replay phải quay về chấm tức thời
     }
     this.persist();
   }

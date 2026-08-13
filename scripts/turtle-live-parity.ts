@@ -89,8 +89,11 @@ async function main() {
 
   // ── (2) ENGINE đã audit, cùng cửa sổ ──
   const gate = buildBtcGateLongs(data.get("btcusdt")!, T.btcGateFast, T.btcGateSlow);
+  // `admitBarSnapshot`: chấm heat theo trạng thái ĐẦU NẾN, khớp `TurtleLive.heatWeight`. Không bật
+  // cờ này thì engine chấm tuần tự theo thứ tự mảng book, và chính sự lệch đó là thứ live vừa bỏ đi
+  // (2026-08-13) — parity sẽ báo lệch weight ở đúng những nến có nhiều tín hiệu cùng lúc.
   const res = runBooks(
-    [...data.entries()].map(([symbol, candles]) => ({ key: symbol, symbol, candles, p: { ...T, gate } })),
+    [...data.entries()].map(([symbol, candles]) => ({ key: symbol, symbol, candles, p: { ...T, gate, admitBarSnapshot: true } })),
     (c) => (T.heatDecayK > 0 ? 1 / (1 + c.sameDirHeat / T.heatDecayK) : 1),
   );
   // `trades` chỉ sinh lúc THOÁT — vị thế còn mở ở nến cuối phải lấy từ `openAtEnd`, nếu không
