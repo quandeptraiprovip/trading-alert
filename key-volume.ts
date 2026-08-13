@@ -1,13 +1,13 @@
 /**
  * Key Volume — bản số hoá có truy vết nguồn từ FX Dream Trading.
  *
- * `volume-retest` (mặc định) là phần có thể lượng hoá của video live-trade:
+ * `volume-retest` (mặc định) là phần có thể lượng hoá của model thuận xu hướng:
  *   chuỗi nến Daily xác lập bias -> H1 key-volume
- *   -> M15 volume đúng vị trí tại key
- *   -> sweep/reclaim cuối -> phá cấu trúc -> vào ở open kế tiếp.
+ *   -> M15 volume đúng vị trí tại key -> sweep/reclaim cuối
+ *   -> mô hình nến đảo chiều -> vào ở open kế tiếp.
  * Bias chỉ đổi khi chuỗi ngược chiều phá cực trị nến đối diện gần nhất. Sau
- * entry, SL bám swing M5 đã xác nhận; chỉ tái vào cùng key sau stop dương và
- * một cú sweep sâu hơn.
+ * entry, engine không tự partial/trail vì kênh quản lý theo cấu trúc và từng
+ * case. Daily Trap là model riêng, không bị chồng lên mọi setup thuận xu hướng.
  * Trigger M15 chỉ cần không thấp hơn median trước đó: video #23 nói rõ volume
  * lần sau có thể nhỏ hơn, miễn xuất hiện đúng vị trí đang chờ.
  *
@@ -23,7 +23,8 @@
 import { Candle, CONFIG, TF_MS, aggregate, findSwings, Swing } from "./strategy";
 
 export type KeyVolumeDirection = "long" | "short";
-export type KeyVolumeLevelType = "demand" | "supply";
+export type KeyVolumeLevelType = "demand" | "supply" | "neutral";
+export type KeyVolumeKeySelectionMode = "spike-only" | "displacement-classified";
 export type KeyVolumeEntryModel = "volume-retest" | "document-v1";
 export type KeyVolumeSourceTf = "15m" | "1h" | "4h";
 export type KeyVolumeTargetMode = "nearest-structure" | "capped-r";
@@ -49,6 +50,12 @@ export type KeyVolumeReentryMode = "deeper-sweep" | "volume-retouch";
 
 export interface KeyVolumeParams {
   entryModel: KeyVolumeEntryModel;
+  /**
+   * `spike-only`: Key trung tính tồn tại ngay khi nến volume đóng; hướng chỉ
+   * được quyết định lúc retest bởi bias + sweep. `displacement-classified` là
+   * benchmark cũ, đợi phản ứng/BOS để gán demand/supply.
+   */
+  keySelectionMode: KeyVolumeKeySelectionMode;
   baseTf: "5m";
   confirmTf: "15m";
   keyTf: "1h";
@@ -87,6 +94,12 @@ export interface KeyVolumeParams {
   maxStopPct: number;
   minRR: number;
   targetMode: KeyVolumeTargetMode;
+  /**
+   * `true`: không có vùng cấu trúc đối diện thì bỏ setup, không tự tạo TP 5R.
+   * Video #10/#22 đặt TP theo vùng cản/volume quan trọng; `false` chỉ được giữ
+   * để tái lập benchmark cũ có `finalTargetR` dự phòng.
+   */
+  requireStructuralTarget: boolean;
   /**
    * Khung của các level được coi là "vùng cấu trúc đối diện" khi đo dư địa và
    * TP. #10/#22 đo dư địa tới kháng cự Daily và TP theo vùng quan trọng của
@@ -130,6 +143,7 @@ export interface KeyVolumeParams {
 
 export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   entryModel: "volume-retest",
+  keySelectionMode: "spike-only",
   baseTf: "5m",
   confirmTf: "15m",
   keyTf: "1h",
@@ -143,9 +157,9 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   reactionAtr: 0.75,
   invalidationAtr: 0.25,
   keyHistoryDays: 90,
-  // #10 chọn key có "3 điểm xoay chiều" và loại thẳng mức "không có lịch sử
-  // giá"; #26 loại mức "không có phản ứng". 0 = không có ràng buộc nào.
-  minKeyReactions: 1,
+  // Chọn Key chỉ cần một nến/vùng volume đột biến. Lịch sử phản ứng là context
+  // để trader chấm chất lượng, không phải điều kiện sinh Key tự động.
+  minKeyReactions: 0,
   keyReactionAtr: 0.5,
   keyMaxAgeDays: 180,
   confluenceAtr: 0.75,
@@ -170,18 +184,19 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   maxStopPct: 0.03,
   minRR: 3,
   targetMode: "nearest-structure",
-  targetSourceTfs: ["1h", "4h"],
+  requireStructuralTarget: true,
+  targetSourceTfs: ["15m", "1h", "4h"],
   // Với entry ngay sau mô hình nến, cực trị cửa sổ touch->sweep CHÍNH LÀ đáy cú
   // trap và nằm sát entry — đúng #31 ("stop l của mình sẽ đặt ở dưới cái Trap
   // này"). Cùng giá trị này khi chờ BOS lại thành stop rất rộng.
   stopMode: "sweep-window",
   finalTargetR: 5,
   partialAtR: 2,
-  partialFraction: 0.5,
+  partialFraction: 0,
   followThroughBars: 6,
   minFollowThroughR: 0.5,
   requireFollowThrough: true,
-  trailMode: "m5-swing",
+  trailMode: "none",
   pressureBars: 3,
   maxHoldBars: 7 * 24 * 12,
   cooldownBars: 12,
@@ -197,15 +212,17 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   requireDoubleTopBottom: false,
   doubleTolAtr: 0.5,
   doubleLookbackBars: 40,
-  requireDailyTrapGate: true,
+  requireDailyTrapGate: false,
   sessionHoursUtc: null,
 };
 
 export const KEY_VOLUME_DOCUMENT_V1_CONFIG: KeyVolumeParams = {
   ...KEY_VOLUME_CONFIG,
   entryModel: "document-v1",
+  keySelectionMode: "displacement-classified",
   touchVolumeSpikeMult: 2,
   targetMode: "capped-r",
+  requireStructuralTarget: false,
   stopMode: "sweep-window",
   // Giữ nguyên để tái lập benchmark cũ, không nhận mặc định mới.
   minKeyReactions: 0,
@@ -213,14 +230,25 @@ export const KEY_VOLUME_DOCUMENT_V1_CONFIG: KeyVolumeParams = {
   reentryMode: "deeper-sweep",
   requireDailyTrapGate: false,
   partialFraction: 0.5,
+  trailMode: "m5-swing",
   maxHoldBars: 288,
+};
+
+/**
+ * Model trap Daily riêng (#31/#50), không chồng gate này lên follow-trend.
+ * Hiện chỉ dành cho ablation: Daily event detector riêng chưa được cài, nên
+ * cấu hình này vẫn dùng chung retest loop và chưa đủ điều kiện live.
+ */
+export const KEY_VOLUME_DAILY_TRAP_CONFIG: KeyVolumeParams = {
+  ...KEY_VOLUME_CONFIG,
+  requireDailyTrapGate: true,
 };
 
 export interface KeyVolumeLevel {
   id: string;
   sourceTf: KeyVolumeSourceTf;
   type: KeyVolumeLevelType;
-  direction: KeyVolumeDirection;
+  direction: KeyVolumeDirection | null;
   price: number;
   zoneLow: number;
   zoneHigh: number;
@@ -503,13 +531,14 @@ export function structuralCandleChainBias(
   return "neutral";
 }
 
-function directionFor(type: KeyVolumeLevelType): KeyVolumeDirection {
+function directionFor(type: Exclude<KeyVolumeLevelType, "neutral">): KeyVolumeDirection {
   return type === "demand" ? "long" : "short";
 }
 
 /**
- * Volume spike chỉ trở thành key sau displacement + BOS. `confirmedAt` là
- * thời điểm BOS đóng, nên caller có thể replay mà không nhìn trước.
+ * `spike-only`: volume spike trở thành Key trung tính ngay khi nến đóng.
+ * `displacement-classified`: benchmark cũ chỉ công nhận sau displacement+BOS;
+ * `confirmedAt` là lúc BOS đóng để replay không nhìn trước.
  */
 export function detectKeyVolumeLevels(
   candles: Candle[],
@@ -535,12 +564,45 @@ export function detectKeyVolumeLevels(
     const bodyHigh = Math.max(candles[event].open, candles[event].close);
     const fallbackLow = candles[event].low;
     const fallbackHigh = candles[event].high;
-    const zoneLow = bodyHigh > bodyLow ? bodyLow : fallbackLow;
-    const zoneHigh = bodyHigh > bodyLow ? bodyHigh : fallbackHigh;
+    const zoneLow = params.keySelectionMode === "spike-only"
+      ? fallbackLow
+      : bodyHigh > bodyLow ? bodyLow : fallbackLow;
+    const zoneHigh = params.keySelectionMode === "spike-only"
+      ? fallbackHigh
+      : bodyHigh > bodyLow ? bodyHigh : fallbackHigh;
+
+    if (params.keySelectionMode === "spike-only") {
+      const price = candles[event].close;
+      const historyBars = Math.ceil(params.keyHistoryDays * TF_MS["1d"] / tfMs);
+      const historicalReactions = swings.filter((swing) =>
+        swing.index < event
+        && swing.index >= event - historyBars
+        && swing.confirmIndex <= event
+        && Math.abs(swing.price - price) <= params.keyReactionAtr * atr[event],
+      ).length;
+      if (historicalReactions < params.minKeyReactions) continue;
+      const confirmedAt = candles[event].openTime + tfMs;
+      levels.push({
+        id: `${sourceTf}:${candles[event].openTime}:neutral`,
+        sourceTf,
+        type: "neutral",
+        direction: null,
+        price,
+        zoneLow,
+        zoneHigh,
+        eventTime: candles[event].openTime,
+        confirmedAt,
+        expiresAt: confirmedAt + params.keyMaxAgeDays * TF_MS["1d"],
+        volumeRatio,
+        reactionAtr: 0,
+      });
+      continue;
+    }
+
     const responseEnd = Math.min(candles.length - 1, event + params.reactionBars);
 
     let confirmedIndex = -1;
-    let type: KeyVolumeLevelType | null = null;
+    let type: Exclude<KeyVolumeLevelType, "neutral"> | null = null;
     let reaction = 0;
     for (let i = event; i <= responseEnd; i++) {
       const upDistance = candles[i].close - zoneLow;
@@ -686,10 +748,17 @@ function selectConfluentTouch(
   let best: { key: KeyVolumeLevel; higherKey: KeyVolumeLevel; score: number } | null = null;
 
   for (const key of h1Levels) {
-    if (used.has(key.id) || key.direction !== direction || !isKeyVolumeLevelActive(key, time)) continue;
+    if (
+      used.has(key.id)
+      || (key.direction != null && key.direction !== direction)
+      || !isKeyVolumeLevelActive(key, time)
+    ) continue;
     if (!touchesLevel(candle, key, touchTolerance)) continue;
     for (const higherKey of h4Levels) {
-      if (higherKey.direction !== direction || !isKeyVolumeLevelActive(higherKey, time)) continue;
+      if (
+        (higherKey.direction != null && higherKey.direction !== direction)
+        || !isKeyVolumeLevelActive(higherKey, time)
+      ) continue;
       const distance = intervalDistance(
         key.zoneLow,
         key.zoneHigh,
@@ -721,11 +790,15 @@ function selectKeyTouch(
   let best: { key: KeyVolumeLevel; higherKey?: KeyVolumeLevel; score: number } | null = null;
 
   for (const key of h1Levels) {
-    if (used.has(key.id) || key.direction !== direction || !isKeyVolumeLevelActive(key, time)) continue;
+    if (
+      used.has(key.id)
+      || (key.direction != null && key.direction !== direction)
+      || !isKeyVolumeLevelActive(key, time)
+    ) continue;
     if (!touchesLevel(candle, key, touchTolerance)) continue;
     const higherKey = h4Levels
       .filter((candidate) =>
-        candidate.direction === direction
+        (candidate.direction == null || candidate.direction === direction)
         && isKeyVolumeLevelActive(candidate, time)
         && intervalDistance(
           key.zoneLow,
@@ -988,8 +1061,13 @@ export function approximateHvnEdge(
     : low + (clusterHigh + 1) * width;
 }
 
-function invalidatedByClose(candle: Candle, level: KeyVolumeLevel): boolean {
-  return level.direction === "long"
+function invalidatedByClose(
+  candle: Candle,
+  level: KeyVolumeLevel,
+  direction: KeyVolumeDirection | null = level.direction,
+): boolean {
+  if (direction == null) return false;
+  return direction === "long"
     ? candle.close < level.zoneLow
     : candle.close > level.zoneHigh;
 }
@@ -1026,7 +1104,8 @@ function buildVolumeRetestPlans(
       const expiredSweep = setup.sweepIndex == null
         ? i - setup.touchIndex > params.sweepWaitBars
         : i - setup.sweepIndex > params.bosExpiryBars;
-      const invalidated = expiredKey || invalidatedByClose(confirm[i], setup.key);
+      const invalidated = expiredKey
+        || invalidatedByClose(confirm[i], setup.key, setup.direction);
       if (invalidated) {
         used.add(setup.key.id);
         setup = null;
@@ -1193,7 +1272,11 @@ function buildDocumentEntryPlans(
 
     if (setup) {
       const expiredKey = !isKeyVolumeLevelActive(setup.key, closeTime);
-      if (bias !== setup.direction || expiredKey || invalidatedByClose(confirm[i], setup.key)) {
+      if (
+        bias !== setup.direction
+        || expiredKey
+        || invalidatedByClose(confirm[i], setup.key, setup.direction)
+      ) {
         used.add(setup.key.id);
         setup = null;
       }
@@ -1550,7 +1633,7 @@ function simulatePlans(
         if (entryInvalid) {
           exitPrice = candle.close;
           reason = "entry-invalid";
-        } else if (invalidatedByClose(candle, position.plan.key)) {
+        } else if (invalidatedByClose(candle, position.plan.key, direction)) {
           exitPrice = candle.close;
           reason = "key-invalid";
         } else if (
@@ -1611,7 +1694,10 @@ function simulatePlans(
         !consumed.has(plan.id)
         && plan.readyIndex <= i
         && i <= plan.expiresIndex
-        && isKeyVolumeLevelActive(plan.key, candle.openTime + TF_MS[params.baseTf])
+        && isKeyVolumeLevelActive(
+          plan.key,
+          plan.enterNextOpen ? candle.openTime : candle.openTime + TF_MS[params.baseTf],
+        )
         && (() => {
           const previous = keyOutcomes.get(plan.key.id);
           if (!previous) return true;
@@ -1632,6 +1718,9 @@ function simulatePlans(
     consumed.add(plan.id);
 
     const entry = plan.enterNextOpen ? candle.open : candle.close;
+    // Entry `next open` chỉ được dùng ATR của cây đã đóng trước đó. Dùng ATR của chính cây entry
+    // sẽ nhìn trước toàn bộ high/low của cây 5 phút để quyết định khoảng stop.
+    const entryAtr = atr5[plan.enterNextOpen ? Math.max(0, i - 1) : i];
     const fallbackStop = plan.direction === "long"
       ? Math.min(plan.obLow, plan.key.zoneLow)
       : Math.max(plan.obHigh, plan.key.zoneHigh);
@@ -1642,8 +1731,8 @@ function simulatePlans(
         : plan.structuralStop;
     const stopReference = modeStop ?? plan.structuralStop ?? fallbackStop;
     const stop = plan.direction === "long"
-      ? stopReference - params.stopBufferAtr * atr5[i]
-      : stopReference + params.stopBufferAtr * atr5[i];
+      ? stopReference - params.stopBufferAtr * entryAtr
+      : stopReference + params.stopBufferAtr * entryAtr;
     const risk = Math.abs(entry - stop);
     const riskFraction = risk / entry;
     if (
@@ -1657,7 +1746,7 @@ function simulatePlans(
 
     const opposing = nearestOpposingTarget(
       levels,
-      candle.openTime + TF_MS[params.baseTf],
+      plan.enterNextOpen ? candle.openTime : candle.openTime + TF_MS[params.baseTf],
       plan.direction,
       entry,
       params.targetSourceTfs,
@@ -1665,6 +1754,10 @@ function simulatePlans(
     const opposingR = opposing == null
       ? Infinity
       : Math.abs(opposing - entry) / risk;
+    if (opposing == null && params.requireStructuralTarget) {
+      diagnostics.rejectedRoom++;
+      continue;
+    }
     if (opposingR < params.minRR) {
       diagnostics.rejectedRoom++;
       continue;
@@ -1692,6 +1785,9 @@ function simulatePlans(
       maxFavorable: 0,
     };
     diagnostics.entries++;
+    // Với entry tại đầu cây hiện tại, chính cây này là năm phút rủi ro đầu tiên của lệnh. Chạy lại
+    // cùng index qua nhánh quản lý vị thế; nếu không backtest sẽ bỏ qua SL/TP ngay sau entry.
+    if (plan.enterNextOpen) i--;
   }
 
   return trades;

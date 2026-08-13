@@ -10,6 +10,8 @@
     "telegram:test": "ts-node telegram-test.ts",
     "test:mexc": "ts-node test-mexc.ts",
     "test:key-volume": "ts-node test-key-volume.ts",
+    "test:fxdream": "ts-node test-fxdream-v2.ts",
+    "test:fxdream-journal": "ts-node test-fxdream-journal.ts",
     "test:alt-trend": "ts-node test-alt-trend.ts",
     "test:smallcap-native": "ts-node test-smallcap-native.ts",
     "test:kline-fetch": "ts-node test-kline-fetch.ts",
@@ -17,7 +19,10 @@
     "backtest:key-volume": "ts-node key-volume-backtest.ts",
     "backtest:alt-trend": "ts-node scripts/alt-trend-backtest.ts",
     "scan:alt-universe": "ts-node scripts/alt-universe-scanner.ts",
+    "alert:fxdream": "ts-node fxdream-alert.ts",
+    "journal:fxdream": "ts-node scripts/fxdream-journal-cli.ts",
     "research:smallcap-native": "ts-node scripts/smallcap-native-research.ts",
+    "research:fxdream-source-models": "ts-node scripts/fxdream-source-model-research.ts",
     "web": "next dev"
   },
   "dependencies": {

@@ -8,6 +8,17 @@
 > (xem [Nguồn](#nguồn) cuối file).
 > Ngày đúc kết: 2026-07-30.
 
+> **Cập nhật source-alignment 2026-08-11:** FXDream là framework discretionary gồm nhiều model,
+> không phải một stack gate duy nhất. Scanner hiện tại chỉ phát hiện **ứng viên SFP** từ H1/D1/M15;
+> nó chưa tự động hóa W1, chọn key bằng mắt, hợp lưu H4, M5 Volume Profile/actual OB/FTR, macro,
+> session hay quyết định vào lại. Kết quả backtest của scanner không được gọi là kết quả của toàn bộ
+> phương pháp đánh tay.
+
+> **Cập nhật sâu cuối ngày 2026-08-11:** phần Key đã đổi sang `spike-only` đúng yêu cầu: một nến/vùng
+> volume đột biến tạo một Key trung tính ngay khi đóng. Các kết quả dùng displacement để phân loại
+> Key và các kết luận cũ trong phần audit định lượng đã bị supersede. Xem báo cáo mới:
+> [fxdream-deep-profit-research-2026-08-11.md](./fxdream-deep-profit-research-2026-08-11.md).
+
 Áp dụng cho: Forex, **Vàng**, **Crypto**, Chứng khoán (kênh khẳng định cùng một bộ logic).
 
 ---
@@ -28,7 +39,8 @@
 12. [Ghi chú số hoá / code hoá](#12-ghi-chú-số-hoá--code-hoá)
 13. [Audit lại từ transcript gốc — 2026-08-01](#13-audit-lại-từ-transcript-gốc--2026-08-01)
 14. [Audit toàn bộ + cài đặt phần còn thiếu — vòng 2](#14-audit-toàn-bộ--cài-đặt-phần-còn-thiếu--2026-08-01-vòng-2)
-15. [Nguồn](#nguồn)
+15. [Trạng thái mã hóa source-aligned — 2026-08-11](#15-trạng-thái-mã-hóa-source-aligned--2026-08-11)
+16. [Nguồn](#nguồn)
 
 ---
 
@@ -49,20 +61,25 @@ cộng thêm một **lớp vĩ mô** đè lên trên — điểm khác biệt so
 
 ## 2. Key Volume — hạt nhân hệ thống
 
-> "Key là một **điểm**, không phải một vùng."
+Trong cách vào chính xác, tác giả thường thu key về một **điểm/đường giá**. Tuy nhiên transcript
+`#23` cũng cho phép dùng **vùng** tùy khung thời gian và size. Vì vậy “key luôn là một điểm” không
+phải luật phổ quát.
 
-**Key Volume** = mức giá hội tụ **đồng thời hai điều kiện**:
+**Điều kiện chọn Key Volume ban đầu chỉ là một trong hai dạng:**
 
-1. Từng có **một cây volume rất lớn** (dấu chân dòng tiền lớn — gom hàng hoặc xả hàng), và
-2. **Giá đã phản ứng thật** tại đó (bật, đỡ, hoặc đảo vai trò hỗ trợ ↔ kháng cự).
+1. một **vùng có volume lớn đột biến**, hoặc
+2. một **nến có volume lớn đột biến**.
+
+Phản ứng cũ, điểm xuất phát lực hoặc đổi vai có thể giúp xếp hạng/chọn lọc lệnh, nhưng **không phải
+điều kiện bắt buộc để đánh dấu Key**.
 
 ### Cách xác định trong thực tế
 
 - Tìm **"điểm xuất phát lực"** — nơi *bắt đầu* một cú Break of Structure, không phải nơi giá đã chạy xa.
 - Vùng từng là hỗ trợ mà bị một cây volume lớn xả thủng → đánh dấu; nó **đổi vai** thành kháng cự.
   *"Những nơi có câu chuyện của nó thì tôi đánh dấu lại và theo dõi."*
-- Lấy giá đóng cửa, mở cửa hay râu nến **đều được** — không quan trọng bằng việc **có phản ứng hay không**.
-  Khung càng nhỏ / size càng nhỏ thì lấy cả vùng cũng ổn.
+- Có thể đánh dấu open/close/high/low hoặc cả vùng nến volume tùy khung và size. Phải ghi rõ trước
+  mình đang dùng điểm nào/vùng nào để tránh dịch Key sau khi biết kết quả.
 
 ### Bộ lọc phủ định (quan trọng)
 
@@ -108,8 +125,10 @@ Trong video `#26` họ loại một mức vì *"không có phản ứng, và kh�
 
 ### Bước 3 — M15: xác nhận + chờ trap
 
-- Phải thấy **phá cấu trúc 2 lần** (2 lower low / 2 higher high) mới tin là phá thật.
-  *"Phá lần một rất dễ ăn trap."*
+- **BOS hai lần** áp dụng cho model cần xác nhận một con sóng/cấu trúc mới; nó không phải gate bắt
+  buộc của mọi model SFP, Quasimodo hay Daily trap `#31`.
+- Với model an toàn, có thể chờ sweep → BOS → retest. Với model tấn công, trigger có thể xuất hiện
+  trước BOS nhưng cần kỹ năng đọc absorption/key cao hơn.
 - Chờ **cú quét thanh khoản**: giá rướn lên đá hết stoploss rồi mới sập.
 - **Chỉ vào sau khi đã quét.**
 
@@ -123,16 +142,18 @@ Trong video `#26` họ loại một mức vì *"không có phản ứng, và kh�
 
 ## 5. Checklist vào lệnh
 
-Nguyên tắc: **thiếu một yếu tố là không vào.**
+Nguyên tắc đúng hơn: **chọn model ID trước; thiếu yếu tố bắt buộc của model đó thì không vào.** Không
+chồng toàn bộ gate của chín model lên một lệnh. Các lớp phổ quát vẫn là bối cảnh, vị trí, trigger,
+invalidation, dư địa và risk.
 
 > "Các bạn nhìn mỗi cái nhỏ xíu này không á, cắm đầu tray là toang."
 
 - [ ] Bias khung tuần/ngày rõ ràng, lệnh **thuận** bias
-- [ ] Có **key volume** (cây vol lớn + phản ứng giá) tại vùng dự định vào
+- [ ] Có **Key Volume**: vùng volume lớn đột biến hoặc nến volume lớn đột biến
 - [ ] **Hợp lưu ≥ 2–3 khung thời gian** trên cùng một mức giá
 - [ ] Đã có **cú quét thanh khoản / trap** ở phía ngược lại
-- [ ] Có **cấu trúc M15 xác nhận** (BOS 2 lần)
-- [ ] Có **OB / FTR / breaker** để entry sát và SL ngắn
+- [ ] Có trigger đúng model: SFP/Engulfing/Inside-bar/3-bar reversal hoặc BOS-retest
+- [ ] Nếu model yêu cầu, có **actual OB / FTR / breaker / cạnh HVN** để entry sát và SL ngắn
 - [ ] **Dư địa** phía trước còn nhiều (còn liquidity gap chưa lấy)
 - [ ] Bối cảnh **vĩ mô** không chống lại lệnh
 
@@ -169,7 +190,8 @@ Trade cạnh biên vùng tích luỹ, hoặc — mặc định — **đứng ngo
 ### Take profit
 
 - Đặt tại **key / OB quan trọng của khung M15**.
-- **Chốt 1/2 tại TP1**, phần còn lại gồng.
+- Một số case **chốt một phần tại TP1**, nhưng nguồn không đưa ra tỷ lệ cố định dùng cho mọi model.
+- Có thể cân nhắc dời SL dương/BE quanh 1–2R theo hành vi giá; đây cũng không phải deadline máy móc.
 - Nếu giá xả rất mạnh → **gỡ TP2 ra, thả trôi**, chỉ chốt khi thấy dấu hiệu quay xe.
   *"Muốn TP vô cực thì phải thả TP ra."*
 
@@ -198,8 +220,9 @@ và **vào lại** khi có entry đẹp hơn sau cú quét sâu hơn.
 
 | Tham số | Giá trị |
 |---|---|
-| Risk / lệnh | **2–5% tài khoản** |
-| Risk / lệnh (chưa chắc tay) | **1–2% tài khoản** |
+| Risk / lệnh minh họa phổ biến | **1% tài khoản** |
+| Biên tác giả nhắc tới | **1–2% tài khoản** |
+| Trên 2% | Không coi là chuẩn nguồn; chỉ dùng nếu thống kê cá nhân và giới hạn tổng risk cho phép |
 | Tư duy R | Thua 1, thắng 5 / 10 / 20 |
 | Kỳ vọng lợi nhuận | **10–20% / năm**, tính theo **năm** chứ không theo ngày/tháng |
 
@@ -420,6 +443,9 @@ Benchmark `10x` cùng kỳ của technical subset: Key Volume `35` trade, gross 
 
 ## 13. Audit lại từ transcript gốc — 2026-08-01
 
+> **Lịch sử nghiên cứu:** các số đo/code-path trong mục 13 đã bị supersede bởi mục 15; chỉ giữ để
+> truy vết giả thuyết và sai lệch đã phát hiện.
+
 Lần audit này bóc lại transcript tiếng Việt trực tiếp bằng `yt-dlp` thay vì dựa trên bản đúc kết
 cũ, và đối chiếu từng phát biểu với `key-volume.ts`. Kết quả: bản số hoá **lệch khỏi phương pháp
 ở bốn chỗ**, trong đó một chỗ là lỗi lập trình thực sự.
@@ -592,6 +618,9 @@ thực sự gây hại, thay vì sửa gộp rồi đoán).
 
 ## 14. Audit toàn bộ + cài đặt phần còn thiếu — 2026-08-01 (vòng 2)
 
+> **Lịch sử nghiên cứu:** kết luận P&L và cấu hình trong mục 14 không còn là cấu hình vận hành; xem
+> mục 15 cho source-alignment và phép đo 365 ngày mới nhất.
+
 Bóc thêm 8 transcript công khai (tổng 19). **7 video liên quan trực tiếp nhất là members-only trả
 phí** (`#39 Mô hình 2 đỉnh đáy + SFP`, `#52 Entry Steps`, `#26 KEY VOLUME & ENTRY = SFP`,
 `#14/#42 Xác định Keyvol`, `#30 Phân tích volume - xác nhận entry`, `#15 Mô hình vào lệnh win cao`)
@@ -671,8 +700,8 @@ Rồi xuống M15 với đúng một câu: *"khung M15 này nó có dấu hiệu
 | Sweep/stop-hunt rồi mới vào | `#50`, `#26`, `+50R` | ✅ đúng |
 | Vào theo mô hình nến sau sweep | `Q&A003`, `#50` | ✅ **đã sửa vòng 2** |
 | SL dưới cú trap / OB / key | `#31`, `#22`, `#43` | ✅ đã sửa |
-| Không chạy liền là bỏ | `+50R`, `#26`, `#43` | ✅ đã bật |
-| Chốt 1/2, dời SL dương 1–2R | `#22`, `#43` | ✅ đúng |
+| Không chạy như luận điểm thì bỏ | `+50R`, `#26`, `#43` | ✅ invalidation hành vi; không có deadline 6 nến cố định |
+| Partial/BE quanh 1–2R | `#22`, `#43` | ⚠️ có trong case; không có tỷ lệ chốt cố định phổ quát |
 | TP theo vùng M15 / kháng cự Daily | `#22`, `#19`, `#10` | ✅ đã sửa |
 | Ba câu hỏi Daily | `#31` | ✅ **mới cài vòng 2** |
 | Vào lại sau stop dương | `#23`, `#43` | ✅ **mới cài vòng 2** |
@@ -736,6 +765,42 @@ vào nguồn mà số liệu không ủng hộ sẽ là overfit theo hướng ng
 dòng là bật được, và `scripts/key-volume-method-audit.ts` đo lại được bất cứ lúc nào.
 
 ---
+
+## 15. Trạng thái mã hóa source-aligned — 2026-08-11
+
+Đường `strategy-engine-v2.ts`/`fxdream-alert.ts` hiện được định nghĩa hẹp là **scanner ứng viên
+SFP**, không phải bot FXDream hoàn chỉnh:
+
+- H1 tạo **một Key trung tính** ngay khi nến đóng với volume từ `2x` median 96 nến; không cần chờ
+  phản ứng tương lai và không nhân đôi demand/supply trước khi biết hướng. Daily bias + sweep/reclaim
+  mới quyết định hướng giao dịch.
+- Engine lưu cả `close` làm điểm đại diện lẫn toàn bộ `low–high` của nến. Backtest mặc định dùng
+  điểm `close`; dùng toàn vùng nến là một geometry riêng phải chọn rõ. Vùng volume nhiều nến vẫn
+  phải chỉnh thủ công.
+- Daily gate `#31` kiểm chuỗi nến, chưa đóng xuyên mức tham chiếu và đã sweep.
+- Sweep phải nằm trong chính cụm ba nến M15 xác nhận; pattern tự động gồm Engulfing,
+  Inside-bar breakout và 3-bar reversal. Pinbar đơn lẻ đã bị loại.
+- Giá đóng xác nhận chỉ là **entry tham chiếu cho backtest**, không được gọi là actual OB hay khuyến
+  nghị đặt limit. Signal chỉ được biết khi nến M15 đóng; backtest xử lý ngay cây 5 phút bắt đầu tại
+  thời điểm đó thay vì bỏ qua nó. Stop nằm ngoài sweep wick.
+- Target là swing H4 đối diện **gần nhất** còn tối thiểu `1,5R`; không còn chọn swing xa nhất hay cắt
+  runner bằng trần `15R` nhân tạo.
+- Không hard-code chốt 30% tại 2R hoặc deadline follow-through sáu nến. Backtest chỉ dời SL về BE
+  sau 2R và vô hiệu định lượng khi nến M15 đóng xuyên key.
+- Card bắt buộc yêu cầu kiểm tra thủ công W1/D1, hợp lưu H4, M5 Volume Profile + actual
+  OB/FTR/Breaker, macro/news, session, feed volume và spread.
+- Nếu nhiều Key cùng xác nhận, engine chọn ổn định theo khoảng cách đến geometry, volume ratio rồi
+  thời gian tạo Key; kết quả không còn phụ thuộc thứ tự mảng.
+
+Đo lại đúng đường này trên BTC/SOL/XRP/DOGE trong `2025-08-11 → 2026-08-11` cho `341` lệnh,
+win rate `10,9%`, gross `−25,5R`; train `−22,6R`, holdout `−2,9R`, và không symbol nào dương
+trên toàn cửa sổ. Dùng toàn vùng high–low của nến còn tệ hơn (`−43,3R`), nên không được bật chỉ vì
+cách diễn đạt “vùng/nến volume” còn mơ hồ.
+Vì vậy alert đang **fail-closed ở mọi mức phí**. Con số `+28,8R` của V7 cũ đã bị supersede vì dùng
+limit 30% nến giả OB, swing H4 xa nhất, partial 30%, deadline sáu nến và bộ pattern khác nguồn.
+
+Kết quả âm này chỉ bác bỏ **proxy tự động hiện tại**. Nó không bác bỏ kết quả đánh tay có lợi nhuận,
+vì các lớp discretionary có khả năng tạo edge nhất vẫn chưa nằm trong dữ liệu máy.
 
 ## Nguồn
 

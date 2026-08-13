@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   KEY_VOLUME_CONFIG,
+  KEY_VOLUME_DAILY_TRAP_CONFIG,
   KEY_VOLUME_DOCUMENT_V1_CONFIG,
   approximateHvnEdge,
   canReenterKey,
@@ -55,20 +56,26 @@ function testMedianExcludesCurrent(): void {
 
 function testSourceBackedDefaults(): void {
   assert.equal(KEY_VOLUME_CONFIG.touchVolumeSpikeMult, 1);
+  assert.equal(KEY_VOLUME_CONFIG.keySelectionMode, "spike-only");
   assert.equal(KEY_VOLUME_CONFIG.persistDailyBias, true);
   assert.equal(KEY_VOLUME_CONFIG.allowKeyReentry, true);
-  // #10 chọn key "có 3 điểm xoay chiều" và loại mức "không có lịch sử giá";
-  // #26 loại mức "không có phản ứng". 0 = không ràng buộc gì.
-  assert.equal(KEY_VOLUME_CONFIG.minKeyReactions, 1);
+  // Chọn Key chỉ cần nến/vùng volume đột biến; lịch sử phản ứng là context.
+  assert.equal(KEY_VOLUME_CONFIG.minKeyReactions, 0);
   assert.equal(KEY_VOLUME_DOCUMENT_V1_CONFIG.minKeyReactions, 0);
   assert.equal(KEY_VOLUME_CONFIG.requireHigherKey, false);
   assert.equal(KEY_VOLUME_CONFIG.targetMode, "nearest-structure");
-  assert.equal(KEY_VOLUME_CONFIG.partialFraction, 0.5);
+  assert.equal(KEY_VOLUME_CONFIG.requireStructuralTarget, true);
+  assert.equal(KEY_VOLUME_CONFIG.partialFraction, 0);
+  assert.equal(KEY_VOLUME_CONFIG.trailMode, "none");
+  assert.equal(KEY_VOLUME_CONFIG.requireDailyTrapGate, false);
+  assert.equal(KEY_VOLUME_DAILY_TRAP_CONFIG.requireDailyTrapGate, true);
   assert.equal(KEY_VOLUME_CONFIG.maxHoldBars, 7 * 24 * 12);
   assert.equal(resolveTargetR(12, KEY_VOLUME_CONFIG), 12);
   assert.equal(resolveTargetR(null, KEY_VOLUME_CONFIG), KEY_VOLUME_CONFIG.finalTargetR);
 
   assert.equal(KEY_VOLUME_DOCUMENT_V1_CONFIG.targetMode, "capped-r");
+  assert.equal(KEY_VOLUME_DOCUMENT_V1_CONFIG.keySelectionMode, "displacement-classified");
+  assert.equal(KEY_VOLUME_DOCUMENT_V1_CONFIG.requireStructuralTarget, false);
   assert.equal(KEY_VOLUME_DOCUMENT_V1_CONFIG.partialFraction, 0.5);
   assert.equal(resolveTargetR(12, KEY_VOLUME_DOCUMENT_V1_CONFIG), 5);
 }
@@ -76,6 +83,7 @@ function testSourceBackedDefaults(): void {
 function testKeyActivationAndNoLookahead(): void {
   const params = {
     ...KEY_VOLUME_CONFIG,
+    keySelectionMode: "displacement-classified" as const,
     volumeLookback: 5,
     volumeSpikeMult: 2,
     reactionLookback: 3,
@@ -123,6 +131,38 @@ function testKeyActivationAndNoLookahead(): void {
   );
   assert.ok(flipped, "demand bị phá phải đổi vai thành supply, không bị xóa khỏi hệ thống");
   assert.equal(isKeyVolumeLevelActive(flipped, flipped.confirmedAt), true);
+}
+
+function testSpikeOnlyKeyExistsAtCandleClose(): void {
+  const bars: Candle[] = [
+    candle(0, 100, 101, 99, 100, 100),
+    candle(1, 100, 101, 99, 100, 100),
+    candle(2, 100, 101, 99, 100, 100),
+    candle(3, 100, 101, 99, 100, 100),
+    candle(4, 100, 101, 99, 100, 100),
+    candle(5, 100, 103, 98, 102, 300),
+  ];
+  const params = {
+    ...KEY_VOLUME_CONFIG,
+    volumeLookback: 5,
+    volumeSpikeMult: 2,
+    minKeyReactions: 0,
+  };
+  const atClose = detectKeyVolumeLevels(bars, "1h", params);
+  assert.equal(atClose.length, 1);
+  assert.equal(atClose[0].type, "neutral");
+  assert.equal(atClose[0].direction, null);
+  assert.equal(atClose[0].price, bars[5].close);
+  assert.equal(atClose[0].zoneLow, bars[5].low);
+  assert.equal(atClose[0].zoneHigh, bars[5].high);
+  assert.equal(atClose[0].confirmedAt, bars[5].openTime + TF_MS["1h"]);
+
+  const withFuture = detectKeyVolumeLevels(
+    [...bars, candle(6, 102, 110, 101, 109, 100)],
+    "1h",
+    params,
+  );
+  assert.deepEqual(withFuture[0], atClose[0]);
 }
 
 function testCandleChainBias(): void {
@@ -302,6 +342,7 @@ function testVolumeRetestStateMachine(): void {
   const h1 = aggregate(base, "1h", "5m");
   const keys = detectKeyVolumeLevels(h1, "1h", {
     ...KEY_VOLUME_CONFIG,
+    keySelectionMode: "displacement-classified",
     minKeyReactions: 0,
     requireHigherKey: false,
   });
@@ -358,10 +399,12 @@ function testVolumeRetestStateMachine(): void {
   // phải pin trigger BOS và tắt gate Daily trap (mặc định mới dùng mô hình nến).
   const result = runKeyVolume("synthetic", base, {
     ...KEY_VOLUME_CONFIG,
+    keySelectionMode: "displacement-classified",
     entryTrigger: "bos",
     requireDailyTrapGate: false,
     keyMaxAgeDays: 90,
     minRR: 0,
+    requireStructuralTarget: false,
     minKeyReactions: 0,
     requireHigherKey: false,
     persistDailyBias: false,
@@ -383,13 +426,49 @@ function testVolumeRetestStateMachine(): void {
     "a trade that runs immediately must not exit via the no-follow-through rule",
   );
 
-  const prefixLength = base.length - 6 * 3;
-  const prefixResult = runKeyVolume("synthetic", base.slice(0, prefixLength), {
+  const firstPlan = result.plans.find((plan) =>
+    plan.model === "volume-retest" && plan.enterNextOpen && plan.structuralStop != null
+  );
+  assert.ok(firstPlan);
+  const adverse = base.map((bar) => ({ ...bar }));
+  const entryBar = adverse[firstPlan.readyIndex];
+  if (firstPlan.direction === "long") {
+    entryBar.low = Math.min(entryBar.low, firstPlan.structuralStop! - 5);
+  } else {
+    entryBar.high = Math.max(entryBar.high, firstPlan.structuralStop! + 5);
+  }
+  const adverseResult = runKeyVolume("synthetic", adverse, {
     ...KEY_VOLUME_CONFIG,
+    keySelectionMode: "displacement-classified",
     entryTrigger: "bos",
     requireDailyTrapGate: false,
     keyMaxAgeDays: 90,
     minRR: 0,
+    requireStructuralTarget: false,
+    minKeyReactions: 0,
+    requireHigherKey: false,
+    persistDailyBias: false,
+  });
+  const immediateStop = adverseResult.trades.find(
+    (trade) => trade.entryTime === entryBar.openTime,
+  );
+  assert.ok(immediateStop, "cây 5 phút đầu sau entry phải được đưa qua mô phỏng");
+  assert.equal(immediateStop.exitReason, "stop");
+  assert.equal(
+    immediateStop.exitTime,
+    immediateStop.entryTime,
+    "stop trong cây entry phải được ghi nhận ngay, không bỏ qua năm phút đầu",
+  );
+
+  const prefixLength = base.length - 6 * 3;
+  const prefixResult = runKeyVolume("synthetic", base.slice(0, prefixLength), {
+    ...KEY_VOLUME_CONFIG,
+    keySelectionMode: "displacement-classified",
+    entryTrigger: "bos",
+    requireDailyTrapGate: false,
+    keyMaxAgeDays: 90,
+    minRR: 0,
+    requireStructuralTarget: false,
     minKeyReactions: 0,
     requireHigherKey: false,
     persistDailyBias: false,
@@ -513,6 +592,7 @@ testDoubleTopBottom();
 testSessionFilter();
 testDailyTrapGate();
 testReentryModes();
+testSpikeOnlyKeyExistsAtCandleClose();
 testKeyActivationAndNoLookahead();
 testCandleChainBias();
 testConditionalReentryAndLeverageCap();

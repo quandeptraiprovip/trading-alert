@@ -40,6 +40,8 @@ build/
 bot-state.json
 bot-state.json.tmp
 trades-live.jsonl
+fxdream-candidate-journal.json
+fxdream-candidate-journal.json.tmp
 
 # Kline disk cache (kline-fetch.ts)
 .cache/
