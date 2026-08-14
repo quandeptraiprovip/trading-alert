@@ -49,9 +49,14 @@ Phễu **hoạt động bình thường** — không phải trường hợp "kh�
 gộp chỉ **+0,0132R/lệnh** trong khi phí là **0,27R/lệnh**, tức chênh 20 lần. Đúng bằng tỉ lệ
 spread/biên độ 23% đã ước lượng trước khi chạy.
 
-*Giới hạn còn lại:* phần thang gốc hiện dựa trên một năm vàng. Đang tải thêm 2022–2023 (Dukascopy
-chặn khi tải song song nhiều luồng; đã hạ xuống 3 luồng). Nhưng §3 dưới đây làm cho việc mở rộng
-này không còn có thể đảo kết luận.
+*Giới hạn còn lại (ĐÃ CHỐT 14/08):* phần thang gốc **chỉ có một năm vàng (2024)** và sẽ ở nguyên như
+vậy. Hai lần tải thêm 2022–2023 đều **THẤT BẠI 625/625 ngày** — Dukascopy chặn, kể cả khi hạ xuống 3
+luồng. Guard trong `fx/fetch-dukascopy-m5.py` từ chối ghi file thiếu (đúng thiết kế: dữ liệu khuyết
+âm thầm từng làm sai trọn một kết luận). Cache chỉ có `XAUUSD_m5.json` = calendar-2024.
+
+Điều này **không** để lại lỗ hổng, vì §3 bác bỏ mệnh đề Key ở mức CƠ CHẾ trên 22 năm × 13 công cụ
+(cộng đối chứng crypto) và **không phụ thuộc thang thời gian**. Ai muốn mở rộng phần 5m sau này thì
+phải giải bài toán chặn của Dukascopy trước — đừng giả định chạy lại script là xong.
 
 ## 3. PHÉP QUYẾT ĐỊNH — đo thẳng viên gạch đầu tiên
 

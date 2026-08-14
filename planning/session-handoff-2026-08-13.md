@@ -159,3 +159,7 @@ lạc quan.
 - Dead code có sẵn, không phải của phiên này, **chưa đụng**: `key-volume.ts:385` (`prefix`),
   `strategy.ts:292` (`tfMsOf`), `scripts/chop-diagnosis.ts:64` (`windowCellsDd`).
 - Binance có thể còn **cấm IP tạm thời** (418) sau loạt fetch của phiên này. Ưu tiên đọc `.cache/`.
+- **Dukascopy chặn tải nến 1m** (14/08: 625/625 ngày hỏng, kể cả ở 3 luồng). `.cache/fx/XAUUSD_m5.json`
+  chỉ có calendar-2024 và sẽ ở nguyên vậy. Guard trong `fx/fetch-dukascopy-m5.py` từ chối ghi file
+  thiếu — **đúng thiết kế, đừng gỡ**. Không để lại lỗ hổng vì mệnh đề Key đã bị bác bỏ ở mức cơ chế,
+  không phụ thuộc thang thời gian.
