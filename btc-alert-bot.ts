@@ -57,7 +57,9 @@ import { TurtleLive } from "./turtle-live";
 import { T as TURTLE_CONFIG, turtleConfigLine } from "./turtle";
 import { buildLine } from "./build-info";
 import { FastTrendLive, fastConfigLine } from "./fast-trend-live";
+import { parseFastTrendEntryDays } from "./fast-trend-config";
 import { MexcFastExecution } from "./mexc-fast-execution";
+import { getBotUniverse } from "./bot-universe";
 
 // BẤT BIẾN AN TOÀN (sự cố 2026-08-05): cấu hình chiến lược Turtle là hằng số trong process này.
 // Trước đây `turtle.ts main()` (sweep chọn tham số) chạy được bên trong bundle bot và gán
@@ -163,8 +165,8 @@ const TURTLE_RISK_PCT = (() => {
 // expectancy như audit exp-turtle-levers.ts đã cảnh báo): BỎ BNB (rủi ro solvency exchange-token +
 // đóng góp yếu, nửa OOS gần -4R) → THÊM DOT (robust cả 2 nửa OOS +9.7R). Audit 3-era + perturbation
 // đậu (Era A exp +0.083, cả 3 era dương, 30/30 seed). LTC KHÔNG thêm (thua turtle -25R cả 2 nửa).
-const TURTLE_SYMBOLS = (process.env.TURTLE_SYMBOLS ?? "btcusdt,ethusdt,solusdt,xrpusdt,dogeusdt,adausdt,avaxusdt,dotusdt")
-  .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+const BOT_UNIVERSE = getBotUniverse();
+const TURTLE_SYMBOLS = BOT_UNIVERSE.turtle;
 const turtleTrader = binance && TURTLE_TRADING_ENABLED ? new LiveTrader(binance, { ...execCfg, riskPct: TURTLE_RISK_PCT }) : null;
 const turtle: TurtleLive | null = TURTLE_ENABLED
   ? new TurtleLive({
@@ -190,9 +192,8 @@ const FAST_TREND_RISK_PCT = (() => {
   const n = parseFloat(process.env.FAST_TREND_RISK_PCT ?? "0.5");
   return (Number.isFinite(n) && n > 0 ? n : 0.5) / 100; // % equity / UNIT (1 vị thế tối đa 3 unit)
 })();
-const FAST_TREND_ENTRY_DAYS = (() => { const n = parseInt(process.env.FAST_TREND_ENTRY_DAYS ?? "10", 10); return Number.isFinite(n) && n >= 2 ? n : 10; })();
-const FAST_TREND_SYMBOLS = (process.env.FAST_TREND_SYMBOLS ?? TURTLE_SYMBOLS.join(","))
-  .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+const FAST_TREND_ENTRY_DAYS = parseFastTrendEntryDays(process.env.FAST_TREND_ENTRY_DAYS);
+const FAST_TREND_SYMBOLS = BOT_UNIVERSE.fast;
 const MEXC_MAX_PORTFOLIO_RISK_PCT = (() => {
   const n = parseFloat(process.env.MEXC_MAX_PORTFOLIO_RISK_PCT ?? "10");
   return (Number.isFinite(n) && n > 0 ? n : 10) / 100;

@@ -1,112 +1,213 @@
 /**
- * Key Volume — bản số hoá có truy vết nguồn từ FX Dream Trading.
+ * Key Volume — bản số hoá phương pháp FX Dream Trading, chạy TRỌN VẸN trên M15.
  *
- * `volume-retest` (mặc định) là phần có thể lượng hoá của model thuận xu hướng:
- *   chuỗi nến Daily xác lập bias -> H1 key-volume
- *   -> M15 volume đúng vị trí tại key -> sweep/reclaim cuối
- *   -> mô hình nến đảo chiều -> vào ở open kế tiếp.
- * Bias chỉ đổi khi chuỗi ngược chiều phá cực trị nến đối diện gần nhất. Sau
- * entry, engine không tự partial/trail vì kênh quản lý theo cấu trúc và từng
- * case. Daily Trap là model riêng, không bị chồng lên mọi setup thuận xu hướng.
- * Trigger M15 chỉ cần không thấp hơn median trước đó: video #23 nói rõ volume
- * lần sau có thể nhỏ hơn, miễn xuất hiện đúng vị trí đang chờ.
+ * Engine nhận thẳng nến M15 và không dùng khung nào khác. Không còn Daily,
+ * Weekly, H4, H1, và cũng không còn M5: nến M15 vừa là khung luật vừa là khung
+ * mô phỏng. Hệ quả bắt buộc của việc bỏ M5: khi một nến chạm CẢ SL lẫn mục tiêu
+ * thì không biết cái nào trước, nên tính STOP trước — quy ước bi quan, giống
+ * mọi backtest lệnh chờ khác của repo.
  *
- * `document-v1` giữ pipeline của planning/fxdream-keyvolume-method.md để có thể
- * tái lập benchmark cũ:
- *   H1/H4 key -> Daily/Weekly bias -> M15 sweep + 2 BOS
- *   -> M5 OB/FTR + cạnh HVN proxy.
+ * HAI NHÁNH VÀO LỆNH ĐỘC LẬP NHAU, không chia sẻ một điều kiện nào:
  *
- * Không model nào được gọi là bản sao 100%: việc chọn key từ lịch sử giá/trap,
- * đọc bối cảnh/macro và "phản ứng tốt" trên kênh là discretionary. Binance
- * kline cũng không có volume-at-price thật; HVN chỉ là proxy OHLCV.
+ *   NHÁNH 1 — `sweep-reclaim`, THUẦN SĂN THANH KHOẢN, không đụng tới key.
+ *     · Bóp cò: nến M15 thủng đỉnh/đáy `sweepLookback` nến trước (480 nến = năm
+ *       ngày, chỗ đọng stop của người khác) rồi ĐÓNG lại trong biên — râu ăn
+ *       hết stop rồi trả giá về.
+ *     · Mức bị quét phải NỔI BẬT: đi ngược về trước `sweepProminenceBars` nến
+ *       (96 = một ngày) tính từ chính cây tạo ra cực trị, không nến nào được
+ *       vượt qua nó. Lọc này gạt các cực trị chỉ là mút của một đoạn đang trôi.
+ *     · Hướng: quét đáy -> LONG, quét đỉnh -> SHORT. Không cần key, không cần
+ *       nến chạm key, không cần volume, không cần mô hình nến xác nhận.
+ *     · TP: cụm thanh khoản ĐỐI DIỆN — đỉnh/đáy của đúng cửa sổ `sweepLookback`
+ *       đó ở phía bên kia. Quét bên này thì chạy sang bên kia.
+ *
+ *   NHÁNH 2 — `volume-reversal`, nhánh dùng key:
+ *     · KEY — nến M15 có volume >= `volumeSpikeMult` lần (×4) TRUNG VỊ của
+ *       `volumeLookback` nến XUNG QUANH nó (chia đều hai bên, đúng cách mắt
+ *       người chấm trên chart). Vì cửa sổ có tâm, key chỉ BIẾT ĐƯỢC sau khi nến
+ *       cuối cửa sổ đóng; `confirmedAt` ghi đúng mốc đó nên replay không nhìn
+ *       trước. Key là MỘT ĐƯỜNG THẲNG đặt tại giá MỞ CỬA của cây nến đó — không
+ *       còn vùng dày bằng biên độ nến, nên `zoneLow === zoneHigh === price`.
+ *     · HƯỚNG — giá đang ở TRÊN key thì key là đỡ -> LONG; ở DƯỚI thì key là
+ *       cản -> SHORT.
+ *     · QUAY VỀ: nến chạm key chỉ tính khi giá đã TỪNG rời hẳn key —
+ *       `keyDepartureLookback` nến trước đó phải có ít nhất một nến nằm ngoài
+ *       dải `±keyDepartureAtr × ATR`. Giá đi ngang đè lên key không phải quay về.
+ *     · Bóp cò: CỤM NẾN ĐẢO CHIỀU ngay tại key (xem dưới), miễn cây nến đảo
+ *       chiều có volume >= `reversalVolumeMult` lần trung vị các nến liền trước
+ *       — nhỏ hơn hẳn ngưỡng chọn key, chỉ cần nhỉnh hơn xung quanh — VÀ đường
+ *       key phải nằm TRONG thân hộp order block của cụm (`requireKeyInsideBlock`).
+ *     · TP là key đối diện gần nhất.
+ *
+ * CỤM NẾN ĐẢO CHIỀU — chỉ còn MỘT luật, xét trong cửa sổ 3 nến, và luật đó vừa
+ * chọn cụm vừa quyết định luôn hộp order block:
+ *   · THÂN cây đảo chiều nhấn chìm THÂN cả 2 nến liền trước
+ *       -> hộp = min/max open-close của ĐÚNG 2 nến BỊ nhấn chìm.
+ *   · Chỉ nhấn chìm 1 nến liền trước
+ *       -> hộp = THÂN cây ĐANG nhấn chìm, tức chính cây đảo chiều.
+ *   · Không rơi vào hai trường hợp trên -> KHÔNG xét, bỏ setup.
+ * Cây đảo chiều còn phải đúng màu: LONG cần nến xanh, SHORT cần nến đỏ. Màu của
+ * các nến bị nhấn chìm KHÔNG bị ràng buộc. In3 và 3-bar reversal đã bị bỏ khỏi
+ * đường vào lệnh. Nhánh quét không có cụm nào: hộp của nó là thân đúng cây nến
+ * quét.
+ *
+ * ORDER BLOCK — cả hai nhánh vào và thoát bằng CÙNG một hộp, râu KHÔNG tính:
+ *   · LONG  vào ở giá đóng nến bật lên trên `obHigh`, SL ở `obLow  - stopBufferAtr × ATR`
+ *   · SHORT vào ở giá đóng nến bật xuống dưới `obLow`, SL ở `obHigh + stopBufferAtr × ATR`
+ * Giá vào lùi xa mép hộp hơn luật lệnh chờ cũ, nên R của mỗi lệnh TO hơn — đây
+ * là chỗ luật mới mua thêm biên trên sàn chi phí.
+ *
+ * VÀO LỆNH — BA BƯỚC, không có lệnh chờ nào nằm sẵn trên sổ:
+ *
+ *   BƯỚC 1 · RỜI HỘP. Dựng hộp xong KHÔNG vào ngay. Đúng `obDepartBars` nến kế
+ *     tiếp đều phải có GIÁ ĐÓNG nằm ngoài hộp, ĐÚNG CHIỀU lệnh (long: `close`
+ *     trên `obHigh`; short: `close` dưới `obLow`). Râu được phép thò lại vào
+ *     hộp. Chỉ một cây đóng lại trong hộp — hoặc đóng thủng ngược qua hộp — là
+ *     bỏ hộp đó.
+ *
+ *   BƯỚC 2 · QUAY LẠI HỘP. Hộp qua cửa trên thì được TRANG BỊ và canh giá về.
+ *     Chỉ cần một nến có biên độ chạm vào hộp là tính "đã quay lại". Hộp được
+ *     canh đúng `boxWaitBars` nến (192 = HAI ngày) rồi bỏ, và chết sớm hơn nếu
+ *     giá ĐÓNG xuyên qua nó ngược chiều lệnh (long: `close < obLow`) hoặc key
+ *     của nó bị phá. Một đồng hồ duy nhất cho cả bước 2 và bước 3: quay lại
+ *     rồi cũng không được thêm giờ.
+ *
+ *   BƯỚC 3 · NẾN BẬT RA KHỎI HỘP. Ở một nến SAU nến quay lại, cần đủ ba thứ:
+ *     còn dính hộp, đúng màu thuận chiều (long xanh / short đỏ), và ĐÓNG CỬA ra
+ *     ngoài hộp đúng chiều. Vào ngay ở GIÁ ĐÓNG của chính nến đó — nến xanh mà
+ *     vẫn đóng trong hộp thì chưa vào.
+ *
+ * Vì giá vào chỉ biết được ở bước 3, hai cửa cuối cũng chỉ chấm được ở đó: SL
+ * không quá `maxStopPct` giá, và dư địa tới mục tiêu >= `minRR`. Nến vào lệnh
+ * đã đóng trọn nên KHÔNG được chấm SL/TP trên chính nó; 15 phút rủi ro đầu tiên
+ * là cây kế tiếp.
+ *
+ * KHÔNG có trần thời gian giữ lệnh. Nhánh 1 ra bằng SL, mục tiêu, hoặc luật
+ * "vào xong giá không chạy". Nhánh 2 có thêm đường key bị phá.
+ *
+ * Binance kline không có volume-at-price thật, và việc chấm "key đẹp" trên kênh
+ * vẫn là discretionary — model này không phải bản sao 100% của phương pháp tay.
  */
-import { Candle, CONFIG, TF_MS, aggregate, findSwings, Swing } from "./strategy";
+import { Candle, CONFIG, TF_MS, findSwings, Swing } from "./strategy";
 
 export type KeyVolumeDirection = "long" | "short";
-export type KeyVolumeLevelType = "demand" | "supply" | "neutral";
-export type KeyVolumeKeySelectionMode = "spike-only" | "displacement-classified";
-export type KeyVolumeEntryModel = "volume-retest" | "document-v1";
 export type KeyVolumeSourceTf = "15m" | "1h" | "4h";
 export type KeyVolumeTargetMode = "nearest-structure" | "capped-r";
 /**
- * `sweep-window`: SL ở cực trị cả cửa sổ touch->sweep trên M15 (bản cũ).
- * `confirmation`: SL ngay sau nến xác nhận — "stop rất là ngắn... sau cái mô hình đó".
- * `key`: SL ngay ngoài vùng key — "stop l ở dưới ky này thôi, không cần quá xa" (#22).
+ * `order-block` là luật ĐANG CHẠY và là mode DUY NHẤT áp cho CẢ HAI nhánh: SL
+ * ngay ngoài mép ĐỐI DIỆN của chính hộp order block đã quyết định giá vào, đệm
+ * `stopBufferAtr`. Vào ở mép này thì thoát ở mép kia — một hộp, hai đầu.
+ *
+ * Ba mode dưới là luật CŨ, chỉ còn để ablation so sánh, và chỉ có nghĩa với
+ * NHÁNH 2; ở các mode đó nhánh quét quay lại luật riêng của nó (SL ngay ngoài
+ * cái râu vừa quét).
+ *
+ * `sweep-window`: SL ở cực trị cả cửa sổ chạm key -> bóp cò trên M15.
+ * `confirmation`: SL ngay sau nến xác nhận — "stop rất là ngắn... sau cái mô
+ * hình đó".
+ * `key`: SL ngay ngoài vùng key — "stop l ở dưới ky này thôi, không cần quá
+ * xa" (#22).
  */
-export type KeyVolumeStopMode = "sweep-window" | "confirmation" | "key";
 /**
- * `bos`: chờ phá cấu trúc rồi vào ở open kế tiếp (bản cũ).
- * `candle-pattern`: sau stop-hunt, vào ngay theo mô hình nến đảo chiều —
- * đúng `#50 SFP` và `Q&A 003` ("SFP nè, Quasimodo nè, hai cái mô hình đó là
- * dư sức xài rồi"), và cho stop ngắn hơn hẳn vì không phải chờ hết cú phá.
+ * "Nằm ở NGOÀI hộp" đo bằng gì. `close` là luật ĐANG CHẠY: chỉ GIÁ ĐÓNG phải ra
+ * ngoài hộp, râu được phép thò lại vào trong. `candle` là luật cũ đòi CẢ CÂY
+ * nến ra ngoài — giữ để ablation, giống cách `stopMode` giữ ba mode cũ.
+ *
+ * Cả hai mode đều đo THEO CHIỀU LỆNH: long đòi ở TRÊN `obHigh`, short đòi ở
+ * DƯỚI `obLow`. Một nến đóng thủng ngược qua hộp là setup chết, không phải
+ * "đã ra ngoài hộp".
  */
-export type KeyVolumeEntryTrigger = "bos" | "candle-pattern";
+export type KeyVolumeDepartMode = "candle" | "close";
+
+export type KeyVolumeStopMode =
+  | "order-block"
+  | "sweep-window"
+  | "confirmation"
+  | "key";
 /**
- * `deeper-sweep`: chỉ vào lại sau stop dương + cú quét sâu hơn (bản cũ, từ `#26`).
+ * `deeper-sweep`: chỉ vào lại sau stop dương + cú quét sâu hơn (từ `#26`).
  * `volume-retouch`: vào lại khi giá chạm key lần nữa và kích volume lần nữa —
  * `#23` và `#43` mô tả đây là thao tác thường quy sau stop dương.
  */
 export type KeyVolumeReentryMode = "deeper-sweep" | "volume-retouch";
+/** Nhánh nào đã bóp cò lệnh này. */
+export type KeyVolumeEntryBranch = "sweep-reclaim" | "volume-reversal";
 
 export interface KeyVolumeParams {
-  entryModel: KeyVolumeEntryModel;
-  /**
-   * `spike-only`: Key trung tính tồn tại ngay khi nến volume đóng; hướng chỉ
-   * được quyết định lúc retest bởi bias + sweep. `displacement-classified` là
-   * benchmark cũ, đợi phản ứng/BOS để gán demand/supply.
-   */
-  keySelectionMode: KeyVolumeKeySelectionMode;
-  baseTf: "5m";
+  /** Khung DUY NHẤT: key, hướng, quét, mô hình nến, entry, stop và mô phỏng. */
   confirmTf: "15m";
-  keyTf: "1h";
-  confluenceTf: "4h";
-  dailyTf: "1d";
-  weeklyTf: "1w";
+  /** Tổng số nến XUNG QUANH dùng làm trung vị volume, chia đều hai bên. */
   volumeLookback: number;
   volumeSpikeMult: number;
-  reactionLookback: number;
-  reactionBars: number;
-  reactionAtr: number;
-  invalidationAtr: number;
   keyHistoryDays: number;
   minKeyReactions: number;
   keyReactionAtr: number;
   keyMaxAgeDays: number;
-  confluenceAtr: number;
   keyTouchAtr: number;
-  requireHigherKey: boolean;
-  dailyBiasBars: number;
-  persistDailyBias: boolean;
-  weeklyBiasBars: number;
+  /** Cửa sổ trung vị volume cho nến chạm key và nến bóp cò (chỉ nhìn về trước). */
   touchVolumeLookback: number;
   touchVolumeSpikeMult: number;
+  /**
+   * Ngưỡng volume của NHÁNH 2. Cố ý thấp hơn hẳn `volumeSpikeMult`: nguồn chỉ
+   * đòi cây nến đảo chiều nhỉnh hơn vài cây quanh nó, không đòi một cú đột biến
+   * cỡ lúc sinh key.
+   */
+  reversalVolumeMult: number;
+  enableSweepBranch: boolean;
+  enableVolumeReversalBranch: boolean;
+  /**
+   * Cửa sổ M15 của NHÁNH 1, dùng cho cả hai đầu: đỉnh/đáy bị quét, và cụm
+   * thanh khoản đối diện làm mục tiêu. 480 nến = NĂM ngày.
+   */
   sweepLookback: number;
+  /**
+   * Từ chính cây nến tạo ra cực trị của cửa sổ quét, đi NGƯỢC về trước bấy
+   * nhiêu nến thì không nến nào được vượt qua mức đó. 96 nến = một ngày.
+   * Ràng buộc chỉ ở phía TRÁI — phía phải nằm trong cửa sổ quét, nơi mức đó đã
+   * là cực trị theo định nghĩa. Đặt 0 để tắt.
+   */
+  sweepProminenceBars: number;
+  /** Số nến M15 NHÁNH 2 được phép chờ từ lúc chạm key tới mô hình nến. */
   sweepWaitBars: number;
-  bosPivotLeft: number;
-  bosPivotRight: number;
-  bosSwingLookback: number;
-  bosExpiryBars: number;
-  entryExpiryBars: number;
-  profileBins: number;
-  hvnThreshold: number;
-  profileEdgeAtr: number;
+  /**
+   * Đường key phải nằm TRONG thân hộp order block của cụm đảo chiều. Cụm hình
+   * thành gần key nhưng hộp nằm hẳn một bên KHÔNG tính: đảo chiều phải xảy ra
+   * NGAY TẠI key chứ không phải quanh quẩn cạnh nó.
+   */
+  requireKeyInsideBlock: boolean;
+  /**
+   * "Quay về" phải có thật. Trong `keyDepartureLookback` nến TRƯỚC nến chạm
+   * key, ít nhất một nến phải nằm CÁCH key hơn `keyDepartureAtr` × ATR. Không
+   * có cửa này thì một đoạn đi ngang đè lên key đẻ ra cụm liên tục mà chẳng có
+   * cú quay về nào. Đặt lookback 0 để tắt.
+   */
+  keyDepartureLookback: number;
+  keyDepartureAtr: number;
+  swingPivotLeft: number;
+  swingPivotRight: number;
   stopBufferAtr: number;
   maxStopPct: number;
   minRR: number;
   targetMode: KeyVolumeTargetMode;
   /**
-   * `true`: không có vùng cấu trúc đối diện thì bỏ setup, không tự tạo TP 5R.
-   * Video #10/#22 đặt TP theo vùng cản/volume quan trọng; `false` chỉ được giữ
-   * để tái lập benchmark cũ có `finalTargetR` dự phòng.
+   * `true`: không có mục tiêu cấu trúc thì bỏ setup, không tự tạo TP 5R. Video
+   * #10/#22 đặt TP theo vùng cản/volume quan trọng. Nhánh 1 đo tới cụm thanh
+   * khoản đối diện, nhánh 2 đo tới key đối diện.
    */
   requireStructuralTarget: boolean;
-  /**
-   * Khung của các level được coi là "vùng cấu trúc đối diện" khi đo dư địa và
-   * TP. #10/#22 đo dư địa tới kháng cự Daily và TP theo vùng quan trọng của
-   * M15, không phải tới level gần nhất trong toàn bộ rổ level.
-   */
-  targetSourceTfs: KeyVolumeSourceTf[];
   stopMode: KeyVolumeStopMode;
+  /**
+   * Số nến M15 phải nằm TRỌN ngoài hộp ngay sau khi dựng hộp. Không đủ thì bỏ
+   * hộp. Lệnh chờ chỉ được đặt sau khi cửa này qua.
+   */
+  obDepartBars: number;
+  obDepartMode: KeyVolumeDepartMode;
+  /**
+   * Số nến M15 một hộp được canh retest kể từ lúc trang bị, rồi hết hạn. MỘT
+   * đồng hồ duy nhất cho cả hai bước quay-lại và bật-ra: giá quay lại rồi cũng
+   * không được thêm giờ. 192 nến = HAI ngày.
+   */
+  boxWaitBars: number;
   finalTargetR: number;
   partialAtR: number;
   partialFraction: number;
@@ -115,19 +216,16 @@ export interface KeyVolumeParams {
   /**
    * "Lon xong là giá sẽ chạy. Giá không chạy nữa là các bạn phải bỏ ngay lập
    * tức" (LiveTrade +50R) và "nó không sập liền mà nó còn quay lên nữa thì
-   * mình phải thoát ra liền" (#26) — phát biểu cho đúng model này.
+   * mình phải thoát ra liền" (#26).
    */
   requireFollowThrough: boolean;
   /**
    * Kênh dời stop "đúng cấu trúc của nó" (#23) và gồng phần còn lại. Bám swing
-   * M5 siết quá chặt so với phát biểu đó nên phải kiểm chứng riêng.
+   * M15 siết chặt hơn phát biểu đó nên để mặc định tắt.
    */
-  trailMode: "m5-swing" | "none";
-  pressureBars: number;
-  maxHoldBars: number;
+  trailMode: "swing" | "none";
   cooldownBars: number;
   allowKeyReentry: boolean;
-  entryTrigger: KeyVolumeEntryTrigger;
   reentryMode: KeyVolumeReentryMode;
   /** `#22`: "cái phát đầu tiên là không thể nào mà tray được". */
   requireSecondTouch: boolean;
@@ -135,76 +233,67 @@ export interface KeyVolumeParams {
   requireDoubleTopBottom: boolean;
   doubleTolAtr: number;
   doubleLookbackBars: number;
-  /** `#31`: ba câu hỏi khung Daily (chuỗi / chưa đóng qua / đã trap). */
-  requireDailyTrapGate: boolean;
   /** `Q&A 006`: ưu tiên phiên Mỹ. `null` = không lọc phiên. */
   sessionHoursUtc: [number, number] | null;
 }
 
 export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
-  entryModel: "volume-retest",
-  keySelectionMode: "spike-only",
-  baseTf: "5m",
   confirmTf: "15m",
-  keyTf: "1h",
-  confluenceTf: "4h",
-  dailyTf: "1d",
-  weeklyTf: "1w",
-  volumeLookback: 96,
-  volumeSpikeMult: 2,
-  reactionLookback: 12,
-  reactionBars: 6,
-  reactionAtr: 0.75,
-  invalidationAtr: 0.25,
+  // 12 nến quanh nến sự kiện = 6 trước + 6 sau.
+  volumeLookback: 12,
+  // ×4 thay vì ×2: ở ×2 máy dò ra 12,25 key/ngày/coin trong khi user vẽ tay
+  // 0,10 — dày 122 lần, 2.247 key sống cùng lúc, và 93% điểm (thời gian, giá)
+  // TUỲ Ý cũng "có key ở gần". ×4 kéo về 2,28 key/ngày và sàn nhiễu 59,2%.
+  volumeSpikeMult: 4,
   keyHistoryDays: 90,
-  // Chọn Key chỉ cần một nến/vùng volume đột biến. Lịch sử phản ứng là context
-  // để trader chấm chất lượng, không phải điều kiện sinh Key tự động.
+  // Chọn Key chỉ cần một nến volume đột biến. Lịch sử phản ứng là context để
+  // trader chấm chất lượng, không phải điều kiện sinh Key tự động.
   minKeyReactions: 0,
   keyReactionAtr: 0.5,
   keyMaxAgeDays: 180,
-  confluenceAtr: 0.75,
   keyTouchAtr: 0.2,
-  requireHigherKey: false,
-  dailyBiasBars: 3,
-  persistDailyBias: true,
-  weeklyBiasBars: 3,
-  touchVolumeLookback: 96,
+  touchVolumeLookback: 12,
   touchVolumeSpikeMult: 1,
-  sweepLookback: 12,
+  reversalVolumeMult: 1.2,
+  enableSweepBranch: true,
+  enableVolumeReversalBranch: true,
+  // 5 ngày M15 = 480 nến; mức bị quét phải sạch 1 ngày (96 nến) về phía trước.
+  sweepLookback: 480,
+  sweepProminenceBars: 96,
   sweepWaitBars: 4,
-  bosPivotLeft: 2,
-  bosPivotRight: 2,
-  bosSwingLookback: 40,
-  bosExpiryBars: 48,
-  entryExpiryBars: 24,
-  profileBins: 24,
-  hvnThreshold: 0.6,
-  profileEdgeAtr: 0.2,
+  // Cụm đảo chiều chỉ tính khi đường key chạy XUYÊN thân hộp của nó.
+  requireKeyInsideBlock: true,
+  // 20 nến M15 = 5 giờ nhìn lại; phải có nến cách key hơn 1 ATR mới gọi là đã rời.
+  keyDepartureLookback: 20,
+  keyDepartureAtr: 1,
+  swingPivotLeft: 2,
+  swingPivotRight: 2,
   stopBufferAtr: 0.15,
   maxStopPct: 0.03,
   minRR: 3,
   targetMode: "nearest-structure",
   requireStructuralTarget: true,
-  targetSourceTfs: ["15m", "1h", "4h"],
-  // Với entry ngay sau mô hình nến, cực trị cửa sổ touch->sweep CHÍNH LÀ đáy cú
-  // trap và nằm sát entry — đúng #31 ("stop l của mình sẽ đặt ở dưới cái Trap
-  // này"). Cùng giá trị này khi chờ BOS lại thành stop rất rộng.
-  stopMode: "sweep-window",
+  // Vào ở mép thuận chiều của order block thì thoát ngay ngoài mép đối diện
+  // của CHÍNH hộp đó — một hộp giữ cả hai đầu lệnh.
+  stopMode: "order-block",
+  // Giá phải rời hộp trọn 3 nến M15 rồi hộp mới được trang bị chờ retest.
+  obDepartBars: 3,
+  // Đo bằng GIÁ ĐÓNG: 3 nến sau khi dựng hộp đều phải đóng NGOÀI hộp, đúng
+  // chiều lệnh. Râu được phép thò lại vào hộp.
+  obDepartMode: "close",
+  // 192 nến M15 = HAI ngày canh hộp rồi bỏ.
+  boxWaitBars: 2 * 96,
   finalTargetR: 5,
   partialAtR: 2,
   partialFraction: 0,
-  followThroughBars: 6,
+  // 2 nến M15 = 30 phút, đúng cửa sổ cũ khi còn đếm bằng 6 nến M5.
+  followThroughBars: 2,
   minFollowThroughR: 0.5,
   requireFollowThrough: true,
   trailMode: "none",
-  pressureBars: 3,
-  maxHoldBars: 7 * 24 * 12,
-  cooldownBars: 12,
+  // 4 nến M15 = 1 giờ, đúng cửa sổ cũ khi còn đếm bằng 12 nến M5.
+  cooldownBars: 4,
   allowKeyReentry: true,
-  // Q&A003 trả lời thẳng câu "dấu hiệu vào lệnh tại key là gì": "SFP nè,
-  // Quasimodo nè". #50 nói sau stop-hunt thì vào theo mô hình nến. Chờ BOS là
-  // gate code tự thêm, và nó đẩy entry ra xa cú trap nên stop bị giãn gấp ~6x.
-  entryTrigger: "candle-pattern",
   reentryMode: "volume-retouch",
   // Hai luật dưới có nguồn rõ nhưng ablation cho thấy không cải thiện; bật được
   // qua tham số, không bật mặc định.
@@ -212,70 +301,64 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   requireDoubleTopBottom: false,
   doubleTolAtr: 0.5,
   doubleLookbackBars: 40,
-  requireDailyTrapGate: false,
   sessionHoursUtc: null,
-};
-
-export const KEY_VOLUME_DOCUMENT_V1_CONFIG: KeyVolumeParams = {
-  ...KEY_VOLUME_CONFIG,
-  entryModel: "document-v1",
-  keySelectionMode: "displacement-classified",
-  touchVolumeSpikeMult: 2,
-  targetMode: "capped-r",
-  requireStructuralTarget: false,
-  stopMode: "sweep-window",
-  // Giữ nguyên để tái lập benchmark cũ, không nhận mặc định mới.
-  minKeyReactions: 0,
-  entryTrigger: "bos",
-  reentryMode: "deeper-sweep",
-  requireDailyTrapGate: false,
-  partialFraction: 0.5,
-  trailMode: "m5-swing",
-  maxHoldBars: 288,
-};
-
-/**
- * Model trap Daily riêng (#31/#50), không chồng gate này lên follow-trend.
- * Hiện chỉ dành cho ablation: Daily event detector riêng chưa được cài, nên
- * cấu hình này vẫn dùng chung retest loop và chưa đủ điều kiện live.
- */
-export const KEY_VOLUME_DAILY_TRAP_CONFIG: KeyVolumeParams = {
-  ...KEY_VOLUME_CONFIG,
-  requireDailyTrapGate: true,
 };
 
 export interface KeyVolumeLevel {
   id: string;
   sourceTf: KeyVolumeSourceTf;
-  type: KeyVolumeLevelType;
-  direction: KeyVolumeDirection | null;
   price: number;
   zoneLow: number;
   zoneHigh: number;
   eventTime: number;
+  /** Mốc nến CUỐI của cửa sổ có tâm đóng — trước mốc này key chưa biết được. */
   confirmedAt: number;
-  invalidatedAt?: number;
   expiresAt: number;
   volumeRatio: number;
-  reactionAtr: number;
 }
 
 export interface KeyVolumeEntryPlan {
   id: string;
-  model: KeyVolumeEntryModel;
+  branch: KeyVolumeEntryBranch;
   direction: KeyVolumeDirection;
+  /** Index nến M15 sẽ vào lệnh ở giá OPEN — luôn là nến ngay sau nến bóp cò. */
   readyIndex: number;
-  expiresIndex: number;
-  key: KeyVolumeLevel;
-  higherKey?: KeyVolumeLevel;
+  /**
+   * `openTime` của nến BÓP CÒ (nến cuối của cụm). Dùng MỐC THỜI GIAN chứ không
+   * dùng `readyIndex` vì `runKeyVolume` lọc bỏ nến lỗi trước khi chạy, nên index
+   * của engine không đảm bảo trùng index của mảng nến mà chart đang giữ.
+   */
+  triggerTime: number;
+  /** `null` ở nhánh quét: nhánh đó không dùng key ở bất kỳ khâu nào. */
+  key: KeyVolumeLevel | null;
+  /**
+   * Số nến của CỤM ĐẢO CHIỀU dựng ra order block: 2 (nhấn chìm/in3), 3 (3-bar
+   * reversal), hoặc 1 ở nhánh quét (chính cây nến quét).
+   */
+  clusterBars: number;
+  /** Mép THÂN NẾN dưới của cả cụm — min(open, close), râu không tính. */
   obLow: number;
+  /** Mép THÂN NẾN trên của cả cụm — max(open, close), râu không tính. */
   obHigh: number;
-  hvnEdge?: number;
-  structuralStop?: number;
-  /** Cực trị nến xác nhận — cơ sở cho SL "ngay sau mô hình". */
-  patternStop?: number;
-  triggerVolumeRatio?: number;
-  enterNextOpen?: boolean;
+  /**
+   * Mép THUẬN CHIỀU của hộp: `obHigh` với long, `obLow` với short. Engine KHÔNG
+   * đặt lệnh ở mức này nữa — giá vào là giá ĐÓNG của nến bật ra khỏi hộp. Giữ
+   * lại vì chart/journal cần vẽ đúng cái mép mà giá phải đóng vượt qua.
+   */
+  obEntryEdge: number;
+  /**
+   * Gốc của SL. Nhánh quét: cực trị CÁI RÂU vừa quét. Nhánh 2: cực trị cửa sổ
+   * chạm key -> nến bóp cò.
+   */
+  structuralStop: number;
+  /** Cực trị nến bóp cò — cơ sở cho SL "ngay sau mô hình". */
+  patternStop: number;
+  /**
+   * Cụm thanh khoản ĐỐI DIỆN của nhánh quét: đỉnh/đáy đúng cửa sổ
+   * `sweepLookback` ở phía bên kia. `null` ở nhánh 2 (nhánh đó đo tới key).
+   */
+  sweepTarget: number | null;
+  triggerVolumeRatio: number;
   score: number;
 }
 
@@ -285,13 +368,19 @@ export type KeyVolumeExitReason =
   | "target"
   | "entry-invalid"
   | "key-invalid"
-  | "no-follow-through"
-  | "opposite-pressure"
-  | "time";
+  | "no-follow-through";
 
 export interface KeyVolumeTrade {
   symbol: string;
+  /**
+   * Id của `KeyVolumeEntryPlan` sinh ra lệnh này. Có trường này thì chart/journal
+   * chỉ cần TRA CỨU chứ không phải dựng lại bộ lọc của cây entry — dựng lại luôn
+   * sai kể từ luật order block, vì giá vào là giá ĐÓNG của nến retest xác nhận
+   * nên bar vào lệnh luôn muộn hơn `plan.readyIndex`.
+   */
+  planId: string;
   dir: KeyVolumeDirection;
+  branch: KeyVolumeEntryBranch;
   entryTime: number;
   entryPrice: number;
   initialSL: number;
@@ -302,32 +391,46 @@ export interface KeyVolumeTrade {
   grossR: number;
   costR: number;
   netR: number;
+  /** Số nến M15 đã giữ lệnh. */
   holdBars: number;
   partialTaken: boolean;
-  keyPrice: number;
-  keyVolumeRatio: number;
-  higherVolumeRatio?: number;
-  triggerVolumeRatio?: number;
-  model: KeyVolumeEntryModel;
+  /** `null` khi lệnh đến từ nhánh quét — nhánh đó không có key. */
+  keyPrice: number | null;
+  keyVolumeRatio: number | null;
+  triggerVolumeRatio: number;
 }
 
 export interface KeyVolumeDiagnostics {
   m15Levels: number;
-  h1Levels: number;
-  h4Levels: number;
-  confluentTouches: number;
+  keyTouches: number;
   touchVolumeConfirmed: number;
+  /** Số nến quét-và-giành-lại phát hiện được, kể cả nến quét cả hai đầu. */
   sweeps: number;
-  firstBos: number;
-  secondBos: number;
+  /** Cụm đảo chiều HỢP LỆ: đã qua cả cửa "key trong hộp". */
   candlePatterns: number;
-  profileAccepted: number;
+  /** Cụm dựng được nhưng đường key nằm NGOÀI thân hộp -> bỏ. */
+  rejectedKeyOutsideBlock: number;
+  /** Nến chạm key hợp lệ nhưng trước đó giá chưa từng RỜI key -> không mở setup. */
+  rejectedNoDeparture: number;
   plans: number;
+  sweepBranchPlans: number;
+  volumeBranchPlans: number;
   entries: number;
+  /** Hộp dựng được nhưng giá không rời hộp đủ `obDepartBars` nến -> bỏ. */
+  rejectedDepart: number;
+  /** Số hộp được TRANG BỊ chờ retest (đã qua cửa rời hộp, đang canh giá về). */
+  boxesArmed: number;
+  /** Trong số đó, bao nhiêu hộp thấy giá QUAY LẠI chạm hộp ít nhất một lần. */
+  boxesRetouched: number;
+  /** Hộp chết trước khi vào lệnh: giá ĐÓNG xuyên hộp ngược chiều, hoặc key bị phá. */
+  boxesBroken: number;
+  /** Hộp hết `boxWaitBars` nến mà chưa vào được lệnh -> bỏ. */
+  boxesExpired: number;
+  /** Hộp còn sống nhưng hết dữ liệu — không kết luận được. */
+  boxesUnresolved: number;
   rejectedRisk: number;
   rejectedRoom: number;
   rejectedFirstTouch: number;
-  rejectedDailyTrap: number;
   rejectedDouble: number;
   rejectedSession: number;
 }
@@ -339,23 +442,26 @@ export interface KeyVolumeResult {
   diagnostics: KeyVolumeDiagnostics;
 }
 
-interface ConfirmationSetup {
+interface KeyTouchSetup {
   direction: KeyVolumeDirection;
   key: KeyVolumeLevel;
-  higherKey: KeyVolumeLevel;
   touchIndex: number;
-  phase: "sweep" | "bos";
-  sweepIndex?: number;
-  firstBosIndex?: number;
 }
 
-interface VolumeRetestSetup {
-  direction: KeyVolumeDirection;
-  key: KeyVolumeLevel;
-  higherKey?: KeyVolumeLevel;
-  touchIndex: number;
-  triggerVolumeRatio: number;
-  sweepIndex?: number;
+/**
+ * Hộp order block đã qua cửa rời hộp và đang CANH GIÁ QUAY LẠI. Không còn lệnh
+ * chờ nào nằm sẵn trên sổ: giá vào chỉ được biết ở GIÁ ĐÓNG của nến xác nhận,
+ * nên mọi cửa (risk, dư địa, mục tiêu) cũng chỉ chấm được ở đúng nến đó.
+ *
+ * Hộp chết theo ba cách: giá ĐÓNG xuyên qua hộp ngược chiều lệnh (long:
+ * `close < obLow`), key của nó bị phá, hoặc hết `boxWaitBars` nến canh.
+ */
+interface ArmedBox {
+  plan: KeyVolumeEntryPlan;
+  /** Giá đã quay lại chạm hộp ít nhất một nến kể từ lúc trang bị. */
+  retouched: boolean;
+  /** Index nến ĐẦU TIÊN mà hộp đã hết hạn (không còn vào lệnh được). */
+  expiresAtIndex: number;
 }
 
 interface OpenPosition {
@@ -382,12 +488,6 @@ function quoteVolume(candle: Candle): number {
     : candle.volume * candle.close;
 }
 
-function prefix(values: number[]): number[] {
-  const out = Array<number>(values.length + 1).fill(0);
-  for (let i = 0; i < values.length; i++) out[i + 1] = out[i] + values[i];
-  return out;
-}
-
 function rangeMax(candles: Candle[], start: number, endExclusive: number, field: "high" | "close"): number {
   let value = -Infinity;
   for (let i = start; i < endExclusive; i++) value = Math.max(value, candles[i][field]);
@@ -400,15 +500,51 @@ function rangeMin(candles: Candle[], start: number, endExclusive: number, field:
   return value;
 }
 
+/** Index của cây tạo ra cực trị trong `[start, endExclusive)`; hoà thì lấy cây SỚM nhất. */
+function rangeExtremeIndex(
+  candles: Candle[],
+  start: number,
+  endExclusive: number,
+  field: "high" | "low",
+): number {
+  let best = start;
+  for (let i = start + 1; i < endExclusive; i++) {
+    const better = field === "high"
+      ? candles[i].high > candles[best].high
+      : candles[i].low < candles[best].low;
+    if (better) best = i;
+  }
+  return best;
+}
+
+function median(sample: number[]): number {
+  if (!sample.length) return 0;
+  const sorted = [...sample].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[middle - 1] + sorted[middle]) / 2
+    : sorted[middle];
+}
+
+/** Trung vị của `lookback` giá trị NGAY TRƯỚC `endExclusive`. Không nhìn trước. */
 export function medianPrior(values: number[], endExclusive: number, lookback: number): number {
   const start = endExclusive - lookback;
   if (start < 0 || lookback <= 0) return 0;
-  const sample = values.slice(start, endExclusive).sort((a, b) => a - b);
-  if (!sample.length) return 0;
-  const middle = Math.floor(sample.length / 2);
-  return sample.length % 2 === 0
-    ? (sample[middle - 1] + sample[middle]) / 2
-    : sample[middle];
+  return median(values.slice(start, endExclusive));
+}
+
+/**
+ * Trung vị của `lookback` giá trị XUNG QUANH `index`, chia đều hai bên và BỎ
+ * chính nó. Đây là cách mắt người chấm một cây volume trên chart, và cũng là lý
+ * do key phải chờ nến cuối cửa sổ đóng mới được coi là biết được.
+ */
+export function medianAround(values: number[], index: number, lookback: number): number {
+  const half = Math.floor(lookback / 2);
+  if (half < 1 || index - half < 0 || index + half >= values.length) return 0;
+  return median([
+    ...values.slice(index - half, index),
+    ...values.slice(index + 1, index + half + 1),
+  ]);
 }
 
 export function atrSeriesForward(candles: Candle[], period = 20): number[] {
@@ -435,110 +571,16 @@ export function atrSeriesForward(candles: Candle[], period = 20): number[] {
 }
 
 /**
- * Bias "chuỗi nến": đa số nến cùng màu và cả chuỗi phải có dịch chuyển
- * cùng hướng. Không MA, không dùng nến sau atIndex.
- */
-export function candleChainBias(
-  candles: Candle[],
-  atIndex: number,
-  bars: number,
-): "bull" | "bear" | "neutral" {
-  if (bars < 1 || atIndex < bars - 1 || atIndex >= candles.length) return "neutral";
-  const start = atIndex - bars + 1;
-  let green = 0;
-  let red = 0;
-  for (let i = start; i <= atIndex; i++) {
-    if (candles[i].close > candles[i].open) green++;
-    else if (candles[i].close < candles[i].open) red++;
-  }
-  const required = Math.floor(bars / 2) + 1;
-  const net = candles[atIndex].close - candles[start].open;
-  if (green >= required && net > 0) return "bull";
-  if (red >= required && net < 0) return "bear";
-  return "neutral";
-}
-
-/**
- * Bản strict dùng cho `volume-retest`: video nguồn phát biểu trực tiếp "ba nến
- * xanh thì đi Long" / chuỗi đỏ thì đi Short, không phải đa số 2/3.
- */
-export function strictCandleChainBias(
-  candles: Candle[],
-  atIndex: number,
-  bars: number,
-): "bull" | "bear" | "neutral" {
-  if (bars < 1 || atIndex < bars - 1 || atIndex >= candles.length) return "neutral";
-  const start = atIndex - bars + 1;
-  let bull = true;
-  let bear = true;
-  for (let i = start; i <= atIndex; i++) {
-    bull = bull && candles[i].close > candles[i].open;
-    bear = bear && candles[i].close < candles[i].open;
-  }
-  if (bull && candles[atIndex].close > candles[start].open) return "bull";
-  if (bear && candles[atIndex].close < candles[start].open) return "bear";
-  return "neutral";
-}
-
-/**
- * Một chuỗi nến xác lập bias, sau đó bias được giữ cho tới khi xuất hiện chuỗi
- * ngược chiều. Đây là cách dùng "chuỗi nến" làm bối cảnh trong các video:
- * không bắt buộc đúng ba nến gần nhất phải cùng màu tại chính thời điểm entry.
- */
-export function persistentCandleChainBias(
-  candles: Candle[],
-  atIndex: number,
-  bars: number,
-): "bull" | "bear" | "neutral" {
-  if (bars < 1 || atIndex < bars - 1 || atIndex >= candles.length) return "neutral";
-  for (let end = atIndex; end >= bars - 1; end--) {
-    const bias = strictCandleChainBias(candles, end, bars);
-    if (bias !== "neutral") return bias;
-  }
-  return "neutral";
-}
-
-/**
- * Chuỗi Daily chỉ xác lập/đảo bias khi phá cực trị của nến ngược màu gần nhất.
- * Video #26 dùng đúng ví dụ: chuỗi đỏ phá low nến xanh cuối cùng thì chuỗi
- * xanh cũ mới bị gãy. Sau đó bias được giữ đến một structural chain ngược lại.
- */
-export function structuralCandleChainBias(
-  candles: Candle[],
-  atIndex: number,
-  bars: number,
-): "bull" | "bear" | "neutral" {
-  if (bars < 1 || atIndex < bars - 1 || atIndex >= candles.length) return "neutral";
-  for (let end = atIndex; end >= bars - 1; end--) {
-    const bias = strictCandleChainBias(candles, end, bars);
-    if (bias === "neutral") continue;
-    const start = end - bars + 1;
-    let opposite = start - 1;
-    while (opposite >= 0) {
-      const candle = candles[opposite];
-      const isOpposite = bias === "bull"
-        ? candle.close < candle.open
-        : candle.close > candle.open;
-      if (isOpposite) break;
-      opposite--;
-    }
-    if (opposite < 0) continue;
-    const brokeOpposite = bias === "bull"
-      ? candles[end].close > candles[opposite].high
-      : candles[end].close < candles[opposite].low;
-    if (brokeOpposite) return bias;
-  }
-  return "neutral";
-}
-
-function directionFor(type: Exclude<KeyVolumeLevelType, "neutral">): KeyVolumeDirection {
-  return type === "demand" ? "long" : "short";
-}
-
-/**
- * `spike-only`: volume spike trở thành Key trung tính ngay khi nến đóng.
- * `displacement-classified`: benchmark cũ chỉ công nhận sau displacement+BOS;
- * `confirmedAt` là lúc BOS đóng để replay không nhìn trước.
+ * Key = nến volume đột biến so với các nến XUNG QUANH. Key trung tính: vai đỡ
+ * hay cản do vị trí giá lúc chạm quyết định, không gán sẵn lúc sinh.
+ *
+ * Key là MỘT ĐƯỜNG THẲNG tại giá MỞ CỬA của cây nến đó. `zoneLow`/`zoneHigh`
+ * vẫn còn để chart và journal đọc được, nhưng cả hai bằng đúng `price` — dung
+ * sai chạm giờ hoàn toàn do `keyTouchAtr` quyết định, không còn cộng thêm biên
+ * độ ngẫu nhiên của cây nến sinh key.
+ *
+ * `confirmedAt` là lúc nến CUỐI của cửa sổ có tâm đóng. Mọi nơi tra key đều đi
+ * qua `isKeyVolumeLevelActive`, nên nửa sau cửa sổ không rò vào quá khứ.
  */
 export function detectKeyVolumeLevels(
   candles: Candle[],
@@ -546,330 +588,223 @@ export function detectKeyVolumeLevels(
   params: KeyVolumeParams = KEY_VOLUME_CONFIG,
 ): KeyVolumeLevel[] {
   const tfMs = TF_MS[sourceTf];
+  const half = Math.floor(params.volumeLookback / 2);
+  if (half < 1) return [];
   const volumes = candles.map(quoteVolume);
   const atr = atrSeriesForward(candles);
-  const swings = findSwings(candles, params.bosPivotLeft, params.bosPivotRight);
+  const swings = findSwings(candles, params.swingPivotLeft, params.swingPivotRight);
+  const historyBars = Math.ceil(params.keyHistoryDays * TF_MS["1d"] / tfMs);
   const levels: KeyVolumeLevel[] = [];
 
-  for (let event = params.volumeLookback; event < candles.length; event++) {
-    const baseline = medianPrior(volumes, event, params.volumeLookback);
+  for (let event = half; event + half < candles.length; event++) {
+    const baseline = medianAround(volumes, event, params.volumeLookback);
     if (!(baseline > 0)) continue;
     const volumeRatio = volumes[event] / baseline;
     if (volumeRatio < params.volumeSpikeMult || !(atr[event] > 0)) continue;
 
-    const structureStart = Math.max(0, event - params.reactionLookback);
-    const priorHigh = rangeMax(candles, structureStart, event, "high");
-    const priorLow = rangeMin(candles, structureStart, event, "low");
-    const bodyLow = Math.min(candles[event].open, candles[event].close);
-    const bodyHigh = Math.max(candles[event].open, candles[event].close);
-    const fallbackLow = candles[event].low;
-    const fallbackHigh = candles[event].high;
-    const zoneLow = params.keySelectionMode === "spike-only"
-      ? fallbackLow
-      : bodyHigh > bodyLow ? bodyLow : fallbackLow;
-    const zoneHigh = params.keySelectionMode === "spike-only"
-      ? fallbackHigh
-      : bodyHigh > bodyLow ? bodyHigh : fallbackHigh;
-
-    if (params.keySelectionMode === "spike-only") {
-      const price = candles[event].close;
-      const historyBars = Math.ceil(params.keyHistoryDays * TF_MS["1d"] / tfMs);
-      const historicalReactions = swings.filter((swing) =>
-        swing.index < event
-        && swing.index >= event - historyBars
-        && swing.confirmIndex <= event
-        && Math.abs(swing.price - price) <= params.keyReactionAtr * atr[event],
-      ).length;
-      if (historicalReactions < params.minKeyReactions) continue;
-      const confirmedAt = candles[event].openTime + tfMs;
-      levels.push({
-        id: `${sourceTf}:${candles[event].openTime}:neutral`,
-        sourceTf,
-        type: "neutral",
-        direction: null,
-        price,
-        zoneLow,
-        zoneHigh,
-        eventTime: candles[event].openTime,
-        confirmedAt,
-        expiresAt: confirmedAt + params.keyMaxAgeDays * TF_MS["1d"],
-        volumeRatio,
-        reactionAtr: 0,
-      });
-      continue;
-    }
-
-    const responseEnd = Math.min(candles.length - 1, event + params.reactionBars);
-
-    let confirmedIndex = -1;
-    let type: Exclude<KeyVolumeLevelType, "neutral"> | null = null;
-    let reaction = 0;
-    for (let i = event; i <= responseEnd; i++) {
-      const upDistance = candles[i].close - zoneLow;
-      const downDistance = zoneHigh - candles[i].close;
-      const brokeUp = candles[i].close > priorHigh && upDistance >= params.reactionAtr * atr[event];
-      const brokeDown = candles[i].close < priorLow && downDistance >= params.reactionAtr * atr[event];
-      if (brokeUp || brokeDown) {
-        confirmedIndex = i;
-        type = brokeUp ? "demand" : "supply";
-        reaction = (brokeUp ? upDistance : downDistance) / atr[event];
-        break;
-      }
-    }
-    if (confirmedIndex < 0 || !type) continue;
-
-    const price = type === "demand" ? zoneLow : zoneHigh;
-    const historyBars = Math.ceil(params.keyHistoryDays * TF_MS["1d"] / tfMs);
-    const reactionType = type === "demand" ? "low" : "high";
+    const price = candles[event].open;
     const historicalReactions = swings.filter((swing) =>
-      swing.type === reactionType
-      && swing.index < event
+      swing.index < event
       && swing.index >= event - historyBars
       && swing.confirmIndex <= event
       && Math.abs(swing.price - price) <= params.keyReactionAtr * atr[event],
     ).length;
     if (historicalReactions < params.minKeyReactions) continue;
 
-    const confirmedAt = candles[confirmedIndex].openTime + tfMs;
-    const expiresAt = confirmedAt + params.keyMaxAgeDays * TF_MS["1d"];
-    let currentType = type;
-    let currentConfirmedAt = confirmedAt;
-    let role = 0;
-    for (let i = confirmedIndex + 1; i < candles.length; i++) {
-      if (candles[i].openTime + tfMs > expiresAt) break;
-      const invalid = currentType === "demand"
-        ? candles[i].close < zoneLow - params.invalidationAtr * atr[event]
-        : candles[i].close > zoneHigh + params.invalidationAtr * atr[event];
-      if (!invalid) continue;
-      const invalidatedAt = candles[i].openTime + tfMs;
-      levels.push({
-        id: `${sourceTf}:${candles[event].openTime}:${currentType}:role-${role}`,
-        sourceTf,
-        type: currentType,
-        direction: directionFor(currentType),
-        price: currentType === "demand" ? zoneLow : zoneHigh,
-        zoneLow,
-        zoneHigh,
-        eventTime: candles[event].openTime,
-        confirmedAt: currentConfirmedAt,
-        invalidatedAt,
-        expiresAt,
-        volumeRatio,
-        reactionAtr: reaction,
-      });
-      currentType = currentType === "demand" ? "supply" : "demand";
-      currentConfirmedAt = invalidatedAt;
-      role++;
-      if (currentConfirmedAt > expiresAt) break;
-    }
-    if (currentConfirmedAt <= expiresAt) {
-      levels.push({
-        id: `${sourceTf}:${candles[event].openTime}:${currentType}:role-${role}`,
-        sourceTf,
-        type: currentType,
-        direction: directionFor(currentType),
-        price: currentType === "demand" ? zoneLow : zoneHigh,
-        zoneLow,
-        zoneHigh,
-        eventTime: candles[event].openTime,
-        confirmedAt: currentConfirmedAt,
-        expiresAt,
-        volumeRatio,
-        reactionAtr: reaction,
-      });
-    }
+    const confirmedAt = candles[event + half].openTime + tfMs;
+    levels.push({
+      id: `${sourceTf}:${candles[event].openTime}`,
+      sourceTf,
+      price,
+      zoneLow: price,
+      zoneHigh: price,
+      eventTime: candles[event].openTime,
+      confirmedAt,
+      expiresAt: confirmedAt + params.keyMaxAgeDays * TF_MS["1d"],
+      volumeRatio,
+    });
   }
   return levels;
 }
 
 export function isKeyVolumeLevelActive(level: KeyVolumeLevel, time: number): boolean {
-  return level.confirmedAt <= time
-    && time <= level.expiresAt
-    && (level.invalidatedAt == null || time < level.invalidatedAt);
-}
-
-function intervalDistance(aLow: number, aHigh: number, bLow: number, bHigh: number): number {
-  if (aHigh < bLow) return bLow - aHigh;
-  if (bHigh < aLow) return aLow - bHigh;
-  return 0;
+  return level.confirmedAt <= time && time <= level.expiresAt;
 }
 
 function touchesLevel(candle: Candle, level: KeyVolumeLevel, tolerance: number): boolean {
   return candle.low <= level.zoneHigh + tolerance && candle.high >= level.zoneLow - tolerance;
 }
 
-function latestClosedIndex(candles: Candle[], closeTime: number, tfMs: number): number {
-  let low = 0;
-  let high = candles.length;
-  while (low < high) {
-    const middle = Math.floor((low + high) / 2);
-    if (candles[middle].openTime + tfMs <= closeTime) low = middle + 1;
-    else high = middle;
-  }
-  return low - 1;
-}
-
-function higherTimeframeBias(
-  daily: Candle[],
-  weekly: Candle[],
-  closeTime: number,
-  params: KeyVolumeParams,
-): KeyVolumeDirection | null {
-  const dailyIndex = latestClosedIndex(daily, closeTime, TF_MS[params.dailyTf]);
-  const weeklyIndex = latestClosedIndex(weekly, closeTime, TF_MS[params.weeklyTf]);
-  if (params.entryModel === "volume-retest") {
-    const day = params.persistDailyBias
-      ? structuralCandleChainBias(daily, dailyIndex, params.dailyBiasBars)
-      : strictCandleChainBias(daily, dailyIndex, params.dailyBiasBars);
-    const week = candleChainBias(weekly, weeklyIndex, params.weeklyBiasBars);
-    if (day === "bull" && week !== "bear") return "long";
-    if (day === "bear" && week !== "bull") return "short";
-    return null;
-  }
-  const day = candleChainBias(daily, dailyIndex, params.dailyBiasBars);
-  const week = candleChainBias(weekly, weeklyIndex, params.weeklyBiasBars);
-  if (day === "bull" && week === "bull") return "long";
-  if (day === "bear" && week === "bear") return "short";
-  return null;
-}
-
-function selectConfluentTouch(
-  candle: Candle,
-  time: number,
-  direction: KeyVolumeDirection,
-  atr: number,
-  h1Levels: KeyVolumeLevel[],
-  h4Levels: KeyVolumeLevel[],
-  used: Set<string>,
-  params: KeyVolumeParams,
-): { key: KeyVolumeLevel; higherKey: KeyVolumeLevel; score: number } | null {
-  const touchTolerance = params.keyTouchAtr * atr;
-  const confluenceTolerance = params.confluenceAtr * atr;
-  let best: { key: KeyVolumeLevel; higherKey: KeyVolumeLevel; score: number } | null = null;
-
-  for (const key of h1Levels) {
-    if (
-      used.has(key.id)
-      || (key.direction != null && key.direction !== direction)
-      || !isKeyVolumeLevelActive(key, time)
-    ) continue;
-    if (!touchesLevel(candle, key, touchTolerance)) continue;
-    for (const higherKey of h4Levels) {
-      if (
-        (higherKey.direction != null && higherKey.direction !== direction)
-        || !isKeyVolumeLevelActive(higherKey, time)
-      ) continue;
-      const distance = intervalDistance(
-        key.zoneLow,
-        key.zoneHigh,
-        higherKey.zoneLow,
-        higherKey.zoneHigh,
-      );
-      if (distance > confluenceTolerance) continue;
-      const score = key.volumeRatio + higherKey.volumeRatio
-        + key.reactionAtr + higherKey.reactionAtr
-        - distance / Math.max(atr, Number.EPSILON);
-      if (!best || score > best.score) best = { key, higherKey, score };
-    }
-  }
-  return best;
+/**
+ * "Nến đang ở TRÊN key thì long, ở dưới thì short": key là đỡ khi giá đứng trên
+ * nó và là cản khi giá nằm dưới. Mốc so sánh là giữa vùng key, không phải một
+ * biên — dùng biên sẽ để trống hẳn trường hợp nến đóng bên trong vùng.
+ */
+export function directionAgainstKey(close: number, level: KeyVolumeLevel): KeyVolumeDirection {
+  return close >= (level.zoneLow + level.zoneHigh) / 2 ? "long" : "short";
 }
 
 function selectKeyTouch(
   candle: Candle,
   time: number,
-  direction: KeyVolumeDirection,
   atr: number,
-  h1Levels: KeyVolumeLevel[],
-  h4Levels: KeyVolumeLevel[],
+  levels: KeyVolumeLevel[],
   used: Set<string>,
   params: KeyVolumeParams,
-): { key: KeyVolumeLevel; higherKey?: KeyVolumeLevel; score: number } | null {
+): { key: KeyVolumeLevel; direction: KeyVolumeDirection } | null {
   const touchTolerance = params.keyTouchAtr * atr;
-  const confluenceTolerance = params.confluenceAtr * atr;
-  let best: { key: KeyVolumeLevel; higherKey?: KeyVolumeLevel; score: number } | null = null;
-
-  for (const key of h1Levels) {
-    if (
-      used.has(key.id)
-      || (key.direction != null && key.direction !== direction)
-      || !isKeyVolumeLevelActive(key, time)
-    ) continue;
+  let best: KeyVolumeLevel | null = null;
+  for (const key of levels) {
+    if (used.has(key.id) || !isKeyVolumeLevelActive(key, time)) continue;
     if (!touchesLevel(candle, key, touchTolerance)) continue;
-    const higherKey = h4Levels
-      .filter((candidate) =>
-        (candidate.direction == null || candidate.direction === direction)
-        && isKeyVolumeLevelActive(candidate, time)
-        && intervalDistance(
-          key.zoneLow,
-          key.zoneHigh,
-          candidate.zoneLow,
-          candidate.zoneHigh,
-        ) <= confluenceTolerance,
-      )
-      .sort((a, b) => b.volumeRatio + b.reactionAtr - a.volumeRatio - a.reactionAtr)[0];
-    if (params.requireHigherKey && !higherKey) continue;
-    const score = key.volumeRatio + key.reactionAtr
-      + (higherKey ? higherKey.volumeRatio + higherKey.reactionAtr : 0);
-    if (!best || score > best.score) best = { key, higherKey, score };
+    if (!best || key.volumeRatio > best.volumeRatio) best = key;
   }
-  return best;
+  return best ? { key: best, direction: directionAgainstKey(candle.close, best) } : null;
 }
 
 /**
- * `#50 SFP`: sau stop-hunt thì "vào lệnh theo cái mô hình nến hoặc là vào luôn
- * cũng được", và tác giả nói rõ "mình chỉ sử dụng ba mô hình nến thôi: nhấn
- * chìm, in3 và 3 bar reversal". Đây là ba mô hình đó, không thêm.
+ * ORDER BLOCK = hộp THÂN NẾN bao trọn `bars` nến kết thúc ở `endIndex`, RÂU
+ * KHÔNG TÍNH:
+ *   obHigh = max(open, close) của mọi nến trong khoảng
+ *   obLow  = min(open, close) của mọi nến trong khoảng
+ *
+ * Bỏ râu làm hộp hẹp lại nên R nhỏ hơn, đổi lại SL nằm TRONG vùng râu đã từng
+ * bị chạm — đây là đánh đổi đã biết của luật này, không phải sơ suất.
  */
-export function isEngulfing(
+export function orderBlockFromCluster(
+  candles: Candle[],
+  endIndex: number,
+  bars: number,
+): { obLow: number; obHigh: number } {
+  const start = Math.max(0, endIndex - Math.max(1, bars) + 1);
+  let obLow = Infinity;
+  let obHigh = -Infinity;
+  for (let i = start; i <= endIndex; i++) {
+    obLow = Math.min(obLow, candles[i].open, candles[i].close);
+    obHigh = Math.max(obHigh, candles[i].open, candles[i].close);
+  }
+  return { obLow, obHigh };
+}
+
+/**
+ * CỤM NẾN ĐẢO CHIỀU + ORDER BLOCK, một luật duy nhất trong cửa sổ 3 nến.
+ *
+ * `#50 SFP` từng liệt kê ba mô hình (nhấn chìm, in3, 3-bar reversal); luật này
+ * thu về đúng một tiêu chí đo được: THÂN cây đảo chiều nhấn chìm THÂN mấy nến
+ * liền trước. Số nến bị nhấn chìm quyết định luôn hộp:
+ *
+ *   nhấn chìm 2 nến -> hộp là min/max open-close của ĐÚNG 2 nến BỊ nhấn chìm
+ *   nhấn chìm 1 nến -> hộp là THÂN cây ĐANG nhấn chìm (chính cây đảo chiều)
+ *   không nhấn chìm nến nào -> `null`, bỏ setup
+ *
+ * Cây đảo chiều phải đúng màu (LONG cần xanh, SHORT cần đỏ). Màu các nến bị
+ * nhấn chìm KHÔNG bị ràng buộc: "nhấn chìm 2 nến trước" không nói gì về màu, và
+ * đòi cả hai cùng màu ngược sẽ gần như không bao giờ khớp.
+ */
+export interface ReversalOrderBlock {
+  obLow: number;
+  obHigh: number;
+  /** Số nến liền trước bị THÂN cây đảo chiều nhấn chìm: 2 hoặc 1. */
+  engulfed: number;
+  /** Tổng số nến của cụm, tính cả cây đảo chiều: 3 hoặc 2. */
+  clusterBars: number;
+}
+
+/** Thân nến `index` có trùm trọn thân nến `target` không. */
+export function bodyEngulfs(candles: Candle[], index: number, target: number): boolean {
+  if (target < 0) return false;
+  const low = Math.min(candles[index].open, candles[index].close);
+  const high = Math.max(candles[index].open, candles[index].close);
+  return low <= Math.min(candles[target].open, candles[target].close)
+    && high >= Math.max(candles[target].open, candles[target].close);
+}
+
+export function reversalOrderBlock(
   candles: Candle[],
   index: number,
   direction: KeyVolumeDirection,
-): boolean {
-  if (index < 1) return false;
-  const previous = candles[index - 1];
-  const current = candles[index];
-  const previousLow = Math.min(previous.open, previous.close);
-  const previousHigh = Math.max(previous.open, previous.close);
-  return direction === "long"
-    ? previous.close < previous.open
-      && current.close > current.open
-      && current.close >= previousHigh
-      && current.open <= previousLow
-    : previous.close > previous.open
-      && current.close < current.open
-      && current.close <= previousLow
-      && current.open >= previousHigh;
+): ReversalOrderBlock | null {
+  if (index < 2) return null;
+  const trigger = candles[index];
+  const rightColour = direction === "long"
+    ? trigger.close > trigger.open
+    : trigger.close < trigger.open;
+  if (!rightColour) return null;
+  if (!bodyEngulfs(candles, index, index - 1)) return null;
+
+  if (bodyEngulfs(candles, index, index - 2)) {
+    // Nhấn chìm CẢ HAI: hộp là vùng vừa bị ăn, không phải cây đi ăn.
+    return { ...orderBlockFromCluster(candles, index - 1, 2), engulfed: 2, clusterBars: 3 };
+  }
+  // Chỉ nhấn chìm một: hộp là thân chính cây đang nhấn chìm.
+  return {
+    obLow: Math.min(trigger.open, trigger.close),
+    obHigh: Math.max(trigger.open, trigger.close),
+    engulfed: 1,
+    clusterBars: 2,
+  };
 }
 
-/** In3 / inside bar: nến nằm trọn trong nến mẹ. */
-export function isInsideBar(candles: Candle[], index: number): boolean {
-  if (index < 1) return false;
-  return candles[index].high <= candles[index - 1].high
-    && candles[index].low >= candles[index - 1].low;
-}
-
-/** 3-bar reversal: nến giữa tạo cực trị, nến thứ ba đóng ngược lại qua nến đầu. */
-export function isThreeBarReversal(
+/**
+ * "Dựng hộp xong thì đợi thêm 3-4 nến xem các nến có GIÁ ĐÓNG nằm ngoài hộp
+ * không." Chỉ giá đóng phải ra ngoài — râu thò lại vào hộp vẫn qua cửa, vì cái
+ * cần chứng minh là giá đã BỎ LẠI hộp phía sau chứ không phải chưa từng chạm
+ * nó. Thiếu nến để kiểm thì coi như KHÔNG qua.
+ */
+export function departedFromBlock(
   candles: Candle[],
-  index: number,
+  fromIndex: number,
+  bars: number,
   direction: KeyVolumeDirection,
+  obLow: number,
+  obHigh: number,
+  mode: KeyVolumeDepartMode = "candle",
 ): boolean {
-  if (index < 2) return false;
-  const [first, middle, last] = [candles[index - 2], candles[index - 1], candles[index]];
-  return direction === "long"
-    ? middle.low < first.low && middle.low < last.low && last.close > first.high
-    : middle.high > first.high && middle.high > last.high && last.close < first.low;
+  if (bars <= 0) return true;
+  if (fromIndex < 0 || fromIndex + bars > candles.length) return false;
+  for (let i = fromIndex; i < fromIndex + bars; i++) {
+    // `candle`: mép gần hộp nhất của cây nến, tức cả râu. `close`: chỉ giá đóng.
+    const edge = mode === "close"
+      ? candles[i].close
+      : (direction === "long" ? candles[i].low : candles[i].high);
+    const outside = direction === "long" ? edge > obHigh : edge < obLow;
+    if (!outside) return false;
+  }
+  return true;
 }
 
-export function hasReversalCandlePattern(
+/**
+ * Giá đã TỪNG rời hẳn key trước khi chạm lại chưa — điều kiện để chữ "quay về"
+ * có nội dung. Chỉ cần MỘT nến trong cửa sổ nhìn lại nằm trọn ngoài dải
+ * `±keyDepartureAtr × ATR` quanh key là đủ; một đoạn đi ngang đè lên key sẽ
+ * không có nến nào như thế và bị loại.
+ *
+ * Dùng ATR của CHÍNH nến đang xét, không phải ATR lúc chạm: cửa sổ nhìn lại có
+ * thể trải qua vùng biến động khác hẳn.
+ */
+export function departedFromKey(
   candles: Candle[],
-  index: number,
-  direction: KeyVolumeDirection,
+  atr: number[],
+  touchIndex: number,
+  keyPrice: number,
+  lookback: number,
+  atrMult: number,
 ): boolean {
-  return isEngulfing(candles, index, direction)
-    || isInsideBar(candles, index)
-    || isThreeBarReversal(candles, index, direction);
+  if (lookback <= 0 || !(atrMult > 0)) return true;
+  for (let i = Math.max(0, touchIndex - lookback); i < touchIndex; i++) {
+    const distance = atrMult * atr[i];
+    if (!(distance > 0)) continue;
+    if (candles[i].low > keyPrice + distance || candles[i].high < keyPrice - distance) return true;
+  }
+  return false;
+}
+
+/** Mức đặt lệnh chờ: mép THUẬN chiều của hộp. */
+export function orderBlockEntry(
+  ob: { obLow: number; obHigh: number },
+  direction: KeyVolumeDirection,
+): number {
+  return direction === "long" ? ob.obHigh : ob.obLow;
 }
 
 /**
@@ -917,271 +852,203 @@ export function isWithinSession(
 }
 
 /**
- * `#31` phát biểu thành ba câu hỏi trên khung Daily:
- *   1. chuỗi nến đang là chuỗi gì,
- *   2. low của cây nến xanh cuối cùng (chuỗi tăng) đã bị ĐÓNG qua chưa — phải chưa,
- *   3. low đó đã bị TRAP (thọt râu) chưa — phải rồi.
- * Đối xứng cho chuỗi giảm với high của cây nến đỏ cuối cùng.
+ * "Từ giá cao nhất/thấp nhất đó đi về TRƯỚC cỡ một ngày thì không có nến nào
+ * vượt qua nó": mức sắp bị quét phải là một đỉnh/đáy NỔI BẬT chứ không phải mút
+ * của một đoạn đang trôi một chiều. Chỉ ràng buộc phía TRÁI của cây cực trị —
+ * phía phải nằm gọn trong cửa sổ quét, nơi mức đó đã là cực trị theo định nghĩa.
+ *
+ * Bằng nhau KHÔNG bị loại: hai đáy ngang nhau là mức được giữ, không phải mức
+ * bị vượt.
  */
-export function dailyTrapGate(
+export function isProminentExtreme(
   candles: Candle[],
-  atIndex: number,
-  direction: KeyVolumeDirection,
+  extremeIndex: number,
+  field: "high" | "low",
+  prominenceBars: number,
 ): boolean {
-  if (atIndex < 1) return false;
-  const wantGreen = direction === "long";
-  let anchor = -1;
-  for (let i = atIndex; i >= 0; i--) {
-    const isGreen = candles[i].close > candles[i].open;
-    if (isGreen === wantGreen && candles[i].close !== candles[i].open) {
-      anchor = i;
-      break;
-    }
+  if (prominenceBars <= 0) return true;
+  const from = extremeIndex - prominenceBars;
+  // Không đủ lịch sử để kiểm thì KHÔNG được coi như đã kiểm xong.
+  if (from < 0) return false;
+  const level = candles[extremeIndex][field];
+  for (let i = from; i < extremeIndex; i++) {
+    if (field === "high" ? candles[i].high > level : candles[i].low < level) return false;
   }
-  if (anchor < 0 || anchor === atIndex) return false;
-  const level = wantGreen ? candles[anchor].low : candles[anchor].high;
-  let trapped = false;
-  for (let i = anchor + 1; i <= atIndex; i++) {
-    // Đóng qua mức đó là chuỗi đã gãy -> câu hỏi 2 trả lời "rồi" -> loại.
-    if (wantGreen ? candles[i].close < level : candles[i].close > level) return false;
-    if (wantGreen ? candles[i].low < level : candles[i].high > level) trapped = true;
-  }
-  return trapped;
+  return true;
 }
 
+/**
+ * Stop hunt: nến vượt qua cực trị `lookback` nến trước rồi ĐÓNG lại bên trong —
+ * râu ăn hết thanh khoản của những stop đặt ngoài mức đó rồi trả giá về. Mức bị
+ * quét còn phải qua `isProminentExtreme`.
+ */
 export function sweptAndReclaimed(
   candles: Candle[],
   index: number,
   direction: KeyVolumeDirection,
   lookback: number,
+  prominenceBars = 0,
 ): boolean {
   if (index < lookback) return false;
-  if (direction === "long") {
-    const priorLow = rangeMin(candles, index - lookback, index, "low");
-    return candles[index].low < priorLow && candles[index].close > priorLow;
-  }
-  const priorHigh = rangeMax(candles, index - lookback, index, "high");
-  return candles[index].high > priorHigh && candles[index].close < priorHigh;
-}
-
-function crossedSwing(
-  candles: Candle[],
-  swings: Swing[],
-  index: number,
-  direction: KeyVolumeDirection,
-  predicate: (swing: Swing) => boolean,
-): Swing | null {
-  if (index <= 0) return null;
-  const type = direction === "long" ? "high" : "low";
-  const candidates = swings
-    .filter((swing) => swing.type === type && swing.confirmIndex <= index && predicate(swing))
-    .sort((a, b) => b.index - a.index);
-  for (const swing of candidates) {
-    const crossed = direction === "long"
-      ? candles[index - 1].close <= swing.price && candles[index].close > swing.price
-      : candles[index - 1].close >= swing.price && candles[index].close < swing.price;
-    if (crossed) return swing;
-  }
-  return null;
-}
-
-function lowerBoundTime(candles: Candle[], time: number): number {
-  let low = 0;
-  let high = candles.length;
-  while (low < high) {
-    const middle = Math.floor((low + high) / 2);
-    if (candles[middle].openTime < time) low = middle + 1;
-    else high = middle;
-  }
-  return low;
-}
-
-function findEntryOrderBlock(
-  candles: Candle[],
-  start: number,
-  end: number,
-  direction: KeyVolumeDirection,
-  key: KeyVolumeLevel,
-  tolerance: number,
-): { low: number; high: number } | null {
-  for (let i = end - 1; i >= start; i--) {
-    const candle = candles[i];
-    const opposite = direction === "long"
-      ? candle.close < candle.open
-      : candle.close > candle.open;
-    if (!opposite) continue;
-    const low = Math.min(candle.open, candle.close);
-    const high = Math.max(candle.open, candle.close);
-    const zoneLow = high > low ? low : candle.low;
-    const zoneHigh = high > low ? high : candle.high;
-    if (intervalDistance(zoneLow, zoneHigh, key.zoneLow, key.zoneHigh) <= tolerance) {
-      return { low: zoneLow, high: zoneHigh };
-    }
-  }
-  return null;
-}
-
-/**
- * Cạnh HVN proxy từ OHLCV. Volume mỗi nến được chia đều cho các bin mà range
- * của nến cắt qua; cluster HVN là cụm quanh bin lớn nhất có volume >= threshold.
- */
-export function approximateHvnEdge(
-  candles: Candle[],
-  start: number,
-  endInclusive: number,
-  direction: KeyVolumeDirection,
-  bins: number,
-  threshold: number,
-): number | null {
-  if (start < 0 || endInclusive < start || endInclusive >= candles.length || bins < 2) return null;
-  const low = rangeMin(candles, start, endInclusive + 1, "low");
-  const high = rangeMax(candles, start, endInclusive + 1, "high");
-  if (!(high > low)) return null;
-  const width = (high - low) / bins;
-  const volume = Array<number>(bins).fill(0);
-
-  for (let i = start; i <= endInclusive; i++) {
-    const first = Math.max(0, Math.min(bins - 1, Math.floor((candles[i].low - low) / width)));
-    const last = Math.max(0, Math.min(bins - 1, Math.floor((candles[i].high - low) / width)));
-    const count = last - first + 1;
-    const share = quoteVolume(candles[i]) / count;
-    for (let bin = first; bin <= last; bin++) volume[bin] += share;
-  }
-
-  let poc = 0;
-  for (let i = 1; i < bins; i++) if (volume[i] > volume[poc]) poc = i;
-  if (!(volume[poc] > 0)) return null;
-  const cutoff = volume[poc] * threshold;
-  let clusterLow = poc;
-  let clusterHigh = poc;
-  while (clusterLow > 0 && volume[clusterLow - 1] >= cutoff) clusterLow--;
-  while (clusterHigh < bins - 1 && volume[clusterHigh + 1] >= cutoff) clusterHigh++;
-  return direction === "long"
-    ? low + clusterLow * width
-    : low + (clusterHigh + 1) * width;
+  const field = direction === "long" ? "low" : "high";
+  const extremeIndex = rangeExtremeIndex(candles, index - lookback, index, field);
+  const level = candles[extremeIndex][field];
+  const swept = direction === "long"
+    ? candles[index].low < level && candles[index].close > level
+    : candles[index].high > level && candles[index].close < level;
+  if (!swept) return false;
+  return isProminentExtreme(candles, extremeIndex, field, prominenceBars);
 }
 
 function invalidatedByClose(
   candle: Candle,
   level: KeyVolumeLevel,
-  direction: KeyVolumeDirection | null = level.direction,
+  direction: KeyVolumeDirection,
 ): boolean {
-  if (direction == null) return false;
   return direction === "long"
     ? candle.close < level.zoneLow
     : candle.close > level.zoneHigh;
 }
 
-function buildVolumeRetestPlans(
-  base: Candle[],
-  h1Levels: KeyVolumeLevel[],
-  h4Levels: KeyVolumeLevel[],
+/** `Q&A 006` là bộ lọc chất lượng tuỳ chọn, áp cho CẢ HAI nhánh. */
+function passesSession(candle: Candle, params: KeyVolumeParams): boolean {
+  return !params.sessionHoursUtc
+    || isWithinSession(candle.openTime, params.sessionHoursUtc[0], params.sessionHoursUtc[1]);
+}
+
+function buildEntryPlans(
+  confirm: Candle[],
+  levels: KeyVolumeLevel[],
   diagnostics: KeyVolumeDiagnostics,
   params: KeyVolumeParams,
 ): KeyVolumeEntryPlan[] {
-  const confirm = aggregate(base, params.confirmTf, params.baseTf);
-  const daily = aggregate(base, params.dailyTf, params.baseTf);
-  const weekly = aggregate(base, params.weeklyTf, params.baseTf);
   const atr15 = atrSeriesForward(confirm);
   const volumes = confirm.map(quoteVolume);
-  const swings = findSwings(confirm, params.bosPivotLeft, params.bosPivotRight);
+  const swings = findSwings(confirm, params.swingPivotLeft, params.swingPivotRight);
   const used = new Set<string>();
   const touchCounts = new Map<string, number>();
   const plans: KeyVolumeEntryPlan[] = [];
-  let setup: VolumeRetestSetup | null = null;
-  const lastClosedBaseTime = base.length
-    ? base[base.length - 1].openTime + TF_MS[params.baseTf]
-    : 0;
-  const startIndex = Math.max(params.touchVolumeLookback, params.sweepLookback, 1);
+  let setup: KeyTouchSetup | null = null;
+  const startIndex = Math.max(
+    params.touchVolumeLookback,
+    params.sweepLookback + params.sweepProminenceBars,
+    1,
+  );
+  const volumeRatioAt = (index: number): number => {
+    const baseline = medianPrior(volumes, index, params.touchVolumeLookback);
+    return baseline > 0 ? volumes[index] / baseline : 0;
+  };
 
   for (let i = startIndex; i < confirm.length; i++) {
     const closeTime = confirm[i].openTime + TF_MS[params.confirmTf];
-    if (closeTime > lastClosedBaseTime) break;
-    const bias = higherTimeframeBias(daily, weekly, closeTime, params);
+    // Hộp dựng xong ở cuối nến `i`, rồi giá phải rời hộp trọn `obDepartBars`
+    // nến. Sớm nhất đặt được lệnh chờ là cây ngay sau cửa đó.
+    const readyIndex = i + 1 + params.obDepartBars;
+    const trigger = confirm[i];
 
-    if (setup) {
-      const expiredKey = !isKeyVolumeLevelActive(setup.key, closeTime);
-      const expiredSweep = setup.sweepIndex == null
-        ? i - setup.touchIndex > params.sweepWaitBars
-        : i - setup.sweepIndex > params.bosExpiryBars;
-      const invalidated = expiredKey
-        || invalidatedByClose(confirm[i], setup.key, setup.direction);
-      if (invalidated) {
-        used.add(setup.key.id);
-        setup = null;
-      } else if (bias !== setup.direction || expiredSweep) {
-        // Một lần volume/touch sai vị trí không làm key mất hiệu lực. Video #23
-        // bỏ lần đầu và chờ lần sau kích volume đúng nơi cần.
-        setup = null;
-      }
-    }
-
-    if (!setup && bias) {
-      const touch = selectKeyTouch(
-        confirm[i],
-        closeTime,
-        bias,
-        atr15[i],
-        h1Levels,
-        h4Levels,
-        used,
-        params,
+    // ── NHÁNH 1 — THUẦN SĂN THANH KHOẢN ──────────────────────────────────
+    // Không key, không nến chạm, không volume, không mô hình nến xác nhận:
+    // thủng cực trị một ngày rồi đóng lại trong biên là đủ bóp cò.
+    if (params.enableSweepBranch && readyIndex < confirm.length) {
+      const sweptLow = sweptAndReclaimed(
+        confirm, i, "long", params.sweepLookback, params.sweepProminenceBars,
       );
-      if (touch) {
-        diagnostics.confluentTouches++;
-        const touchCount = (touchCounts.get(touch.key.id) ?? 0) + 1;
-        touchCounts.set(touch.key.id, touchCount);
-        const baseline = medianPrior(volumes, i, params.touchVolumeLookback);
-        const triggerVolumeRatio = baseline > 0 ? volumes[i] / baseline : 0;
-        // "Cái phát đầu tiên là không thể nào mà tray được" (#22).
-        const secondTouchOk = !params.requireSecondTouch || touchCount >= 2;
-        const dailyOk = !params.requireDailyTrapGate
-          || dailyTrapGate(
-            daily,
-            latestClosedIndex(daily, closeTime, TF_MS[params.dailyTf]),
-            bias,
-          );
-        if (!secondTouchOk) diagnostics.rejectedFirstTouch++;
-        else if (!dailyOk) diagnostics.rejectedDailyTrap++;
-        else if (triggerVolumeRatio >= params.touchVolumeSpikeMult) {
-          diagnostics.touchVolumeConfirmed++;
-          setup = {
-            direction: bias,
-            key: touch.key,
-            higherKey: touch.higherKey,
-            touchIndex: i,
-            triggerVolumeRatio,
-          };
+      const sweptHigh = sweptAndReclaimed(
+        confirm, i, "short", params.sweepLookback, params.sweepProminenceBars,
+      );
+      if (sweptLow || sweptHigh) diagnostics.sweeps++;
+      // Nến nuốt trọn cả hai đầu rồi đóng vào trong không nói được chiều nào.
+      if (sweptLow !== sweptHigh) {
+        if (!passesSession(trigger, params)) diagnostics.rejectedSession++;
+        else {
+          const direction: KeyVolumeDirection = sweptLow ? "long" : "short";
+          // SL bám đúng CÁI RÂU vừa tạo ra cú quét, không phải cực trị cửa sổ.
+          // Chỉ còn dùng khi `stopMode` KHÁC "order-block".
+          const wick = direction === "long" ? trigger.low : trigger.high;
+          const triggerVolumeRatio = volumeRatioAt(i);
+          // Nhánh quét không có cụm nến; "hộp" của nó là thân đúng cây nến quét.
+          const ob = orderBlockFromCluster(confirm, i, 1);
+          // Hộp của nhánh quét cũng phải được giá bỏ lại phía sau mới tính.
+          if (!departedFromBlock(
+            confirm, i + 1, params.obDepartBars, direction, ob.obLow, ob.obHigh, params.obDepartMode,
+          )) {
+            diagnostics.rejectedDepart++;
+          } else {
+            plans.push({
+              id: `sweep:${direction}:${trigger.openTime}`,
+              branch: "sweep-reclaim",
+              direction,
+              readyIndex,
+              triggerTime: trigger.openTime,
+              key: null,
+              clusterBars: 1,
+              obLow: ob.obLow,
+              obHigh: ob.obHigh,
+              obEntryEdge: orderBlockEntry(ob, direction),
+              structuralStop: wick,
+              patternStop: wick,
+              // Quét thanh khoản bên này thì chạy sang cụm thanh khoản bên kia.
+              sweepTarget: direction === "long"
+                ? rangeMax(confirm, i - params.sweepLookback, i, "high")
+                : rangeMin(confirm, i - params.sweepLookback, i, "low"),
+              triggerVolumeRatio,
+              score: triggerVolumeRatio,
+            });
+            diagnostics.sweepBranchPlans++;
+          }
         }
       }
     }
-    if (!setup) continue;
 
-    if (setup.sweepIndex == null) {
-      if (!sweptAndReclaimed(confirm, i, setup.direction, params.sweepLookback)) continue;
-      setup.sweepIndex = i;
-      diagnostics.sweeps++;
+    // ── NHÁNH 2 — KEY + CỤM NẾN ĐẢO CHIỀU ────────────────────────────────
+    if (setup) {
+      // Giá đóng qua bên kia key: luận điểm hướng này chết. KHÔNG khoá key lại —
+      // dưới luật hướng mới, chính key đó vừa đổi vai đỡ <-> cản.
+      const broken = !isKeyVolumeLevelActive(setup.key, closeTime)
+        || invalidatedByClose(trigger, setup.key, setup.direction);
+      if (broken || i - setup.touchIndex > params.sweepWaitBars) setup = null;
+    }
+
+    if (!setup) {
+      const touch = selectKeyTouch(trigger, closeTime, atr15[i], levels, used, params);
+      if (touch) {
+        diagnostics.keyTouches++;
+        const touchCount = (touchCounts.get(touch.key.id) ?? 0) + 1;
+        touchCounts.set(touch.key.id, touchCount);
+        // "Cái phát đầu tiên là không thể nào mà tray được" (#22).
+        if (params.requireSecondTouch && touchCount < 2) diagnostics.rejectedFirstTouch++;
+        else if (volumeRatioAt(i) >= params.touchVolumeSpikeMult) {
+          diagnostics.touchVolumeConfirmed++;
+          // Chạm key mà trước đó giá chưa từng rời nó thì đây không phải cú
+          // QUAY VỀ, chỉ là giá đang đi ngang đè lên mức.
+          if (!departedFromKey(
+            confirm, atr15, i, touch.key.price,
+            params.keyDepartureLookback, params.keyDepartureAtr,
+          )) {
+            diagnostics.rejectedNoDeparture++;
+          } else {
+            setup = { direction: touch.direction, key: touch.key, touchIndex: i };
+          }
+        }
+      }
+    }
+    if (!setup || !params.enableVolumeReversalBranch) continue;
+
+    const cluster = reversalOrderBlock(confirm, i, setup.direction);
+    if (!cluster) continue;
+    // Đảo chiều phải xảy ra NGAY TẠI key: đường key chạy xuyên thân hộp. Không
+    // khoá `setup` lại — cụm sau trong cùng cửa sổ chờ vẫn được xét.
+    if (
+      params.requireKeyInsideBlock
+      && (setup.key.price < cluster.obLow || setup.key.price > cluster.obHigh)
+    ) {
+      diagnostics.rejectedKeyOutsideBlock++;
       continue;
     }
+    diagnostics.candlePatterns++;
 
-    const sweepIndex = setup.sweepIndex;
-    if (params.entryTrigger === "bos") {
-      const structure = crossedSwing(
-        confirm,
-        swings,
-        i,
-        setup.direction,
-        (swing) =>
-          swing.index <= sweepIndex
-          && swing.index >= sweepIndex - params.bosSwingLookback,
-      );
-      if (!structure) continue;
-      diagnostics.firstBos++;
-    } else {
-      // #50: "sau khi stop hunt xong thì mình vào lệnh theo cái mô hình nến".
-      if (!hasReversalCandlePattern(confirm, i, setup.direction)) continue;
-      diagnostics.candlePatterns++;
-    }
+    const triggerVolumeRatio = volumeRatioAt(i);
+    if (triggerVolumeRatio < params.reversalVolumeMult) continue;
 
     if (
       params.requireDoubleTopBottom
@@ -1197,260 +1064,90 @@ function buildVolumeRetestPlans(
       continue;
     }
 
-    if (
-      params.sessionHoursUtc
-      && !isWithinSession(
-        confirm[i].openTime,
-        params.sessionHoursUtc[0],
-        params.sessionHoursUtc[1],
-      )
-    ) {
+    if (!passesSession(trigger, params)) {
       diagnostics.rejectedSession++;
       continue;
     }
 
-    const readyTime = confirm[i].openTime + TF_MS[params.confirmTf];
-    const readyIndex = lowerBoundTime(base, readyTime);
-    const confirmation = confirm[i];
-    const bodyLow = Math.min(confirmation.open, confirmation.close);
-    const bodyHigh = Math.max(confirmation.open, confirmation.close);
     const structuralStop = setup.direction === "long"
-      ? rangeMin(confirm, setup.touchIndex, sweepIndex + 1, "low")
-      : rangeMax(confirm, setup.touchIndex, sweepIndex + 1, "high");
+      ? rangeMin(confirm, setup.touchIndex, i + 1, "low")
+      : rangeMax(confirm, setup.touchIndex, i + 1, "high");
+
+    if (
+      !departedFromBlock(
+        confirm, i + 1, params.obDepartBars, setup.direction,
+        cluster.obLow, cluster.obHigh, params.obDepartMode,
+      )
+    ) {
+      // Không khoá `setup` lại: cửa này hỏng giống mọi cửa khác của nhánh 2
+      // (volume, phiên, hai đỉnh) — key vẫn còn hiệu lực, cụm sau vẫn được xét.
+      diagnostics.rejectedDepart++;
+      continue;
+    }
 
     if (!params.allowKeyReentry) used.add(setup.key.id);
-    if (readyIndex < base.length) {
+    if (readyIndex < confirm.length) {
       plans.push({
-        id: `${setup.key.id}:volume-retest:${confirmation.openTime}`,
-        model: "volume-retest",
+        id: `${setup.key.id}:volume-reversal:${trigger.openTime}`,
+        branch: "volume-reversal",
         direction: setup.direction,
         readyIndex,
-        expiresIndex: readyIndex,
+        triggerTime: trigger.openTime,
         key: setup.key,
-        higherKey: setup.higherKey,
-        obLow: bodyLow,
-        obHigh: bodyHigh,
+        clusterBars: cluster.clusterBars,
+        obLow: cluster.obLow,
+        obHigh: cluster.obHigh,
+        obEntryEdge: orderBlockEntry(cluster, setup.direction),
         structuralStop,
-        patternStop: setup.direction === "long" ? confirmation.low : confirmation.high,
-        triggerVolumeRatio: setup.triggerVolumeRatio,
-        enterNextOpen: true,
-        score: setup.key.volumeRatio
-          + setup.triggerVolumeRatio
-          + (setup.higherKey?.volumeRatio ?? 0),
+        patternStop: setup.direction === "long" ? trigger.low : trigger.high,
+        sweepTarget: null,
+        triggerVolumeRatio,
+        score: setup.key.volumeRatio + triggerVolumeRatio,
       });
+      diagnostics.volumeBranchPlans++;
     }
     setup = null;
   }
 
+  plans.sort((a, b) => a.readyIndex - b.readyIndex);
   diagnostics.plans = plans.length;
   return plans;
 }
 
-function buildDocumentEntryPlans(
-  base: Candle[],
-  h1Levels: KeyVolumeLevel[],
-  h4Levels: KeyVolumeLevel[],
-  diagnostics: KeyVolumeDiagnostics,
-  params: KeyVolumeParams,
-): KeyVolumeEntryPlan[] {
-  const confirm = aggregate(base, params.confirmTf, params.baseTf);
-  const daily = aggregate(base, params.dailyTf, params.baseTf);
-  const weekly = aggregate(base, params.weeklyTf, params.baseTf);
-  const atr15 = atrSeriesForward(confirm);
-  const swings = findSwings(confirm, params.bosPivotLeft, params.bosPivotRight);
-  const used = new Set<string>();
-  const plans: KeyVolumeEntryPlan[] = [];
-  let setup: ConfirmationSetup | null = null;
-  const lastClosedBaseTime = base.length
-    ? base[base.length - 1].openTime + TF_MS[params.baseTf]
-    : 0;
-
-  for (let i = Math.max(params.sweepLookback, 1); i < confirm.length; i++) {
-    const closeTime = confirm[i].openTime + TF_MS[params.confirmTf];
-    if (closeTime > lastClosedBaseTime) break;
-    const bias = higherTimeframeBias(daily, weekly, closeTime, params);
-
-    if (setup) {
-      const expiredKey = !isKeyVolumeLevelActive(setup.key, closeTime);
-      if (
-        bias !== setup.direction
-        || expiredKey
-        || invalidatedByClose(confirm[i], setup.key, setup.direction)
-      ) {
-        used.add(setup.key.id);
-        setup = null;
-      }
-    }
-
-    if (!setup && bias) {
-      const confluence = selectConfluentTouch(
-        confirm[i],
-        closeTime,
-        bias,
-        atr15[i],
-        h1Levels,
-        h4Levels,
-        used,
-        params,
-      );
-      if (confluence) {
-        diagnostics.confluentTouches++;
-        setup = {
-          direction: bias,
-          key: confluence.key,
-          higherKey: confluence.higherKey,
-          touchIndex: i,
-          phase: "sweep",
-        };
-      }
-    }
-    if (!setup) continue;
-
-    if (setup.phase === "sweep") {
-      if (i - setup.touchIndex > params.sweepWaitBars) {
-        used.add(setup.key.id);
-        setup = null;
-        continue;
-      }
-      if (!sweptAndReclaimed(confirm, i, setup.direction, params.sweepLookback)) continue;
-      setup.phase = "bos";
-      setup.sweepIndex = i;
-      diagnostics.sweeps++;
-      continue;
-    }
-
-    const sweepIndex = setup.sweepIndex!;
-    if (i - sweepIndex > params.bosExpiryBars) {
-      used.add(setup.key.id);
-      setup = null;
-      continue;
-    }
-
-    if (setup.firstBosIndex == null) {
-      const first = crossedSwing(
-        confirm,
-        swings,
-        i,
-        setup.direction,
-        (swing) =>
-          swing.index <= sweepIndex
-          && swing.index >= sweepIndex - params.bosSwingLookback,
-      );
-      if (!first) continue;
-      setup.firstBosIndex = i;
-      diagnostics.firstBos++;
-      continue;
-    }
-
-    const second = crossedSwing(
-      confirm,
-      swings,
-      i,
-      setup.direction,
-      (swing) => swing.index > setup!.firstBosIndex!,
-    );
-    if (!second) continue;
-    diagnostics.secondBos++;
-
-    const sweepStart = lowerBoundTime(base, confirm[sweepIndex].openTime);
-    const bosClose = confirm[i].openTime + TF_MS[params.confirmTf];
-    const afterBos = lowerBoundTime(base, bosClose);
-    const bosEnd = afterBos - 1;
-    const tolerance = params.keyTouchAtr * atr15[i];
-    const ob = findEntryOrderBlock(
-      base,
-      sweepStart,
-      bosEnd,
-      setup.direction,
-      setup.key,
-      tolerance,
-    );
-    const hvnEdge = approximateHvnEdge(
-      base,
-      sweepStart,
-      bosEnd,
-      setup.direction,
-      params.profileBins,
-      params.hvnThreshold,
-    );
-    const profileAligned = ob != null
-      && hvnEdge != null
-      && hvnEdge >= ob.low - params.profileEdgeAtr * atr15[i]
-      && hvnEdge <= ob.high + params.profileEdgeAtr * atr15[i];
-
-    used.add(setup.key.id);
-    if (ob && hvnEdge != null && profileAligned && afterBos < base.length) {
-      diagnostics.profileAccepted++;
-      plans.push({
-        id: `${setup.key.id}:${confirm[i].openTime}`,
-        model: "document-v1",
-        direction: setup.direction,
-        readyIndex: afterBos,
-        expiresIndex: Math.min(base.length - 1, afterBos + params.entryExpiryBars),
-        key: setup.key,
-        higherKey: setup.higherKey,
-        obLow: ob.low,
-        obHigh: ob.high,
-        hvnEdge,
-        score: setup.key.volumeRatio + setup.higherKey.volumeRatio,
-      });
-    }
-    setup = null;
-  }
-
-  diagnostics.plans = plans.length;
-  return plans;
-}
-
-function buildEntryPlans(
-  base: Candle[],
-  h1Levels: KeyVolumeLevel[],
-  h4Levels: KeyVolumeLevel[],
-  diagnostics: KeyVolumeDiagnostics,
-  params: KeyVolumeParams,
-): KeyVolumeEntryPlan[] {
-  return params.entryModel === "volume-retest"
-    ? buildVolumeRetestPlans(base, h1Levels, h4Levels, diagnostics, params)
-    : buildDocumentEntryPlans(base, h1Levels, h4Levels, diagnostics, params);
-}
-
-function entryCandleMatches(
-  candle: Candle,
-  plan: KeyVolumeEntryPlan,
-  atr: number,
-  params: KeyVolumeParams,
-): boolean {
-  if (plan.enterNextOpen) return true;
-  if (plan.hvnEdge == null) return false;
-  const touchesOb = candle.low <= plan.obHigh && candle.high >= plan.obLow;
-  const touchesHvn = candle.low <= plan.hvnEdge + params.profileEdgeAtr * atr
-    && candle.high >= plan.hvnEdge - params.profileEdgeAtr * atr;
-  const middle = (plan.obLow + plan.obHigh) / 2;
-  const rejects = plan.direction === "long"
-    ? candle.close > candle.open && candle.close >= middle
-    : candle.close < candle.open && candle.close <= middle;
-  return touchesOb && touchesHvn && rejects;
-}
-
+/** Key gần nhất nằm bên kia entry — vùng cấu trúc đối diện để đo dư địa và TP. */
 function nearestOpposingTarget(
   levels: KeyVolumeLevel[],
   time: number,
   direction: KeyVolumeDirection,
   entry: number,
-  sourceTfs?: KeyVolumeSourceTf[],
-  beyond?: number,
 ): number | null {
   const candidates = levels
     .filter((level) =>
-      level.direction !== direction
-      && isKeyVolumeLevelActive(level, time)
-      && (!sourceTfs || sourceTfs.includes(level.sourceTf))
-      && (direction === "long" ? level.price > entry : level.price < entry)
-      && (beyond == null || (direction === "long" ? level.price > beyond : level.price < beyond))
-    )
+      isKeyVolumeLevelActive(level, time)
+      && (direction === "long" ? level.price > entry : level.price < entry))
     .map((level) => level.price)
     .sort((a, b) => direction === "long" ? a - b : b - a);
   return candidates[0] ?? null;
+}
+
+/**
+ * Mục tiêu cấu trúc của một kế hoạch, tuỳ nhánh. Nhánh quét đã chốt cụm thanh
+ * khoản đối diện ngay lúc bóp cò; nhánh 2 tra key đối diện tại giá vào. Cả hai
+ * đều phải nằm ĐÚNG PHÍA trước mặt — `sweepTarget` chốt từ trước nên vẫn phải
+ * kiểm lại, nến vào lệnh có thể đã nhảy qua nó.
+ */
+function planTarget(
+  plan: KeyVolumeEntryPlan,
+  levels: KeyVolumeLevel[],
+  time: number,
+  entry: number,
+): number | null {
+  const price = plan.branch === "sweep-reclaim"
+    ? plan.sweepTarget
+    : nearestOpposingTarget(levels, time, plan.direction, entry);
+  if (price == null) return null;
+  const ahead = plan.direction === "long" ? price > entry : price < entry;
+  return ahead ? price : null;
 }
 
 export function resolveTargetR(
@@ -1501,25 +1198,9 @@ function tradeCostR(
   return (feeFraction + fundingFraction) / riskFraction;
 }
 
-export function hasShortHigherLowPressure(
-  candles: Candle[],
-  index: number,
-  direction: KeyVolumeDirection,
-  bars: number,
-): boolean {
-  // Tài liệu chỉ phát biểu rule này cho SHORT: higher-low liên tiếp đang dồn giá lên.
-  // Không tự đối xứng hoá sang LONG vì đó sẽ là một luật mới chưa được đặc tả.
-  if (direction !== "short" || bars < 2 || index < bars - 1) return false;
-  const start = index - bars + 1;
-  for (let i = start + 1; i <= index; i++) {
-    if (candles[i].low <= candles[i - 1].low) return false;
-  }
-  return true;
-}
-
 function finishTrade(
   symbol: string,
-  base: Candle[],
+  confirm: Candle[],
   position: OpenPosition,
   exitIndex: number,
   exitPrice: number,
@@ -1530,15 +1211,17 @@ function finishTrade(
     ? (exitPrice - position.entry) / position.risk
     : (position.entry - exitPrice) / position.risk;
   const grossR = position.realizedR + position.remaining * finalR;
-  const entryTime = base[position.entryIndex].openTime;
-  const exitTime = base[exitIndex].openTime;
+  const entryTime = confirm[position.entryIndex].openTime;
+  const exitTime = confirm[exitIndex].openTime;
   const partialTime = position.partialIndex == null
     ? undefined
-    : base[position.partialIndex].openTime;
+    : confirm[position.partialIndex].openTime;
   const costR = tradeCostR(position.entry, position.initialStop, entryTime, exitTime, partialTime);
   return {
     symbol,
+    planId: position.plan.id,
     dir: direction,
+    branch: position.plan.branch,
     entryTime,
     entryPrice: position.entry,
     initialSL: position.initialStop,
@@ -1551,25 +1234,37 @@ function finishTrade(
     netR: grossR - costR,
     holdBars: exitIndex - position.entryIndex,
     partialTaken: position.partialIndex != null,
-    keyPrice: position.plan.key.price,
-    keyVolumeRatio: position.plan.key.volumeRatio,
-    higherVolumeRatio: position.plan.higherKey?.volumeRatio,
+    keyPrice: position.plan.key?.price ?? null,
+    keyVolumeRatio: position.plan.key?.volumeRatio ?? null,
     triggerVolumeRatio: position.plan.triggerVolumeRatio,
-    model: position.plan.model,
   };
+}
+
+/**
+ * Hộp đang canh retest đã chết chưa. Đúng hai cách: giá ĐÓNG xuyên qua hộp
+ * ngược chiều lệnh, hoặc key sinh ra nó hết hiệu lực / bị đóng xuyên.
+ */
+function boxIsDead(plan: KeyVolumeEntryPlan, candle: Candle): boolean {
+  const brokenAgainst = plan.direction === "long"
+    ? candle.close < plan.obLow
+    : candle.close > plan.obHigh;
+  if (brokenAgainst) return true;
+  return plan.key != null
+    && (!isKeyVolumeLevelActive(plan.key, candle.openTime)
+      || invalidatedByClose(candle, plan.key, plan.direction));
 }
 
 function simulatePlans(
   symbol: string,
-  base: Candle[],
+  confirm: Candle[],
   plans: KeyVolumeEntryPlan[],
   levels: KeyVolumeLevel[],
   diagnostics: KeyVolumeDiagnostics,
   params: KeyVolumeParams,
 ): KeyVolumeTrade[] {
   const trades: KeyVolumeTrade[] = [];
-  const atr5 = atrSeriesForward(base);
-  const trailSwings = findSwings(base, params.bosPivotLeft, params.bosPivotRight);
+  const atr = atrSeriesForward(confirm);
+  const trailSwings = findSwings(confirm, params.swingPivotLeft, params.swingPivotRight);
   const swingsConfirmedAt = new Map<number, Swing[]>();
   for (const swing of trailSwings) {
     const values = swingsConfirmedAt.get(swing.confirmIndex) ?? [];
@@ -1579,13 +1274,14 @@ function simulatePlans(
   const consumed = new Set<string>();
   const keyOutcomes = new Map<string, {
     reason: KeyVolumeExitReason;
-    sweepExtreme?: number;
+    sweepExtreme: number;
   }>();
   let position: OpenPosition | null = null;
+  const armed: ArmedBox[] = [];
   let cooldownUntil = -1;
 
-  for (let i = 20; i < base.length; i++) {
-    const candle = base[i];
+  for (let i = 20; i < confirm.length; i++) {
+    const candle = confirm[i];
 
     if (position) {
       const held = i - position.entryIndex;
@@ -1595,6 +1291,7 @@ function simulatePlans(
       let exitPrice: number | null = null;
       let reason: KeyVolumeExitReason | null = null;
 
+      // Không còn M5 để biết cái nào chạm trước trong cùng một nến -> STOP thắng.
       if (stopHit) {
         exitPrice = position.stop;
         const isPositiveStop = direction === "long"
@@ -1626,14 +1323,27 @@ function simulatePlans(
             : Math.min(position.stop, position.entry);
         }
 
-        const entryInvalid = position.plan.model === "volume-retest"
+        // Ở `order-block`, SL ĐÃ nằm ngay ngoài chính mép này (obLow - đệm).
+        // Giữ thêm luật đóng-xuyên-thân sẽ luôn cắt trước SL vài phần nghìn giá,
+        // tức là luật thoát người dùng đặt ra KHÔNG BAO GIỜ chạy. Nên ở mode đó
+        // mép hộp chỉ còn một vai trò duy nhất: chỗ đặt SL.
+        //
+        // Ở các mode cũ, luật này chỉ có nghĩa với NHÁNH 2 nơi thân nến là một
+        // vùng thật. Nến quét-và-giành-lại có thân bé và giá vào nằm NGAY TRÊN
+        // biên thân đó nên luật chỉ bắt nhiễu: đo trên 250 ngày, 610 lệnh thoát
+        // kiểu này và 326 trong số đó chết trong đúng một nến M15.
+        const entryInvalid = params.stopMode !== "order-block"
+          && position.plan.branch !== "sweep-reclaim"
           && (direction === "long"
             ? candle.close < position.plan.obLow
             : candle.close > position.plan.obHigh);
         if (entryInvalid) {
           exitPrice = candle.close;
           reason = "entry-invalid";
-        } else if (invalidatedByClose(candle, position.plan.key, direction)) {
+        } else if (
+          position.plan.key
+          && invalidatedByClose(candle, position.plan.key, direction)
+        ) {
           exitPrice = candle.close;
           reason = "key-invalid";
         } else if (
@@ -1643,19 +1353,9 @@ function simulatePlans(
         ) {
           exitPrice = candle.close;
           reason = "no-follow-through";
-        } else if (
-          position.plan.model === "document-v1"
-          && held >= params.pressureBars
-          && hasShortHigherLowPressure(base, i, direction, params.pressureBars)
-        ) {
-          exitPrice = candle.close;
-          reason = "opposite-pressure";
-        } else if (held >= params.maxHoldBars) {
-          exitPrice = candle.close;
-          reason = "time";
         }
 
-        if (exitPrice == null && params.trailMode === "m5-swing") {
+        if (exitPrice == null && params.trailMode === "swing") {
           for (const swing of swingsConfirmedAt.get(i) ?? []) {
             if (swing.index <= position.entryIndex) continue;
             const favorableSwing = direction === "long"
@@ -1663,8 +1363,8 @@ function simulatePlans(
               : swing.type === "high" && swing.price < position.entry;
             if (!favorableSwing) continue;
             const candidate = direction === "long"
-              ? swing.price - params.stopBufferAtr * atr5[i]
-              : swing.price + params.stopBufferAtr * atr5[i];
+              ? swing.price - params.stopBufferAtr * atr[i]
+              : swing.price + params.stopBufferAtr * atr[i];
             const valid = direction === "long"
               ? candidate > position.entry && candidate < candle.close
               : candidate < position.entry && candidate > candle.close;
@@ -1677,60 +1377,132 @@ function simulatePlans(
       }
 
       if (exitPrice != null && reason) {
-        trades.push(finishTrade(symbol, base, position, i, exitPrice, reason));
-        keyOutcomes.set(position.plan.key.id, {
-          reason,
-          sweepExtreme: position.plan.structuralStop,
-        });
+        trades.push(finishTrade(symbol, confirm, position, i, exitPrice, reason));
+        // Luật vào-lại chỉ có nghĩa với nhánh dùng key; nhánh quét chỉ chịu cooldown.
+        if (position.plan.key) {
+          keyOutcomes.set(position.plan.key.id, {
+            reason,
+            sweepExtreme: position.plan.structuralStop,
+          });
+        }
         position = null;
         cooldownUntil = i + params.cooldownBars;
       }
       continue;
     }
 
-    if (i < cooldownUntil) continue;
-    const candidates = plans
-      .filter((plan) =>
-        !consumed.has(plan.id)
-        && plan.readyIndex <= i
-        && i <= plan.expiresIndex
-        && isKeyVolumeLevelActive(
-          plan.key,
-          plan.enterNextOpen ? candle.openTime : candle.openTime + TF_MS[params.baseTf],
-        )
-        && (() => {
-          const previous = keyOutcomes.get(plan.key.id);
-          if (!previous) return true;
-          return canReenterKey(
+    // ── DỌN các hộp đã chết ──────────────────────────────────────────────
+    // Ba cách chết, đếm riêng vì chúng nói hai chuyện khác nhau: BỊ PHÁ là luận
+    // điểm sai, HẾT HẠN là giá không bao giờ về.
+    for (let k = armed.length - 1; k >= 0; k--) {
+      if (boxIsDead(armed[k].plan, candle)) {
+        diagnostics.boxesBroken++;
+        armed.splice(k, 1);
+      } else if (i >= armed[k].expiresAtIndex) {
+        diagnostics.boxesExpired++;
+        armed.splice(k, 1);
+      }
+    }
+
+    // ── TRANG BỊ mọi hộp vừa qua cửa rời hộp ─────────────────────────────
+    // CANH nhiều hộp cùng lúc, nhưng chỉ GIỮ một vị thế. Luật cũ chỉ giữ một
+    // lệnh chờ vì lệnh đó sống đúng 4 nến, nên "một lệnh chờ" xấp xỉ "một vị
+    // thế". Hộp retest sống tới khi bị phá — trung bình cả chục ngày — nên nếu
+    // vẫn giữ một chỗ canh thì một hộp sẽ ngồi chiếm slot và nuốt gần hết setup
+    // còn lại. Ràng buộc "một thời điểm một lệnh" nằm ở tầng vị thế, không phải
+    // ở tầng canh hộp.
+    for (const plan of plans) {
+      if (plan.readyIndex !== i || consumed.has(plan.id)) continue;
+      if (plan.key) {
+        if (!isKeyVolumeLevelActive(plan.key, candle.openTime)) continue;
+        const previous = keyOutcomes.get(plan.key.id);
+        if (
+          previous
+          && !canReenterKey(
             plan.direction,
             plan.structuralStop,
             previous.reason,
             previous.sweepExtreme,
             params.allowKeyReentry,
             params.reentryMode,
-          );
-        })()
-        && entryCandleMatches(candle, plan, atr5[i], params),
-      )
-      .sort((a, b) => b.score - a.score);
-    const plan = candidates[0];
-    if (!plan) continue;
-    consumed.add(plan.id);
+          )
+        ) continue;
+      }
+      consumed.add(plan.id);
+      // Hộp VỪA trang bị cũng phải qua đúng phép chấm trên: `readyIndex` là cây
+      // đầu tiên cửa rời hộp KHÔNG phủ, nên nó hoàn toàn có thể là cây đóng
+      // xuyên qua hộp. Hộp chết ngay khi sinh không được tính là "đã quay lại".
+      diagnostics.boxesArmed++;
+      if (boxIsDead(plan, candle)) diagnostics.boxesBroken++;
+      else {
+        armed.push({
+          plan,
+          retouched: false,
+          // Cây trang bị TÍNH LÀ một nến canh, nên hộp còn sống hết cây
+          // `i + boxWaitBars - 1` và hết hạn ở cây kế tiếp.
+          expiresAtIndex: i + Math.max(1, params.boxWaitBars),
+        });
+      }
+    }
 
-    const entry = plan.enterNextOpen ? candle.open : candle.close;
-    // Entry `next open` chỉ được dùng ATR của cây đã đóng trước đó. Dùng ATR của chính cây entry
-    // sẽ nhìn trước toàn bộ high/low của cây 5 phút để quyết định khoảng stop.
-    const entryAtr = atr5[plan.enterNextOpen ? Math.max(0, i - 1) : i];
-    const fallbackStop = plan.direction === "long"
-      ? Math.min(plan.obLow, plan.key.zoneLow)
-      : Math.max(plan.obHigh, plan.key.zoneHigh);
-    const modeStop = params.stopMode === "confirmation"
-      ? plan.patternStop
-      : params.stopMode === "key"
-        ? (plan.direction === "long" ? plan.key.zoneLow : plan.key.zoneHigh)
-        : plan.structuralStop;
-    const stopReference = modeStop ?? plan.structuralStop ?? fallbackStop;
-    const stop = plan.direction === "long"
+    // ── QUAY LẠI HỘP rồi BẬT RA: điều kiện vào lệnh duy nhất ─────────────
+    // Hai bước tách rời, và bước hai KHÔNG được rơi vào cùng cây nến với bước
+    // một: phải thấy giá quay về hộp trước đã, rồi mới tính tới nến xác nhận.
+    // Mọi hộp đều được cập nhật ở đây, kể cả khi cooldown đang chặn vào lệnh —
+    // cờ "đã quay lại" là chuyện của giá, không phải chuyện của sổ lệnh.
+    let confirmed: ArmedBox | null = null;
+    for (const box of armed) {
+      const dir = box.plan.direction;
+      const touchesBox = candle.low <= box.plan.obHigh && candle.high >= box.plan.obLow;
+      if (!box.retouched) {
+        if (touchesBox) {
+          box.retouched = true;
+          diagnostics.boxesRetouched++;
+        }
+        continue;
+      }
+      // Nến xác nhận phải đủ BA thứ:
+      //   1. còn dính hộp — chỉ bật ra được khỏi cái hộp mình đang ở trong.
+      //      Thiếu điều kiện này thì cờ `retouched` treo mãi và một nến xanh
+      //      cách hộp rất xa vẫn bóp cò, cho ra giá vào vô nghĩa và R khổng lồ.
+      //   2. đúng màu thuận chiều lệnh (long: xanh, short: đỏ),
+      //   3. ĐÓNG CỬA ra ngoài hộp đúng chiều — nến xanh mà vẫn đóng trong hộp
+      //      thì hộp chưa đẩy được giá đi, chưa vào.
+      const rightColour = dir === "long"
+        ? candle.close > candle.open
+        : candle.close < candle.open;
+      const closedOutside = dir === "long"
+        ? candle.close > box.plan.obHigh
+        : candle.close < box.plan.obLow;
+      if (!touchesBox || !rightColour || !closedOutside) continue;
+      // Nhiều hộp cùng bật ra trên một cây: lấy hộp có score cao nhất.
+      if (!confirmed || box.plan.score > confirmed.plan.score) confirmed = box;
+    }
+
+    if (!confirmed || i < cooldownUntil) continue;
+
+    // ── Giá vào chỉ biết được Ở ĐÂY, nên mọi cửa cũng chấm ở đây ─────────
+    // Vào ở GIÁ ĐÓNG nến xác nhận. Nến này đã đóng trọn vẹn nên dùng ATR của
+    // chính nó KHÔNG phải nhìn trước — khác hẳn luật lệnh chờ cũ, nơi lệnh đặt
+    // và khớp có thể rơi vào cùng một cây.
+    const plan = confirmed.plan;
+    const dir = plan.direction;
+    const key = plan.key;
+    const entry = candle.close;
+    const entryAtr = atr[i];
+    // "order-block": vào bằng nến bật ra khỏi hộp thì thoát ngay ngoài mép KIA
+    // của chính hộp đó — luật duy nhất áp cho CẢ HAI nhánh. Ba mode còn lại là
+    // luật cũ giữ để ablation, và ở đó nhánh quét quay về SL ngoài râu quét.
+    const stopReference = params.stopMode === "order-block"
+      ? (dir === "long" ? plan.obLow : plan.obHigh)
+      : plan.branch === "sweep-reclaim" || !key
+        ? plan.structuralStop
+        : params.stopMode === "confirmation"
+          ? plan.patternStop
+          : params.stopMode === "key"
+            ? (dir === "long" ? key.zoneLow : key.zoneHigh)
+            : plan.structuralStop;
+    const stop = dir === "long"
       ? stopReference - params.stopBufferAtr * entryAtr
       : stopReference + params.stopBufferAtr * entryAtr;
     const risk = Math.abs(entry - stop);
@@ -1738,37 +1510,19 @@ function simulatePlans(
     if (
       !(risk > 0)
       || riskFraction > params.maxStopPct
-      || (plan.direction === "long" ? stop <= 0 || stop >= entry : stop <= entry)
+      || (dir === "long" ? stop <= 0 || stop >= entry : stop <= entry)
     ) {
       diagnostics.rejectedRisk++;
       continue;
     }
-
-    const opposing = nearestOpposingTarget(
-      levels,
-      plan.enterNextOpen ? candle.openTime : candle.openTime + TF_MS[params.baseTf],
-      plan.direction,
-      entry,
-      params.targetSourceTfs,
-    );
-    const opposingR = opposing == null
-      ? Infinity
-      : Math.abs(opposing - entry) / risk;
-    if (opposing == null && params.requireStructuralTarget) {
-      diagnostics.rejectedRoom++;
-      continue;
-    }
-    if (opposingR < params.minRR) {
+    const opposing = planTarget(plan, levels, candle.openTime, entry);
+    const opposingR = opposing == null ? Infinity : Math.abs(opposing - entry) / risk;
+    if ((opposing == null && params.requireStructuralTarget) || opposingR < params.minRR) {
       diagnostics.rejectedRoom++;
       continue;
     }
     const targetR = resolveTargetR(opposing == null ? null : opposingR, params);
-    const target = plan.direction === "long"
-      ? entry + targetR * risk
-      : entry - targetR * risk;
-    const partialPrice = plan.direction === "long"
-      ? entry + params.partialAtR * risk
-      : entry - params.partialAtR * risk;
+    const target = dir === "long" ? entry + targetR * risk : entry - targetR * risk;
 
     position = {
       plan,
@@ -1778,27 +1532,36 @@ function simulatePlans(
       stop,
       target,
       risk,
-      partialPrice,
+      partialPrice: dir === "long"
+        ? entry + params.partialAtR * risk
+        : entry - params.partialAtR * risk,
       partialR: params.partialAtR,
       remaining: 1,
       realizedR: 0,
       maxFavorable: 0,
     };
+    armed.splice(armed.indexOf(confirmed), 1);
     diagnostics.entries++;
-    // Với entry tại đầu cây hiện tại, chính cây này là năm phút rủi ro đầu tiên của lệnh. Chạy lại
-    // cùng index qua nhánh quản lý vị thế; nếu không backtest sẽ bỏ qua SL/TP ngay sau entry.
-    if (plan.enterNextOpen) i--;
+    // KHÔNG chạy lại cây này qua nhánh quản lý vị thế. Giá vào là giá ĐÓNG của
+    // chính nó, nên 15 phút rủi ro đầu tiên là cây KẾ TIẾP; chấm SL/TP trên
+    // high/low của cây đã đóng rồi mới vào là nhìn trước quá khứ của chính mình.
   }
+
+  diagnostics.boxesUnresolved += armed.length;
 
   return trades;
 }
 
+/**
+ * `candles` phải là nến M15 ĐÃ ĐÓNG. Engine không gộp khung nữa — người gọi tự
+ * lo dữ liệu đúng khung, và tự cắt cây cuối chưa đóng.
+ */
 export function runKeyVolume(
   symbol: string,
-  baseCandles: Candle[],
+  candles: Candle[],
   params: KeyVolumeParams = KEY_VOLUME_CONFIG,
 ): KeyVolumeResult {
-  const base = baseCandles
+  const confirm = candles
     .filter((candle) =>
       Number.isFinite(candle.open)
       && Number.isFinite(candle.high)
@@ -1807,36 +1570,32 @@ export function runKeyVolume(
       && candle.high >= candle.low,
     )
     .sort((a, b) => a.openTime - b.openTime);
-  const keyCandles = aggregate(base, params.keyTf, params.baseTf);
-  const confluenceCandles = aggregate(base, params.confluenceTf, params.baseTf);
-  const targetCandles = aggregate(base, params.confirmTf, params.baseTf);
-  const h1Levels = detectKeyVolumeLevels(keyCandles, params.keyTf, params);
-  const h4Levels = detectKeyVolumeLevels(confluenceCandles, params.confluenceTf, params);
-  const m15Levels = detectKeyVolumeLevels(targetCandles, params.confirmTf, params);
+  const levels = detectKeyVolumeLevels(confirm, params.confirmTf, params);
   const diagnostics: KeyVolumeDiagnostics = {
-    m15Levels: new Set(m15Levels.map((level) => level.eventTime)).size,
-    h1Levels: new Set(h1Levels.map((level) => level.eventTime)).size,
-    h4Levels: new Set(h4Levels.map((level) => level.eventTime)).size,
-    confluentTouches: 0,
+    m15Levels: levels.length,
+    keyTouches: 0,
     touchVolumeConfirmed: 0,
     sweeps: 0,
-    firstBos: 0,
-    secondBos: 0,
     candlePatterns: 0,
-    profileAccepted: 0,
+    rejectedKeyOutsideBlock: 0,
+    rejectedNoDeparture: 0,
     plans: 0,
+    sweepBranchPlans: 0,
+    volumeBranchPlans: 0,
     entries: 0,
+    rejectedDepart: 0,
+    boxesArmed: 0,
+    boxesRetouched: 0,
+    boxesBroken: 0,
+    boxesExpired: 0,
+    boxesUnresolved: 0,
     rejectedRisk: 0,
     rejectedRoom: 0,
     rejectedFirstTouch: 0,
-    rejectedDailyTrap: 0,
     rejectedDouble: 0,
     rejectedSession: 0,
   };
-  const plans = buildEntryPlans(base, h1Levels, h4Levels, diagnostics, params);
-  const levels = params.entryModel === "volume-retest"
-    ? [...m15Levels, ...h1Levels, ...h4Levels]
-    : [...h1Levels, ...h4Levels];
-  const trades = simulatePlans(symbol, base, plans, levels, diagnostics, params);
+  const plans = buildEntryPlans(confirm, levels, diagnostics, params);
+  const trades = simulatePlans(symbol, confirm, plans, levels, diagnostics, params);
   return { trades, plans, levels, diagnostics };
 }

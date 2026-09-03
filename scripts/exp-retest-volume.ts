@@ -32,14 +32,19 @@
  * Run: ./node_modules/.bin/ts-node scripts/exp-retest-volume.ts [days]
  */
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
-import { TF_MS } from "../strategy";
+import { TF_MS, aggregate } from "../strategy";
 import { KEY_VOLUME_CONFIG, KeyVolumeParams, runKeyVolume } from "../key-volume";
 
 const SYMBOLS = ["btcusdt", "solusdt", "xrpusdt", "dogeusdt"];
 
-/** Bàn thử sạch — xem khối chú thích đầu file. */
+/**
+ * Bàn thử sạch — xem khối chú thích đầu file.
+ *
+ * ⚠️ HỎNG TỪ 01/09/2026: key-volume.ts bỏ `targetSourceTfs` khi rút về M15+M5, nên mẹo
+ * "không có level đối diện ⇒ target 5R cố định" KHÔNG còn hiệu lực. Chạy lại script này
+ * bây giờ là đo một bàn thử KHÁC (target theo key M15 đối diện), không tái lập được số cũ.
+ */
 const CLEAN: Partial<KeyVolumeParams> = {
-  targetSourceTfs: [],
   requireStructuralTarget: false,
   minRR: 0,
 };
@@ -62,7 +67,7 @@ async function main() {
   const bars = Math.ceil((days * TF_MS["1d"]) / TF_MS["5m"]) + 5000;
   const data = new Map<string, Awaited<ReturnType<typeof fetchFuturesKlinesPaged>>>();
   for (const s of SYMBOLS) {
-    const c = await fetchFuturesKlinesPaged(s, "5m", bars);
+    const c = aggregate(await fetchFuturesKlinesPaged(s, "5m", bars), "15m", "5m");
     if (c.length > 10000) data.set(s, c);
   }
   const span = [...data.values()].reduce((mx, c) => Math.max(mx, c[c.length - 1].openTime - c[0].openTime), 0);

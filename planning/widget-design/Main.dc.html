@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --canvas: #080b0e;
+      --surface: #0d1115;
+      --border: #242b31;
+      --text: #eef2f1;
+      --text-soft: #adb8b5;
+      --muted: #6f7b79;
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 329px;
+      height: 345px;
+      margin: 0;
+      overflow: hidden;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+    }
+    a { color: var(--blue); }
+    a:hover { color: #8bc0ff; }
+  </style>
+</helmet>
+
+<div style="display: flex; width: 329px; height: 345px; flex-direction: column; padding: 16px 16px 15px; border-radius: 20px; background: linear-gradient(180deg, #101519 0%, #0a0e12 42%, #080b0e 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), inset 0 0 0 1px rgba(255, 255, 255, 0.028);">
+
+  <div style="display: flex; align-items: center; gap: 7px;">
+    <span style="width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: #4ee2a1; box-shadow: 0 0 0 3px rgba(78, 226, 161, 0.14);"></span>
+    <span style="color: #4ee2a1; font: 620 10px/1 var(--sans); letter-spacing: 0.02em;">Đang chạy</span>
+    <span style="color: #4c5654; font: 500 10px/1 var(--sans);">·</span>
+    <span style="color: var(--muted); font: 500 10px/1 var(--sans);">2 phút trước</span>
+    <span style="flex: 1;"></span>
+    <span style="color: #55605e; font: 550 9px/1 var(--sans); letter-spacing: 0.07em;">2 SÀN</span>
+  </div>
+
+  <div style="margin-top: 13px;">
+    <div style="color: var(--text); font: 300 34px/1 var(--mono); letter-spacing: -0.024em;">$513,11</div>
+    <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 7px;">
+      <span style="color: var(--green); font: 600 13px/1 var(--mono);">+$6,24</span>
+      <span style="color: var(--green); font: 600 13px/1 var(--mono);">+1,23%</span>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans);">hôm nay</span>
+    </div>
+  </div>
+
+  <div style="height: 1px; margin: 16px 0 13px; background: var(--border);"></div>
+
+  <div style="display: flex; flex: 1; flex-direction: column; justify-content: flex-start; gap: 15px;">
+
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="padding: 3px 6px; border-radius: 3px; background: rgba(243, 186, 99, 0.11); color: var(--amber); font: 700 9px/1 var(--sans); letter-spacing: 0.09em;">BINANCE</span>
+        <span style="flex: 1;"></span>
+        <span style="color: var(--text-soft); font: 550 11px/1 var(--mono);">$192,68</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 7px; margin-top: 11px;">
+        <span style="color: var(--text); font: 650 13px/1 var(--mono); letter-spacing: 0.01em;">SOL</span>
+        <span style="padding: 3px 5px; border-radius: 3px; background: rgba(78, 226, 161, 0.12); color: var(--green); font: 700 9px/1 var(--sans); letter-spacing: 0.08em;">LONG</span>
+        <span style="color: var(--muted); font: 500 10px/1 var(--sans);">2 unit · 2 ngày</span>
+        <span style="flex: 1;"></span>
+        <span style="color: var(--green); font: 620 14px/1 var(--mono);">+1,00 R</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 9px; margin-top: 9px;">
+        <div style="position: relative; height: 4px; flex: 1; border-radius: 2px; background: rgba(255, 255, 255, 0.065); overflow: hidden;">
+          <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 58%; border-radius: 2px; background: var(--green);"></div>
+        </div>
+        <span style="color: var(--muted); font: 500 10px/1 var(--sans); white-space: nowrap;">cách stop 4,2%</span>
+        <span style="color: var(--text-soft); font: 550 10px/1 var(--mono);">+$1,93</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="padding: 3px 6px; border-radius: 3px; background: rgba(101, 169, 255, 0.12); color: var(--blue); font: 700 9px/1 var(--sans); letter-spacing: 0.09em;">MEXC</span>
+        <span style="flex: 1;"></span>
+        <span style="color: var(--text-soft); font: 550 11px/1 var(--mono);">$320,43</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 7px; margin-top: 11px;">
+        <span style="color: var(--text); font: 650 13px/1 var(--mono); letter-spacing: 0.01em;">DOT</span>
+        <span style="padding: 3px 5px; border-radius: 3px; background: rgba(255, 107, 112, 0.12); color: var(--red); font: 700 9px/1 var(--sans); letter-spacing: 0.08em;">SHORT</span>
+        <span style="color: var(--muted); font: 500 10px/1 var(--sans);">2 unit · 5 ngày</span>
+        <span style="flex: 1;"></span>
+        <span style="color: var(--green); font: 620 14px/1 var(--mono);">+0,57 R</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 9px; margin-top: 9px;">
+        <div style="position: relative; height: 4px; flex: 1; border-radius: 2px; background: rgba(255, 255, 255, 0.065); overflow: hidden;">
+          <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 47%; border-radius: 2px; background: var(--green);"></div>
+        </div>
+        <span style="color: var(--muted); font: 500 10px/1 var(--sans); white-space: nowrap;">cách stop 5,3%</span>
+        <span style="color: var(--text-soft); font: 550 10px/1 var(--mono);">+$1,83</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="height: 1px; margin: 13px 0 11px; background: var(--border);"></div>
+
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span style="color: var(--muted); font: 500 10px/1 var(--sans); white-space: nowrap;">Risk đang mở</span>
+    <div style="position: relative; height: 4px; flex: 1; border-radius: 2px; background: rgba(255, 255, 255, 0.065); overflow: hidden;">
+      <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 90%; border-radius: 2px; background: var(--text-soft);"></div>
+    </div>
+    <span style="color: var(--text-soft); font: 620 11px/1 var(--mono);">2,0%</span>
+    <span style="color: #4c5654; font: 500 10px/1 var(--sans);">/ 20%</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

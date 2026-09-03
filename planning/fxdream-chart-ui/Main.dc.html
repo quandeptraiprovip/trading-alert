@@ -1,0 +1,795 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    .app {
+      --canvas: #080b0e; --surface: #0d1115; --raised: #12171c; --soft: #151b20;
+      --border: #242b31; --border-strong: #303940;
+      --text: #eef2f1; --soft-text: #adb8b5; --muted: #6f7b79;
+      --green: #4ee2a1; --red: #ff6b70; --blue: #65a9ff; --amber: #f3ba63;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, sans-serif;
+    }
+    .app, .app * { box-sizing: border-box; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { color: #9cc8ff; }
+    .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .ico-sm { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    .railbtn { display: grid; width: 100%; height: 40px; place-items: center; border: 0; background: transparent; color: #55605e; cursor: pointer; }
+    .railbtn.on { background: #12171c; color: var(--blue); box-shadow: inset 2px 0 var(--blue); }
+
+    .card { position: relative; display: block; width: 100%; padding: 9px 10px 10px; border: 1px solid var(--border); border-left: 2px solid var(--border-strong); border-radius: 5px; background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .card:hover { border-color: var(--border-strong); background: #101519; }
+    .card.on { border-color: rgba(101,169,255,.55); border-left-color: var(--blue); background: #101720; }
+    .card.long { border-left-color: rgba(78,226,161,.75); }
+    .card.short { border-left-color: rgba(255,107,112,.75); }
+    .card.on.long { border-left-color: var(--green); }
+    .card.on.short { border-left-color: var(--red); }
+    .card-top { display: flex; align-items: center; gap: 7px; }
+    .side { display: inline-flex; align-items: center; gap: 4px; font: 800 12px/1 var(--sans); letter-spacing: .04em; }
+    .tag { padding: 2px 5px; border-radius: 3px; font: 700 9px/1.35 var(--sans); letter-spacing: .04em; white-space: nowrap; }
+    .rchip { margin-left: auto; padding: 2px 6px; border-radius: 3px; font: 700 13px/1.25 var(--mono); }
+    .card-when { margin: 5px 0 0; color: var(--muted); font: 500 10px/1.4 var(--mono); }
+    .card-key { display: flex; align-items: center; gap: 5px; margin: 0; color: var(--soft-text); font: 500 10px/1.5 var(--mono); }
+    .card-exit { margin: 3px 0 0; color: var(--soft-text); font: 600 10px/1.4 var(--sans); }
+    .dots { display: flex; align-items: center; gap: 3px; margin-top: 7px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .dot.p { background: var(--green); }
+    .dot.f { background: var(--red); }
+    .dots span { margin-left: 3px; color: var(--muted); font: 600 9px/1 var(--sans); }
+
+    .evirow { display: block; width: 100%; padding: 7px 9px; border: 0; border-bottom: 1px solid rgba(36,43,49,.7); background: transparent; color: inherit; font: inherit; text-align: left; cursor: default; }
+    .evirow:hover { background: #101519; }
+    .evirow-top { display: flex; align-items: baseline; gap: 6px; }
+    .evi-mark { flex: 0 0 auto; width: 13px; height: 13px; border-radius: 3px; font: 800 9px/13px var(--sans); text-align: center; }
+    .evi-mark.p { background: rgba(78,226,161,.16); color: var(--green); }
+    .evi-mark.f { background: rgba(255,107,112,.16); color: var(--red); }
+    .evi-label { color: var(--text); font: 650 11px/1.35 var(--sans); }
+    .evi-val { margin: 3px 0 0 19px; color: var(--soft-text); font: 500 10px/1.5 var(--mono); }
+    .evi-thr { display: inline-block; margin: 4px 0 0 19px; padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; color: var(--muted); font: 600 9px/1.5 var(--mono); }
+
+    .stage { display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 4px 5px 3px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    .stage:hover { background: #101519; }
+    .stage.on { border-color: rgba(101,169,255,.45); background: #101720; }
+    .stage b { color: var(--text); font: 700 11px/1 var(--mono); }
+    .stage span { color: var(--muted); font: 600 8px/1.25 var(--sans); letter-spacing: .02em; }
+    .stage i { display: block; height: 3px; border-radius: 2px; background: var(--blue); opacity: .55; }
+    .stage u { display: block; color: #4e5a58; font: 700 7px/1.3 var(--sans); letter-spacing: .03em; text-decoration: none; }
+    .stage u.both { color: var(--amber); }
+    .stage.on i, .stage:hover i { opacity: 1; }
+    .stage.fin i { background: var(--green); }
+    .stage.fin b { color: var(--green); }
+
+    .lay { display: flex; align-items: center; gap: 7px; width: 100%; padding: 5px 7px; border: 0; border-radius: 4px; background: transparent; color: var(--soft-text); font: 600 10px/1.4 var(--sans); text-align: left; cursor: pointer; }
+    .lay:hover { background: var(--soft); color: var(--text); }
+    .lay-sw { flex: 0 0 auto; width: 20px; height: 12px; padding: 2px; border-radius: 7px; background: #2a3238; }
+    .lay-sw i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #6f7b79; transform: translateX(0); }
+    .lay.on .lay-sw { background: rgba(101,169,255,.35); }
+    .lay.on .lay-sw i { background: var(--blue); transform: translateX(8px); }
+    .lay-key { margin-left: auto; color: var(--muted); font: 600 9px/1 var(--mono); }
+
+    .seg { padding: 4px 9px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font: 650 10px/1.3 var(--sans); cursor: pointer; }
+    .seg:hover { color: var(--text); }
+    .seg.on { background: var(--soft); color: var(--blue); box-shadow: inset 0 -2px var(--blue); }
+
+    .ghost { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--soft-text); font: 650 10px/1.3 var(--sans); cursor: pointer; }
+    .ghost:hover { border-color: var(--border-strong); color: var(--text); }
+    .ghost.on { border-color: rgba(101,169,255,.5); color: var(--blue); }
+  </style>
+</helmet>
+
+<div class="app" style="display: grid; grid-template-columns: 46px minmax(0, 1fr); width: 1440px; height: 900px; overflow: hidden; background: #080b0e; color: #eef2f1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif, sans-serif; font-size: 12px;">
+
+  <nav style="display: flex; flex-direction: column; align-items: center; border-right: 1px solid #242b31; background: #0a0e11;">
+    <div style="display: grid; width: 100%; height: 52px; place-items: center; border-bottom: 1px solid #242b31; color: #4ee2a1;">
+      <svg viewBox="0 0 28 28" style="width: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round;"><path d="M14 2.5 24 8.2v11.6L14 25.5 4 19.8V8.2L14 2.5Z" /><path d="m10.3 9.1 7.8 9.8m-.2-9.8-7.8 9.8" /></svg>
+    </div>
+    <button class="railbtn on" type="button" title="Biểu đồ FX Dream">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M3 16h18M6 16V9m4 7V6m4 10v-4m4 4v-8" /></svg>
+    </button>
+    <button class="railbtn" type="button" title="Phễu lọc">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>
+    </button>
+    <button class="railbtn" type="button" title="Chấm key">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
+    </button>
+    <button class="railbtn" type="button" title="Nhật ký">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6m-6 4h6m-6 4h4" /></svg>
+    </button>
+  </nav>
+
+  <div style="display: grid; grid-template-rows: 52px 40px minmax(0, 1fr); min-width: 0;">
+
+    <header style="display: flex; align-items: center; gap: 16px; padding: 0 14px; border-bottom: 1px solid #242b31; background: #0d1115;">
+      <div style="display: flex; align-items: center; gap: 9px;">
+        <div style="display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: rgba(243,186,99,.14); color: #f3ba63; font: 700 13px/1 var(--sans);">₿</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <strong style="font: 700 15px/1.1 var(--sans); letter-spacing: -.01em;">BTCUSDT</strong>
+            <span class="tag" style="border: 1px solid #303940; color: #adb8b5;">PERP</span>
+            <span class="tag" style="border: 1px solid #303940; color: #6f7b79;">BINANCE</span>
+          </div>
+          <p style="margin: 2px 0 0; color: #6f7b79; font: 500 10px/1.2 var(--sans);">Bitcoin / Tether · USDⓈ-M Futures · M15</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 18px; margin-left: 8px;">
+        <div>
+          <div style="color: #6f7b79; font: 600 9px/1.3 var(--sans); letter-spacing: .04em;">GIÁ GẦN NHẤT</div>
+          <div style="color: #4ee2a1; font: 700 16px/1.2 var(--mono);">{{ lastPrice }}</div>
+        </div>
+        <div>
+          <div style="color: #6f7b79; font: 600 9px/1.3 var(--sans); letter-spacing: .04em;">24H</div>
+          <div style="color: #4ee2a1; font: 650 13px/1.2 var(--mono);">+1.28%</div>
+        </div>
+        <div>
+          <div style="color: #6f7b79; font: 600 9px/1.3 var(--sans); letter-spacing: .04em;">ATR M15</div>
+          <div style="color: #adb8b5; font: 650 13px/1.2 var(--mono);">{{ atrLabel }}</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 5px 10px; border: 1px solid #242b31; border-radius: 5px; background: #0a0e11;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ee2a1;"></span>
+        <div>
+          <strong style="display: block; font: 650 10px/1.3 var(--sans);">Replay xong</strong>
+          <span style="color: #6f7b79; font: 500 9px/1.3 var(--mono);">key-volume.ts · 45 ngày · chỉ đọc</span>
+        </div>
+      </div>
+    </header>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid #242b31; background: #0a0e11;">
+      <span class="tag" style="background: rgba(101,169,255,.13); color: #79c8ff;">FX DREAM · KEY VOLUME</span>
+      <span style="width: 1px; height: 18px; background: #242b31;"></span>
+
+      <div style="display: flex; align-items: center; gap: 2px;">
+        <span style="color: #6f7b79; font: 600 9px/1 var(--sans); letter-spacing: .04em; padding-right: 4px;">HIỆN TRÊN CHART</span>
+        <sc-for list="{{ views }}" as="v" hint-placeholder-count="3">
+          <button class="{{ v.cls }}" type="button" onClick="{{ v.pick }}">{{ v.label }}</button>
+        </sc-for>
+      </div>
+
+      <span style="width: 1px; height: 18px; background: #242b31;"></span>
+
+      <div style="position: relative;">
+        <button class="{{ layersBtnCls }}" type="button" onClick="{{ toggleLayers }}">
+          <svg class="ico-sm" viewBox="0 0 20 20"><path d="m10 3 7 4-7 4-7-4z" /><path d="m3 11 7 4 7-4" /></svg>
+          Lớp <b style="font: 700 10px/1 var(--mono);">{{ layersOnCount }}/5</b>
+        </button>
+
+        <sc-if value="{{ layersOpen }}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; z-index: 40; top: 30px; left: 0; width: 216px; padding: 6px; border: 1px solid #303940; border-radius: 6px; background: #12171c; box-shadow: 0 18px 40px rgba(0,0,0,.55);">
+            <div style="padding: 3px 7px 6px; color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .07em;">THỨ TỰ LỚP · TRÊN CHE DƯỚI</div>
+            <sc-for list="{{ layers }}" as="l" hint-placeholder-count="5">
+              <button class="{{ l.cls }}" type="button" onClick="{{ l.toggle }}">
+                <span class="lay-sw"><i></i></span>
+                <span style="width: 7px; height: 7px; border-radius: 2px; background: {{ l.color }};"></span>
+                {{ l.label }}
+                <span class="lay-key">{{ l.hotkey }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <label style="display: flex; align-items: center; gap: 6px; color: #6f7b79; font: 600 10px/1 var(--sans);">
+        vol key ≥ ×
+        <b style="color: #79c8ff; font: 700 11px/1 var(--mono);">3.0</b>
+        <input type="range" min="2" max="12" step="0.5" value="3" style="width: 88px; accent-color: #65a9ff;" />
+      </label>
+
+      <label style="display: flex; align-items: center; gap: 5px; color: #6f7b79; font: 600 10px/1 var(--sans);">
+        <input type="checkbox" checked style="accent-color: #65a9ff;" />
+        chưa bị đóng xuyên
+      </label>
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+        <span style="color: #6f7b79; font: 500 10px/1 var(--mono);">UTC+7</span>
+        <button class="ghost" type="button">
+          <svg class="ico-sm" viewBox="0 0 20 20"><path d="M7 3H3v4m10-4h4v4M7 17H3v-4m10 4h4v-4" /></svg>
+          Vừa màn hình
+        </button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 312px minmax(0, 1fr) 328px; min-height: 0;">
+
+      <section style="display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; border-right: 1px solid #242b31; background: #0a0e11;">
+        <header style="padding: 10px 12px 9px; border-bottom: 1px solid #242b31;">
+          <div style="display: flex; align-items: baseline; gap: 7px;">
+            <h2 style="margin: 0; font: 700 13px/1.2 var(--sans);">Lệnh FX Dream</h2>
+            <span style="color: #6f7b79; font: 600 10px/1.2 var(--mono);">{{ orderCount }} lệnh · 45 ngày</span>
+          </div>
+          <p style="margin: 6px 0 0; color: #6f7b79; font: 500 10px/1.45 var(--sans);">Nhấp một lệnh để chart và bảng bằng chứng bên phải chỉ nói về đúng lệnh đó.</p>
+          <div style="display: flex; gap: 5px; margin-top: 8px;">
+            <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+              <button class="{{ f.cls }}" type="button" onClick="{{ f.pick }}">{{ f.label }}</button>
+            </sc-for>
+          </div>
+        </header>
+
+        <div style="display: flex; flex-direction: column; gap: 7px; padding: 9px; overflow: auto;">
+          <sc-for list="{{ orders }}" as="o" hint-placeholder-count="3">
+            <button class="{{ o.cls }}" type="button" onClick="{{ o.pick }}">
+              <div class="card-top">
+                <span class="side" style="color: {{ o.sideColor }};">
+                  <svg class="ico-sm" viewBox="0 0 20 20" style="stroke-width: 2.2;"><path d="{{ o.arrow }}" /></svg>
+                  {{ o.sideLabel }}
+                </span>
+                <span class="tag" style="background: {{ o.branchBg }}; color: {{ o.branchColor }};">{{ o.branchTag }}</span>
+                <span class="rchip" style="background: {{ o.rBg }}; color: {{ o.rColor }};">{{ o.rLabel }}</span>
+              </div>
+
+              <p class="card-when">{{ o.when }} · giữ {{ o.hold }}</p>
+
+              <svg viewBox="0 0 268 40" style="display: block; width: 100%; height: 40px; margin-top: 4px;">
+                <rect x="{{ o.ruler.riskX }}" y="15" width="{{ o.ruler.riskW }}" height="7" rx="1.5" fill="rgba(255,107,112,.30)"></rect>
+                <rect x="{{ o.ruler.rewX }}" y="15" width="{{ o.ruler.rewW }}" height="7" rx="1.5" fill="rgba(78,226,161,.26)"></rect>
+                <line x1="{{ o.ruler.slX }}" y1="10" x2="{{ o.ruler.slX }}" y2="27" stroke="#ff6b70" stroke-width="1.4"></line>
+                <line x1="{{ o.ruler.tgtX }}" y1="10" x2="{{ o.ruler.tgtX }}" y2="27" stroke="#4ee2a1" stroke-width="1.4" stroke-dasharray="2.5 2"></line>
+                <line x1="{{ o.ruler.entryX }}" y1="8" x2="{{ o.ruler.entryX }}" y2="29" stroke="#65a9ff" stroke-width="1.6"></line>
+                <circle cx="{{ o.ruler.exitX }}" cy="18.5" r="4.2" fill="{{ o.rColor }}" stroke="#0d1115" stroke-width="1.4"></circle>
+                <text x="{{ o.ruler.slX }}" y="36" fill="#ff6b70" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600" text-anchor="start">SL {{ o.slLabel }}</text>
+                <text x="{{ o.ruler.entryX }}" y="6" fill="#65a9ff" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="700" text-anchor="middle">{{ o.entryLabel }}</text>
+                <text x="{{ o.ruler.tgtX }}" y="36" fill="#4ee2a1" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600" text-anchor="end">{{ o.targetRLabel }} {{ o.targetLabel }}</text>
+              </svg>
+
+              <p class="card-key">
+                <svg class="ico-sm" viewBox="0 0 20 20" style="color: {{ o.keyIconColor }};"><path d="{{ o.keyIcon }}" /></svg>
+                {{ o.keyLine }}
+              </p>
+              <p class="card-exit" style="color: {{ o.exitColor }};">{{ o.exitLabel }}</p>
+
+              <div class="dots">
+                <sc-for list="{{ o.checks }}" as="c" hint-placeholder-count="8">
+                  <i class="{{ c.cls }}"></i>
+                </sc-for>
+                <span>{{ o.checkLabel }} điều kiện</span>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+
+        <footer style="padding: 8px 11px; border-top: 1px solid #242b31; color: #6f7b79; font: 500 9px/1.5 var(--sans);">
+          Số liệu là replay của một mô hình <b style="color: #f3ba63;">chưa chứng minh được edge</b> — đọc như bản ghi quyết định, không phải thành tích.
+        </footer>
+      </section>
+
+      <section style="display: grid; grid-template-rows: 30px minmax(0, 1fr) auto; min-width: 0; background: #080b0e;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 0 10px; border-bottom: 1px solid #242b31; background: #0d1115;">
+          <strong style="font: 700 10px/1 var(--mono);">BTCUSDT · 15m</strong>
+          <span style="color: #6f7b79; font: 500 10px/1 var(--mono);">O <b style="color: #adb8b5;">{{ ohlc.o }}</b></span>
+          <span style="color: #6f7b79; font: 500 10px/1 var(--mono);">H <b style="color: #adb8b5;">{{ ohlc.h }}</b></span>
+          <span style="color: #6f7b79; font: 500 10px/1 var(--mono);">L <b style="color: #adb8b5;">{{ ohlc.l }}</b></span>
+          <span style="color: #6f7b79; font: 500 10px/1 var(--mono);">C <b style="color: #4ee2a1;">{{ ohlc.c }}</b></span>
+          <span style="margin-left: auto; color: {{ focusColor }}; font: 650 10px/1 var(--sans);">{{ focusNote }}</span>
+        </div>
+
+        <div style="position: relative; min-height: 0; padding: 8px;">
+          <svg viewBox="0 0 738 700" style="display: block; width: 100%; height: 100%;">
+            <sc-for list="{{ grid }}" as="g" hint-placeholder-count="6">
+              <line x1="8" y1="{{ g.y }}" x2="676" y2="{{ g.y }}" stroke="#161c21" stroke-width="1"></line>
+            </sc-for>
+            <sc-for list="{{ grid }}" as="g" hint-placeholder-count="6">
+              <text x="682" y="{{ g.ty }}" fill="#5b6663" font-family="ui-monospace, Menlo, monospace" font-size="9">{{ g.label }}</text>
+            </sc-for>
+
+            <sc-if value="{{ show.keys }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ keyZones }}" as="k" hint-placeholder-count="4">
+                <g opacity="{{ k.opacity }}">
+                  <rect x="{{ k.x }}" y="{{ k.y }}" width="{{ k.w }}" height="{{ k.h }}" fill="rgba(101,169,255,.13)"></rect>
+                  <line x1="{{ k.x }}" y1="{{ k.lineY }}" x2="{{ k.x2 }}" y2="{{ k.lineY }}" stroke="#65a9ff" stroke-width="{{ k.sw }}" stroke-dasharray="{{ k.dash }}"></line>
+                  <rect x="{{ k.tagX }}" y="{{ k.tagY }}" width="{{ k.tagW }}" height="13" rx="2.5" fill="{{ k.tagBg }}"></rect>
+                  <text x="{{ k.textX }}" y="{{ k.textY }}" fill="{{ k.tagColor }}" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="600">{{ k.label }}</text>
+                </g>
+              </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ show.block }}" hint-placeholder-val="{{ true }}">
+              <g>
+                <rect x="{{ block.x }}" y="{{ block.y }}" width="{{ block.w }}" height="{{ block.h }}" fill="rgba(243,186,99,.12)" stroke="#f3ba63" stroke-width="1" stroke-dasharray="3 2"></rect>
+                <line x1="{{ block.x }}" y1="{{ block.edgeY }}" x2="{{ block.x2 }}" y2="{{ block.edgeY }}" stroke="#f3ba63" stroke-width="1.4"></line>
+                <rect x="{{ block.tagX }}" y="{{ block.tagY }}" width="132" height="13" rx="2.5" fill="rgba(243,186,99,.18)"></rect>
+                <text x="{{ block.textX }}" y="{{ block.textY }}" fill="#f3ba63" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="600">{{ block.label }}</text>
+              </g>
+            </sc-if>
+
+            <sc-for list="{{ candles }}" as="c" hint-placeholder-count="40">
+              <g>
+                <line x1="{{ c.wx }}" y1="{{ c.wy1 }}" x2="{{ c.wx }}" y2="{{ c.wy2 }}" stroke="{{ c.fill }}" stroke-width="1"></line>
+                <rect x="{{ c.x }}" y="{{ c.y }}" width="{{ c.w }}" height="{{ c.h }}" fill="{{ c.fill }}"></rect>
+              </g>
+            </sc-for>
+
+            <sc-if value="{{ show.position }}" hint-placeholder-val="{{ true }}">
+              <g>
+                <rect x="{{ pos.x }}" y="{{ pos.riskY }}" width="{{ pos.w }}" height="{{ pos.riskH }}" fill="rgba(255,107,112,.16)"></rect>
+                <rect x="{{ pos.x }}" y="{{ pos.rewY }}" width="{{ pos.w }}" height="{{ pos.rewH }}" fill="rgba(78,226,161,.13)"></rect>
+                <line x1="{{ pos.x }}" y1="{{ pos.slY }}" x2="{{ pos.x2 }}" y2="{{ pos.slY }}" stroke="#ff6b70" stroke-width="1.2"></line>
+                <line x1="{{ pos.x }}" y1="{{ pos.tgtY }}" x2="{{ pos.x2 }}" y2="{{ pos.tgtY }}" stroke="#4ee2a1" stroke-width="1.2" stroke-dasharray="4 3"></line>
+                <line x1="{{ pos.x }}" y1="{{ pos.entryY }}" x2="{{ pos.x2 }}" y2="{{ pos.entryY }}" stroke="#65a9ff" stroke-width="1.4"></line>
+
+                <rect x="{{ pos.labX }}" y="{{ pos.slLabY }}" width="88" height="13" rx="2.5" fill="rgba(255,107,112,.22)"></rect>
+                <text x="{{ pos.labTextX }}" y="{{ pos.slTextY }}" fill="#ff6b70" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700">{{ pos.slLabel }}</text>
+                <rect x="{{ pos.labX }}" y="{{ pos.entryLabY }}" width="88" height="13" rx="2.5" fill="rgba(101,169,255,.24)"></rect>
+                <text x="{{ pos.labTextX }}" y="{{ pos.entryTextY }}" fill="#9cc8ff" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700">{{ pos.entryLabel }}</text>
+                <rect x="{{ pos.labX }}" y="{{ pos.tgtLabY }}" width="88" height="13" rx="2.5" fill="rgba(78,226,161,.22)"></rect>
+                <text x="{{ pos.labTextX }}" y="{{ pos.tgtTextY }}" fill="#4ee2a1" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700">{{ pos.tgtLabel }}</text>
+
+                <circle cx="{{ pos.entryX }}" cy="{{ pos.entryY }}" r="3.6" fill="#65a9ff" stroke="#080b0e" stroke-width="1.4"></circle>
+                <circle cx="{{ pos.exitX }}" cy="{{ pos.exitY }}" r="4" fill="{{ pos.exitColor }}" stroke="#080b0e" stroke-width="1.4"></circle>
+                <rect x="{{ pos.exitTagX }}" y="{{ pos.exitTagY }}" width="{{ pos.exitTagW }}" height="13" rx="2.5" fill="{{ pos.exitTagBg }}"></rect>
+                <text x="{{ pos.exitTextX }}" y="{{ pos.exitTextY }}" fill="{{ pos.exitColor }}" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700">{{ pos.exitLabel }}</text>
+              </g>
+            </sc-if>
+
+            <sc-if value="{{ hasHover }}" hint-placeholder-val="{{ false }}">
+              <g>
+                <rect x="{{ hover.x }}" y="{{ hover.y }}" width="{{ hover.w }}" height="{{ hover.h }}" fill="rgba(238,242,241,.10)" stroke="#eef2f1" stroke-width="1.2" stroke-dasharray="3 2"></rect>
+              </g>
+            </sc-if>
+
+            <line x1="8" y1="574" x2="676" y2="574" stroke="#1c2328" stroke-width="1"></line>
+            <text x="10" y="588" fill="#5b6663" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600">VOL · QUOTE USDT</text>
+            <sc-for list="{{ vols }}" as="v" hint-placeholder-count="40">
+              <rect x="{{ v.x }}" y="{{ v.y }}" width="{{ v.w }}" height="{{ v.h }}" fill="{{ v.fill }}"></rect>
+            </sc-for>
+
+            <sc-for list="{{ xTicks }}" as="t" hint-placeholder-count="5">
+              <text x="{{ t.x }}" y="696" fill="#5b6663" font-family="ui-monospace, Menlo, monospace" font-size="9" text-anchor="middle">{{ t.label }}</text>
+            </sc-for>
+          </svg>
+        </div>
+
+        <div style="border-top: 1px solid #242b31; background: #0d1115;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 7px 11px 2px;">
+            <strong style="font: 700 10px/1 var(--sans); letter-spacing: .02em;">Phễu FX Dream</strong>
+            <span style="color: #6f7b79; font: 500 9px/1 var(--mono);">{{ funnelHead }}</span>
+            <span style="margin-left: auto; color: #6f7b79; font: 500 9px/1 var(--sans);">nhấp một bậc để xem lệnh chết ở đâu</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; padding: 2px 8px 5px;">
+            <sc-for list="{{ stages }}" as="s" hint-placeholder-count="9">
+              <button class="{{ s.cls }}" type="button" onClick="{{ s.pick }}">
+                <b>{{ s.value }}</b>
+                <i style="width: {{ s.width }};"></i>
+                <span>{{ s.label }}</span>
+                <u class="{{ s.scopeCls }}">{{ s.scopeLabel }}</u>
+              </button>
+            </sc-for>
+          </div>
+          <p style="margin: 0; padding: 6px 11px 9px; border-top: 1px solid rgba(36,43,49,.7); color: {{ stageColor }}; font: 500 10px/1.5 var(--sans);">{{ stageDetail }}</p>
+        </div>
+      </section>
+
+      <aside style="display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; min-height: 0; border-left: 1px solid #242b31; background: #0a0e11;">
+        <header style="padding: 10px 12px 10px; border-bottom: 1px solid #242b31;">
+          <span style="color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .09em;">WHY THIS ENTRY</span>
+          <h2 style="margin: 3px 0 0; font: 700 13px/1.2 var(--sans);">Vì sao vào lệnh này</h2>
+          <div style="display: flex; align-items: center; gap: 7px; margin-top: 8px;">
+            <span class="side" style="color: {{ sel.sideColor }};">{{ sel.sideLabel }}</span>
+            <span class="tag" style="background: {{ sel.branchBg }}; color: {{ sel.branchColor }};">{{ sel.branchTag }}</span>
+            <span style="margin-left: auto; color: {{ sel.rColor }}; font: 700 15px/1 var(--mono);">{{ sel.rLabel }}</span>
+          </div>
+        </header>
+
+        <div style="padding: 9px 12px 10px; border-bottom: 1px solid #242b31; background: #0d1115;">
+          <p style="margin: 0; color: #adb8b5; font: 500 10px/1.6 var(--sans);">{{ sel.summary }}</p>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 9px; border: 1px solid #242b31; border-radius: 4px; overflow: hidden; background: #242b31;">
+            <div style="padding: 6px 8px; background: #0a0e11;">
+              <div style="color: #6f7b79; font: 600 8px/1.3 var(--sans); letter-spacing: .05em;">RỦI RO</div>
+              <div style="color: #ff6b70; font: 700 12px/1.3 var(--mono);">{{ sel.riskPct }}</div>
+            </div>
+            <div style="padding: 6px 8px; background: #0a0e11;">
+              <div style="color: #6f7b79; font: 600 8px/1.3 var(--sans); letter-spacing: .05em;">DƯ ĐỊA</div>
+              <div style="color: #4ee2a1; font: 700 12px/1.3 var(--mono);">{{ sel.targetRLabel }}</div>
+            </div>
+            <div style="padding: 6px 8px; background: #0a0e11;">
+              <div style="color: #6f7b79; font: 600 8px/1.3 var(--sans); letter-spacing: .05em;">GIỮ LỆNH</div>
+              <div style="color: #adb8b5; font: 700 12px/1.3 var(--mono);">{{ sel.hold }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="overflow: auto;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 11px 6px;">
+            <span style="color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .09em;">TỪNG ĐIỀU KIỆN ĐÃ KIỂM</span>
+            <span style="color: #adb8b5; font: 700 9px/1 var(--mono);">{{ sel.checkLabel }}</span>
+          </div>
+          <sc-for list="{{ evidence }}" as="e" hint-placeholder-count="8">
+            <div class="evirow" onMouseEnter="{{ e.enter }}" onMouseLeave="{{ e.leave }}">
+              <div class="evirow-top">
+                <span class="{{ e.markCls }}">{{ e.mark }}</span>
+                <span class="evi-label">{{ e.label }}</span>
+              </div>
+              <p class="evi-val">{{ e.value }}</p>
+              <span class="evi-thr">ngưỡng {{ e.threshold }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <footer style="padding: 9px 12px; border-top: 1px solid #242b31; background: #0d1115;">
+          <p style="margin: 0 0 8px; color: #6f7b79; font: 500 9px/1.55 var(--sans);">Key ở đây do detector sinh ra, <b style="color: #f3ba63;">không phải key bạn tự vẽ</b> — hai tập từng đối chiếu và trùng 0/6.</p>
+          <div style="display: flex; gap: 6px;">
+            <button class="ghost" type="button" style="flex: 1; justify-content: center;">✓ Đúng phương pháp</button>
+            <button class="ghost" type="button" style="flex: 1; justify-content: center;">✗ Không nên vào</button>
+          </div>
+        </footer>
+      </aside>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900},"showSweepBranch":{"editor":"boolean","default":true,"section":"Lọc lệnh"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 0, filter: "all", view: "one", layersOpen: false, stage: 4, hover: -1,
+      layers: { position: true, block: true, keys: true, evidence: true, draw: false } };
+  }
+
+  series() {
+    if (this._series) return this._series;
+    let s = 20260902;
+    const rnd = () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
+    const out = [];
+    let px = 110450;
+    for (let i = 0; i < 120; i++) {
+      const drift = i < 26 ? 34 : i < 46 ? -46 : i < 68 ? 12 : i < 92 ? 40 : -26;
+      const o = px;
+      const c = o + (rnd() - 0.5) * 230 + drift;
+      const h = Math.max(o, c) + rnd() * 85;
+      const l = Math.min(o, c) - rnd() * 85;
+      out.push({ o: o, h: h, l: l, c: c, v: 38 + rnd() * 52 });
+      px = c;
+    }
+    [24, 52, 86].forEach((i) => { out[i].v = out[i].v * 4.1; out[i].h += 60; out[i].l -= 60; });
+    this._series = out;
+    return out;
+  }
+
+  fmt(v) { return Number(v).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  fmtR(v) { return (v >= 0 ? "+" : "") + v.toFixed(2) + "R"; }
+
+  clock(i) {
+    const start = Date.UTC(2026, 7, 30, 1, 0);
+    const d = new Date(start + i * 15 * 60000 + 7 * 3600000);
+    const p = (n) => String(n).padStart(2, "0");
+    return p(d.getUTCDate()) + "/" + p(d.getUTCMonth() + 1) + " " + p(d.getUTCHours()) + ":" + p(d.getUTCMinutes());
+  }
+
+  orderData() {
+    if (this._orders) return this._orders;
+    const c = this.series();
+    const defs = [
+      { keyIdx: 24, entryIdx: 34, exitIdx: 58, dir: "long", branch: "volume-reversal", exitReason: "Chạm mục tiêu cấu trúc", ended: true },
+      { keyIdx: 52, entryIdx: 61, exitIdx: 70, dir: "short", branch: "volume-reversal", exitReason: "Chạm SL", ended: true },
+      { keyIdx: 86, entryIdx: 95, exitIdx: 112, dir: "long", branch: "sweep-reclaim", exitReason: "Vẫn đang mở ở nến M15 cuối", ended: false }
+    ];
+    this._orders = defs.map((d, n) => {
+      const sign = d.dir === "long" ? 1 : -1;
+      const entry = c[d.entryIdx].c;
+      const bodies = c.slice(d.entryIdx - 3, d.entryIdx + 1);
+      const obHigh = Math.max.apply(null, bodies.map((b) => Math.max(b.o, b.c)));
+      const obLow = Math.min.apply(null, bodies.map((b) => Math.min(b.o, b.c)));
+      const atr = 118;
+      const sl = d.dir === "long" ? obLow - 0.5 * atr : obHigh + 0.5 * atr;
+      const risk = Math.abs(entry - sl);
+      const targetR = [2.62, 3.14, 2.28][n];
+      const target = entry + sign * risk * targetR;
+      // Lệnh ĐANG MỞ: giá hiện tại là MTM, và nó không thể nằm quá SL — quá SL
+      // thì lệnh đã bị stop-out rồi, không còn "đang mở" được nữa.
+      const mtm = c[d.exitIdx].c;
+      const exitPrice = d.exitReason === "Chạm SL"
+        ? sl
+        : d.ended
+          ? target
+          : d.dir === "long" ? Math.max(mtm, sl + risk * 0.15) : Math.min(mtm, sl - risk * 0.15);
+      const netR = ((exitPrice - entry) / risk) * sign - 0.246;
+      const key = d.branch === "sweep-reclaim" ? null : {
+        price: c[d.keyIdx].c,
+        low: Math.min(c[d.keyIdx].o, c[d.keyIdx].c),
+        high: Math.max(c[d.keyIdx].o, c[d.keyIdx].c),
+        ratio: [4.24, 3.61, 0][n],
+        idx: d.keyIdx,
+        ageDays: ((d.entryIdx - d.keyIdx) * 15) / 1440
+      };
+      return { n: n, dir: d.dir, branch: d.branch, entryIdx: d.entryIdx, exitIdx: d.exitIdx, keyIdx: d.keyIdx,
+        entry: entry, sl: sl, target: target, exitPrice: exitPrice, risk: risk, riskPct: (risk / entry) * 100,
+        targetR: targetR, netR: netR, exitR: ((exitPrice - entry) / risk) * sign, ended: d.ended,
+        exitReason: d.exitReason, obLow: obLow, obHigh: obHigh, key: key,
+        holdBars: d.exitIdx - d.entryIdx, sign: sign };
+    });
+    return this._orders;
+  }
+
+  evidenceFor(o) {
+    const items = [];
+    if (o.key) {
+      items.push({ label: "Key M15 @ " + this.fmt(o.key.price), pass: o.key.ratio >= 3,
+        value: "volume ×" + o.key.ratio.toFixed(2) + " so với trung vị 6 nến trước + 6 nến sau",
+        threshold: "≥ ×3", geo: { kind: "zone", i0: o.key.idx - 1, i1: o.entryIdx, pA: o.key.low, pB: o.key.high } });
+      items.push({ label: "Tuổi key lúc vào lệnh", pass: o.key.ageDays <= 7,
+        value: o.key.ageDays.toFixed(2) + " ngày kể từ lúc nến cuối cửa sổ đóng", threshold: "≤ 7 ngày",
+        geo: { kind: "level", i0: o.key.idx, i1: o.entryIdx, pA: o.key.price } });
+      items.push({ label: "Hướng lệnh so với key", pass: true,
+        value: o.dir === "long" ? "nến chạm đóng TRÊN đường key (" + this.fmt(o.key.price) + ") — key làm đỡ"
+          : "nến chạm đóng DƯỚI đường key (" + this.fmt(o.key.price) + ") — key làm cản",
+        threshold: "trên → LONG, dưới → SHORT", geo: { kind: "level", i0: o.key.idx, i1: o.entryIdx, pA: o.key.price } });
+      items.push({ label: "Giá đã từng RỜI key", pass: true,
+        value: "rời vùng key 9 nến trước khi quay lại chạm", threshold: "bắt buộc ≥ 1 lần rời",
+        geo: { kind: "zone", i0: o.key.idx, i1: o.key.idx + 9, pA: o.key.low, pB: o.key.high } });
+    }
+    items.push({ label: "Nhánh bóp cò", pass: true,
+      value: o.branch === "sweep-reclaim" ? "quét thanh khoản rồi giành lại" : "mô hình nến đảo chiều có volume",
+      threshold: o.branch === "sweep-reclaim" ? "quét cực trị 96 nến M15 rồi ĐÓNG lại trong biên — không cần key"
+        : "mô hình nến đảo chiều tại key, volume ≥ ×2",
+      geo: { kind: "candle", i0: o.entryIdx - 1, i1: o.entryIdx, pA: o.entry } });
+    const trig = o.branch === "sweep-reclaim" ? 1.42 : 2.37;
+    items.push({ label: "Volume cây bóp cò", pass: o.branch === "sweep-reclaim" ? true : trig >= 2,
+      value: "×" + trig.toFixed(2) + " so với trung vị 12 nến liền trước",
+      threshold: o.branch === "sweep-reclaim" ? "≥ ×0 (nhánh quét không đòi thêm volume)" : "≥ ×2",
+      geo: { kind: "candle", i0: o.entryIdx, i1: o.entryIdx, pA: o.entry } });
+    items.push({ label: "Order block — cụm 4 nến (thân, bỏ râu)", pass: true,
+      value: this.fmt(o.obLow) + " – " + this.fmt(o.obHigh) + "; vào ở mép " + (o.dir === "long" ? "TRÊN" : "DƯỚI") + ", SL ngay ngoài mép kia",
+      threshold: "quay lại hộp rồi ĐÓNG vượt " + this.fmt(o.dir === "long" ? o.obHigh : o.obLow) + "; vào ở giá đóng đó",
+      geo: { kind: "zone", i0: o.entryIdx - 3, i1: o.exitIdx, pA: o.obLow, pB: o.obHigh } });
+    items.push({ label: "Giá đã rời hộp rồi mới retest", pass: true,
+      value: "rời hộp 5 nến, sau đó quay lại và đóng vượt mép vào", threshold: "≥ 3 nến rời hộp, chờ tối đa 2 ngày",
+      geo: { kind: "zone", i0: o.entryIdx - 8, i1: o.entryIdx, pA: o.obLow, pB: o.obHigh } });
+    items.push({ label: "Stop loss", pass: o.riskPct <= 6.5,
+      value: this.fmt(o.sl) + " — ngoài mép " + (o.dir === "long" ? "dưới" : "trên") + " order block, đệm 0.5×ATR, rủi ro " + o.riskPct.toFixed(2) + "% giá",
+      threshold: "≤ 6.5% giá", geo: { kind: "level", i0: o.entryIdx, i1: o.exitIdx, pA: o.sl } });
+    items.push({ label: o.branch === "sweep-reclaim" ? "Dư địa tới thanh khoản đối diện" : "Dư địa tới key đối diện",
+      pass: o.targetR >= 3, value: o.targetR.toFixed(2) + "R tới " + this.fmt(o.target),
+      threshold: "≥ 3R, và bắt buộc phải có key đối diện", geo: { kind: "level", i0: o.entryIdx, i1: o.exitIdx, pA: o.target } });
+    return items;
+  }
+
+  summaryFor(o) {
+    const side = o.dir === "long" ? "LONG" : "SHORT";
+    const tail = " SL " + this.fmt(o.sl) + ", dư địa " + o.targetR.toFixed(2) + "R tới " + this.fmt(o.target) + ".";
+    if (!o.key) {
+      return side + " sau khi giá quét " + (o.dir === "long" ? "ĐÁY" : "ĐỈNH") + " một ngày rồi đóng lại trong biên;"
+        + " không dùng key ở bất kỳ khâu nào; SL ngoài râu vừa quét." + tail;
+    }
+    return side + " tại key M15 @ " + this.fmt(o.key.price) + " (volume ×" + o.key.ratio.toFixed(2) + "); "
+      + (o.dir === "long" ? "giá đứng TRÊN key" : "giá nằm DƯỚI key")
+      + "; bóp cò bằng mô hình nến đảo chiều có volume, vào ở giá ĐÓNG khi retest vượt mép hộp;" + tail;
+  }
+
+  stageData() {
+    return [
+      { key: "keys", label: "key M15", value: 108, scope: "key",
+        detail: "Detector sinh 108 key trong 45 ngày — mẫu số của mọi tỉ lệ bên dưới." },
+      { key: "touch", label: "chạm key", value: 1780, scope: "key",
+        detail: "1.780 lần chạm lại key. Số này LỚN HƠN số key vì nó đếm sự kiện chạm, không phải key — đừng đọc hai bậc đầu như tỉ lệ phần trăm của nhau." },
+      { key: "vol", label: "chạm có volume", value: 796, scope: "key",
+        detail: "796 cú chạm có volume vượt ngưỡng; 984 cú chạm bị loại vì cây chạm không đủ volume. Đây là cửa cắt mạnh nhất và rẻ nhất." },
+      { key: "setups", label: "mở setup", value: 650, scope: "key",
+        detail: "650 setup mở. Mất 146 vì giá chưa từng RỜI key: chạm mà chưa rời thì không phải cú quay về, chỉ là giá đi ngang đè lên mức." },
+      { key: "valid", label: "cụm hợp lệ", value: 69, scope: "key",
+        detail: "69 cụm hợp lệ. Mất 406 vì không dựng được cụm đảo và 175 vì đường key nằm NGOÀI thân hộp." },
+      { key: "plans", label: "kế hoạch key", value: 19, scope: "key",
+        detail: "19 kế hoạch nhánh key. Mất 50 ở cửa volume cây bóp cò, phiên, và cửa rời hộp — cửa rời hộp đo bằng GIÁ ĐÓNG." },
+      { key: "armed", label: "hộp chờ retest", value: 27, scope: "both",
+        detail: "27 hộp trang bị: 19 nhánh key + 8 nhánh quét. Từ bậc này engine đếm CHUNG hai nhánh. 22 hộp thấy giá quay lại — nhưng chạm rồi vẫn vỡ được, nên đó là thống kê bên lề." },
+      { key: "entries", label: "VÀO LỆNH", value: 4, scope: "both",
+        detail: "4 lệnh mở, 0 thuộc nhánh key. Mất 19 vỡ hộp, 3 hết hạn chờ, 1 hết dữ liệu — bốn số này phân hoạch KHÍT với 27 hộp." }
+    ];
+  }
+
+  renderVals() {
+    const st = this.state;
+    const c = this.series();
+    const all = this.orderData();
+    const showSweep = this.props.showSweepBranch !== false;
+    const visible = all.filter((o) => (showSweep || o.branch !== "sweep-reclaim")
+      && (st.filter === "all" || (st.filter === "key" ? o.branch !== "sweep-reclaim" : o.branch === "sweep-reclaim")));
+    const list = visible.length ? visible : all;
+    const sel = list[Math.min(st.sel, list.length - 1)];
+
+    const X0 = 8, X1 = 676, step = (X1 - X0) / c.length, bw = Math.max(2.4, step * 0.62);
+    const lo = Math.min.apply(null, c.map((k) => k.l).concat(all.map((o) => o.sl), all.map((o) => o.target)));
+    const hi = Math.max.apply(null, c.map((k) => k.h).concat(all.map((o) => o.sl), all.map((o) => o.target)));
+    const pad = (hi - lo) * 0.06;
+    const top = 14, bot = 556, lowP = lo - pad, hiP = hi + pad;
+    const xOf = (i) => X0 + i * step + step / 2;
+    const yOf = (p) => top + ((hiP - p) / (hiP - lowP)) * (bot - top);
+
+    const candles = c.map((k, i) => {
+      const up = k.c >= k.o;
+      const y1 = yOf(Math.max(k.o, k.c)), y2 = yOf(Math.min(k.o, k.c));
+      return { x: (xOf(i) - bw / 2).toFixed(1), y: y1.toFixed(1), w: bw.toFixed(1), h: Math.max(1, y2 - y1).toFixed(1),
+        wx: xOf(i).toFixed(1), wy1: yOf(k.h).toFixed(1), wy2: yOf(k.l).toFixed(1),
+        fill: up ? "#4ee2a1" : "#ff6b70" };
+    });
+
+    const vMax = Math.max.apply(null, c.map((k) => k.v));
+    const vols = c.map((k, i) => {
+      const h = (k.v / vMax) * 92;
+      const spike = k.v > vMax * 0.7;
+      return { x: (xOf(i) - bw / 2).toFixed(1), y: (688 - h).toFixed(1), w: bw.toFixed(1), h: h.toFixed(1),
+        fill: spike ? "#65a9ff" : k.c >= k.o ? "rgba(78,226,161,.34)" : "rgba(255,107,112,.34)" };
+    });
+
+    const grid = [];
+    for (let g = 0; g <= 5; g++) {
+      const p = lowP + ((hiP - lowP) * g) / 5;
+      const y = yOf(p);
+      grid.push({ y: y.toFixed(1), ty: (y + 3).toFixed(1), label: this.fmt(p) });
+    }
+    const xTicks = [0, 30, 60, 90, 119].map((i) => ({ x: xOf(i).toFixed(1), label: this.clock(i) }));
+
+    const cardOf = (o, idx) => {
+      const isSel = o.n === sel.n;
+      const rColor = !o.ended ? "#65a9ff" : o.netR >= 0 ? "#4ee2a1" : "#ff6b70";
+      const rBg = !o.ended ? "rgba(101,169,255,.14)" : o.netR >= 0 ? "rgba(78,226,161,.14)" : "rgba(255,107,112,.14)";
+      // Kẹp cả hai đầu: dư địa nhánh quét có thể tới 80R, còn exitR của một lệnh
+      // đang mở có thể âm sâu — không kẹp thì chấm thoát chạy ra ngoài viewBox.
+      const visTarget = Math.min(o.targetR, 6);
+      const visExit = Math.max(Math.min(o.exitR, 6), -1.2);
+      const rMin = -1.35, rMax = Math.max(visTarget, visExit) + 0.35;
+      const rx = (r) => 8 + ((r - rMin) / (rMax - rMin)) * 252;
+      const checks = this.evidenceFor(o);
+      const passed = checks.filter((e) => e.pass).length;
+      return {
+        n: o.n, cls: "card " + o.dir + (isSel ? " on" : ""), pick: () => this.setState({ sel: idx, hover: -1 }),
+        sideLabel: o.dir === "long" ? "LONG" : "SHORT",
+        sideColor: o.dir === "long" ? "#4ee2a1" : "#ff6b70",
+        arrow: o.dir === "long" ? "M10 16V5m-4 4 4-4 4 4" : "M10 4v11m-4-4 4 4 4-4",
+        branchTag: o.branch === "sweep-reclaim" ? "NHÁNH QUÉT · KHÔNG KEY" : "KEY + HỘP · RETEST",
+        branchBg: o.branch === "sweep-reclaim" ? "rgba(243,186,99,.13)" : "rgba(101,169,255,.13)",
+        branchColor: o.branch === "sweep-reclaim" ? "#f3ba63" : "#79c8ff",
+        rLabel: o.ended ? this.fmtR(o.netR) : this.fmtR(o.netR) + " mở",
+        rColor: rColor, rBg: rBg,
+        when: this.clock(o.entryIdx),
+        hold: o.holdBars + " nến (" + (o.holdBars / 4).toFixed(1) + "h)",
+        slLabel: this.fmt(o.sl), entryLabel: this.fmt(o.entry), targetLabel: this.fmt(o.target),
+        targetRLabel: o.targetR.toFixed(2) + "R",
+        ruler: { slX: rx(-1).toFixed(1), entryX: rx(0).toFixed(1), tgtX: rx(visTarget).toFixed(1),
+          exitX: rx(visExit).toFixed(1), riskX: rx(-1).toFixed(1), riskW: (rx(0) - rx(-1)).toFixed(1),
+          rewX: rx(0).toFixed(1), rewW: Math.max(0, rx(visTarget) - rx(0)).toFixed(1) },
+        keyLine: o.key ? "key M15 " + this.fmt(o.key.price) + " ×" + o.key.ratio.toFixed(2) + " · " + o.key.ageDays.toFixed(1) + " ngày tuổi"
+          : "không dùng key ở bất kỳ khâu nào",
+        keyIcon: o.key ? "M3 14h14M6 14V8m4 6V4m4 10v-3" : "M10 3v9m0 4v1M3 17h14",
+        keyIconColor: o.key ? "#65a9ff" : "#f3ba63",
+        exitLabel: o.exitReason, exitColor: o.ended ? (o.netR >= 0 ? "#4ee2a1" : "#ff6b70") : "#65a9ff",
+        checks: checks.map((e) => ({ cls: "dot " + (e.pass ? "p" : "f") })),
+        checkLabel: passed + "/" + checks.length,
+        summary: this.summaryFor(o), riskPct: o.riskPct.toFixed(2) + "% giá",
+        branch: o.branch
+      };
+    };
+
+    const cards = list.map(cardOf);
+    const selCard = cards.filter((k) => k.n === sel.n)[0];
+
+    const showAll = st.view === "all", showNone = st.view === "none";
+    const keyOrders = showAll ? all.filter((o) => o.key) : sel.key ? [sel] : [];
+    const keyZones = showNone ? [] : keyOrders.map((o) => {
+      const isSel = o.n === sel.n;
+      const y1 = yOf(o.key.high), y2 = yOf(o.key.low);
+      const x = xOf(o.key.idx - 1), x2 = xOf(Math.min(119, o.exitIdx + 4));
+      const label = "M15 ×" + o.key.ratio.toFixed(2) + " · " + this.fmt(o.key.price);
+      const tagW = Math.round(label.length * 5.2 + 12);
+      return { x: x.toFixed(1), x2: x2.toFixed(1), w: (x2 - x).toFixed(1), y: y1.toFixed(1),
+        h: Math.max(3, y2 - y1).toFixed(1), lineY: yOf(o.key.price).toFixed(1),
+        opacity: isSel ? "1" : "0.42", sw: isSel ? "1.4" : "1", dash: isSel ? "0" : "4 3",
+        tagX: (x2 - tagW - 3).toFixed(1), tagY: (yOf(o.key.price) - 16).toFixed(1), tagW: tagW,
+        textX: (x2 - tagW + 2).toFixed(1), textY: (yOf(o.key.price) - 6.5).toFixed(1),
+        tagBg: isSel ? "rgba(101,169,255,.24)" : "rgba(101,169,255,.12)",
+        tagColor: isSel ? "#9cc8ff" : "#65a9ff", label: label };
+    });
+
+    const bx = xOf(sel.entryIdx - 3.5), bx2 = xOf(sel.entryIdx + 0.5);
+    const block = { x: bx.toFixed(1), x2: xOf(Math.min(119, sel.exitIdx)).toFixed(1), w: (bx2 - bx).toFixed(1),
+      y: yOf(sel.obHigh).toFixed(1), h: Math.max(3, yOf(sel.obLow) - yOf(sel.obHigh)).toFixed(1),
+      edgeY: yOf(sel.dir === "long" ? sel.obHigh : sel.obLow).toFixed(1),
+      tagX: (bx2 + 4).toFixed(1), tagY: (yOf(sel.obHigh) - 15).toFixed(1),
+      textX: (bx2 + 9).toFixed(1), textY: (yOf(sel.obHigh) - 5.5).toFixed(1),
+      label: "hộp " + this.fmt(sel.obLow) + "–" + this.fmt(sel.obHigh) };
+
+    const px = xOf(sel.entryIdx), px2 = xOf(Math.min(119, sel.exitIdx));
+    const eY = yOf(sel.entry), sY = yOf(sel.sl), tY = yOf(sel.target);
+    const exitColor = !sel.ended ? "#65a9ff" : sel.netR >= 0 ? "#4ee2a1" : "#ff6b70";
+    const exitLabel = this.fmtR(sel.netR) + " · " + (sel.ended ? sel.exitReason.toLowerCase() : "đang mở");
+    const exitTagW = Math.round(exitLabel.length * 5.2 + 12);
+    const pos = { x: px.toFixed(1), x2: px2.toFixed(1), w: Math.max(6, px2 - px).toFixed(1),
+      entryY: eY.toFixed(1), slY: sY.toFixed(1), tgtY: tY.toFixed(1),
+      riskY: Math.min(eY, sY).toFixed(1), riskH: Math.abs(sY - eY).toFixed(1),
+      rewY: Math.min(eY, tY).toFixed(1), rewH: Math.abs(tY - eY).toFixed(1),
+      labX: (px + 4).toFixed(1), labTextX: (px + 9).toFixed(1),
+      slLabY: (sY - 6.5).toFixed(1), slTextY: (sY + 3).toFixed(1),
+      entryLabY: (eY - 6.5).toFixed(1), entryTextY: (eY + 3).toFixed(1),
+      tgtLabY: (tY - 6.5).toFixed(1), tgtTextY: (tY + 3).toFixed(1),
+      slLabel: "SL " + this.fmt(sel.sl), entryLabel: "E " + this.fmt(sel.entry), tgtLabel: "TGT " + this.fmt(sel.target),
+      entryX: px.toFixed(1), exitX: px2.toFixed(1), exitY: yOf(sel.exitPrice).toFixed(1),
+      exitTagX: (px2 - exitTagW - 5).toFixed(1), exitTagY: (yOf(sel.exitPrice) + 8).toFixed(1),
+      exitTagW: exitTagW, exitTextX: (px2 - exitTagW).toFixed(1), exitTextY: (yOf(sel.exitPrice) + 17.5).toFixed(1),
+      exitTagBg: !sel.ended ? "rgba(101,169,255,.2)" : sel.netR >= 0 ? "rgba(78,226,161,.2)" : "rgba(255,107,112,.2)",
+      exitColor: exitColor, exitLabel: exitLabel };
+
+    const evi = this.evidenceFor(sel);
+    const hoverItem = st.hover >= 0 && st.hover < evi.length ? evi[st.hover] : null;
+    let hover = { x: 0, y: 0, w: 0, h: 0 };
+    if (hoverItem && st.layers.evidence) {
+      const g = hoverItem.geo;
+      const gx = xOf(g.i0), gx2 = xOf(g.i1);
+      if (g.kind === "zone") {
+        hover = { x: gx.toFixed(1), y: yOf(Math.max(g.pA, g.pB)).toFixed(1), w: Math.max(6, gx2 - gx).toFixed(1),
+          h: Math.max(6, Math.abs(yOf(g.pB) - yOf(g.pA))).toFixed(1) };
+      } else if (g.kind === "level") {
+        hover = { x: gx.toFixed(1), y: (yOf(g.pA) - 4).toFixed(1), w: Math.max(6, gx2 - gx).toFixed(1), h: "8" };
+      } else {
+        hover = { x: (gx - bw).toFixed(1), y: (yOf(g.pA) - 22).toFixed(1), w: Math.max(8, gx2 - gx + bw * 2).toFixed(1), h: "44" };
+      }
+    }
+
+    const stages = this.stageData();
+    const first = stages[0].value;
+    const maxStage = Math.max.apply(null, stages.map((s) => s.value));
+    const activeStage = stages[Math.min(st.stage, stages.length - 1)];
+
+    const layerDefs = [
+      { key: "position", label: "Vị thế đang chọn", color: "#65a9ff", hotkey: "1" },
+      { key: "block", label: "Order block + retest", color: "#f3ba63", hotkey: "2" },
+      { key: "keys", label: "Vùng key volume", color: "#79c8ff", hotkey: "3" },
+      { key: "evidence", label: "Soi bằng chứng", color: "#eef2f1", hotkey: "4" },
+      { key: "draw", label: "Hình vẽ tay", color: "#adb8b5", hotkey: "5" }
+    ];
+
+    const nowC = c[119];
+    return {
+      lastPrice: this.fmt(nowC.c), atrLabel: "118.4",
+      ohlc: { o: this.fmt(nowC.o), h: this.fmt(nowC.h), l: this.fmt(nowC.l), c: this.fmt(nowC.c) },
+      candles: candles, vols: vols, grid: grid, xTicks: xTicks,
+      orders: cards, orderCount: list.length, sel: selCard,
+      evidence: evi.map((e, i) => ({ label: e.label, value: e.value, threshold: e.threshold,
+        mark: e.pass ? "✓" : "✗", markCls: "evi-mark " + (e.pass ? "p" : "f"),
+        enter: () => this.setState({ hover: i }), leave: () => this.setState({ hover: -1 }) })),
+      keyZones: keyZones, block: block, pos: pos, hover: hover,
+      hasHover: !!hoverItem && st.layers.evidence,
+      show: { keys: st.layers.keys && !showNone, block: st.layers.block && !showNone, position: st.layers.position && !showNone },
+      focusNote: showNone ? "Chart trống — chỉ nến và volume"
+        : showAll ? "Đang hiện cả " + all.length + " lệnh · lớp key mờ là lệnh không được chọn"
+        : "Đang soi 1 lệnh · " + this.clock(sel.entryIdx),
+      focusColor: showNone ? "#6f7b79" : showAll ? "#f3ba63" : "#65a9ff",
+      views: [
+        { key: "one", label: "1 lệnh" }, { key: "all", label: "Tất cả" }, { key: "none", label: "Chart trống" }
+      ].map((v) => ({ label: v.label, cls: "seg" + (st.view === v.key ? " on" : ""), pick: () => this.setState({ view: v.key }) })),
+      filters: [
+        { key: "all", label: "Tất cả" }, { key: "key", label: "Có dùng key" }, { key: "sweep", label: "Nhánh quét" }
+      ].map((f) => ({ label: f.label, cls: "seg" + (st.filter === f.key ? " on" : ""), pick: () => this.setState({ filter: f.key, sel: 0, hover: -1 }) })),
+      layers: layerDefs.map((l) => ({ label: l.label, color: l.color, hotkey: l.hotkey,
+        cls: "lay" + (st.layers[l.key] ? " on" : ""),
+        toggle: () => { const next = Object.assign({}, this.state.layers); next[l.key] = !next[l.key]; this.setState({ layers: next }); } })),
+      layersOpen: st.layersOpen, toggleLayers: () => this.setState({ layersOpen: !this.state.layersOpen }),
+      layersOnCount: layerDefs.filter((l) => st.layers[l.key]).length,
+      layersBtnCls: "ghost" + (st.layersOpen ? " on" : ""),
+      stages: stages.map((s, i) => ({ value: s.value.toLocaleString("vi-VN"), label: s.label,
+        // Chuẩn hoá theo MAX chứ không theo bậc đầu: bậc "chạm key" lớn hơn bậc
+        // "key" nên chia cho bậc đầu sẽ ra 330% và bar tràn sang ô bên cạnh.
+        // Thang log để bậc 4 lệnh vẫn thấy được cạnh bậc 1.780.
+        width: Math.max(12, Math.round((Math.log(s.value + 1) / Math.log(maxStage + 1)) * 100)) + "%",
+        scopeLabel: s.scope === "both" ? "cả 2 nhánh" : "nhánh key",
+        scopeCls: s.scope === "both" ? "both" : "",
+        cls: "stage" + (i === st.stage ? " on" : "") + (s.key === "entries" ? " fin" : ""),
+        pick: () => this.setState({ stage: i }) })),
+      stageDetail: activeStage.detail,
+      stageColor: activeStage.key === "entries" ? "#4ee2a1" : "#adb8b5",
+      funnelHead: "108 key → 4 lệnh trong 45 ngày"
+    };
+  }
+}
+</script>
+</body>
+</html>

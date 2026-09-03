@@ -43,6 +43,11 @@ async function main(): Promise<void> {
   const futuresCache = klineCacheFilePath("btcusdt", "15m", "futures");
   const spotCache = klineCacheFilePath("btcusdt", "15m", "spot");
   assert.notEqual(futuresCache, spotCache, "Futures và Spot phải dùng cache khác nhau");
+  assert.notEqual(
+    futuresCache,
+    klineCacheFilePath("btcusdt", "4h", "futures"),
+    "Mỗi timeframe phải dùng cache riêng",
+  );
   fs.mkdirSync(path.dirname(futuresCache), { recursive: true });
   fs.writeFileSync(futuresCache, JSON.stringify([candle(t0, 100), candle(t1, 999)]));
 
@@ -67,6 +72,16 @@ async function main(): Promise<void> {
   assert.equal(durable.some((c: { openTime: number }) => c.openTime === t3), false, "không cache nến chưa đóng");
   assert.equal(spotCalls, 0, "Futures không được âm thầm gọi Spot");
 
+  const callsAfterRefresh = futuresCalls;
+  const cachedAgain = await fetchKlinesPaged("btcusdt", "15m", 2);
+  assert.deepEqual(cachedAgain.map((c) => [c.openTime, c.close]), [[t1, 101], [t2, 102]]);
+  assert.equal(futuresCalls, callsAfterRefresh, "Lần tải lại phải đọc cache khi không có nến mới");
+
+  const { fetchKlinesPaged: fetchBacktestKlines } = require("./backtest") as typeof import("./backtest");
+  assert.equal(fetchBacktestKlines, fetchKlinesPaged, "Chart/backtest phải dùng chung bộ tải có cache");
+  await fetchBacktestKlines("btcusdt", "15m", 2);
+  assert.equal(futuresCalls, callsAfterRefresh, "Chart/backtest cache hit không được gọi lại Binance");
+
   axios.get = (async (url: string) => {
     if (url.includes("/fapi/")) {
       futuresCalls++;
@@ -77,7 +92,6 @@ async function main(): Promise<void> {
   }) as typeof axios.get;
   await assert.rejects(fetchKlinesPaged("failclosedusdt", "15m", 1), /futures unavailable/);
   assert.equal(spotCalls, 0, "Futures lỗi phải fail-closed, không fallback Spot");
-  const { fetchKlinesPaged: fetchBacktestKlines } = require("./backtest") as typeof import("./backtest");
   await assert.rejects(fetchBacktestKlines("failclosedusdt", "15m", 1), /futures unavailable/);
   assert.equal(spotCalls, 0, "backtest/live Futures lỗi cũng phải fail-closed");
 

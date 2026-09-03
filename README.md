@@ -42,36 +42,84 @@ Toàn bộ tham số nằm ở `CONFIG` trong `strategy.ts`. Bot live và backte
 
 ### Key Volume — phương pháp nghiên cứu độc lập
 
-`key-volume.ts` có hai pipeline không-lookahead, không trộn các setup khác nhau của kênh:
+`key-volume.ts` chạy TRỌN VẸN trên **M15** — không còn Daily, Weekly, H4, H1, và từ 01/09/2026
+**không còn cả M5**. Nến M15 vừa là khung luật vừa là khung mô phỏng. Hệ quả bắt buộc: khi một nến
+chạm cả SL lẫn TP thì không biết cái nào trước, nên **tính STOP trước**. Không có trần thời gian
+giữ lệnh.
 
-1. **`volume-retest` (mặc định, phần công khai có thể lượng hoá):** chuỗi Daily chỉ xác lập bias
-   khi phá cực trị nến ngược màu gần nhất → H1 key có volume/displacement → M15 quay lại key
-   với volume đúng vị trí → sweep/reclaim cuối → phá cấu trúc → vào ở open kế tiếp, SL sau
-   cực trị sweep. Sau TP1 `2R`, chốt 1/2 và bảo vệ phần còn lại; stop sau đó bám swing M5 đã
-   xác nhận. Chỉ tái vào cùng key sau stop dương và một cú sweep sâu hơn.
-2. **`document-v1`:** tái lập đúng pipeline ban đầu trong
-   `planning/fxdream-keyvolume-method.md`: H1/H4 hợp lưu → M15 sweep + hai BOS → M5 OB/FTR
-   trùng cạnh HVN proxy.
+**Hai nhánh vào lệnh ĐỘC LẬP, không chia sẻ một điều kiện nào.**
 
-Model mặc định bám trực tiếp video
-[Phân tích kèo LiveTrade +50R](https://www.youtube.com/watch?v=aPu9ojfAJY0). Video mới
-[FTR × OB × Bulltrap × Volume](https://www.youtube.com/watch?v=b-zNRg90nQw) được dùng để audit,
-nhưng không bị nhập chung thành hard gate vì đó là một entry model FTR/RSI riêng.
+**NHÁNH 1 — `sweep-reclaim`, thuần săn thanh khoản, không đụng tới key.**
 
-Đây là **research/backtest-only**, chưa nối vào bot live và không được gọi là bản sao đầy đủ phương pháp.
-Kline Binance không có volume-at-price Forex/Gold nên HVN chỉ là proxy OHLCV; lớp macro/session và phần
-chọn key discretionary không được giả lập. Chạy test, ablation và bảng so sánh cùng kỳ:
+1. **Bóp cò** — nến M15 thủng đỉnh/đáy **96 nến trước (một ngày)** rồi ĐÓNG lại trong biên. Hết.
+   Không cần key, không cần nến chạm key, không cần volume, không cần mô hình nến xác nhận.
+2. **Hướng** — quét đáy → LONG, quét đỉnh → SHORT. Nến quét cả hai đầu rồi đóng vào trong không
+   nói được chiều nào nên bị bỏ.
+3. **SL** — ngay ngoài **cái râu vừa tạo** của chính nến quét, đệm `0.15×ATR`.
+4. **TP** — cụm thanh khoản **đối diện**: đỉnh/đáy của đúng cửa sổ 96 nến đó ở phía bên kia.
+
+**NHÁNH 2 — `volume-reversal`, nhánh dùng key** (không đổi):
+
+1. **Key** — nến M15 có volume `≥2×` **trung vị 12 nến XUNG QUANH** (6 trước + 6 sau, đúng cách mắt
+   người chấm trên chart). Vì cửa sổ có tâm, key chỉ được coi là biết được **sau khi nến cuối cửa sổ
+   đóng**; `confirmedAt` ghi đúng mốc đó nên replay không nhìn trước.
+2. **Hướng** — giá đang ở TRÊN key thì key là đỡ → LONG; ở DƯỚI thì key là cản → SHORT. Mốc so sánh
+   là giữa vùng key.
+3. **Bóp cò** — mô hình nến đảo chiều tại key (nhấn chìm / inside bar / 3-bar reversal, bám
+   [LiveTrade +50R](https://www.youtube.com/watch?v=aPu9ojfAJY0) và `#50 SFP`), volume cây bóp cò
+   `≥1.2×` trung vị các nến liền trước.
+4. **SL** theo `stopMode`; **TP** là key đối diện gần nhất.
+
+Cả hai nhánh vào ở **open nến M15 kế tiếp** và qua cùng hai cửa cuối: SL `≤3%` giá, dư địa `≥3R`.
+Luật "đóng xuyên thân nến bóp cò" (`entry-invalid`) **chỉ áp cho nhánh 2** — nến quét có thân bé và
+giá vào nằm ngay trên biên thân đó, nên áp cho nhánh 1 chỉ bắt nhiễu (đo được: 610 lệnh thoát kiểu
+đó trong 250 ngày, 326 chết trong đúng một nến).
+
+Đây là **research/backtest-only**, chưa nối vào bot live và không được gọi là bản sao đầy đủ phương
+pháp. Lớp macro/session và phần chọn key discretionary không được giả lập. Chạy test, ablation và
+bảng so sánh cùng kỳ:
 
 ```bash
 npm run test:key-volume
 npx ts-node scripts/key-volume-ablation.ts 500 btcusdt,solusdt,xrpusdt,dogeusdt
 npm run backtest:key-volume -- 500 1 btcusdt,solusdt,xrpusdt,dogeusdt
-npm run backtest:key-volume -- 500 1 btcusdt,solusdt,xrpusdt,dogeusdt document-v1
 ```
 
-Script so sánh Key Volume với SMC, Turtle và Fast Trend trên cùng dữ liệu, cùng kỳ, cùng mô hình
-chi phí và cùng giới hạn đòn bẩy (mặc định `10x`). Funnel tách số setup khỏi số entry: một BOS
-không được vào nếu vùng đối diện gần nhất không còn tối thiểu `3R`, đúng điều kiện “dư địa”.
+**Đo trên BTC/SOL/XRP/DOGE, risk 1%/lệnh, cap 10x, cùng mô hình chi phí Binance.** Cột "trước" là
+engine có M5 và nhánh quét bị khoá sau key:
+
+| Cửa sổ | | N | WR | GROSS R | chi phí | **NET R** | maxDD |
+|---|---|---|---|---|---|---|---|
+| 250d | trước | 39 | 20,5% | +16,4 | −32,5 | **−16,1** | 23,7% |
+| 250d | **sau** | 1.344 | 11,5% | +111,5 | −597,1 | **−485,6** | 99,8% |
+| 500d | trước | 61 | 18,0% | +15,2 | −54,0 | **−38,8** | 33,1% |
+| 500d | **sau** | 2.899 | 10,0% | **−118,7** | −1.237,5 | **−1.356,2** | 100,0% |
+
+Tách theo nhánh — nhánh quét giờ chiếm gần như toàn bộ sổ lệnh:
+
+| Cửa sổ | nhánh | N | NET R | exp/lệnh |
+|---|---|---|---|---|
+| 250d | `sweep-reclaim` | 1.324 | −483,9 | −0,365 |
+| 250d | `volume-reversal` | 20 | −1,9 | −0,095 |
+| 500d | `sweep-reclaim` | 2.873 | −1.345,5 | −0,468 |
+| 500d | `volume-reversal` | 26 | −10,6 | −0,407 |
+
+**Kết luận thẳng: mở khoá nhánh quét làm tần suất tăng 34–48 lần và làm NET xấu đi 30 lần.** Bản
+thân tín hiệu quét thanh khoản KHÔNG có edge — gross mỗi lệnh `+0,083R` trên 250 ngày nhưng
+`−0,041R` trên 500 ngày, tức **đổi dấu giữa hai cửa sổ**: đó là nhiễu, không phải edge yếu. Ngay cả
+lấy cửa sổ tốt hơn, model cần ma sát khứ hồi `<0,034%` trong khi đang mô hình hoá `0,140%` — thiếu
+4,1 lần; ở cửa sổ 500 ngày ngưỡng đó âm, tức **không mức phí nào cứu được**.
+
+Nhánh quét cũng nuốt luôn nhánh key: chỉ được giữ một vị thế mỗi lúc, nên nhánh 2 rớt từ 39 xuống
+20 lệnh (250d). Muốn đo lại riêng nhánh key thì đặt `enableSweepBranch: false`.
+
+Phễu 250 ngày (gồm 120 ngày warmup, 4 symbol):
+
+```
+key 16.184 → chạm key 66.270 → volume@key 27.347 → quét thanh khoản 5.118
+  → mô hình nến 30.135 → plan 17.473 (quét 5.117 / key 12.356) → entry 2.090
+  loại vì SL 64 · loại vì hết dư địa <3R 6.248
+```
 
 Benchmark là kiểm tra **technical subset trên bốn crypto**, không phải phép đo hiệu quả giao dịch
 tay của FX Dream. Lớp chọn key từ lịch sử, chất lượng phản ứng/trap, macro, session và Gold/Forex
@@ -358,7 +406,8 @@ npx ts-node scripts/liquidity-rule-validate.ts 500 700  # validate luật volume
 
 ### 2. Chạy
 ```bash
-npx ts-node btc-alert-bot.ts   # hoặc: npm start
+npm run bot                    # explicit: chạy bot Turtle/Fast
+npm run bot:dev                # bot + tự reload khi sửa source
 ```
 
 Bot prefetch lịch sử 15m cho **từng symbol** trong `CONFIG.symbols`, **poll REST Binance Futures**
@@ -405,7 +454,14 @@ Hiện $68,100 (+1.1R) · giữ 1.2d
 > Lưu ý: alert mặc định **không** dời SL về hoà vốn (breakeven tắt) — trail theo swing 1h sau **+2R** (`trailStartR`).
 
 ### Chạy 24/7 bằng Docker (local, trên máy của bạn)
-`docker-compose.yml` chạy **cả 3 service**: bot alert (`swing-bot`), chart perpetual (`swing-chart` — cổng 3847), dashboard (`swing-dashboard` — cổng 3848, chỉ localhost).
+`docker-compose.yml` mặc định chỉ chạy chart perpetual (`swing-chart` — cổng 3847) và dashboard
+(`swing-dashboard` — cổng 3848, chỉ localhost). Bot alert (`swing-bot`) nằm trong profile `trading`,
+vì vậy mở UI **không khởi chạy Turtle/Fast** và không đặt lệnh.
+
+Chart có thêm `XAUUSD` từ OANDA v20 (`XAU_USD`, nến midpoint M15, volume là tick volume). Chạy local
+thì đặt `OANDA_ACCOUNT_ID` và `OANDA_API_TOKEN` trong `.env.local`; chạy Docker thì export hai biến này
+hoặc đặt trong file `.env` để Compose truyền riêng vào container chart. Tích hợp OANDA chỉ gọi endpoint
+nến, không gọi endpoint order.
 
 ```bash
 # LẦN ĐẦU: mọi state atomic dùng directory mount để temp+rename cùng filesystem.
@@ -413,7 +469,8 @@ mkdir -p trading-runtime fast-trend-mexc-runtime
 touch trading-runtime/bot-state.json trading-runtime/trades-live.jsonl \
       trading-runtime/turtle-state.json trading-runtime/turtle-trades.jsonl
 
-docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
+docker compose up -d --build      # chỉ UI + dashboard, KHÔNG bật Turtle/Fast
+docker compose --profile trading up -d --build  # explicit: bật thêm bot trading
 docker compose logs -f swing-bot  # xem log (tìm "🐢 Turtle:" và "THỰC THI BẬT")
 docker compose restart swing-bot  # sau khi đổi CONFIG/.env.local (kèm --build nếu đổi code)
 docker compose down               # dừng tất cả
@@ -423,7 +480,7 @@ atomic-rename file `.tmp`. Compose mount `trading-runtime/` cho SMC/Turtle và
 `fast-trend-mexc-runtime/` cho Fast; state, journal và file tạm của mỗi nhóm nằm cùng filesystem.
 Nếu nâng cấp từ cấu hình cũ, dừng bot rồi copy `bot-state.json`, `trades-live.jsonl`,
 `turtle-state.json`, `turtle-trades.jsonl` vào `trading-runtime/` trước khi recreate container.
-`restart: unless-stopped` trong compose → container tự sống lại khi crash / khi Docker Desktop khởi động lại. Chart perpetual xem tại `http://localhost:3847`.
+`restart: unless-stopped` trong compose → container tự sống lại khi crash / khi Docker Desktop khởi động lại. Chart thị trường xem tại `http://localhost:3847`.
 
 > **Để chạy 24/7 trên máy local:** bật Docker Desktop **tự khởi động khi đăng nhập** (Settings → General → *Start Docker Desktop when you sign in*), và **tắt sleep** để máy không ngủ (macOS: `caffeinate -s`, hoặc System Settings → chống ngủ khi cắm điện). Máy ngủ = bot dừng nhận nến; khi thức dậy bot **replay nến nhỡ** nên không sai lệch, nhưng alert/lệnh sẽ trễ tới lúc thức.
 

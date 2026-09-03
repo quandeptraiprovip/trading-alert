@@ -16,7 +16,7 @@ import {
 } from "../key-volume";
 import { applyLeverageCap } from "../key-volume-backtest";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, CONFIG, TF_MS } from "../strategy";
+import { CONFIG, Candle, TF_MS, aggregate } from "../strategy";
 
 const WARMUP_DAYS = 120;
 
@@ -134,7 +134,7 @@ async function main(): Promise<void> {
     const params: KeyVolumeParams = { ...KEY_VOLUME_CONFIG, ...variant.overrides };
     const trades: KeyVolumeTrade[] = [];
     for (const [symbol, base] of baseBySymbol) {
-      trades.push(...runKeyVolume(symbol, base, params).trades);
+      trades.push(...runKeyVolume(symbol, aggregate(base, "15m", "5m"), params).trades);
     }
     console.log(
       `${variant.name.padEnd(24)}`

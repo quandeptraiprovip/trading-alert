@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --ink: rgba(255, 255, 255, 0.96);
+      --ink-2: rgba(255, 255, 255, 0.68);
+      --ink-3: rgba(255, 255, 255, 0.44);
+      --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+      /* Nền để kính KHÚC XẠ. Liquid Glass không đọc được trên nền phẳng. */
+      background:
+        radial-gradient(118% 88% at 12% 6%, #3f6a89 0%, rgba(63, 106, 137, 0) 56%),
+        radial-gradient(88% 76% at 90% 16%, #7c4a6d 0%, rgba(124, 74, 109, 0) 60%),
+        radial-gradient(96% 96% at 46% 104%, #1d4152 0%, rgba(29, 65, 82, 0) 62%),
+        linear-gradient(158deg, #17242f 0%, #0e1621 58%, #090e15 100%);
+    }
+    a { color: var(--blue); }
+    a:hover { color: #8bc0ff; }
+
+    /* ── Vật liệu kính ─────────────────────────────────────────────────── */
+    .glass {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(177deg,
+        rgba(255, 255, 255, 0.135) 0%,
+        rgba(255, 255, 255, 0.058) 44%,
+        rgba(255, 255, 255, 0.03) 100%);
+      backdrop-filter: blur(30px) saturate(172%);
+      -webkit-backdrop-filter: blur(30px) saturate(172%);
+      box-shadow:
+        0 26px 54px rgba(0, 0, 0, 0.44),
+        0 3px 10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+    }
+    /* Viền phản chiếu: sáng ở góc trên-trái, tắt dần, sáng lại ở dưới-phải. */
+    .rim {
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      background: linear-gradient(145deg,
+        rgba(255, 255, 255, 0.58) 0%,
+        rgba(255, 255, 255, 0.07) 30%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0.28) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    /* Vệt sáng bắt được của thấu kính. */
+    .lens {
+      position: absolute;
+      top: -46%;
+      left: -14%;
+      width: 76%;
+      height: 88%;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0) 68%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+    /* Nhóm lồng trong: bán kính ĐỒNG TÂM = bán kính ngoài trừ padding. */
+    .inner {
+      position: relative;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -0.5px 0 rgba(0, 0, 0, 0.14);
+    }
+    .chip {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.24);
+      white-space: nowrap;
+    }
+    .track {
+      position: relative;
+      height: 5px;
+      flex: 1;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.26);
+      box-shadow: inset 0 0.5px 1.5px rgba(0, 0, 0, 0.34);
+    }
+    .fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      border-radius: 999px;
+    }
+    .num { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.34); }
+    .row { display: flex; align-items: center; }
+    .grow { flex: 1; }
+    body { width: 449px; height: 275px; }
+  </style>
+</helmet>
+
+<div class="glass" style="display: flex; width: 329px; height: 155px; flex-direction: column; padding: 14px; border-radius: 26px;">
+  <div class="rim" style="border-radius: 26px;"></div>
+  <div class="lens"></div>
+
+  <div class="row" style="gap: 8px;">
+    <div class="chip row" style="gap: 6px; padding: 4px 9px 4px 7px;">
+      <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 7px rgba(78, 226, 161, 0.85);"></span>
+      <span style="color: var(--green); font: 620 10px/1 var(--sans);">Đang chạy</span>
+    </div>
+    <span class="grow"></span>
+    <span style="color: var(--ink-3); font: 500 10px/1 var(--sans);">2 phút trước</span>
+  </div>
+
+  <div class="row" style="align-items: flex-end; gap: 12px; margin-top: 11px;">
+    <div>
+      <div class="num" style="color: var(--ink); font: 250 29px/1 var(--mono); letter-spacing: -0.03em;">$513,11</div>
+      <div class="row" style="align-items: baseline; gap: 7px; margin-top: 7px;">
+        <span class="num" style="color: var(--green); font: 600 12px/1 var(--mono);">+$6,24</span>
+        <span class="num" style="color: var(--green); font: 600 12px/1 var(--mono);">+1,23%</span>
+      </div>
+    </div>
+    <span class="grow"></span>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: 1px;">
+      <span style="color: var(--ink-3); font: 500 9px/1 var(--sans);">risk mở <span class="num" style="color: var(--ink-2); font: 620 10px var(--mono);">2,0%</span></span>
+      <span style="color: var(--ink-3); font: 500 9px/1 var(--sans);">gần stop nhất <span class="num" style="color: var(--ink-2); font: 620 10px var(--mono);">4,15%</span></span>
+    </div>
+  </div>
+
+  <span class="grow"></span>
+
+  <div class="inner" style="display: flex; flex-direction: column; gap: 8px; padding: 9px 10px; border-radius: 16px;">
+    <div class="row" style="gap: 8px;">
+      <span class="chip" style="padding: 2px 7px; background: rgba(243, 186, 99, 0.16); color: var(--amber); font: 700 8px/1.4 var(--sans); letter-spacing: 0.09em;">BINANCE</span>
+      <span style="color: var(--ink); font: 650 12px/1 var(--mono);">SOL</span>
+      <span class="chip" style="padding: 2px 6px; background: rgba(78, 226, 161, 0.18); color: var(--green); font: 700 8px/1.4 var(--sans); letter-spacing: 0.08em;">LONG</span>
+      <div class="track" style="max-width: 62px;"><div class="fill" style="right: 58.5%; background: var(--green); box-shadow: 0 0 8px rgba(78, 226, 161, 0.7);"></div></div>
+      <span class="grow"></span>
+      <span class="num" style="color: var(--green); font: 620 12px/1 var(--mono);">+1,00 R</span>
+    </div>
+    <div class="row" style="gap: 8px;">
+      <span class="chip" style="padding: 2px 7px; background: rgba(101, 169, 255, 0.18); color: var(--blue); font: 700 8px/1.4 var(--sans); letter-spacing: 0.09em;">MEXC</span>
+      <span style="color: var(--ink); font: 650 12px/1 var(--mono);">DOT</span>
+      <span class="chip" style="padding: 2px 6px; background: rgba(255, 107, 112, 0.18); color: var(--red); font: 700 8px/1.4 var(--sans); letter-spacing: 0.08em;">SHORT</span>
+      <div class="track" style="max-width: 62px;"><div class="fill" style="right: 46.8%; background: var(--green); box-shadow: 0 0 8px rgba(78, 226, 161, 0.7);"></div></div>
+      <span class="grow"></span>
+      <span class="num" style="color: var(--green); font: 620 12px/1 var(--mono);">+0,57 R</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

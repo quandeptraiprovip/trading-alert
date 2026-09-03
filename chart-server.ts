@@ -9,6 +9,8 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 import { buildChartPayload } from "./chart-payload";
+import { getBotUniverse } from "./bot-universe";
+import { loadPlaybookDocument, savePlaybookDocument } from "./playbook-store";
 
 const PORT = parseInt(process.argv[2] ?? "3847", 10);
 const PUBLIC = path.join(__dirname, "public");
@@ -19,6 +21,30 @@ function sendJson(res: http.ServerResponse, status: number, body: object): void 
     "Cache-Control": "no-store",
   });
   res.end(JSON.stringify(body));
+}
+
+function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on("data", (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > 5 * 1024 * 1024) {
+        reject(new Error("Playbook JSON vượt quá 5 MB"));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      } catch {
+        reject(new Error("Playbook JSON không hợp lệ"));
+      }
+    });
+    req.on("error", reject);
+  });
 }
 
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -42,9 +68,11 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
       ".js": "application/javascript",
       ".css": "text/css",
     };
+    // Không đặt header cache cho .js/.css thì trình duyệt tự suy đoán và giữ bản cũ
+    // — đủ để một tính năng vừa deploy trông như "bấm không ăn".
     res.writeHead(200, {
       "Content-Type": types[ext] ?? "application/octet-stream",
-      ...(ext === ".html" ? { "Cache-Control": "no-cache" } : {}),
+      "Cache-Control": "no-cache",
     });
     res.end(data);
   });
@@ -52,8 +80,26 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
 
 const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && req.url === "/api/symbols") {
-    const { CONFIG } = await import("./strategy");
-    sendJson(res, 200, { symbols: CONFIG.symbols });
+    const universe = getBotUniverse();
+    sendJson(res, 200, { symbols: universe.all, ...universe });
+    return;
+  }
+  if (req.url?.startsWith("/api/playbook")) {
+    const q = new URL(req.url, `http://127.0.0.1:${PORT}`);
+    try {
+      if (req.method === "GET") {
+        sendJson(res, 200, await loadPlaybookDocument(q.searchParams.get("symbol")));
+        return;
+      }
+      if (req.method === "POST") {
+        sendJson(res, 200, await savePlaybookDocument(await readJsonBody(req)));
+        return;
+      }
+      sendJson(res, 405, { error: "Method not allowed" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      sendJson(res, 400, { error: message });
+    }
     return;
   }
   if (req.method === "GET" && req.url?.startsWith("/api/chart")) {
@@ -75,5 +121,6 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`\n📈 Chart UI: http://localhost:${PORT}`);
   console.log(`   API:      http://localhost:${PORT}/api/chart?days=120&symbol=solusdt`);
+  console.log("   🔒 UI-only: Turtle/Fast không được khởi chạy bởi process này.");
   console.log(`   (Lần đầu tải nến từ Binance có thể mất vài giây)\n`);
 });

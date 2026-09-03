@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --canvas: #080b0e;
+      --border: #242b31;
+      --text: #eef2f1;
+      --text-soft: #adb8b5;
+      --muted: #6f7b79;
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 392px;
+      margin: 0;
+      padding: 16px;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+    }
+    a { color: var(--blue); }
+    a:hover { color: #8bc0ff; }
+    .sep { height: 1px; background: #1f262c; }
+    .sect { padding: 13px 15px; }
+    .vlabel { padding: 3px 6px; border-radius: 3px; font: 700 9px/1 var(--sans); letter-spacing: 0.09em; }
+    .dbadge { padding: 2px 5px; border-radius: 3px; font: 700 8px/1.25 var(--sans); letter-spacing: 0.08em; }
+    .track { position: relative; height: 4px; flex: 1; border-radius: 2px; background: rgba(255, 255, 255, 0.065); overflow: hidden; }
+    .fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 2px; }
+    .row { display: flex; align-items: center; }
+    .grow { flex: 1; }
+  </style>
+</helmet>
+
+<div style="width: 360px; overflow: hidden; border-radius: 12px; background: #12171b; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.075), 0 18px 44px rgba(0, 0, 0, 0.62);">
+
+  <div class="sect" style="padding-bottom: 15px;">
+    <div class="row" style="gap: 7px;">
+      <span style="width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(78, 226, 161, 0.14);"></span>
+      <span style="color: var(--green); font: 620 10px/1 var(--sans); letter-spacing: 0.02em;">Đang chạy</span>
+      <span class="grow"></span>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans);">cập nhật 2 phút trước</span>
+    </div>
+    <div style="margin-top: 13px; color: var(--text); font: 300 32px/1 var(--mono); letter-spacing: -0.024em;">$513,11</div>
+    <div class="row" style="gap: 8px; margin-top: 8px;">
+      <span style="color: var(--green); font: 600 13px/1 var(--mono);">+$6,24</span>
+      <span style="color: var(--green); font: 600 13px/1 var(--mono);">+1,23%</span>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans);">hôm nay</span>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="sect">
+    <div class="row" style="gap: 8px;">
+      <span class="vlabel" style="background: rgba(243, 186, 99, 0.11); color: var(--amber);">BINANCE</span>
+      <span class="grow"></span>
+      <span style="color: var(--text-soft); font: 550 11px/1 var(--mono);">$192,68</span>
+    </div>
+    <div class="row" style="align-items: baseline; gap: 7px; margin-top: 13px;">
+      <span style="color: var(--text); font: 650 14px/1 var(--mono); letter-spacing: 0.01em;">SOL</span>
+      <span class="dbadge" style="background: rgba(78, 226, 161, 0.12); color: var(--green);">LONG</span>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans);">2 unit · 2 ngày</span>
+      <span class="grow"></span>
+      <span style="color: var(--green); font: 620 15px/1 var(--mono);">+1,00 R</span>
+    </div>
+    <div class="row" style="gap: 9px; margin-top: 9px;">
+      <span style="color: var(--muted); font: 500 10px/1 var(--mono);">vào 81,40 · giá 83,62 · stop 80,15</span>
+      <span class="grow"></span>
+      <span style="color: var(--text-soft); font: 550 10px/1 var(--mono);">+$1,93</span>
+    </div>
+    <div class="row" style="gap: 9px; margin-top: 11px;">
+      <div class="track"><div class="fill" style="right: 58%; background: var(--green);"></div></div>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans); white-space: nowrap;">cách stop 4,2%</span>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="sect">
+    <div class="row" style="gap: 8px;">
+      <span class="vlabel" style="background: rgba(101, 169, 255, 0.12); color: var(--blue);">MEXC</span>
+      <span class="grow"></span>
+      <span style="color: var(--text-soft); font: 550 11px/1 var(--mono);">$320,43</span>
+    </div>
+    <div class="row" style="align-items: baseline; gap: 7px; margin-top: 13px;">
+      <span style="color: var(--text); font: 650 14px/1 var(--mono); letter-spacing: 0.01em;">DOT</span>
+      <span class="dbadge" style="background: rgba(255, 107, 112, 0.12); color: var(--red);">SHORT</span>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans);">2 unit · 5 ngày</span>
+      <span class="grow"></span>
+      <span style="color: var(--green); font: 620 15px/1 var(--mono);">+0,57 R</span>
+    </div>
+    <div class="row" style="gap: 9px; margin-top: 9px;">
+      <span style="color: var(--muted); font: 500 10px/1 var(--mono);">vào 0,8115 · giá 0,7994 · stop 0,8419</span>
+      <span class="grow"></span>
+      <span style="color: var(--text-soft); font: 550 10px/1 var(--mono);">+$1,83</span>
+    </div>
+    <div class="row" style="gap: 9px; margin-top: 11px;">
+      <div class="track"><div class="fill" style="right: 47%; background: var(--green);"></div></div>
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans); white-space: nowrap;">cách stop 5,3%</span>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="sect" style="padding-top: 14px; padding-bottom: 14px;">
+    <div class="row" style="gap: 10px;">
+      <span style="color: var(--muted); font: 500 10px/1 var(--sans); white-space: nowrap;">Risk đang mở</span>
+      <div class="track"><div class="fill" style="right: 90%; background: var(--text-soft);"></div></div>
+      <span style="color: var(--text-soft); font: 620 11px/1 var(--mono);">2,0%</span>
+      <span style="color: #4c5654; font: 500 10px/1 var(--sans);">/ 20%</span>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="row" style="height: 42px; gap: 8px; padding: 0 15px; background: rgba(255, 255, 255, 0.022);">
+    <span style="color: var(--text-soft); font: 550 12px/1 var(--sans);">Mở bảng điều khiển</span>
+    <span class="grow"></span>
+    <span style="color: var(--muted); font: 500 11px/1 var(--mono);">⌘D</span>
+    <span style="display: flex; color: #55605e;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

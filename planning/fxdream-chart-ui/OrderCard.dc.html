@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    .sheet { --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+             --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, sans-serif; }
+    .sheet, .sheet * { box-sizing: border-box; }
+    a { color: #65a9ff; text-decoration: none; }
+    a:hover { color: #9cc8ff; }
+
+    .card { position: relative; display: block; width: 100%; padding: 9px 10px 10px; border: 1px solid #242b31; border-left: 2px solid #303940; border-radius: 5px; background: #0d1115; }
+    .card.long { border-left-color: rgba(78,226,161,.75); }
+    .card.short { border-left-color: rgba(255,107,112,.75); }
+    .card.on { border-color: rgba(101,169,255,.55); border-left-color: #4ee2a1; background: #101720; }
+    .card-top { display: flex; align-items: center; gap: 7px; }
+    .side { display: inline-flex; align-items: center; gap: 4px; font: 800 12px/1 var(--sans); letter-spacing: .04em; }
+    .tag { padding: 2px 5px; border-radius: 3px; font: 700 9px/1.35 var(--sans); letter-spacing: .04em; white-space: nowrap; }
+    .rchip { margin-left: auto; padding: 2px 6px; border-radius: 3px; font: 700 13px/1.25 var(--mono); }
+    .card-when { margin: 5px 0 0; color: #6f7b79; font: 500 10px/1.4 var(--mono); }
+    .card-key { display: flex; align-items: center; gap: 5px; margin: 0; color: #adb8b5; font: 500 10px/1.5 var(--mono); }
+    .card-exit { margin: 3px 0 0; font: 600 10px/1.4 var(--sans); }
+    .dots { display: flex; align-items: center; gap: 3px; margin-top: 7px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .dot.p { background: #4ee2a1; }
+    .dot.f { background: #ff6b70; }
+    .dots span { margin-left: 3px; color: #6f7b79; font: 600 9px/1 var(--sans); }
+    .ico-sm { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    .num { display: grid; width: 15px; height: 15px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #65a9ff; color: #06202f; font: 800 9px/1 var(--sans); }
+    .legrow { display: flex; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(36,43,49,.7); }
+    .legrow b { display: block; color: #eef2f1; font: 700 11px/1.35 var(--sans); }
+    .legrow p { margin: 2px 0 0; color: #adb8b5; font: 500 10px/1.55 var(--sans); }
+    .h2 { margin: 0; color: #eef2f1; font: 700 13px/1.2 var(--sans); }
+    .eyebrow { color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .09em; }
+  </style>
+</helmet>
+
+<div class="sheet" style="width: 760px; min-height: 1220px; padding: 20px; background: #080b0e; color: #eef2f1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif, sans-serif;">
+
+  <header style="padding-bottom: 14px; border-bottom: 1px solid #242b31;">
+    <span class="eyebrow">COMPONENT · THẺ LỆNH FX DREAM</span>
+    <h1 style="margin: 5px 0 0; font: 700 20px/1.2 var(--sans); letter-spacing: -.015em;">Đọc một lệnh trong hai giây</h1>
+    <p style="margin: 7px 0 0; max-width: 600px; color: #adb8b5; font: 500 11px/1.65 var(--sans);">Thay hàng bảng mono 9px bằng một thẻ. Thứ mới quan trọng nhất là <b style="color: #65a9ff;">thước R</b>: nó vẽ SL, entry, mục tiêu và điểm thoát THẬT trên cùng một trục, nên mắt thấy ngay lệnh đó đi được bao xa trước khi kết thúc.</p>
+  </header>
+
+  <section style="display: grid; grid-template-columns: 288px minmax(0, 1fr); gap: 22px; padding: 16px 0 18px; border-bottom: 1px solid #242b31;">
+    <div>
+      <div class="card long on">
+        <div class="card-top">
+          <span class="side" style="color: #4ee2a1;">
+            <svg class="ico-sm" viewBox="0 0 20 20" style="stroke-width: 2.2;"><path d="M10 16V5m-4 4 4-4 4 4" /></svg>
+            LONG
+          </span>
+          <span class="tag" style="background: rgba(101,169,255,.13); color: #79c8ff;">KEY + HỘP · RETEST</span>
+          <span class="rchip" style="background: rgba(78,226,161,.14); color: #4ee2a1;">+2.37R</span>
+        </div>
+        <p class="card-when">31/08 09:15 · giữ 24 nến (6.0h)</p>
+        <svg viewBox="0 0 268 40" style="display: block; width: 100%; height: 40px; margin-top: 4px;">
+          <rect x="28.4" y="15" width="63.5" height="7" rx="1.5" fill="rgba(255,107,112,.30)"></rect>
+          <rect x="91.9" y="15" width="166.4" height="7" rx="1.5" fill="rgba(78,226,161,.26)"></rect>
+          <line x1="28.4" y1="10" x2="28.4" y2="27" stroke="#ff6b70" stroke-width="1.4"></line>
+          <line x1="258.3" y1="10" x2="258.3" y2="27" stroke="#4ee2a1" stroke-width="1.4" stroke-dasharray="2.5 2"></line>
+          <line x1="91.9" y1="8" x2="91.9" y2="29" stroke="#65a9ff" stroke-width="1.6"></line>
+          <circle cx="258.3" cy="18.5" r="4.2" fill="#4ee2a1" stroke="#0d1115" stroke-width="1.4"></circle>
+          <text x="28.4" y="36" fill="#ff6b70" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600">SL 110,732.4</text>
+          <text x="91.9" y="6" fill="#65a9ff" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="700" text-anchor="middle">111,204.8</text>
+          <text x="258.3" y="36" fill="#4ee2a1" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600" text-anchor="end">2.62R 112,442.1</text>
+        </svg>
+        <p class="card-key">
+          <svg class="ico-sm" viewBox="0 0 20 20" style="color: #65a9ff;"><path d="M3 14h14M6 14V8m4 6V4m4 10v-3" /></svg>
+          key M15 110,918.6 ×4.24 · 0.1 ngày tuổi
+        </p>
+        <p class="card-exit" style="color: #4ee2a1;">Chạm mục tiêu cấu trúc</p>
+        <div class="dots">
+          <i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot p"></i><i class="dot f"></i>
+          <span>9/10 điều kiện</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 15px 1fr; gap: 6px 8px; margin-top: 12px;">
+        <sc-for list="{{ pins }}" as="p" hint-placeholder-count="7">
+          <span class="num" style="background: {{ p.color }}; color: {{ p.ink }};">{{ p.n }}</span>
+          <span style="color: #adb8b5; font: 600 10px/1.5 var(--sans);">{{ p.short }}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="h2">Cấu tạo thẻ</h2>
+      <p style="margin: 5px 0 8px; color: #6f7b79; font: 500 10px/1.55 var(--sans);">Bảy vùng, đọc từ trên xuống. Không vùng nào lặp lại thông tin của vùng khác.</p>
+      <sc-for list="{{ pins }}" as="p" hint-placeholder-count="7">
+        <div class="legrow">
+          <span class="num" style="background: {{ p.color }}; color: {{ p.ink }};">{{ p.n }}</span>
+          <div>
+            <b>{{ p.title }}</b>
+            <p>{{ p.body }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 16px 0 0;">
+    <h2 class="h2">Trạng thái</h2>
+    <p style="margin: 5px 0 12px; color: #6f7b79; font: 500 10px/1.55 var(--sans);">Cùng một khuôn; chỉ màu viền trái, chip R và dòng thoát đổi. Nhánh quét được gắn cờ hổ phách vì nó KHÔNG dùng key — trộn nó vào cùng bảng với lệnh FX Dream là cách cũ làm sai mọi con số tổng.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+      <sc-for list="{{ states }}" as="s" hint-placeholder-count="4">
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+            <strong style="color: #eef2f1; font: 700 10px/1.3 var(--sans);">{{ s.name }}</strong>
+            <span style="color: #6f7b79; font: 500 9px/1.3 var(--sans);">{{ s.note }}</span>
+          </div>
+          <div class="{{ s.cls }}">
+            <div class="card-top">
+              <span class="side" style="color: {{ s.sideColor }};">
+                <svg class="ico-sm" viewBox="0 0 20 20" style="stroke-width: 2.2;"><path d="{{ s.arrow }}" /></svg>
+                {{ s.side }}
+              </span>
+              <span class="tag" style="background: {{ s.branchBg }}; color: {{ s.branchColor }};">{{ s.branch }}</span>
+              <span class="rchip" style="background: {{ s.rBg }}; color: {{ s.rColor }};">{{ s.r }}</span>
+            </div>
+            <p class="card-when">{{ s.when }}</p>
+            <svg viewBox="0 0 268 40" style="display: block; width: 100%; height: 40px; margin-top: 4px;">
+              <rect x="{{ s.ruler.riskX }}" y="15" width="{{ s.ruler.riskW }}" height="7" rx="1.5" fill="rgba(255,107,112,.30)"></rect>
+              <rect x="{{ s.ruler.rewX }}" y="15" width="{{ s.ruler.rewW }}" height="7" rx="1.5" fill="rgba(78,226,161,.26)"></rect>
+              <line x1="{{ s.ruler.slX }}" y1="10" x2="{{ s.ruler.slX }}" y2="27" stroke="#ff6b70" stroke-width="1.4"></line>
+              <line x1="{{ s.ruler.tgtX }}" y1="10" x2="{{ s.ruler.tgtX }}" y2="27" stroke="#4ee2a1" stroke-width="1.4" stroke-dasharray="2.5 2"></line>
+              <line x1="{{ s.ruler.entryX }}" y1="8" x2="{{ s.ruler.entryX }}" y2="29" stroke="#65a9ff" stroke-width="1.6"></line>
+              <circle cx="{{ s.ruler.exitX }}" cy="18.5" r="4.2" fill="{{ s.rColor }}" stroke="#0d1115" stroke-width="1.4"></circle>
+              <text x="{{ s.ruler.slX }}" y="36" fill="#ff6b70" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600">SL</text>
+              <text x="{{ s.ruler.tgtX }}" y="36" fill="#4ee2a1" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="600" text-anchor="end">{{ s.targetR }}</text>
+            </svg>
+            <p class="card-key">
+              <svg class="ico-sm" viewBox="0 0 20 20" style="color: {{ s.keyColor }};"><path d="{{ s.keyIcon }}" /></svg>
+              {{ s.keyLine }}
+            </p>
+            <p class="card-exit" style="color: {{ s.exitColor }};">{{ s.exit }}</p>
+            <div class="dots">
+              <sc-for list="{{ s.dots }}" as="d" hint-placeholder-count="9">
+                <i class="{{ d.cls }}"></i>
+              </sc-for>
+              <span>{{ s.checks }} điều kiện</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top: 18px; padding: 12px 14px; border: 1px solid #242b31; border-radius: 5px; background: #0d1115;">
+      <span class="eyebrow">ĐỌC THƯỚC R</span>
+      <div style="display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 8px;">
+        <svg viewBox="0 0 300 74" style="display: block; width: 300px; height: 74px;">
+          <rect x="10" y="30" width="80" height="9" rx="2" fill="rgba(255,107,112,.30)"></rect>
+          <rect x="90" y="30" width="170" height="9" rx="2" fill="rgba(78,226,161,.26)"></rect>
+          <line x1="10" y1="22" x2="10" y2="47" stroke="#ff6b70" stroke-width="1.6"></line>
+          <line x1="260" y1="22" x2="260" y2="47" stroke="#4ee2a1" stroke-width="1.6" stroke-dasharray="3 2"></line>
+          <line x1="90" y1="18" x2="90" y2="51" stroke="#65a9ff" stroke-width="1.8"></line>
+          <circle cx="212" cy="34.5" r="5" fill="#4ee2a1" stroke="#0d1115" stroke-width="1.6"></circle>
+          <text x="10" y="14" fill="#ff6b70" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700">−1R</text>
+          <text x="90" y="14" fill="#65a9ff" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700" text-anchor="middle">0 · ENTRY</text>
+          <text x="260" y="14" fill="#4ee2a1" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700" text-anchor="end">MỤC TIÊU</text>
+          <text x="212" y="62" fill="#eef2f1" font-family="ui-monospace, Menlo, monospace" font-size="9" font-weight="700" text-anchor="middle">thoát thật</text>
+          <text x="45" y="62" fill="#6f7b79" font-family="ui-monospace, Menlo, monospace" font-size="8.5" text-anchor="middle">rủi ro</text>
+          <text x="170" y="62" fill="#6f7b79" font-family="ui-monospace, Menlo, monospace" font-size="8.5" text-anchor="middle">dư địa</text>
+        </svg>
+        <div>
+          <p style="margin: 0; color: #adb8b5; font: 500 11px/1.65 var(--sans);">Trục là R, không phải giá — nên mọi lệnh của mọi mã nằm trên cùng một thang và so được với nhau bằng mắt. Chấm tròn là chỗ lệnh THẬT SỰ kết thúc: nằm sát vạch xanh là chạm mục tiêu, nằm ở vạch đỏ là ăn stop, nằm lửng giữa là thoát non.</p>
+          <p style="margin: 8px 0 0; color: #6f7b79; font: 500 10px/1.6 var(--sans);">Chip R ở góc phải là NET R (đã trừ ma sát 0.246R của sàn chi phí BTC), còn vạch mục tiêu là dư địa GROSS lúc vào lệnh. Hai số không bằng nhau, và đó là chủ ý.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":760,"height":1220}}'>
+class Component extends DCLogic {
+  ruler(targetR, exitR) {
+    const rMin = -1.35, rMax = Math.max(targetR, exitR) + 0.35;
+    const x = (r) => 8 + ((r - rMin) / (rMax - rMin)) * 252;
+    return { slX: x(-1).toFixed(1), entryX: x(0).toFixed(1), tgtX: x(targetR).toFixed(1), exitX: x(exitR).toFixed(1),
+      riskX: x(-1).toFixed(1), riskW: (x(0) - x(-1)).toFixed(1), rewX: x(0).toFixed(1), rewW: (x(targetR) - x(0)).toFixed(1) };
+  }
+
+  dots(pass, total) {
+    const out = [];
+    for (let i = 0; i < total; i++) out.push({ cls: "dot " + (i < pass ? "p" : "f") });
+    return out;
+  }
+
+  renderVals() {
+    const KEY = { branch: "KEY + HỘP · RETEST", bg: "rgba(101,169,255,.13)", color: "#79c8ff",
+      keyIcon: "M3 14h14M6 14V8m4 6V4m4 10v-3", keyColor: "#65a9ff" };
+    const SWEEP = { branch: "NHÁNH QUÉT · KHÔNG KEY", bg: "rgba(243,186,99,.13)", color: "#f3ba63",
+      keyIcon: "M10 3v9m0 4v1M3 17h14", keyColor: "#f3ba63" };
+
+    const mk = (o) => ({
+      name: o.name, note: o.note, cls: "card " + o.dir + (o.sel ? " on" : ""),
+      side: o.dir === "long" ? "LONG" : "SHORT",
+      sideColor: o.dir === "long" ? "#4ee2a1" : "#ff6b70",
+      arrow: o.dir === "long" ? "M10 16V5m-4 4 4-4 4 4" : "M10 4v11m-4-4 4 4 4-4",
+      branch: o.b.branch, branchBg: o.b.bg, branchColor: o.b.color,
+      keyIcon: o.b.keyIcon, keyColor: o.b.keyColor,
+      r: o.r, rColor: o.rColor, rBg: o.rBg, when: o.when, keyLine: o.keyLine,
+      exit: o.exit, exitColor: o.exitColor, targetR: o.targetR.toFixed(2) + "R",
+      ruler: this.ruler(o.targetR, o.exitR), dots: this.dots(o.pass, o.total),
+      checks: o.pass + "/" + o.total
+    });
+
+    return {
+      pins: [
+        { n: "1", color: "#65a9ff", ink: "#06202f", short: "Hướng + nhánh + kết quả",
+          title: "Hàng nhận diện", body: "Hướng lệnh, nhánh sinh ra nó, và NET R — ba thứ quyết định bạn có cần đọc tiếp hay không, nằm trên cùng một dòng." },
+        { n: "2", color: "#6f7b79", ink: "#0a0e11", short: "Thời gian + thời lượng giữ",
+          title: "Mốc thời gian", body: "Giờ vào lệnh theo UTC+7 và số nến giữ, kèm quy đổi ra giờ để không phải nhân nhẩm 15 phút." },
+        { n: "3", color: "#4ee2a1", ink: "#04231a", short: "Thước R (thứ quan trọng nhất)",
+          title: "Thước R", body: "SL, entry, mục tiêu và điểm thoát thật trên một trục R. Đây là vùng thay thế cho bốn cột giá của bảng cũ." },
+        { n: "4", color: "#79c8ff", ink: "#06202f", short: "Key: giá, ×volume, tuổi",
+          title: "Dòng key", body: "Key nào sinh ra lệnh: giá, mức đột biến volume, tuổi lúc vào lệnh. Lệnh nhánh quét ghi thẳng “không dùng key” chứ không bỏ trống." },
+        { n: "5", color: "#f3ba63", ink: "#2a1d05", short: "Lý do kết thúc",
+          title: "Dòng thoát", body: "Nhãn thoát nguyên văn của engine — chạm mục tiêu, chạm SL, setup hỏng, key bị phá, hay vẫn đang mở." },
+        { n: "6", color: "#adb8b5", ink: "#0a0e11", short: "Chuỗi hạt điều kiện",
+          title: "Hạt điều kiện", body: "Mỗi hạt là một điều kiện engine đã kiểm; đỏ là điều kiện KHÔNG đạt. Thấy hạt đỏ là biết phải mở bảng bằng chứng bên phải." },
+        { n: "7", color: "#303940", ink: "#eef2f1", short: "Viền trái = hướng, viền ngoài = đang chọn",
+          title: "Viền", body: "Viền trái mã hoá hướng (xanh long, đỏ short); viền ngoài xanh dương nghĩa là chart và bảng bằng chứng đang nói về đúng thẻ này." }
+      ],
+      states: [
+        mk({ name: "Thắng · chạm mục tiêu", note: "và đang được chọn", dir: "long", b: KEY, sel: true,
+          r: "+2.37R", rColor: "#4ee2a1", rBg: "rgba(78,226,161,.14)", when: "31/08 09:15 · giữ 24 nến (6.0h)",
+          keyLine: "key M15 110,918.6 ×4.24 · 0.1 ngày tuổi", exit: "Chạm mục tiêu cấu trúc", exitColor: "#4ee2a1",
+          targetR: 2.62, exitR: 2.62, pass: 9, total: 10 }),
+        mk({ name: "Thua · ăn stop", note: "1R là toàn bộ thiệt hại", dir: "short", b: KEY, sel: false,
+          r: "−1.25R", rColor: "#ff6b70", rBg: "rgba(255,107,112,.14)", when: "01/09 02:00 · giữ 9 nến (2.2h)",
+          keyLine: "key M15 111,486.2 ×3.61 · 0.1 ngày tuổi", exit: "Chạm SL", exitColor: "#ff6b70",
+          targetR: 3.14, exitR: -1, pass: 10, total: 10 }),
+        mk({ name: "Đang mở", note: "R là MTM theo nến cuối", dir: "long", b: SWEEP, sel: false,
+          r: "+0.59R mở", rColor: "#65a9ff", rBg: "rgba(101,169,255,.14)", when: "02/09 04:45 · giữ 24 nến (6.0h)",
+          keyLine: "không dùng key ở bất kỳ khâu nào", exit: "Vẫn đang mở ở nến M15 cuối", exitColor: "#65a9ff",
+          targetR: 2.28, exitR: 0.59, pass: 5, total: 6 }),
+        mk({ name: "Thoát non", note: "dư địa 3.1R, chỉ ăn 0.6R", dir: "long", b: KEY, sel: false,
+          r: "+0.36R", rColor: "#4ee2a1", rBg: "rgba(78,226,161,.14)", when: "28/08 19:30 · giữ 41 nến (10.2h)",
+          keyLine: "key M15 109,740.0 ×5.08 · 1.4 ngày tuổi", exit: "Key bị phá trong lúc giữ lệnh", exitColor: "#f3ba63",
+          targetR: 3.12, exitR: 0.36, pass: 9, total: 10 })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

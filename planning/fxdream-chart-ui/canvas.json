@@ -1,0 +1,66 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Workspace FX Dream",
+      "is_interactive": true
+    },
+    {
+      "file": "Funnel.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 900,
+      "h": 820,
+      "title": "Phễu lọc",
+      "is_interactive": true
+    },
+    {
+      "file": "OrderCard.dc.html",
+      "x": 2580,
+      "y": 0,
+      "w": 760,
+      "h": 1220,
+      "title": "Thẻ lệnh — cấu tạo & trạng thái"
+    },
+    {
+      "file": "Layers.dc.html",
+      "x": 3460,
+      "y": 0,
+      "w": 620,
+      "h": 980,
+      "title": "Quản lý lớp chart",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-main",
+      "x": 0,
+      "y": -132,
+      "w": 620,
+      "text": "BẢN CHÍNH — bấm được.\nNhấp một thẻ lệnh ở cột trái: chart và bảng bằng chứng bên phải đổi theo. Rê chuột từng dòng bằng chứng để nó sáng lên trên chart. Bấm một bậc phễu ở đáy để xem lệnh chết ở đâu."
+    },
+    {
+      "id": "note-funnel",
+      "x": 1560,
+      "y": -132,
+      "w": 500,
+      "text": "PHỄU đầy đủ.\nChip đỏ = setup chết ở đúng cửa đó. Sáu bậc đầu là riêng nhánh key; từ bậc \"hộp chờ retest\" engine đếm CHUNG cả nhánh quét — nhãn phạm vi nói rõ chỗ đó."
+    },
+    {
+      "id": "note-numbers",
+      "x": 2580,
+      "y": -132,
+      "w": 460,
+      "text": "Con số trong PHỄU và dải phễu là replay THẬT của BTCUSDT 45 ngày (đã đối chiếu KeyVolumeDiagnostics). Nến và ba lệnh mẫu trên thẻ là dữ liệu dựng, khớp nhau về số học để minh hoạ khuôn thẻ."
+    }
+  ],
+  "launch": {
+    "view": "focused",
+    "file": "Main.dc.html"
+  }
+}

@@ -134,7 +134,8 @@ async function main() {
   // ── LUẬT LIVE THẬT so với các mô hình giả định ───────────────────────────
   console.log("═══ LUẬT LIVE THẬT (minQtyFloor + trần 3×riskPct) vs các mô hình ═══");
   console.log("mô hình".padEnd(48) + "lệnh".padStart(7) + "BTC".padStart(6) + "Sharpe".padStart(8) +
-    "lãi %vốn".padStart(10) + "sụt %vốn".padStart(10) + "lãi/sụt".padStart(9) + "365d".padStart(9));
+    "lãi %vốn".padStart(10) + "sụt %vốn".padStart(10) + "lãi/sụt".padStart(9) + "365d".padStart(9) +
+    "365d lãi%".padStart(11));
   const YEAR2 = 365 * 86400e3;
   const variants: [string, AdmitFn, number][] = [
     ["TỪ CHỐI (mô hình cũ của tôi — SAI)", admitFloorPolicy(4, 192.68, 0.005, 1, floors), 0.005],
@@ -142,6 +143,11 @@ async function main() {
     ["không có sàn (lý thuyết)", admitFloorPolicy(4, 1e12, 1, 1, floors), 0.005],
     ["ĐỀ XUẤT: luật live, k=0,5 · $513 · 1,0%", admitLiveRule(0.5, 513, 0.01, floors), 0.01],
     ["ĐỀ XUẤT nhưng vốn hiện tại: k=0,5 · $193 · 1,0%", admitLiveRule(0.5, 192.68, 0.01, floors), 0.01],
+    // Bootstrap (exp-deflated-sharpe) CẤM nâng risk/unit lên 1,0%. Ba dòng dưới là đúng gói được
+    // khuyến nghị NHƯNG giữ risk 0,5% — ô mà bảng gốc không đo.
+    ["GIỮ RISK 0,5%: gộp sổ, k=4 · $513 · 0,5%", admitLiveRule(4, 513, 0.005, floors), 0.005],
+    ["GIỮ RISK 0,5%: gộp sổ, k=1 · $513 · 0,5%", admitLiveRule(1, 513, 0.005, floors), 0.005],
+    ["GIỮ RISK 0,5%: gộp sổ, k=0,5 · $513 · 0,5%", admitLiveRule(0.5, 513, 0.005, floors), 0.005],
   ];
   for (const [label, fn, rp] of variants) {
     const res = runBooks(books(), fn);
@@ -152,12 +158,14 @@ async function main() {
     const rEq = res.equity.filter((e) => e.time >= w.to - YEAR2);
     let pk = -Infinity, rdd = 0;
     for (const e of rEq) { pk = Math.max(pk, e.mtm); rdd = Math.max(rdd, pk - e.mtm); }
-    const r365 = rdd > 0 ? (contrib(rTs) * rp * 100) / (rdd * rp * 100) : 0;
+    const g365 = contrib(rTs) * rp * 100;
+    const r365 = rdd > 0 ? g365 / (rdd * rp * 100) : 0;
     console.log(
       label.padEnd(48) + String(ts.length).padStart(7) +
       String(ts.filter((t) => t.symbol.toLowerCase() === "btcusdt").length).padStart(6) +
       m.sharpe.toFixed(2).padStart(8) + `${gain.toFixed(0)}%`.padStart(10) +
-      `${dd.toFixed(0)}%`.padStart(10) + (dd > 0 ? (gain / dd).toFixed(2) : "—").padStart(9) + r365.toFixed(2).padStart(9),
+      `${dd.toFixed(0)}%`.padStart(10) + (dd > 0 ? (gain / dd).toFixed(2) : "—").padStart(9) + r365.toFixed(2).padStart(9) +
+      `${g365.toFixed(0)}%`.padStart(11),
     );
   }
   console.log();

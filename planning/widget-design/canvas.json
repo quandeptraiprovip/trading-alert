@@ -1,0 +1,35 @@
+{
+  "artboards": [
+    { "file": "Small.dc.html",   "title": "Khổ nhỏ · 155×155",       "x": 0,    "y": 0,    "w": 155,  "h": 155 },
+    { "file": "Medium.dc.html",  "title": "Khổ vừa · 329×155",       "x": 255,  "y": 0,    "w": 329,  "h": 155 },
+    { "file": "Main.dc.html",    "title": "Khổ lớn · 329×345",       "x": 684,  "y": 0,    "w": 329,  "h": 345 },
+    { "file": "MenuBar.dc.html", "title": "Ô thanh menu",            "x": 0,    "y": 475,  "w": 440,  "h": 240 },
+    { "file": "Panel.dc.html",   "title": "Panel thả xuống · 360px", "x": 560,  "y": 475,  "w": 392,  "h": 470 },
+    { "file": "States.dc.html",  "title": "Sáu trạng thái",          "x": 0,    "y": 1075, "w": 736,  "h": 780 },
+    { "file": "Context.dc.html", "title": "Trên máy thật",           "x": 856,  "y": 1075, "w": 1000, "h": 760 }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -190,
+      "w": 560,
+      "text": "Widget theo dõi giao dịch — Binance + MEXC\n\nMỗi bề mặt trả lời đúng bốn câu hỏi, theo thứ tự: máy còn chạy không → còn bao nhiêu tiền → đang mở gì → còn cách stop bao xa.\n\nKhông hiện tên phương pháp ở bất kỳ đâu; vị thế chỉ nhận diện bằng sàn, mã và hướng."
+    },
+    {
+      "id": "gauge",
+      "x": 1113,
+      "y": 0,
+      "w": 250,
+      "text": "Thanh \"cách stop\"\n\nThang cố định 0–10%. Thanh dài = còn nhiều đệm, thanh ngắn = sắp bị quét.\n\nĐọc bằng mắt, không phải trừ giá hiện tại cho mức stop trong đầu."
+    },
+    {
+      "id": "why-states",
+      "x": 1113,
+      "y": 250,
+      "w": 250,
+      "text": "Vì sao trạng thái quan trọng hơn con số\n\nMột widget đẹp lúc chạy tốt mà im lặng lúc máy chết thì vô dụng.\n\nSáu ô ở bảng dưới là các trạng thái phải nhận ra ngay, không cần đọc chữ."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

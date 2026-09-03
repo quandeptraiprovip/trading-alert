@@ -16,12 +16,34 @@ import path from "path";
 import { fetchFuturesKlinesPaged } from "./backtest";
 import { Candle, TF_MS } from "./strategy";
 import { T, buildBtcGateLongs, ema, atrSeries } from "./turtle";
+import {
+  FAST_LONG_EXIT_DAYS,
+  FAST_MAX_UNITS,
+  FAST_SHORT_CONFIRM_BARS,
+  FAST_SHORT_ENTRY_DAYS,
+  decideFastShortConfirmation,
+  fastConfigLine,
+  priorFastLongMidClose,
+  priorFastShortCloseLow,
+} from "./fast-trend-config";
+import type { FastShortEntrySetup } from "./fast-trend-config";
 import { FastExecution, FastExecutionPositionIntent } from "./fast-trend-execution";
 import { ExitFillAudit, formatExitFillAudit } from "./exit-fill-audit";
 import { TelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn, escapeMarkdown } from "./telegram";
 import { atomicWriteFileSync } from "./atomic-file";
 
 export { atomicWriteFileSync } from "./atomic-file";
+export {
+  FAST_LONG_EXIT_DAYS,
+  FAST_MAX_UNITS,
+  FAST_SHORT_CONFIRM_BARS,
+  FAST_SHORT_ENTRY_DAYS,
+  decideFastShortConfirmation,
+  fastConfigLine,
+  priorFastLongMidClose,
+  priorFastShortCloseLow,
+} from "./fast-trend-config";
+export type { FastShortEntrySetup } from "./fast-trend-config";
 
 const DATA_DIR = path.resolve(process.env.FAST_TREND_DATA_DIR?.trim() || process.cwd());
 const STATE_FILE = path.join(DATA_DIR, "fast-trend-mexc-state.json");
@@ -35,89 +57,7 @@ const SETTLE_MS = 90_000; // đợi nến 4h chốt hẳn trên sàn
 const CHECK_MS = 60_000;
 const RECONCILE_MS = 10 * 60_000; // lưới an toàn: đối soát vị thế thật với sàn
 
-export const FAST_SHORT_ENTRY_DAYS = 30;
-export const FAST_SHORT_CONFIRM_BARS = 1;
-/**
- * Kênh THOÁT của LONG (midpoint close, chỉ ratchet lên) — TÁCH khỏi kênh VÀO, giống Turtle.
- *
- * Trước 2026-08-09 LONG của Fast thoát bằng Chandelier 3×ATR và đó là điểm yếu lớn nhất của sleeve:
- * winner chỉ giữ 3,9 ngày, top-5 winner chỉ chiếm 10,9% tổng R dương (Turtle 24,6%) — tức là gần
- * như không có ĐUÔI PHẢI, thứ mà toàn bộ lợi nhuận trend-following dựa vào.
- * Audit 2.025 ngày (scripts/rx-lab.ts): Sharpe 0,64 → 1,47; NET quy đổi cùng maxDD +241%; cả ba era
- * đều tăng (0,13/0,16/1,39 → 1,50/1,29/1,61). Xem planning/fast-exit-channel-2026-08.md
- *
- * 20 ngày chọn theo lưới 2 chiều entryDays × longExitDays: với MỌI kênh vào 6/8/10/13/15 ngày,
- * argmax đều rơi vào 20d ⇒ đây là độ rộng TUYỆT ĐỐI của trend crypto (~3 tuần), không phải tỉ lệ
- * theo kênh vào. Cao nguyên 18-25d phẳng nên giá trị chính xác không nhạy.
- */
-export const FAST_LONG_EXIT_DAYS = 20;
-/**
- * Trần unit RIÊNG của Fast (Turtle có bảng audit khác — không để thay đổi sleeve này trôi sang sleeve kia).
- * 4 → 3 ngày 2026-08-09: các unit trong cùng một symbol tương quan đúng bằng 1 nên unit thứ 4 chỉ thêm
- * drawdown; NET/maxDD 8,67 → 9,84 và NET quy đổi cùng maxDD +241% → +287% khi hạ xuống 3.
- */
-const FAST_MAX_UNITS = 3;
 const FAST_SHORT_ENTRY_BARS = Math.max(2, Math.round(FAST_SHORT_ENTRY_DAYS * BARS_PER_DAY));
-const FAST_LONG_EXIT_BARS = Math.max(2, Math.round(FAST_LONG_EXIT_DAYS * BARS_PER_DAY));
-
-export type FastShortEntrySetup = {
-  breakoutLevel: number;
-  signalBarTime: number;
-};
-
-export function decideFastShortConfirmation(
-  setup: FastShortEntrySetup,
-  bar: Pick<Candle, "openTime" | "close">,
-  downtrend: boolean,
-  gateOk: boolean,
-): "wait" | "enter" | "cancel" {
-  if (bar.openTime <= setup.signalBarTime) return "wait";
-  if (bar.openTime !== setup.signalBarTime + FAST_SHORT_CONFIRM_BARS * tfMs) return "cancel";
-  return downtrend && gateOk && bar.close < setup.breakoutLevel ? "enter" : "cancel";
-}
-
-export function priorFastShortCloseLow(candles: Candle[], index: number): number {
-  if (index < FAST_SHORT_ENTRY_BARS) return Infinity;
-  let closeLow = Infinity;
-  for (let k = index - FAST_SHORT_ENTRY_BARS; k < index; k++) closeLow = Math.min(closeLow, candles[k].close);
-  return closeLow;
-}
-
-/** Midpoint của kênh CLOSE `FAST_LONG_EXIT_DAYS` ngày trước nến `index` (không gồm nến đó). */
-export function priorFastLongMidClose(candles: Candle[], index: number): number {
-  if (index < FAST_LONG_EXIT_BARS) return -Infinity;
-  let hi = -Infinity;
-  let lo = Infinity;
-  for (let k = index - FAST_LONG_EXIT_BARS; k < index; k++) {
-    hi = Math.max(hi, candles[k].close);
-    lo = Math.min(lo, candles[k].close);
-  }
-  return (hi + lo) / 2;
-}
-
-/**
- * Một dòng mô tả LUẬT Fast đang chạy + fingerprint — để `/health` chứng minh process đang chạy
- * đúng cấu hình nào (giống `turtleConfigLine`). Đổi bất kỳ tham số nào là fingerprint đổi.
- */
-export function fastConfigLine(entryDays: number): string {
-  const f = {
-    e: entryDays, x: FAST_LONG_EXIT_DAYS, s: FAST_SHORT_ENTRY_DAYS, k: FAST_SHORT_CONFIRM_BARS,
-    c: T.chandelierMult, u: FAST_MAX_UNITS, p: T.pyramidStepAtr, a: T.atrPeriod, t: T.trendLen,
-    h: T.maxHoldDays, g: `${T.btcGateFast}/${T.btcGateSlow}`,
-  };
-  let hash = 0x811c9dc5;
-  const s = JSON.stringify(f);
-  for (let i = 0; i < s.length; i++) {
-    hash ^= s.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return (
-    `long high-${entryDays}d/exit mid-close ${FAST_LONG_EXIT_DAYS}d · ` +
-    `short close-${FAST_SHORT_ENTRY_DAYS}d +${FAST_SHORT_CONFIRM_BARS} nến/chand ${T.chandelierMult}×ATR · ` +
-    `pyramid ${T.pyramidStepAtr}×ATR max${FAST_MAX_UNITS} · gate ${T.btcGateFast / BARS_PER_DAY}/${T.btcGateSlow / BARS_PER_DAY}d · ` +
-    `fp \`${hash.toString(16).padStart(8, "0").slice(0, 6)}\``
-  );
-}
 
 type Unit = {
   entry: number;

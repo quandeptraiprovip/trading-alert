@@ -19,3 +19,40 @@ fast-trend-mexc-runtime
 .env
 .env.*
 !.env.example
+
+
+# ── Không đưa vào build context ────────────────────────────────────────────
+# Trước khối này context là ~1,17 GB trong khi image chỉ cần ~2 MB. Tệ hơn:
+# checksum layer `COPY . .` phụ thuộc MỌI file trong context, nên backtest ghi
+# lại .cache/klines là mỗi lần build đều miss cache và bundle lại từ đầu.
+# LƯU Ý: .dockerignore KHÔNG hỗ trợ comment cuối dòng — mỗi ghi chú phải ở
+# dòng riêng, nếu không cả dòng bị coi là một pattern literal.
+
+# Cache nến của kline-fetch.ts — 1,1 GB; bot/chart/dashboard không dùng
+# (chúng đi qua backtest.ts, fetch thuần in-memory).
+.cache/
+# Ảnh docker save — 47 MB.
+alert-bot.tar
+# Tài liệu nghiên cứu / output công cụ / widget Swift: không có gì để bundle,
+# và .ua còn làm nhiễu BUILD_ID (hash toàn bộ *.ts trong context).
+planning/
+.ua/
+macos-widget/
+# Runtime SỐNG — phải đến từ bind mount, không được nướng vào image.
+trading-runtime/
+fast-trend-mexc-runtime/
+
+# State/journal live ở gốc repo. Bot đọc qua TRADING_DATA_DIR nên chúng bị mount
+# che, nhưng đây là bảo hiểm cho trường hợp env đó vắng: khi đó DATA_DIR mặc định
+# về /app và state cũ nướng trong image sẽ được replay.
+turtle-state.json
+turtle-state.json.tmp
+turtle-trades.jsonl
+fast-trend-state.json
+fast-trend-trades.jsonl
+fast-trend-mexc-state.json
+fast-trend-mexc-state.json.tmp
+fast-trend-mexc-trades.jsonl
+fxdream-alert-state.json
+widget-equity-history.json
+tsconfig.tsbuildinfo

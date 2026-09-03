@@ -1,0 +1,294 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    .ly { --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+          --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, sans-serif; }
+    .ly, .ly * { box-sizing: border-box; }
+    a { color: #65a9ff; text-decoration: none; }
+    a:hover { color: #9cc8ff; }
+
+    .lrow { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border: 1px solid transparent; border-radius: 4px; background: #0d1115; }
+    .lrow:hover { border-color: #303940; }
+    .lrow.off { opacity: .5; }
+    .lname { color: #eef2f1; font: 650 11px/1.35 var(--sans); }
+    .lcount { color: #6f7b79; font: 600 9px/1.35 var(--mono); }
+    .sw { flex: 0 0 auto; width: 24px; height: 14px; padding: 2px; border: 0; border-radius: 8px; background: #2a3238; cursor: pointer; }
+    .sw i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #6f7b79; transform: translateX(0); }
+    .lrow.on .sw { background: rgba(101,169,255,.35); }
+    .lrow.on .sw i { background: #65a9ff; transform: translateX(10px); }
+    .zbtn { display: grid; width: 17px; height: 15px; place-items: center; border: 1px solid #242b31; border-radius: 3px; background: transparent; color: #6f7b79; cursor: pointer; }
+    .zbtn:hover { border-color: #303940; color: #eef2f1; }
+    .zbtn[disabled] { opacity: .3; cursor: default; }
+    .kbd { padding: 1px 4px; border: 1px solid #303940; border-radius: 3px; color: #6f7b79; font: 600 9px/1.4 var(--mono); }
+    .seg { padding: 4px 9px; border: 0; border-radius: 4px; background: transparent; color: #6f7b79; font: 650 10px/1.3 var(--sans); cursor: pointer; }
+    .seg:hover { color: #eef2f1; }
+    .seg.on { background: #151b20; color: #65a9ff; box-shadow: inset 0 -2px #65a9ff; }
+  </style>
+</helmet>
+
+<div class="ly" style="width: 620px; min-height: 980px; padding: 18px; background: #080b0e; color: #eef2f1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif, sans-serif;">
+
+  <header style="padding-bottom: 13px; border-bottom: 1px solid #242b31;">
+    <span style="color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .09em;">CHART · QUẢN LÝ LỚP</span>
+    <h1 style="margin: 5px 0 0; font: 700 19px/1.2 var(--sans); letter-spacing: -.015em;">Năm lớp SVG, một chỗ điều khiển</h1>
+    <p style="margin: 7px 0 0; color: #adb8b5; font: 500 11px/1.65 var(--sans);">Hiện tại chart xếp chồng năm lớp mà không có chỗ nào bật/tắt hay đổi thứ tự, nên vùng key che nhãn vị thế và ngược lại. Bảng này cho tắt từng lớp, đổi thứ tự che nhau, và đặt lại mặc định là <b style="color: #65a9ff;">chỉ soi một lệnh</b>.</p>
+  </header>
+
+  <section style="padding: 14px 0 0;">
+    <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 8px;">
+      <strong style="font: 700 11px/1 var(--sans);">Xem thử</strong>
+      <sc-for list="{{ views }}" as="v" hint-placeholder-count="3">
+        <button class="{{ v.cls }}" type="button" onClick="{{ v.pick }}">{{ v.label }}</button>
+      </sc-for>
+      <span style="margin-left: auto; color: {{ noteColor }}; font: 600 10px/1.3 var(--sans);">{{ note }}</span>
+    </div>
+
+    <div style="border: 1px solid #242b31; border-radius: 5px; background: #080b0e; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 0 9px; height: 24px; border-bottom: 1px solid #242b31; background: #0d1115;">
+        <strong style="font: 700 9px/1 var(--mono);">BTCUSDT · 15m</strong>
+        <span style="color: #6f7b79; font: 500 9px/1 var(--mono);">{{ layerCount }}/5 lớp đang bật</span>
+      </div>
+      <svg viewBox="0 0 584 300" style="display: block; width: 100%; height: 300px;">
+        <sc-for list="{{ grid }}" as="g" hint-placeholder-count="4">
+          <line x1="6" y1="{{ g.y }}" x2="520" y2="{{ g.y }}" stroke="#161c21" stroke-width="1"></line>
+        </sc-for>
+        <sc-for list="{{ grid }}" as="g" hint-placeholder-count="4">
+          <text x="526" y="{{ g.ty }}" fill="#5b6663" font-family="ui-monospace, Menlo, monospace" font-size="8.5">{{ g.label }}</text>
+        </sc-for>
+
+        <sc-for list="{{ shapes }}" as="s" hint-placeholder-count="6">
+          <g opacity="{{ s.opacity }}">
+            <rect x="{{ s.x }}" y="{{ s.y }}" width="{{ s.w }}" height="{{ s.h }}" fill="{{ s.fill }}" stroke="{{ s.stroke }}" stroke-width="{{ s.sw }}" stroke-dasharray="{{ s.dash }}"></rect>
+            <text x="{{ s.tx }}" y="{{ s.ty }}" fill="{{ s.stroke }}" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="700">{{ s.label }}</text>
+          </g>
+        </sc-for>
+
+        <sc-for list="{{ candles }}" as="c" hint-placeholder-count="60">
+          <g>
+            <line x1="{{ c.wx }}" y1="{{ c.wy1 }}" x2="{{ c.wx }}" y2="{{ c.wy2 }}" stroke="{{ c.fill }}" stroke-width="1"></line>
+            <rect x="{{ c.x }}" y="{{ c.y }}" width="{{ c.w }}" height="{{ c.h }}" fill="{{ c.fill }}"></rect>
+          </g>
+        </sc-for>
+
+        <sc-for list="{{ lines }}" as="l" hint-placeholder-count="4">
+          <g opacity="{{ l.opacity }}">
+            <line x1="{{ l.x1 }}" y1="{{ l.y }}" x2="{{ l.x2 }}" y2="{{ l.y }}" stroke="{{ l.color }}" stroke-width="{{ l.sw }}" stroke-dasharray="{{ l.dash }}"></line>
+            <rect x="{{ l.tagX }}" y="{{ l.tagY }}" width="{{ l.tagW }}" height="12" rx="2" fill="{{ l.tagBg }}"></rect>
+            <text x="{{ l.textX }}" y="{{ l.textY }}" fill="{{ l.color }}" font-family="ui-monospace, Menlo, monospace" font-size="8.5" font-weight="700">{{ l.label }}</text>
+          </g>
+        </sc-for>
+      </svg>
+    </div>
+  </section>
+
+  <section style="padding: 16px 0 0;">
+    <div style="display: flex; align-items: baseline; gap: 8px;">
+      <strong style="font: 700 12px/1 var(--sans);">Lớp</strong>
+      <span style="color: #6f7b79; font: 500 10px/1.3 var(--sans);">trên cùng che dưới cùng · ⌥1…⌥5 để bật nhanh</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 9px;">
+      <sc-for list="{{ layers }}" as="l" hint-placeholder-count="5">
+        <div class="{{ l.cls }}">
+          <div style="display: flex; flex-direction: column; gap: 1px;">
+            <button class="zbtn" type="button" onClick="{{ l.up }}" aria-label="Đưa lên trên">
+              <svg viewBox="0 0 12 12" style="width: 9px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;"><path d="m3 7 3-3 3 3" /></svg>
+            </button>
+            <button class="zbtn" type="button" onClick="{{ l.down }}" aria-label="Đưa xuống dưới">
+              <svg viewBox="0 0 12 12" style="width: 9px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;"><path d="m3 5 3 3 3-3" /></svg>
+            </button>
+          </div>
+          <button class="sw" type="button" onClick="{{ l.toggle }}" aria-label="Bật tắt lớp"><i></i></button>
+          <span style="width: 8px; height: 8px; border-radius: 2px; background: {{ l.color }};"></span>
+          <div style="min-width: 0;">
+            <div class="lname">{{ l.label }}</div>
+            <div class="lcount">{{ l.count }}</div>
+          </div>
+          <span class="kbd" style="margin-left: auto;">{{ l.hotkey }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="margin-top: 16px; padding: 12px 14px; border: 1px solid #242b31; border-radius: 5px; background: #0d1115;">
+    <span style="color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .09em;">BA LUẬT CHỐNG RỐI</span>
+    <ol style="margin: 8px 0 0; padding-left: 17px; color: #adb8b5; font: 500 11px/1.7 var(--sans);">
+      <li><b style="color: #eef2f1;">Mặc định là “1 lệnh”, không phải “tất cả”.</b> Chart mở ra chỉ vẽ lệnh đang chọn; muốn thấy cả 3 lệnh thì phải chủ động bấm. Cách cũ mặc định “chart trống” nên không ai thấy gì, còn “tất cả” thì 240 đường key phủ kín.</li>
+      <li><b style="color: #eef2f1;">Key không được chọn thì mờ, không mất.</b> Ở chế độ “tất cả”, key của lệnh đang chọn vẽ đậm và liền, các key khác mờ 42% và gạch đứt — vẫn biết chúng ở đâu mà không tranh chấp thị giác.</li>
+      <li><b style="color: #eef2f1;">Nhãn bám mép phải, chồng thì ẩn.</b> Nhãn key neo sát trục giá và tự ẩn khi va nhau — trừ nhãn của lệnh đang chọn và key đã chấm, hai loại đó luôn hiện.</li>
+    </ol>
+  </section>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":620,"height":980}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      view: "one",
+      order: ["position", "keys", "evidence", "context", "draw"],
+      on: { position: true, keys: true, evidence: false, context: true, draw: false }
+    };
+  }
+
+  series() {
+    if (this._s) return this._s;
+    let s = 771103;
+    const rnd = () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
+    const out = [];
+    let px = 110900;
+    for (let i = 0; i < 60; i++) {
+      const drift = i < 18 ? -34 : i < 34 ? 18 : 46;
+      const o = px, c = o + (rnd() - 0.5) * 210 + drift;
+      out.push({ o: o, h: Math.max(o, c) + rnd() * 80, l: Math.min(o, c) - rnd() * 80, c: c });
+      px = c;
+    }
+    this._s = out;
+    return out;
+  }
+
+  fmt(v) { return Number(v).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+  /** Năm lớp SVG THẬT trong DOM của chart, theo đúng id trong index.html. */
+  defs() {
+    return [
+      { key: "position", label: "Vị thế đang chọn", color: "#65a9ff", hotkey: "⌥1", count: "#order-levels · entry · SL · mục tiêu · thoát" },
+      { key: "keys", label: "Vùng key volume", color: "#79c8ff", hotkey: "⌥2", count: "#keyvol-layer · đường key + nhãn ×volume" },
+      { key: "evidence", label: "Soi bằng chứng", color: "#eef2f1", hotkey: "⌥3", count: "#evidence-layer · sáng khi rê chuột bảng phải" },
+      { key: "context", label: "Ngữ cảnh Turtle/Fast", color: "#f3ba63", hotkey: "⌥4", count: "#strategy-context-layer · kênh breakout sổ khác" },
+      { key: "draw", label: "Hình vẽ tay", color: "#adb8b5", hotkey: "⌥5", count: "#drawing-layer · vùng phản ứng + đường tự vẽ" }
+    ];
+  }
+
+  renderVals() {
+    const st = this.state;
+    const c = this.series();
+    const X0 = 6, X1 = 520, step = (X1 - X0) / c.length, bw = Math.max(3, step * 0.6);
+    const lo = Math.min.apply(null, c.map((k) => k.l)) - 340;
+    const hi = Math.max.apply(null, c.map((k) => k.h)) + 240;
+    const top = 12, bot = 268;
+    const xOf = (i) => X0 + i * step + step / 2;
+    const yOf = (p) => top + ((hi - p) / (hi - lo)) * (bot - top);
+
+    const candles = c.map((k, i) => {
+      const y1 = yOf(Math.max(k.o, k.c)), y2 = yOf(Math.min(k.o, k.c));
+      return { x: (xOf(i) - bw / 2).toFixed(1), y: y1.toFixed(1), w: bw.toFixed(1), h: Math.max(1, y2 - y1).toFixed(1),
+        wx: xOf(i).toFixed(1), wy1: yOf(k.h).toFixed(1), wy2: yOf(k.l).toFixed(1), fill: k.c >= k.o ? "#4ee2a1" : "#ff6b70" };
+    });
+
+    const grid = [];
+    for (let g = 0; g <= 3; g++) {
+      const p = lo + ((hi - lo) * g) / 3, y = yOf(p);
+      grid.push({ y: y.toFixed(1), ty: (y + 3).toFixed(1), label: this.fmt(p) });
+    }
+
+    const entryIdx = 40, exitIdx = 57;
+    const entry = c[entryIdx].c;
+    const bodies = c.slice(entryIdx - 3, entryIdx + 1);
+    const obHigh = Math.max.apply(null, bodies.map((b) => Math.max(b.o, b.c)));
+    const obLow = Math.min.apply(null, bodies.map((b) => Math.min(b.o, b.c)));
+    const sl = obLow - 59;
+    const target = entry + (entry - sl) * 2.4;
+    const keyPrice = c[22].c;
+
+    const showAll = st.view === "all", showNone = st.view === "none";
+    const vis = (k) => !showNone && st.on[k];
+
+    const shapes = [];
+    const lines = [];
+
+    if (vis("keys")) {
+      const kx = xOf(21), kx2 = xOf(59);
+      shapes.push({ layer: "keys", x: kx.toFixed(1), y: yOf(keyPrice + 70).toFixed(1), w: (kx2 - kx).toFixed(1),
+        h: (yOf(keyPrice - 70) - yOf(keyPrice + 70)).toFixed(1), fill: "rgba(101,169,255,.13)", stroke: "none",
+        sw: "0", dash: "0", tx: "0", ty: "-20", label: "" });
+      lines.push({ layer: "keys", x1: kx.toFixed(1), x2: kx2.toFixed(1), y: yOf(keyPrice).toFixed(1), color: "#65a9ff",
+        sw: "1.4", dash: "0", opacity: "1", tagX: (kx2 - 118).toFixed(1), tagY: (yOf(keyPrice) - 15).toFixed(1),
+        tagW: "115", textX: (kx2 - 113).toFixed(1), textY: (yOf(keyPrice) - 5.5).toFixed(1),
+        tagBg: "rgba(101,169,255,.24)", label: "M15 ×4.24 · " + this.fmt(keyPrice) });
+      if (showAll) {
+        [8, 14, 30, 47, 52].forEach((i, n) => {
+          const p = c[i].c + (n % 2 ? 210 : -190);
+          lines.push({ layer: "keys", x1: xOf(i).toFixed(1), x2: xOf(59).toFixed(1), y: yOf(p).toFixed(1),
+            color: "#65a9ff", sw: "1", dash: "4 3", opacity: "0.42", tagX: "0", tagY: "-30", tagW: "0",
+            textX: "0", textY: "-30", tagBg: "none", label: "" });
+        });
+      }
+    }
+
+    if (vis("context")) {
+      const bx = xOf(entryIdx - 3.5), bx2 = xOf(entryIdx + 0.5);
+      shapes.push({ layer: "context", x: bx.toFixed(1), y: yOf(obHigh).toFixed(1), w: (bx2 - bx).toFixed(1),
+        h: Math.max(3, yOf(obLow) - yOf(obHigh)).toFixed(1), fill: "rgba(243,186,99,.12)", stroke: "#f3ba63",
+        sw: "1", dash: "3 2", tx: (bx2 + 5).toFixed(1), ty: (yOf(obHigh) - 5).toFixed(1), label: "kênh Turtle 20d" });
+    }
+
+    if (vis("position")) {
+      const px1 = xOf(entryIdx), px2 = xOf(exitIdx);
+      shapes.push({ layer: "position", x: px1.toFixed(1), y: yOf(entry).toFixed(1), w: (px2 - px1).toFixed(1),
+        h: (yOf(sl) - yOf(entry)).toFixed(1), fill: "rgba(255,107,112,.16)", stroke: "none", sw: "0", dash: "0",
+        tx: "0", ty: "-20", label: "" });
+      shapes.push({ layer: "position", x: px1.toFixed(1), y: yOf(target).toFixed(1), w: (px2 - px1).toFixed(1),
+        h: (yOf(entry) - yOf(target)).toFixed(1), fill: "rgba(78,226,161,.13)", stroke: "none", sw: "0", dash: "0",
+        tx: "0", ty: "-20", label: "" });
+      [["SL " + this.fmt(sl), sl, "#ff6b70", "0"], ["E " + this.fmt(entry), entry, "#65a9ff", "0"],
+       ["TGT " + this.fmt(target), target, "#4ee2a1", "4 3"]].forEach((row) => {
+        lines.push({ layer: "position", x1: px1.toFixed(1), x2: px2.toFixed(1), y: yOf(row[1]).toFixed(1),
+          color: row[2], sw: "1.3", dash: row[3], opacity: "1", tagX: (px1 + 4).toFixed(1),
+          tagY: (yOf(row[1]) - 6).toFixed(1), tagW: "84", textX: (px1 + 9).toFixed(1),
+          textY: (yOf(row[1]) + 3.5).toFixed(1), tagBg: "rgba(13,17,21,.85)", label: row[0] });
+      });
+    }
+
+    if (vis("evidence")) {
+      const ex = xOf(entryIdx - 8), ex2 = xOf(entryIdx);
+      shapes.push({ layer: "evidence", x: ex.toFixed(1), y: yOf(obHigh + 40).toFixed(1), w: (ex2 - ex).toFixed(1),
+        h: (yOf(obLow - 40) - yOf(obHigh + 40)).toFixed(1), fill: "rgba(238,242,241,.10)", stroke: "#eef2f1",
+        sw: "1.2", dash: "3 2", tx: ex.toFixed(1), ty: (yOf(obHigh + 40) - 5).toFixed(1), label: "cửa rời hộp" });
+    }
+
+    if (vis("draw")) {
+      shapes.push({ layer: "draw", x: xOf(4).toFixed(1), y: yOf(hi - 120).toFixed(1), w: (xOf(16) - xOf(4)).toFixed(1),
+        h: "34", fill: "rgba(173,184,181,.08)", stroke: "#adb8b5", sw: "1", dash: "4 3",
+        tx: xOf(4).toFixed(1), ty: (yOf(hi - 120) - 5).toFixed(1), label: "vùng vẽ tay" });
+    }
+
+    const rank = {};
+    st.order.forEach((k, i) => { rank[k] = st.order.length - i; });
+    const byLayer = (a, b) => (rank[a.layer] || 0) - (rank[b.layer] || 0);
+
+    const defs = this.defs();
+    const ordered = st.order.map((k) => defs.filter((d) => d.key === k)[0]);
+
+    return {
+      candles: candles, grid: grid,
+      shapes: shapes.sort(byLayer).map((s) => Object.assign({}, s, { opacity: s.opacity || "1" })),
+      lines: lines.sort(byLayer),
+      layerCount: Object.keys(st.on).filter((k) => st.on[k]).length,
+      views: [{ key: "one", label: "1 lệnh" }, { key: "all", label: "Tất cả" }, { key: "none", label: "Chart trống" }]
+        .map((v) => ({ label: v.label, cls: "seg" + (st.view === v.key ? " on" : ""), pick: () => this.setState({ view: v.key }) })),
+      note: showNone ? "mọi lớp bị nén — chỉ còn nến"
+        : showAll ? "5 key phụ hiện mờ và gạch đứt" : "chỉ lệnh đang chọn",
+      noteColor: showNone ? "#6f7b79" : showAll ? "#f3ba63" : "#65a9ff",
+      layers: ordered.map((d, i) => ({
+        label: d.label, color: d.color, hotkey: d.hotkey, count: d.count,
+        cls: "lrow " + (st.on[d.key] ? "on" : "off"),
+        toggle: () => { const next = Object.assign({}, this.state.on); next[d.key] = !next[d.key]; this.setState({ on: next }); },
+        up: () => { if (i === 0) return; const o = this.state.order.slice(); const t = o[i - 1]; o[i - 1] = o[i]; o[i] = t; this.setState({ order: o }); },
+        down: () => { if (i === ordered.length - 1) return; const o = this.state.order.slice(); const t = o[i + 1]; o[i + 1] = o[i]; o[i] = t; this.setState({ order: o }); }
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

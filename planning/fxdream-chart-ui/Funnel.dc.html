@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    .fn { --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+          --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, sans-serif; }
+    .fn, .fn * { box-sizing: border-box; }
+    a { color: #65a9ff; text-decoration: none; }
+    a:hover { color: #9cc8ff; }
+
+    .row { display: grid; grid-template-columns: 176px 1fr; align-items: stretch; gap: 0; width: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .row:hover .rowbody { background: #101519; }
+    .row.on .rowbody { background: #101720; }
+    .rowname { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 9px 12px 9px 0; border-right: 1px solid #242b31; text-align: right; }
+    .rowname b { color: #eef2f1; font: 700 11px/1.25 var(--sans); }
+    .rowname span { color: #6f7b79; font: 500 9px/1.3 var(--mono); }
+    .rowname i { font: 700 8px/1.3 var(--sans); font-style: normal; letter-spacing: .04em; color: #4e5a58; }
+    .rowname i.both { color: #f3ba63; }
+    .row.on .rowname b { color: #79c8ff; }
+    .rowbody { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid rgba(36,43,49,.65); }
+    .bar { position: relative; flex: 0 1 auto; max-width: 46%; height: 15px; border-radius: 2px; background: linear-gradient(90deg, rgba(101,169,255,.85), rgba(101,169,255,.42)); }
+    .row.fin .bar { background: linear-gradient(90deg, #4ee2a1, rgba(78,226,161,.5)); }
+    .count { flex: 0 0 auto; color: #eef2f1; font: 700 13px/1 var(--mono); }
+    .row.fin .count { color: #4ee2a1; }
+    .leak { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border: 1px solid rgba(255,107,112,.32); border-radius: 3px; background: rgba(255,107,112,.09); color: #ff9a9d; font: 600 9px/1.5 var(--mono); white-space: nowrap; }
+    .leak.warn { border-color: rgba(243,186,99,.34); background: rgba(243,186,99,.09); color: #f3ba63; }
+    .leakwrap { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; justify-content: flex-end; }
+
+    .seg { padding: 4px 9px; border: 0; border-radius: 4px; background: transparent; color: #6f7b79; font: 650 10px/1.3 var(--sans); cursor: pointer; }
+    .seg:hover { color: #eef2f1; }
+    .seg.on { background: #151b20; color: #65a9ff; box-shadow: inset 0 -2px #65a9ff; }
+  </style>
+</helmet>
+
+<div class="fn" style="display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 900px; height: 820px; overflow: hidden; background: #080b0e; color: #eef2f1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif, sans-serif;">
+
+  <header style="padding: 16px 20px 13px; border-bottom: 1px solid #242b31; background: #0d1115;">
+    <div style="display: flex; align-items: baseline; gap: 9px;">
+      <span style="padding: 2px 6px; border-radius: 3px; background: rgba(101,169,255,.13); color: #79c8ff; font: 700 9px/1.4 var(--sans); letter-spacing: .05em;">FX DREAM · PHỄU LỌC</span>
+      <span style="color: #6f7b79; font: 500 10px/1.4 var(--mono);">BTCUSDT · M15 · 45 ngày · replay thật</span>
+    </div>
+    <h1 style="margin: 8px 0 0; font: 700 21px/1.2 var(--sans); letter-spacing: -.015em;">108 key vào phễu, <span style="color: #4ee2a1;">4 lệnh</span> đi ra</h1>
+    <p style="margin: 7px 0 0; max-width: 640px; color: #adb8b5; font: 500 11px/1.65 var(--sans);">Mỗi bậc là một cửa của <code style="color: #79c8ff; font: 500 10px/1 var(--mono);">key-volume.ts</code>. Chip đỏ bên phải là số setup CHẾT ở đúng cửa đó — đây là chỗ trả lời “vì sao bot không vào lệnh”, thứ mà bảng lệnh không bao giờ nói được.</p>
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
+      <span style="color: #6f7b79; font: 700 8px/1 var(--sans); letter-spacing: .08em;">THANG BAR</span>
+      <sc-for list="{{ scales }}" as="s" hint-placeholder-count="2">
+        <button class="{{ s.cls }}" type="button" onClick="{{ s.pick }}">{{ s.label }}</button>
+      </sc-for>
+      <span style="color: #6f7b79; font: 500 10px/1.4 var(--sans);">{{ scaleNote }}</span>
+    </div>
+  </header>
+
+  <div style="overflow: auto; padding: 6px 20px 12px;">
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="9">
+      <button class="{{ r.cls }}" type="button" onClick="{{ r.pick }}">
+        <div class="rowname">
+          <b>{{ r.label }}</b>
+          <span>{{ r.field }}</span>
+          <i class="{{ r.scopeCls }}">{{ r.scope }}</i>
+        </div>
+        <div class="rowbody">
+          <span class="count">{{ r.count }}</span>
+          <span class="bar" style="width: {{ r.width }};"></span>
+          <span class="leakwrap">
+            <sc-for list="{{ r.leaks }}" as="k" hint-placeholder-count="2">
+              <span class="{{ k.cls }}">{{ k.text }}</span>
+            </sc-for>
+          </span>
+        </div>
+      </button>
+    </sc-for>
+  </div>
+
+  <footer style="border-top: 1px solid #242b31; background: #0d1115;">
+    <div style="display: grid; grid-template-columns: 176px 1fr; gap: 0;">
+      <div style="display: flex; flex-direction: column; justify-content: center; padding: 14px 12px 14px 20px; border-right: 1px solid #242b31; text-align: right;">
+        <span style="color: #6f7b79; font: 700 8px/1.3 var(--sans); letter-spacing: .08em;">BẬC ĐANG CHỌN</span>
+        <strong style="margin-top: 3px; color: {{ activeColor }}; font: 700 13px/1.25 var(--sans);">{{ activeLabel }}</strong>
+        <span style="margin-top: 2px; color: #6f7b79; font: 600 10px/1.3 var(--mono);">{{ activeShare }} của mẫu số</span>
+      </div>
+      <div style="padding: 13px 20px 15px;">
+        <p style="margin: 0; color: #eef2f1; font: 500 12px/1.65 var(--sans);">{{ activeDetail }}</p>
+        <p style="margin: 8px 0 0; color: #6f7b79; font: 500 10px/1.6 var(--sans);">{{ activeWhy }}</p>
+      </div>
+    </div>
+    <p style="margin: 0; padding: 9px 20px 12px; border-top: 1px solid rgba(36,43,49,.7); color: #6f7b79; font: 500 10px/1.6 var(--sans);">
+      Bậc <b style="color: #f3ba63;">chạm key</b> LỚN HƠN bậc trước vì một key bị chạm nhiều lần — đừng đọc hai bậc đầu như tỉ lệ phần trăm của nhau. Sáu bậc đầu là riêng nhánh key; từ bậc <b style="color: #f3ba63;">hộp chờ retest</b> trở đi engine đếm CHUNG cả nhánh quét, đúng như <code style="color: #79c8ff;">KeyVolumeDiagnostics</code> ghi — không tách được, nên gắn nhãn thay vì đoán.
+    </p>
+  </footer>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":900,"height":820}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 4, scale: "log" };
+  }
+
+  data() {
+    return [
+      { label: "Key M15 dựng được", field: "m15Levels", value: 108, leaks: [], scope: "key",
+        detail: "Detector sinh 108 key trong 45 ngày trên BTCUSDT.",
+        why: "Mẫu số của mọi tỉ lệ bên dưới. Mật độ này vẫn dày hơn thang key vẽ tay, nên một bậc rơi mạnh không có nghĩa là luật khắt khe." },
+      { label: "Nến chạm lại key", field: "keyTouches", value: 1780, leaks: [{ text: "một key bị chạm nhiều lần", warn: true }], scope: "key",
+        detail: "1.780 lần giá chạm lại một key còn hiệu lực.",
+        why: "Số này lớn hơn số key vì nó đếm SỰ KIỆN chạm, không phải key — đừng đọc hai bậc đầu như tỉ lệ phần trăm của nhau." },
+      { label: "Chạm có volume", field: "touchVolumeConfirmed", value: 796, leaks: [{ text: "−984 cây chạm không đủ volume" }], scope: "key",
+        detail: "796 cú chạm có volume vượt ngưỡng.",
+        why: "Cửa cắt mạnh nhất và rẻ nhất của cả phễu. Đổi ngưỡng volume ở đây là đòn bẩy lớn nhất trên toàn hệ." },
+      { label: "Setup được mở", field: "− rejectedNoDeparture", value: 650, leaks: [{ text: "−146 giá chưa từng RỜI key" }], scope: "key",
+        detail: "650 setup được mở sau khi qua cửa “đã rời key”.",
+        why: "Chạm key mà trước đó giá chưa từng rời nó thì đây không phải cú QUAY VỀ, chỉ là giá đi ngang đè lên mức." },
+      { label: "Cụm nến đảo hợp lệ", field: "candlePatterns", value: 69,
+        leaks: [{ text: "−406 không dựng được cụm đảo" }, { text: "−175 key nằm NGOÀI thân hộp" }], scope: "key",
+        detail: "69 cụm dựng được hộp (lấy THÂN nến, bỏ râu) VÀ có đường key chạy xuyên thân hộp.",
+        why: "Không có cửa thứ hai thì hộp chỉ là một cụm nến bất kỳ — đây là phần “đúng phương pháp” nhất của FX Dream." },
+      { label: "Kế hoạch nhánh key", field: "volumeBranchPlans", value: 19, leaks: [{ text: "−50 loại ở volume / phiên / rời hộp" }], scope: "key",
+        detail: "19 kế hoạch nhánh key.",
+        why: "Cửa rời hộp phải đo bằng GIÁ ĐÓNG. Đo bằng cả cây nến từng làm hệ tắt hẳn — còn 2 lệnh trên 200 ngày." },
+      { label: "Hộp chờ retest", field: "boxesArmed", value: 27, leaks: [{ text: "+8 hộp nhánh quét", warn: true }], scope: "both",
+        detail: "27 hộp được trang bị canh giá quay lại: 19 của nhánh key + 8 của nhánh quét. 22 hộp thấy giá quay lại ít nhất một nến.",
+        why: "Từ đây engine mô phỏng CHUNG một sổ nên không tách được riêng nhánh key. Và “đã quay lại” không phân hoạch với “vỡ hộp” — chạm rồi vẫn vỡ được, nên nó là thống kê bên lề chứ không phải một bậc." },
+      { label: "Vào lệnh", field: "entries", value: 4,
+        leaks: [{ text: "−19 vỡ hộp" }, { text: "−3 hết hạn chờ" }, { text: "−1 hết dữ liệu", warn: true }], scope: "both",
+        detail: "4 lệnh mở, và 0 trong số đó thuộc nhánh key — cả bốn đều là nhánh quét thanh khoản.",
+        why: "Bốn chip phân hoạch KHÍT với 27 hộp đã trang bị. Riêng 11 lần loại vì dư địa dưới minRR nằm BÊN TRONG các chip đó: nến xác nhận bị từ chối nhưng hộp vẫn còn sống, nên không trừ thêm." }
+    ];
+  }
+
+  renderVals() {
+    const st = this.state;
+    const rows = this.data();
+    const first = rows[0].value;
+    const maxV = Math.max.apply(null, rows.map((r) => r.value));
+    const active = rows[Math.min(st.sel, rows.length - 1)];
+
+    const width = (v) => {
+      if (st.scale === "linear") return Math.max(2, (v / maxV) * 100);
+      return Math.max(8, (Math.log(v + 1) / Math.log(maxV + 1)) * 100);
+    };
+
+    return {
+      rows: rows.map((r, i) => ({
+        label: r.label, field: r.field, count: r.value.toLocaleString("vi-VN"),
+        scope: r.scope === "both" ? "CẢ 2 NHÁNH" : "NHÁNH KEY",
+        scopeCls: r.scope === "both" ? "both" : "",
+        width: width(r.value).toFixed(1) + "%",
+        cls: "row" + (i === st.sel ? " on" : "") + (r.field === "entries" ? " fin" : ""),
+        pick: () => this.setState({ sel: i }),
+        leaks: r.leaks.map((k) => ({ text: k.text, cls: "leak" + (k.warn ? " warn" : "") }))
+      })),
+      scales: [{ key: "log", label: "Log" }, { key: "linear", label: "Tuyến tính" }].map((s) => ({
+        label: s.label, cls: "seg" + (st.scale === s.key ? " on" : ""), pick: () => this.setState({ scale: s.key })
+      })),
+      scaleNote: st.scale === "log"
+        ? "thang log — bậc 3 lệnh vẫn nhìn thấy được cạnh bậc 1.266 key"
+        : "thang tuyến tính — trung thực về tỉ lệ, nhưng bốn bậc cuối gần như biến mất",
+      activeLabel: active.label, activeDetail: active.detail, activeWhy: active.why,
+      activeShare: ((active.value / first) * 100).toFixed(active.value / first < 0.01 ? 2 : 1) + "%",
+      activeColor: active.field === "entries" ? "#4ee2a1" : "#79c8ff"
+    };
+  }
+}
+</script>
+</body>
+</html>

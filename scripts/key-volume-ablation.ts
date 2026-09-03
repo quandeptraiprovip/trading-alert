@@ -15,7 +15,7 @@ import {
 } from "../key-volume";
 import { applyLeverageCap } from "../key-volume-backtest";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, CONFIG, TF_MS } from "../strategy";
+import { CONFIG, Candle, TF_MS, aggregate } from "../strategy";
 
 type Variant = {
   name: string;
@@ -77,10 +77,11 @@ function frequencyDetail(
   return [
     `N/day basket=${(selected.length / days).toFixed(3)}`,
     `N/week/symbol=${(selected.length * 7 / days / symbolCount).toFixed(3)}`,
-    `touch=${diagnostics.confluentTouches}`,
+    `touch=${diagnostics.keyTouches}`,
     `volume=${diagnostics.touchVolumeConfirmed}`,
     `sweep=${diagnostics.sweeps}`,
-    `BOS/plan=${diagnostics.firstBos}/${diagnostics.plans}`,
+    `nến đảo=${diagnostics.candlePatterns}`,
+    `plan=${diagnostics.plans} (quét ${diagnostics.sweepBranchPlans}/vol ${diagnostics.volumeBranchPlans})`,
     `entry=${diagnostics.entries}`,
     `reject risk/room=${diagnostics.rejectedRisk}/${diagnostics.rejectedRoom}`,
   ].join(" · ");
@@ -178,8 +179,8 @@ async function main(): Promise<void> {
       overrides: { minKeyReactions: 3 },
     },
     {
-      name: "higher-key-required",
-      overrides: { requireHigherKey: true },
+      name: "stop-at-key",
+      overrides: { stopMode: "key" },
     },
     {
       name: "no-room-gate",
@@ -193,30 +194,29 @@ async function main(): Promise<void> {
       },
     },
     {
-      name: "max-hold-24h",
-      overrides: { maxHoldBars: 24 * 12 },
+      name: "stop-at-pattern",
+      overrides: { stopMode: "confirmation" },
     },
     {
       name: "trigger-volume-1.5x",
       overrides: { touchVolumeSpikeMult: 1.5 },
     },
     {
-      name: "daily-chain-2",
-      overrides: { dailyBiasBars: 2 },
+      name: "sweep-branch-only",
+      overrides: { enableVolumeReversalBranch: false },
     },
     {
-      name: "current-chain-only",
-      overrides: { persistDailyBias: false },
+      name: "volume-branch-only",
+      overrides: { enableSweepBranch: false },
     },
     {
       name: "single-use-key",
       overrides: { allowKeyReentry: false },
     },
     {
-      name: "legacy-frequency-gates",
+      name: "reversal-volume-2x",
       overrides: {
-        persistDailyBias: false,
-        allowKeyReentry: false,
+        reversalVolumeMult: 2,
       },
     },
     {
@@ -235,12 +235,20 @@ async function main(): Promise<void> {
       name: "no-cooldown",
       overrides: { cooldownBars: 0 },
     },
+    {
+      name: "sweep-window-2d",
+      overrides: { sweepLookback: 192 },
+    },
+    {
+      name: "key-window-24",
+      overrides: { volumeLookback: 24 },
+    },
   ];
 
   for (const variant of variants) {
     const params: KeyVolumeParams = { ...KEY_VOLUME_CONFIG, ...variant.overrides };
     const results = [...baseBySymbol].map(([symbol, candles]) =>
-      runKeyVolume(symbol, candles, params),
+      runKeyVolume(symbol, aggregate(candles, "15m", "5m"), params),
     );
     const rawTrades = results.flatMap((result) => result.trades);
     const trades = rawTrades.map(

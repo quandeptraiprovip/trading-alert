@@ -1,11 +1,13 @@
-# Chạy cả BOT alert đa-symbol + CHART perpetual bằng Docker.
+# Mặc định chỉ chạy UI chart + dashboard. Bot nằm trong profile "trading"
+# và chỉ được bật khi gọi profile đó một cách rõ ràng.
 #
 #   # LẦN ĐẦU: state atomic cần mount cả thư mục, không bind-mount từng file.
-#   mkdir -p trading-runtime fast-trend-mexc-runtime
+#   mkdir -p trading-runtime/chart-playbook fast-trend-mexc-runtime
 #   touch trading-runtime/bot-state.json trading-runtime/trades-live.jsonl \
 #         trading-runtime/turtle-state.json trading-runtime/turtle-trades.jsonl
 #
-#   docker compose up -d --build      # build từ source rồi chạy nền (luôn có turtle + lệnh thật)
+#   docker compose up -d --build      # UI + dashboard, KHÔNG bật Turtle/Fast
+#   docker compose --profile trading up -d --build  # explicit: bật thêm bot
 #   docker compose logs -f swing-bot  # xem log bot (tìm "🐢 Turtle:" và "THỰC THI BẬT")
 #   docker compose down               # dừng
 #
@@ -14,6 +16,7 @@
 #        — getUpdates giao mỗi update đúng 1 lần, hai bên sẽ giành /status.
 services:
   swing-bot:
+    profiles: ["trading"]
     build: .
     image: swing-alert-bot
     container_name: swing-bot
@@ -42,9 +45,28 @@ services:
     command: node chart.js
     environment:
       TZ: Asia/Ho_Chi_Minh
+      # Defense in depth: chart không import bot; các cờ này còn khóa trading
+      # nếu entrypoint của image bị thay đổi nhầm trong tương lai.
+      TRADING_ENABLED: "false"
+      TURTLE_ENABLED: "false"
+      TURTLE_TRADING_ENABLED: "false"
+      MEXC_TRADING_ENABLED: "false"
+      FAST_TREND_ENABLED: "false"
+      FAST_TREND_TRADING_ENABLED: "false"
+      # Chart XAUUSD read-only. Docker Compose đọc các giá trị này từ shell hoặc file .env.
+      OANDA_ENV: "${OANDA_ENV:-practice}"
+      OANDA_ACCOUNT_ID: "${OANDA_ACCOUNT_ID:-}"
+      OANDA_API_TOKEN: "${OANDA_API_TOKEN:-}"
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    volumes:
+      # chart-server POST /api/playbook ghi trading-runtime/chart-playbook/<symbol>.json
+      # (playbook-store.ts). Không có mount này, nhãn key do người chấm nằm trong
+      # writable layer và MẤT khi `down` / `up --build`.
+      # Chỉ mount đúng thư mục playbook — chart không được thấy state/journal của bot.
+      # Mount THƯ MỤC (không mount từng file): playbook ghi bằng temp + rename.
+      - ./trading-runtime/chart-playbook:/app/trading-runtime/chart-playbook
     ports:
       - "3847:3847"
     restart: unless-stopped

@@ -1,6 +1,10 @@
 /**
  * Nghiên cứu các model FXDream tách biệt, có nguồn và đăng ký trước khi chạy.
  *
+ * ⚠️ HỎNG TỪ 01/09/2026: key-volume.ts đã rút về M15+M5 và bỏ `keySelectionMode`,
+ * `entryTrigger`, `targetSourceTfs`, `requireDailyTrapGate` cùng toàn bộ nhánh Daily/H1/H4.
+ * Ba variant dưới đây vì thế TRÙNG NHAU khi chạy lại — số cũ không tái lập được bằng script này.
+ *
  * Mục tiêu của script này không phải tìm bộ tham số đẹp nhất. Mỗi variant chỉ
  * thay những điều kiện cần thiết để biểu diễn một model được nói rõ trong video:
  *
@@ -22,7 +26,7 @@ import {
   runKeyVolume,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, CONFIG, TF_MS } from "../strategy";
+import { CONFIG, Candle, TF_MS, aggregate } from "../strategy";
 
 type Variant = {
   name: string;
@@ -289,7 +293,7 @@ async function main(): Promise<void> {
   for (const variant of variants) {
     const params: KeyVolumeParams = { ...KEY_VOLUME_CONFIG, ...variant.overrides };
     const results = [...baseBySymbol].map(([symbol, candles]) =>
-      runKeyVolume(symbol, candles, params),
+      runKeyVolume(symbol, aggregate(candles, "15m", "5m"), params),
     );
     const trades = results.flatMap((result) => result.trades);
     console.log(`\n${variant.name} — ${variant.source}`);

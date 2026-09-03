@@ -12,7 +12,7 @@
  * Run: ./node_modules/.bin/ts-node scripts/exp-keyvol-funnel.ts [days] [symbols]
  */
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
-import { TF_MS } from "../strategy";
+import { TF_MS, aggregate } from "../strategy";
 import { KEY_VOLUME_CONFIG, KeyVolumeParams, runKeyVolume } from "../key-volume";
 
 const DEFAULT_SYMBOLS = ["btcusdt", "solusdt", "xrpusdt", "dogeusdt"];
@@ -32,7 +32,7 @@ async function main() {
   const bars = Math.ceil((days * TF_MS["1d"]) / TF_MS["5m"]) + 5000;
   const data = new Map<string, Awaited<ReturnType<typeof fetchFuturesKlinesPaged>>>();
   for (const s of symbols) {
-    const c = await fetchFuturesKlinesPaged(s, "5m", bars);
+    const c = aggregate(await fetchFuturesKlinesPaged(s, "5m", bars), "15m", "5m");
     if (c.length > 10000) data.set(s, c);
   }
   console.log(`${data.size} symbol · ${days} ngày · nến gốc 5m\n`);

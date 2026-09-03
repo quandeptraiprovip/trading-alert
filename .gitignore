@@ -59,3 +59,7 @@ fast-trend-mexc-state.json
 fast-trend-mexc-state.json.tmp
 fast-trend-mexc-trades.jsonl
 fast-trend-mexc-runtime/
+
+# macOS widget build output
+macos-widget/TradingWidget.app/
+widget-equity-history.json

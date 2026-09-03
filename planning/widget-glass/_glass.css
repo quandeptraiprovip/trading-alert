@@ -1,0 +1,107 @@
+    :root {
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --ink: rgba(255, 255, 255, 0.96);
+      --ink-2: rgba(255, 255, 255, 0.68);
+      --ink-3: rgba(255, 255, 255, 0.44);
+      --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+      /* Nền để kính KHÚC XẠ. Liquid Glass không đọc được trên nền phẳng. */
+      background:
+        radial-gradient(118% 88% at 12% 6%, #3f6a89 0%, rgba(63, 106, 137, 0) 56%),
+        radial-gradient(88% 76% at 90% 16%, #7c4a6d 0%, rgba(124, 74, 109, 0) 60%),
+        radial-gradient(96% 96% at 46% 104%, #1d4152 0%, rgba(29, 65, 82, 0) 62%),
+        linear-gradient(158deg, #17242f 0%, #0e1621 58%, #090e15 100%);
+    }
+    a { color: var(--blue); }
+    a:hover { color: #8bc0ff; }
+
+    /* ── Vật liệu kính ─────────────────────────────────────────────────── */
+    .glass {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(177deg,
+        rgba(255, 255, 255, 0.135) 0%,
+        rgba(255, 255, 255, 0.058) 44%,
+        rgba(255, 255, 255, 0.03) 100%);
+      backdrop-filter: blur(30px) saturate(172%);
+      -webkit-backdrop-filter: blur(30px) saturate(172%);
+      box-shadow:
+        0 26px 54px rgba(0, 0, 0, 0.44),
+        0 3px 10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+    }
+    /* Viền phản chiếu: sáng ở góc trên-trái, tắt dần, sáng lại ở dưới-phải. */
+    .rim {
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      background: linear-gradient(145deg,
+        rgba(255, 255, 255, 0.58) 0%,
+        rgba(255, 255, 255, 0.07) 30%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0.28) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    /* Vệt sáng bắt được của thấu kính. */
+    .lens {
+      position: absolute;
+      top: -46%;
+      left: -14%;
+      width: 76%;
+      height: 88%;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0) 68%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+    /* Nhóm lồng trong: bán kính ĐỒNG TÂM = bán kính ngoài trừ padding. */
+    .inner {
+      position: relative;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -0.5px 0 rgba(0, 0, 0, 0.14);
+    }
+    .chip {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.24);
+      white-space: nowrap;
+    }
+    .track {
+      position: relative;
+      height: 5px;
+      flex: 1;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.26);
+      box-shadow: inset 0 0.5px 1.5px rgba(0, 0, 0, 0.34);
+    }
+    .fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      border-radius: 999px;
+    }
+    .num { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.34); }
+    .row { display: flex; align-items: center; }
+    .grow { flex: 1; }

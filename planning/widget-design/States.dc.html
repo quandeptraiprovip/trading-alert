@@ -1,0 +1,326 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --canvas: #080b0e;
+      --border: #242b31;
+      --text: #eef2f1;
+      --text-soft: #adb8b5;
+      --muted: #6f7b79;
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 736px;
+      margin: 0;
+      padding: 26px 24px 28px;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+    }
+    a { color: var(--blue); }
+    a:hover { color: #8bc0ff; }
+
+    .grid { display: grid; margin-top: 22px; gap: 26px 30px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cap { color: var(--text-soft); font: 600 11px/1 var(--sans); }
+    .cap span { color: var(--muted); font-weight: 500; }
+    .w {
+      display: flex; width: 329px; height: 155px; flex-direction: column;
+      padding: 13px 14px; margin-top: 10px; border-radius: 20px;
+      background: linear-gradient(180deg, #101519 0%, #0a0e12 55%, #080b0e 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), inset 0 0 0 1px rgba(255, 255, 255, 0.028);
+    }
+    .row { display: flex; align-items: center; }
+    .grow { flex: 1; }
+    .dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; }
+    .st { font: 620 10px/1 var(--sans); letter-spacing: 0.02em; }
+    .ago { color: var(--muted); font: 500 10px/1 var(--sans); }
+    .eq { font: 300 28px/1 var(--mono); letter-spacing: -0.024em; }
+    .delta { font: 600 12px/1 var(--mono); }
+    .note { color: var(--muted); font: 500 9px/1 var(--sans); }
+    .sep { height: 1px; margin: 12px 0 11px; background: var(--border); }
+    .vlabel { padding: 3px 6px; border-radius: 3px; font: 700 9px/1 var(--sans); letter-spacing: 0.09em; }
+    .dbadge { padding: 2px 5px; border-radius: 3px; font: 700 8px/1.25 var(--sans); letter-spacing: 0.08em; }
+    .sym { color: var(--text); font: 650 12px/1 var(--mono); letter-spacing: 0.01em; }
+    .amt { color: var(--text-soft); font: 550 11px/1 var(--mono); }
+    .rv { font: 620 12px/1 var(--mono); }
+    .div { width: 1px; height: 11px; background: var(--border); }
+    .lines { display: flex; flex-direction: column; gap: 9px; }
+  </style>
+</helmet>
+
+<div>
+  <div style="color: var(--text); font: 620 15px/1 var(--sans); letter-spacing: -0.008em;">Sáu trạng thái</div>
+  <div style="margin-top: 8px; color: var(--muted); font: 500 11px/1.5 var(--sans); max-width: 470px;">Khổ vừa. Màu chấm và màu chữ tiêu đề mang toàn bộ thông tin về sức khoẻ hệ thống — không cần đọc chữ vẫn biết máy còn thở hay không.</div>
+
+  <div class="grid">
+
+    <div>
+      <div class="cap">1 · Chờ tín hiệu <span>— máy chạy, chưa có lệnh nào</span></div>
+      <div class="w">
+        <div class="row" style="gap: 7px;">
+          <span class="dot" style="background: var(--green); box-shadow: 0 0 0 3px rgba(78, 226, 161, 0.14);"></span>
+          <span class="st" style="color: var(--green);">Đang chạy</span>
+          <span style="color: #4c5654; font: 500 10px/1 var(--sans);">·</span>
+          <span class="ago">2 phút trước</span>
+        </div>
+        <div class="row" style="align-items: flex-end; gap: 12px; margin-top: 12px;">
+          <div>
+            <div class="eq" style="color: var(--text);">$513,11</div>
+            <div class="row" style="align-items: baseline; gap: 7px; margin-top: 7px;">
+              <span class="delta" style="color: var(--muted);">$0,00</span>
+              <span class="delta" style="color: var(--muted);">0,00%</span>
+              <span class="note">hôm nay</span>
+            </div>
+          </div>
+          <span class="grow"></span>
+          <div style="padding-bottom: 2px; text-align: right;">
+            <span class="note">risk mở <span style="color: var(--text-soft); font: 620 10px var(--mono);">0,0%</span></span>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div style="display: grid; flex: 1; place-content: center; text-align: center;">
+          <div style="color: var(--text-soft); font: 550 11px/1 var(--sans);">Không có vị thế nào mở</div>
+          <div style="margin-top: 8px; color: #55605e; font: 500 10px/1 var(--sans);">Đang theo dõi 8 mã · nến gần nhất 15:00</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="cap">2 · Vừa vào lệnh <span>— lệnh mới được đánh dấu</span></div>
+      <div class="w">
+        <div class="row" style="gap: 7px;">
+          <span class="dot" style="background: var(--green); box-shadow: 0 0 0 3px rgba(78, 226, 161, 0.14);"></span>
+          <span class="st" style="color: var(--green);">Đang chạy</span>
+          <span style="color: #4c5654; font: 500 10px/1 var(--sans);">·</span>
+          <span class="ago">2 phút trước</span>
+          <span class="grow"></span>
+          <span style="padding: 2px 6px; border-radius: 3px; background: rgba(101, 169, 255, 0.14); color: var(--blue); font: 700 8px/1.3 var(--sans); letter-spacing: 0.08em;">LỆNH MỚI 4 PHÚT</span>
+        </div>
+        <div class="row" style="align-items: flex-end; gap: 12px; margin-top: 12px;">
+          <div>
+            <div class="eq" style="color: var(--text);">$513,11</div>
+            <div class="row" style="align-items: baseline; gap: 7px; margin-top: 7px;">
+              <span class="delta" style="color: var(--green);">+$6,24</span>
+              <span class="delta" style="color: var(--green);">+1,23%</span>
+              <span class="note">hôm nay</span>
+            </div>
+          </div>
+          <span class="grow"></span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 7px; padding-bottom: 2px;">
+            <span class="note">risk mở <span style="color: var(--text-soft); font: 620 10px var(--mono);">2,5%</span></span>
+            <span class="note">gần stop nhất <span style="color: var(--text-soft); font: 620 10px var(--mono);">4,2%</span></span>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="lines">
+          <div class="row" style="gap: 8px;">
+            <span class="vlabel" style="background: rgba(243, 186, 99, 0.11); color: var(--amber);">BINANCE</span>
+            <span class="amt">$192,68</span>
+            <span class="div"></span>
+            <span class="sym">SOL</span>
+            <span class="dbadge" style="background: rgba(78, 226, 161, 0.12); color: var(--green);">LONG</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--green);">+1,00 R</span>
+          </div>
+          <div class="row" style="gap: 8px; margin: -4px -7px -3px; padding: 4px 7px 3px; border-radius: 5px; background: rgba(101, 169, 255, 0.08);">
+            <span class="vlabel" style="background: rgba(101, 169, 255, 0.12); color: var(--blue);">MEXC</span>
+            <span class="amt">$320,43</span>
+            <span class="div"></span>
+            <span class="sym">AVAX</span>
+            <span class="dbadge" style="background: rgba(78, 226, 161, 0.12); color: var(--green);">LONG</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--text-soft);">0,00 R</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="cap">3 · Trễ nhịp <span>— quá một nến mà chưa cập nhật</span></div>
+      <div class="w" style="box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 0 1px rgba(243, 186, 99, 0.24);">
+        <div class="row" style="gap: 7px;">
+          <span class="dot" style="background: var(--amber); box-shadow: 0 0 0 3px rgba(243, 186, 99, 0.16);"></span>
+          <span class="st" style="color: var(--amber);">Trễ nhịp</span>
+          <span style="color: #4c5654; font: 500 10px/1 var(--sans);">·</span>
+          <span class="ago">47 phút trước</span>
+        </div>
+        <div class="row" style="align-items: flex-end; gap: 12px; margin-top: 12px;">
+          <div>
+            <div class="eq" style="color: var(--text-soft);">$513,11</div>
+            <div class="row" style="align-items: baseline; gap: 7px; margin-top: 7px;">
+              <span style="color: var(--amber); font: 500 10px/1 var(--sans);">số liệu có thể đã cũ</span>
+            </div>
+          </div>
+          <span class="grow"></span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 7px; padding-bottom: 2px;">
+            <span class="note">risk mở <span style="color: var(--text-soft); font: 620 10px var(--mono);">2,0%</span></span>
+            <span class="note">gần stop nhất <span style="color: var(--text-soft); font: 620 10px var(--mono);">4,2%</span></span>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="lines">
+          <div class="row" style="gap: 8px; opacity: 0.62;">
+            <span class="vlabel" style="background: rgba(243, 186, 99, 0.11); color: var(--amber);">BINANCE</span>
+            <span class="amt">$192,68</span>
+            <span class="div"></span>
+            <span class="sym">SOL</span>
+            <span class="dbadge" style="background: rgba(78, 226, 161, 0.12); color: var(--green);">LONG</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--green);">+1,00 R</span>
+          </div>
+          <div class="row" style="gap: 8px; opacity: 0.62;">
+            <span class="vlabel" style="background: rgba(101, 169, 255, 0.12); color: var(--blue);">MEXC</span>
+            <span class="amt">$320,43</span>
+            <span class="div"></span>
+            <span class="sym">DOT</span>
+            <span class="dbadge" style="background: rgba(255, 107, 112, 0.12); color: var(--red);">SHORT</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--green);">+0,57 R</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="cap">4 · Đã dừng <span>— trạng thái quan trọng nhất</span></div>
+      <div class="w" style="background: linear-gradient(180deg, #1a1214 0%, #110c0e 55%, #0b0809 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 0 1px rgba(255, 107, 112, 0.34);">
+        <div class="row" style="gap: 7px;">
+          <span class="dot" style="background: var(--red); box-shadow: 0 0 0 3px rgba(255, 107, 112, 0.18);"></span>
+          <span class="st" style="color: var(--red);">Đã dừng</span>
+          <span style="color: #5c4c4e; font: 500 10px/1 var(--sans);">·</span>
+          <span style="color: #9a8386; font: 500 10px/1 var(--sans);">3 ngày không cập nhật</span>
+        </div>
+        <div style="margin-top: 13px;">
+          <div style="color: var(--red); font: 600 15px/1.35 var(--sans); letter-spacing: -0.006em;">2 vị thế đang mở không được canh stop</div>
+          <div style="margin-top: 9px; color: #9a8386; font: 500 10px/1 var(--sans);">Số cuối đọc được lúc 20:00 · 30/8 — không phải giá hiện tại</div>
+        </div>
+        <div style="height: 1px; margin: 13px 0 11px; background: rgba(255, 107, 112, 0.2);"></div>
+        <div class="row" style="align-items: flex-end;">
+          <div>
+            <div style="color: #6e5c5e; font: 300 24px/1 var(--mono); letter-spacing: -0.024em; text-decoration: line-through; text-decoration-color: rgba(255, 107, 112, 0.45);">$513,11</div>
+          </div>
+          <span class="grow"></span>
+          <span style="padding: 5px 9px; border-radius: 5px; background: rgba(255, 107, 112, 0.13); color: var(--red); font: 650 11px/1 var(--sans);">Mở bảng điều khiển</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="cap">5 · Một sàn mất kết nối <span>— sàn còn lại vẫn đọc bình thường</span></div>
+      <div class="w">
+        <div class="row" style="gap: 7px;">
+          <span class="dot" style="background: var(--amber); box-shadow: 0 0 0 3px rgba(243, 186, 99, 0.16);"></span>
+          <span class="st" style="color: var(--amber);">Thiếu một sàn</span>
+          <span style="color: #4c5654; font: 500 10px/1 var(--sans);">·</span>
+          <span class="ago">2 phút trước</span>
+        </div>
+        <div class="row" style="align-items: flex-end; gap: 12px; margin-top: 12px;">
+          <div>
+            <div class="row" style="align-items: baseline; gap: 8px;">
+              <span class="eq" style="color: var(--text);">$192,68</span>
+              <span style="color: var(--amber); font: 500 10px/1 var(--sans);">chỉ 1/2 sàn</span>
+            </div>
+            <div class="row" style="align-items: baseline; gap: 7px; margin-top: 7px;">
+              <span class="delta" style="color: var(--green);">+$1,93</span>
+              <span class="delta" style="color: var(--green);">+1,01%</span>
+              <span class="note">hôm nay</span>
+            </div>
+          </div>
+          <span class="grow"></span>
+          <div style="padding-bottom: 2px; text-align: right;">
+            <span class="note">risk mở <span style="color: var(--text-soft); font: 620 10px var(--mono);">1,0%</span></span>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="lines">
+          <div class="row" style="gap: 8px;">
+            <span class="vlabel" style="background: rgba(243, 186, 99, 0.11); color: var(--amber);">BINANCE</span>
+            <span class="amt">$192,68</span>
+            <span class="div"></span>
+            <span class="sym">SOL</span>
+            <span class="dbadge" style="background: rgba(78, 226, 161, 0.12); color: var(--green);">LONG</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--green);">+1,00 R</span>
+          </div>
+          <div class="row" style="gap: 8px;">
+            <span class="vlabel" style="background: rgba(101, 169, 255, 0.07); color: #4a6685;">MEXC</span>
+            <span style="display: flex; color: var(--amber);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3.5 1.8 20.5h20.4L12 3.5z"/><path d="M12 10v4.4"/><circle cx="12" cy="17.6" r="0.9" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <span style="color: var(--amber); font: 550 10px/1 var(--sans);">Không đọc được số dư — API hết hạn</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="cap">6 · Ẩn số dư <span>— giấu tiền, giữ nguyên R</span></div>
+      <div class="w">
+        <div class="row" style="gap: 7px;">
+          <span class="dot" style="background: var(--green); box-shadow: 0 0 0 3px rgba(78, 226, 161, 0.14);"></span>
+          <span class="st" style="color: var(--green);">Đang chạy</span>
+          <span style="color: #4c5654; font: 500 10px/1 var(--sans);">·</span>
+          <span class="ago">2 phút trước</span>
+          <span class="grow"></span>
+          <span style="display: flex; color: #55605e;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12S6.4 5.4 12 5.4 21.4 12 21.4 12 17.6 18.6 12 18.6 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.7"/><path d="M4 20 20 4"/></svg>
+          </span>
+        </div>
+        <div class="row" style="align-items: flex-end; gap: 12px; margin-top: 12px;">
+          <div>
+            <div class="eq" style="color: var(--text-soft); letter-spacing: 0.04em;">$•••,••</div>
+            <div class="row" style="align-items: baseline; gap: 7px; margin-top: 7px;">
+              <span class="delta" style="color: var(--green);">+1,23%</span>
+              <span class="note">hôm nay</span>
+            </div>
+          </div>
+          <span class="grow"></span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 7px; padding-bottom: 2px;">
+            <span class="note">risk mở <span style="color: var(--text-soft); font: 620 10px var(--mono);">2,0%</span></span>
+            <span class="note">gần stop nhất <span style="color: var(--text-soft); font: 620 10px var(--mono);">4,2%</span></span>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="lines">
+          <div class="row" style="gap: 8px;">
+            <span class="vlabel" style="background: rgba(243, 186, 99, 0.11); color: var(--amber);">BINANCE</span>
+            <span class="amt" style="letter-spacing: 0.04em;">$•••,••</span>
+            <span class="div"></span>
+            <span class="sym">SOL</span>
+            <span class="dbadge" style="background: rgba(78, 226, 161, 0.12); color: var(--green);">LONG</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--green);">+1,00 R</span>
+          </div>
+          <div class="row" style="gap: 8px;">
+            <span class="vlabel" style="background: rgba(101, 169, 255, 0.12); color: var(--blue);">MEXC</span>
+            <span class="amt" style="letter-spacing: 0.04em;">$•••,••</span>
+            <span class="div"></span>
+            <span class="sym">DOT</span>
+            <span class="dbadge" style="background: rgba(255, 107, 112, 0.12); color: var(--red);">SHORT</span>
+            <span class="grow"></span>
+            <span class="rv" style="color: var(--green);">+0,57 R</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

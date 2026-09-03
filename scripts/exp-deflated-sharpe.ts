@@ -245,33 +245,47 @@ async function main() {
   // `exp-growth-frontier.ts` chọn risk/unit dựa trên MỘT quan sát maxDD (72R). Nếu ca xấu thực tế là
   // 148R thì mọi mức risk ở đó đều quá cao. Đây là phép đo lại đúng: chạy CỘNG DỒN trên từng mẫu
   // bootstrap để lấy PHÂN PHỐI của mức sụt và xác suất cháy tài khoản.
-  console.log("\n═══ L4 — SỤT CỘNG DỒN & XÁC SUẤT CHÁY, trên 2000 đường giá bootstrap ═══");
-  console.log("risk/unit".padEnd(11) + "sụt 50%".padStart(10) + "sụt 95%".padStart(10) +
-    "P(sụt>50%)".padStart(12) + "P(sụt>80%)".padStart(12) + "P(CHÁY)".padStart(10));
-  for (const r of [0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02]) {
-    const dd: number[] = [];
-    let ruin = 0, over50 = 0, over80 = 0;
-    for (const s of samples) {
-      let e = 1, peak = 1, mx = 0, dead = false;
-      for (const x of s) {
-        e *= 1 + x * r;
-        if (e <= 0) { dead = true; break; }
-        peak = Math.max(peak, e);
-        mx = Math.max(mx, (peak - e) / peak);
+  const ruinTable = (title: string, ss: number[][], risks: number[]) => {
+    console.log(title);
+    console.log("risk/unit".padEnd(11) + "sụt 50%".padStart(10) + "sụt 95%".padStart(10) +
+      "P(sụt>50%)".padStart(12) + "P(sụt>80%)".padStart(12) + "P(CHÁY)".padStart(10));
+    for (const r of risks) {
+      const dd: number[] = [];
+      let ruin = 0, over50 = 0, over80 = 0;
+      for (const s of ss) {
+        let e = 1, peak = 1, mx = 0, dead = false;
+        for (const x of s) {
+          e *= 1 + x * r;
+          if (e <= 0) { dead = true; break; }
+          peak = Math.max(peak, e);
+          mx = Math.max(mx, (peak - e) / peak);
+        }
+        if (dead || mx >= 0.999) { ruin++; mx = 1; }
+        dd.push(mx);
+        if (mx > 0.5) over50++;
+        if (mx > 0.8) over80++;
       }
-      if (dead || mx >= 0.999) { ruin++; mx = 1; }
-      dd.push(mx);
-      if (mx > 0.5) over50++;
-      if (mx > 0.8) over80++;
+      dd.sort((a, b) => a - b);
+      console.log(
+        `${(r * 100).toFixed(2)}%`.padEnd(11) + `${(pct(dd, 0.5) * 100).toFixed(0)}%`.padStart(10) +
+        `${(pct(dd, 0.95) * 100).toFixed(0)}%`.padStart(10) +
+        `${(over50 / ss.length * 100).toFixed(0)}%`.padStart(12) +
+        `${(over80 / ss.length * 100).toFixed(0)}%`.padStart(12) +
+        `${(ruin / ss.length * 100).toFixed(1)}%`.padStart(10),
+      );
     }
-    dd.sort((a, b) => a - b);
-    console.log(
-      `${(r * 100).toFixed(2)}%`.padEnd(11) + `${(pct(dd, 0.5) * 100).toFixed(0)}%`.padStart(10) +
-      `${(pct(dd, 0.95) * 100).toFixed(0)}%`.padStart(10) +
-      `${(over50 / samples.length * 100).toFixed(0)}%`.padStart(12) +
-      `${(over80 / samples.length * 100).toFixed(0)}%`.padStart(12) +
-      `${(ruin / samples.length * 100).toFixed(1)}%`.padStart(10),
-    );
+  };
+  ruinTable("\n═══ L4 — SỤT CỘNG DỒN & XÁC SUẤT CHÁY, trên 2000 đường giá bootstrap (k=4 đang chạy) ═══",
+    samples, [0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02]);
+
+  // ── L4b — ỨNG VIÊN SIẾT k ──
+  // `exp-floor-policy` cho thấy siết k chỉ hơn ở LÃI/SỤT; muốn đổi ra tiền phải nâng risk/unit để
+  // kéo mức sụt về ngang cấu hình đang chạy (k=1 sụt 23% vs 38% ⇒ hệ số ~1,65 ⇒ risk ~0,83%).
+  // Câu hỏi quyết định: mức risk đó có sống qua bootstrap không?
+  for (const k of [1, 0.5]) {
+    const cand = dailyR(runBooks(books(), heat(k)).equity, w.from, w.to);
+    ruinTable(`\n═══ L4b — cùng phép đó cho ỨNG VIÊN k=${k} ═══`,
+      blockBootstrap(cand, 20, 2000, mulberry32(20260813)), [0.005, 0.0075, 0.0083, 0.01, 0.0125, 0.015]);
   }
 
   void compoundedEquity;

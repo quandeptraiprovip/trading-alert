@@ -1,0 +1,86 @@
+Rồi hello các bạn, cho nên hôm nay mình sẽ làm 1 cái video nói về entry-model
+thành ra các bạn phải cất hợp nó với bối cảnh và su hướng hị trường
+thì nó mới có 1 cái tỷ lợi huyên cao cho các bạn
+còn nếu các bạn áp dụng mà thiếu đi bối cảnh hay là su hướng
+thì đâu khi nó sẽ bị fail, chứ là nó không có hiệu quả
+rồi thì đầu tiên ở đây khi mà giả nó đi lên nó tiếp cận cái khán cử
+cái khán cử này trước đó nó là hỗ trợ
+cái hỗ trợ này các bạn để ý trước khi mà cái hỗ trợ này bị phá phở có tích lũy
+tích lũy rồi xong nó phá phở cái hỗ trợ này
+thì cái hỗ trợ này nó trở thành cái khán cử nó rất là xiên nha
+thì ở đây mình sẽ gọi nó là fail to return
+cái vùng tích lũy trước khi mà nó phá phở cái hỗ trợ nè
+nếu các bạn quan sát thêm nữa là ở trên nó sẽ là mô hình hai đỉnh
+để có sự hiệu quả hơn khi mà các bạn bắt ở cái fail to return này
+thì ở đây các bạn sẽ thấy nó tạo 1 đỉnh ở đây
+cái đỉnh này chưa có chạm fail to return
+và khi mà nó quay lại lần 2 thì mình sẽ kỳ vọng là
+ở đây nó sẽ tạo ra cái boon trap còn đi xuống luôn
+thì cái dạng của nó thì mình sẽ để ở đây nè
+và khi mà nó lên nó tiếp cận với cái fail to return này
+mình sẽ kỳ vọng là cái cụ ở đây nó sẽ là boon trap
+trám cái đỉnh này và nó retest cái fail to return để nó có thể di chuyển đi xuống nha
+nhưng mà tiện đói các bạn không được vội
+khi quay lên thì các bạn ít nhất là các bạn phải để nó có rsi fan kỳ
+chức là những cái đỉnh nó cao hơn
+nhưng mà rsi fan kỳ thì nó lại thấp hơn
+khi mà có rsi fan kỳ thì nó chứng tỏ cho các bạn thấy được là
+cái xu hướng tăng này nó bị yếu rồi
+nó yếu thôi chưa đảo chiều nha
+thì khi đó nó cũng tạo ra 1 cái mô hình ánh nhắn chiềm ở đây
+hay là cái o đọc lóc ở đây
+tùy theo các bạn
+ở đó với mình nó chỉ đơn giản là 1 cái mô hình ánh nhắn chiềm thôi
+tới đây thì các bạn cũng không nên vội nữa nha
+tại vì đôi khi là cái o đọc lóc này nó không có hiệu quả
+cho nên là thường mình sẽ phải để nó tạo thi 1 cái cây nánh giảm ở đây nữa
+thì khi đó nó đóng cái cây nánh giảm này
+chứng tỏ là nó có 1 cái lâu thấp hơn ở khung hình ánh nhỏ hơn
+thì khi mà nó có được 2 cái lâu
+1 cái lâu ở đây và 1 cái lâu lâu 1 cái đái thấp hơn
+thì ở khung nhỏ thì các bạn sẽ hãy rõ hơn
+nhưng mà mình chỉ cần nhìn cái nến ở khung 15 đó
+mình cũng sẽ hãy được những cái khung nhỏ rồi
+do đó mình không cần phải mở khung nhỏ lên làm cái gì
+thì lúc này mình sẽ entry theo cái nhắn chiềm này
+hoặc là cái o đọc lóc này
+thì nó sẽ rất là hiệu quả cho các bạn
+thì đây cũng làm cái lệnh mà mình đã có live tray
+ở trên live chiềm với anh em hồi tối nè
+và khi mình nó di chuyển xuống, nó phá phở, nó triển tạo có 1 cái lâu lâu thôi
+thì lúc này mình cũng không nên full train đi heo sống giảm nè
+và khi anh em sẽ thấy nó tạo 2 cái lâu lâu
+2 cái đái thấp hơn thì lúc đó bắt đầu mình sẽ tray ở full train
+ở trên những cái khu vực trên này
+ở cái lĩnh này thì nó cũng hay bây giờ cho nên mình không có tray
+nhưng mà cái cách tư duy để chúng ta có thể tánh full train tiếp tục
+thì nó sẽ là như phải nha
+thì luôn luôn là mình phải đợi 2 cái lâu lâu
+để mình xác nhận rằng là cái câu trúc đó
+nó đang là giảm ở khung nhỏ
+thì khi đó là mình sẽ bắt đầu làm tray full train heo
+thì nó sẽ rất hiệu quả nha
+để mình tấm tắt cho các bạn dễ hình dung heo
+ở đây giá nó tiếp cận cái full to return
+thì khi mà giá nó tiếp cận full to return này
+trước đó ở đây nó có 1 cái đỉnh mà chưa có retest nè
+thì mình sẽ kỳ vọng là cái câu retest thứ 2 này
+nó sẽ là cái câu pulltap, cái đỉnh trước đó này
+thì mình sẽ xọt
+và mình hoàn toàn là mình đợi câu trúc
+thứ nhất là nó lên nó có rợi si phân kỳ
+và nó tạo ra o-lop-lop hay là nó những chiêm
+và nó có 2 cái lâu lâu
+thì khi đó bắt đầu mình sẽ xọt heo
+và nếu anh em có hỏi
+thì anh em sẽ full train heo từng ở dưới này
+thì đây là 1 cái entry model
+mà mình đã thường xuyên lie tray với các bạn
+nó rất là hiệu quả nếu mà các bạn đặt nó đúng vào bối cảnh
+và cái xu hướng của hiệt trường
+nó cực kì hiệu quả nha
+thì những cái này mình tự tin mình lie tray với các bạn
+thì dễ nhiên nó sẽ rất hiệu quả rồi
+thì ok cảm ơn các bạn
+nếu mà các bạn chưa đang ký thì các bạn có hỏi đang ký kênh cho mình nha
+Hãy subscribe cho kênh La La School Để không bỏ lỡ những video hấp dẫn

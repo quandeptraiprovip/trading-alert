@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "build": "next build",
-    "start": "ts-node btc-alert-bot.ts",
-    "dev": "nodemon --exec ts-node btc-alert-bot.ts",
-    "chart": "ts-node chart-server.ts",
+    "start": "TRADING_ENABLED=false TURTLE_ENABLED=false TURTLE_TRADING_ENABLED=false MEXC_TRADING_ENABLED=false FAST_TREND_ENABLED=false FAST_TREND_TRADING_ENABLED=false next start",
+    "dev": "TRADING_ENABLED=false TURTLE_ENABLED=false TURTLE_TRADING_ENABLED=false MEXC_TRADING_ENABLED=false FAST_TREND_ENABLED=false FAST_TREND_TRADING_ENABLED=false next dev",
+    "bot": "ts-node btc-alert-bot.ts",
+    "bot:dev": "nodemon --exec ts-node btc-alert-bot.ts",
+    "chart": "TRADING_ENABLED=false TURTLE_ENABLED=false TURTLE_TRADING_ENABLED=false MEXC_TRADING_ENABLED=false FAST_TREND_ENABLED=false FAST_TREND_TRADING_ENABLED=false ts-node chart-server.ts",
     "dashboard": "ts-node dashboard-server.ts",
     "telegram:test": "ts-node telegram-test.ts",
     "test:mexc": "ts-node test-mexc.ts",
@@ -15,6 +17,8 @@
     "test:alt-trend": "ts-node test-alt-trend.ts",
     "test:smallcap-native": "ts-node test-smallcap-native.ts",
     "test:kline-fetch": "ts-node test-kline-fetch.ts",
+    "test:playbook": "ts-node test-playbook-store.ts",
+    "test:oanda": "ts-node test-oanda-fetch.ts",
     "test:state-persistence": "ts-node test-state-persistence.ts",
     "backtest:key-volume": "ts-node key-volume-backtest.ts",
     "backtest:alt-trend": "ts-node scripts/alt-trend-backtest.ts",
@@ -23,7 +27,8 @@
     "journal:fxdream": "ts-node scripts/fxdream-journal-cli.ts",
     "research:smallcap-native": "ts-node scripts/smallcap-native-research.ts",
     "research:fxdream-source-models": "ts-node scripts/fxdream-source-model-research.ts",
-    "web": "next dev"
+    "web": "npm run dev",
+    "widget": "ts-node widget-server.ts"
   },
   "dependencies": {
     "axios": "^1.6.0",

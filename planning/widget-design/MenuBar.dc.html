@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --canvas: #080b0e;
+      --border: #242b31;
+      --text: #eef2f1;
+      --text-soft: #adb8b5;
+      --muted: #6f7b79;
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 440px;
+      margin: 0;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+    }
+    a { color: var(--blue); }
+    a:hover { color: #8bc0ff; }
+  </style>
+</helmet>
+
+<div style="width: 440px;">
+
+  <div style="height: 66px; background: linear-gradient(150deg, #1d2430 0%, #141a24 45%, #0e1219 100%);">
+    <div style="display: flex; height: 24px; align-items: center; justify-content: flex-end; gap: 14px; padding: 0 9px 0 12px; background: rgba(10, 13, 16, 0.62);">
+
+      <div style="display: flex; height: 20px; align-items: center; gap: 6px; padding: 0 7px; border-radius: 5px; background: rgba(255, 255, 255, 0.075);">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--green);"></span>
+        <span style="color: rgba(238, 242, 241, 0.93); font: 500 13px/1 var(--sans);">$513,11</span>
+        <span style="color: var(--green); font: 600 12px/1 var(--sans);">+1,2%</span>
+      </div>
+
+      <span style="width: 1px; height: 13px; background: rgba(255, 255, 255, 0.12);"></span>
+
+      <span style="display: flex; color: rgba(255, 255, 255, 0.78);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M2.5 8.6a15 15 0 0 1 19 0"/><path d="M6 12.3a10 10 0 0 1 12 0"/><path d="M9.3 15.9a5 5 0 0 1 5.4 0"/><circle cx="12" cy="19.2" r="1.05" fill="currentColor" stroke="none"/></svg>
+      </span>
+
+      <span style="display: flex; color: rgba(255, 255, 255, 0.78);">
+        <svg width="26" height="13" viewBox="0 0 28 14" fill="none"><rect x="0.6" y="0.6" width="23" height="12.8" rx="3.6" stroke="currentColor" stroke-width="1.2" opacity="0.55"/><rect x="2.4" y="2.4" width="14.6" height="9.2" rx="2.2" fill="currentColor"/><path d="M25.5 5.1v3.8a2.3 2.3 0 0 0 0-3.8z" fill="currentColor" opacity="0.55"/></svg>
+      </span>
+
+      <span style="color: rgba(255, 255, 255, 0.86); font: 500 13px/1 var(--sans);">Th 4 14:32</span>
+    </div>
+  </div>
+
+  <div style="padding: 18px 20px 20px;">
+    <div style="color: var(--muted); font: 600 9px/1 var(--sans); letter-spacing: 0.09em; text-transform: uppercase;">Ô menu bar — kích thước thật</div>
+
+    <div style="display: flex; flex-direction: column; gap: 13px; margin-top: 15px;">
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; width: 152px; height: 20px; align-items: center; gap: 6px; padding: 0 7px; border-radius: 5px; background: rgba(255, 255, 255, 0.06);">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--green);"></span>
+          <span style="color: rgba(238, 242, 241, 0.93); font: 500 13px/1 var(--sans);">$513,11</span>
+          <span style="color: var(--green); font: 600 12px/1 var(--sans);">+1,2%</span>
+        </div>
+        <span style="color: var(--text-soft); font: 500 11px/1 var(--sans);">Mặc định — vốn và mức đổi trong ngày</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; width: 152px; height: 20px; align-items: center; gap: 6px; padding: 0 7px; border-radius: 5px; background: rgba(255, 255, 255, 0.06);">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--green);"></span>
+          <span style="color: rgba(238, 242, 241, 0.93); font: 500 13px/1 var(--sans);">$513,11</span>
+        </div>
+        <span style="color: var(--text-soft); font: 500 11px/1 var(--sans);">Gọn — khi thanh menu chật</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; width: 152px; height: 20px; align-items: center; gap: 6px; padding: 0 7px; border-radius: 5px; background: rgba(255, 107, 112, 0.14);">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--red);"></span>
+          <span style="color: var(--red); font: 600 13px/1 var(--sans);">Dừng 3 ngày</span>
+        </div>
+        <span style="color: var(--text-soft); font: 500 11px/1 var(--sans);">Mất nhịp — che luôn số vốn để không bị bỏ qua</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

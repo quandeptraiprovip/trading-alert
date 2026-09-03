@@ -16,7 +16,6 @@
  *       npx ts-node backtest.ts 250 1 btcusdt,ethusdt  (BTC + ETH)
  */
 
-import axios from "axios";
 import {
   Candle,
   CONFIG,
@@ -29,71 +28,15 @@ import {
   confirmVolumeRatio,
   windowBuyRatio,
 } from "./strategy";
+import { fetchKlinesPaged } from "./kline-fetch";
+
+export {
+  fetchFuturesKlinesPaged,
+  fetchSpotKlinesPaged,
+  fetchKlinesPaged,
+} from "./kline-fetch";
 
 const FUNDING_INTERVAL_MS = 8 * 60 * 60 * 1000;
-
-// ─── NGUỒN KLINE TÁCH BIỆT THEO VENUE ─────────────────────────
-// Backtest/live perpetual mặc định fail-closed trên Futures. Spot chỉ được gọi
-// explicit để không vô tình thay đổi price/volume/delta khi fapi lỗi hoặc bị 451.
-type KlineSource = { url: string; maxLimit: number };
-const FUTURES_SOURCE: KlineSource = {
-  url: "https://fapi.binance.com/fapi/v1/klines",
-  maxLimit: 1500,
-};
-const SPOT_SOURCE: KlineSource = {
-  url: "https://data-api.binance.vision/api/v3/klines",
-  maxLimit: 1000,
-};
-
-async function fetchKlinesFromSource(
-  src: KlineSource,
-  symbol: string,
-  tf: string,
-  totalBars: number,
-): Promise<Candle[]> {
-  const all: Candle[] = [];
-  let endTime = Date.now();
-
-  while (all.length < totalBars) {
-    const need = Math.min(src.maxLimit, totalBars - all.length);
-    const res = await axios.get(src.url, {
-      params: { symbol: symbol.toUpperCase(), interval: tf, limit: need, endTime },
-      timeout: 15000, // fail nhanh thay vì treo cả function
-    });
-    const batch: Candle[] = (res.data as any[]).map((k: any[]) => ({
-      openTime: k[0],
-      open: parseFloat(k[1]),
-      high: parseFloat(k[2]),
-      low: parseFloat(k[3]),
-      close: parseFloat(k[4]),
-      volume: parseFloat(k[5]),
-      quoteVolume: parseFloat(k[7]), // dollar volume
-      takerBuyVolume: parseFloat(k[9]), // taker-buy base volume (cho delta/CVD)
-    }));
-    if (batch.length === 0) break;
-    all.unshift(...batch);
-    endTime = batch[0].openTime - 1; // lùi về quá khứ
-    if (batch.length < need) break; // hết lịch sử
-    process.stdout.write(`\r[Fetch ${symbol.toUpperCase()}] ${all.length}/${totalBars} nến ${tf}...`);
-  }
-  process.stdout.write("\n");
-  const map = new Map<number, Candle>();
-  for (const c of all) map.set(c.openTime, c);
-  return [...map.values()].sort((a, b) => a.openTime - b.openTime);
-}
-
-export function fetchFuturesKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
-  return fetchKlinesFromSource(FUTURES_SOURCE, symbol, tf, totalBars);
-}
-
-export function fetchSpotKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
-  return fetchKlinesFromSource(SPOT_SOURCE, symbol, tf, totalBars);
-}
-
-/** Mặc định dùng Futures và không fallback; giữ tên cũ để các backtest hiện tại không phải đổi import. */
-export function fetchKlinesPaged(symbol: string, tf: string, totalBars: number): Promise<Candle[]> {
-  return fetchFuturesKlinesPaged(symbol, tf, totalBars);
-}
 
 // ─── TRADE TYPES ─────────────────────────────────────────────
 export interface Trade {

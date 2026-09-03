@@ -66,7 +66,17 @@ export interface OpenUnit {
 
 export interface AdmitCtx {
   time: number;
+  /**
+   * ⚠️ ĐÂY LÀ KHOÁ SỔ (`Book.key`), KHÔNG phải mã coin. Chạy nhiều sleeve thì nó là `"btcusdt@t"`.
+   * Trong khi đó `OpenUnit.symbol` (mảng `open` bên dưới) LÀ mã coin thô.
+   *
+   * Tra bảng theo mã coin bằng trường này sẽ trượt hết về nhánh mặc định, LẶNG LẼ, và cho ra một
+   * kết quả "không có gì thay đổi" trông y hệt một kết quả null thật. Bẫy này đã cắn ít nhất hai
+   * lần trong repo (xem exp-floor-exact.ts và exp-corr-heat.ts). Dùng `rawSymbol` bên dưới.
+   */
   symbol: string;
+  /** Mã coin thô, đã bóc hậu tố sleeve — luôn khớp với `OpenUnit.symbol`. */
+  rawSymbol: string;
   dir: "long" | "short";
   kind: "entry" | "add";
   /** Các unit đang mở TRƯỚC khi unit này được thêm (toàn danh mục). */
@@ -202,6 +212,66 @@ export type ExtParams = TurtleParams & {
    * undefined/false = hành vi production (tuần tự).
    */
   admitBarSnapshot?: boolean;
+  /**
+   * ƯỚC LƯỢNG BIẾN ĐỘNG thay cho `atrSeries` (Wilder). Cùng chữ ký, cùng đơn vị GIÁ, cùng cửa sổ —
+   * chỉ đổi CÁCH ước lượng, không đổi một luật nào. undefined = `atrSeries` = hành vi không đổi.
+   *
+   * Vì sao đáng tách ra: ATR là trung bình của True Range, mà TR chỉ dùng 2 trong 4 mốc giá của nến.
+   * Các ước lượng dùng cả OHLC (Parkinson, Garman-Klass, Rogers-Satchell) có phương sai nhỏ hơn
+   * 5-8 lần ở cùng số nến (Yang & Zhang 2000). ATR ở đây làm MẪU SỐ R, khoảng trail và bước pyramid,
+   * nên nhiễu của nó chảy thẳng vào risk thật của từng lệnh.
+   */
+  volSeries?: (c: Candle[], len: number) => number[];
+  /**
+   * THAY HẲN TÍN HIỆU VÀO LỆNH bằng một hàm tuỳ ý — để xây CHIẾN LƯỢC KHÁC (chỉ báo làm tín hiệu
+   * chính) mà vẫn dùng nguyên bộ máy rủi ro đã audit: stop 3×ATR/cấu trúc, kênh thoát, pyramiding,
+   * heat, phí, funding. Nhờ vậy so sánh với Turtle/Fast là so ĐÚNG MỘT thứ — cái cò vào lệnh.
+   *
+   * Trả "long"/"short"/null tại nến `i` (chỉ được đọc `c[0..i]`). Khi có hàm này, engine BỎ QUA
+   * Donchian + bộ lọc EMA + volume; nhưng `gate` (BTC regime) và `allowShort` VẪN áp, để có thể tách
+   * riêng phần đóng góp của gate. undefined = hành vi không đổi một bit.
+   */
+  entrySignal?: (symbol: string, i: number, c: Candle[]) => "long" | "short" | null;
+  /**
+   * GIÁ KHỚP của tín hiệu `entrySignal` — để mô phỏng LỆNH CHỜ (limit) đặt sẵn tại một mức, thay vì
+   * vào ở giá đóng cửa. Chỉ có tác dụng khi `entrySignal` được đặt.
+   *
+   * Giá trả về BẮT BUỘC nằm trong [low, high] của chính nến i; ngoài khoảng đó là khớp ở mức giá
+   * chưa từng giao dịch trong nến ⇒ engine bỏ qua và dùng `close` (không có cách nào "gần đúng" ở
+   * đây mà không mở cửa cho lookahead). undefined = hành vi không đổi một bit.
+   */
+  entryFillPrice?: (symbol: string, i: number, c: Candle[], dir: "long" | "short") => number;
+  /**
+   * BREAKEVEN: khi giá đã đi thuận ≥ `breakevenAtR` × R (R của unit ĐẦU TIÊN) tính theo cực trị đã
+   * đạt, kéo stop cứng về đúng giá vào của unit đầu. Chỉ SIẾT, không bao giờ nới.
+   *
+   * Đề xuất đến thẳng từ feedback của user trên lệnh `turtle-13-0-1782806400000`: "lệnh này cần dịch
+   * SL xuống entry thì sẽ đỡ bị thua hơn". 0/undefined = hành vi không đổi một bit.
+   */
+  breakevenAtR?: number;
+  /** Giới hạn breakeven cho một chiều (note của user là trên lệnh SHORT). undefined = cả hai chiều. */
+  breakevenDir?: "long" | "short";
+  /**
+   * VỊ TRÍ mức thoát trong kênh close, tổng quát hoá `longExitMode="mid"`:
+   *     mức thoát = closeLow + pct × (closeHigh − closeLow)
+   * pct = 0,5 là ĐANG CHẠY (midpoint). pct = 0 là kênh thoát kiểu Turtle GỐC (thoát ở đáy kênh —
+   * để winner chạy lâu hơn). pct = 0,8 thoát rất sớm.
+   *
+   * Vì sao đáng đo: repo đã quét ĐỘ DÀI kênh thoát (12–30 ngày) nhưng **chưa bao giờ quét VỊ TRÍ**
+   * trong kênh — 0,5 là một lựa chọn mặc định chưa từng được kiểm. Và attribution nói 100% lợi nhuận
+   * đến từ nhánh thoát này. undefined = 0,5 = hành vi không đổi một bit.
+   */
+  longExitPct?: number;
+  /**
+   * SÀN TRAIL cho LONG: ngoài midTrail theo kênh close, giữ thêm một hard stop TRAIL kiểu Chandelier
+   * ở `extreme − mult × ATR`, lấy mức cao hơn.
+   *
+   * Vì sao đáng đo: trong nhánh `longExitMode="mid"` hiện tại, `pos.sl` **KHÔNG hề trail** — nó chỉ
+   * nhích lên khi có unit pyramid mới. Nghĩa là một vị thế LONG có thể trả lại rất nhiều lợi nhuận
+   * trước khi close cắt được midpoint. Repo đã test mid vs chandelier như hai LỰA CHỌN THAY THẾ,
+   * chưa bao giờ test chúng KẾT HỢP. 0/undefined = tắt = hành vi không đổi một bit.
+   */
+  longTrailMult?: number;
 };
 
 /** costR cho một unit, tôn trọng phí riêng của sổ nếu có. */
@@ -308,7 +378,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       warmup,
       emaArr: ema(closes, p.trendLen),
       ema2Arr: p.trendLen2 > 0 ? ema(closes, p.trendLen2) : null,
-      atr: atrSeries(c, p.atrPeriod),
+      atr: (p.volSeries ?? atrSeries)(c, p.atrPeriod),
       volSma,
       idxOf,
       pos: null,
@@ -372,6 +442,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
     const w = admit({
       time,
       symbol,
+      rawSymbol: ctxs.get(symbol)?.book.symbol ?? symbol,
       dir,
       kind,
       open,
@@ -412,8 +483,9 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       const pos = ctx.pos;
       const longExitCh = priorDonchian(c, i, dcLongExit);
       const shortExitCh = dcShortExit === dcLongExit ? longExitCh : priorDonchian(c, i, dcShortExit);
-      const longMidClose = (longExitCh.closeHigh + longExitCh.closeLow) / 2;
-      const shortMidClose = (shortExitCh.closeHigh + shortExitCh.closeLow) / 2;
+      const xp = p.longExitPct ?? 0.5;
+      const longMidClose = longExitCh.closeLow + xp * (longExitCh.closeHigh - longExitCh.closeLow);
+      const shortMidClose = shortExitCh.closeLow + (1 - xp) * (shortExitCh.closeHigh - shortExitCh.closeLow);
 
       const held = i - pos.units[0].entryIndex;
       let exitPrice: number | null = null;
@@ -493,8 +565,15 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
 
       // Trailing ratchet
       if (pos.dir === "long") {
-        if (p.longExitMode === "mid") pos.midTrail = Math.max(pos.midTrail ?? pos.sl, longMidClose);
-        else {
+        if (p.longExitMode === "mid") {
+          pos.midTrail = Math.max(pos.midTrail ?? pos.sl, longMidClose);
+          // Sàn trail tuỳ chọn: hard stop cũng đi lên theo đỉnh đã đạt (xem `longTrailMult`).
+          if (p.longTrailMult && p.longTrailMult > 0 && ctx.atr[i] > 0) {
+            pos.extreme = Math.max(pos.extreme, bar.high);
+            const floor = pos.extreme - p.longTrailMult * ctx.atr[i];
+            if (floor > pos.sl) pos.sl = floor;
+          }
+        } else {
           pos.extreme = Math.max(pos.extreme, bar.high);
           const trail = pos.extreme - p.chandelierMult * ctx.atr[i];
           if (trail > pos.sl) pos.sl = trail;
@@ -505,6 +584,20 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
           pos.extreme = Math.min(pos.extreme, bar.low);
           const trail = pos.extreme + p.chandelierMult * ctx.atr[i];
           if (trail < pos.sl) pos.sl = trail;
+        }
+      }
+
+      // Breakeven ratchet — chạy SAU trail nên chỉ có thể siết thêm, không nới ra.
+      if (p.breakevenAtR && p.breakevenAtR > 0 && (!p.breakevenDir || p.breakevenDir === pos.dir)) {
+        const u0 = pos.units[0];
+        const risk0 = Math.abs(u0.entry - u0.initialSL);
+        if (risk0 > 0) {
+          // `extreme` không được cập nhật ở nhánh mid-exit, nên tự cập nhật tại đây.
+          pos.extreme = pos.dir === "long" ? Math.max(pos.extreme, bar.high) : Math.min(pos.extreme, bar.low);
+          const moved = (pos.dir === "long" ? pos.extreme - u0.entry : u0.entry - pos.extreme) / risk0;
+          if (moved >= p.breakevenAtR) {
+            pos.sl = pos.dir === "long" ? Math.max(pos.sl, u0.entry) : Math.min(pos.sl, u0.entry);
+          }
         }
       }
 
@@ -543,8 +636,9 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       const shortChannel = dcShortEntry === dcEntry ? longChannel : priorDonchian(c, i, dcShortEntry);
       const longExitCh = dcLongExit === dcEntry ? longChannel : priorDonchian(c, i, dcLongExit);
       const shortExitCh = dcShortExit === dcShortEntry ? shortChannel : priorDonchian(c, i, dcShortExit);
-      const longMidClose = (longExitCh.closeHigh + longExitCh.closeLow) / 2;
-      const shortMidClose = (shortExitCh.closeHigh + shortExitCh.closeLow) / 2;
+      const xp = p.longExitPct ?? 0.5;
+      const longMidClose = longExitCh.closeLow + xp * (longExitCh.closeHigh - longExitCh.closeLow);
+      const shortMidClose = shortExitCh.closeLow + (1 - xp) * (shortExitCh.closeHigh - shortExitCh.closeLow);
 
       const uptrend = bar.close > ctx.emaArr[i] && (!ctx.ema2Arr || bar.close > ctx.ema2Arr[i]);
       const downtrend = bar.close < ctx.emaArr[i] && (!ctx.ema2Arr || bar.close < ctx.ema2Arr[i]);
@@ -554,6 +648,23 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
       const longBreakout = p.longEntrySource === "close" ? longChannel.closeHigh : longChannel.high;
       const shortBreakout = p.shortEntrySource === "close" ? shortChannel.closeLow : shortChannel.low;
       const shortGateOk = p.allowShort && downtrend && volOk && (!p.gate || p.gate(bar.openTime, "short"));
+
+      const openLong = (entry: number, initialSL: number) => {
+        if (!(initialSL > 0 && initialSL < entry)) return;
+        const w = askAdmit("entry", t, sym, "long", entry, initialSL);
+        if (w <= 0) {
+          rejectedEntries++;
+          return;
+        }
+        ctx.pos = {
+          dir: "long",
+          positionId: nextPositionId++,
+          units: [{ entryIndex: i, entry, initialSL, unitIndex: 0, weight: w }],
+          sl: initialSL,
+          extreme: bar.high,
+          midTrail: p.longExitMode === "mid" ? Math.max(initialSL, longMidClose) : null,
+        };
+      };
 
       const openShort = (entry: number, initialSL: number) => {
         if (!(initialSL > entry)) return;
@@ -572,6 +683,20 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
         };
       };
 
+      // ── TÍN HIỆU VÀO LỆNH THAY THẾ (chiến lược khác dùng chung bộ máy rủi ro) ──
+      if (p.entrySignal) {
+        const dir = p.entrySignal(ctx.book.symbol, i, c);
+        if (!dir) return;
+        if (p.gate && !p.gate(bar.openTime, dir)) return;
+        if (dir === "short" && !p.allowShort) return;
+        const want = p.entryFillPrice?.(ctx.book.symbol, i, c, dir);
+        const entry = want !== undefined && want >= bar.low && want <= bar.high ? want : bar.close;
+        const initialSL = turtleInitialStop(c, i, dir, entry, ctx.atr[i], ctx.stopP).price;
+        if (dir === "long") openLong(entry, initialSL);
+        else openShort(entry, initialSL);
+        return;
+      }
+
       // ── SHORT có XÁC NHẬN (sleeve Fast): nến phá vỡ chỉ "arm", nến kế tiếp phải giữ dưới mức đã
       //    đóng băng mới vào. Thứ tự trùng `FastTrendLive.step`: xác nhận → breakout LONG → arm mới.
       const sc = p.shortConfirmBars ?? 0;
@@ -588,20 +713,7 @@ export function runBooks(books: Book[], admit?: AdmitFn): PortfolioResult {
 
       if (uptrend && volOk && (!p.gate || p.gate(bar.openTime, "long")) && bar.close > longBreakout + buf) {
         const entry = bar.close;
-        const initialSL = turtleInitialStop(c, i, "long", entry, ctx.atr[i], ctx.stopP).price;
-        if (initialSL > 0 && initialSL < entry) {
-          const w = askAdmit("entry", t, sym, "long", entry, initialSL);
-          if (w > 0) {
-            ctx.pos = {
-              dir: "long",
-              positionId: nextPositionId++,
-              units: [{ entryIndex: i, entry, initialSL, unitIndex: 0, weight: w }],
-              sl: initialSL,
-              extreme: bar.high,
-              midTrail: p.longExitMode === "mid" ? Math.max(initialSL, longMidClose) : null,
-            };
-          } else rejectedEntries++;
-        }
+        openLong(entry, turtleInitialStop(c, i, "long", entry, ctx.atr[i], ctx.stopP).price);
       } else if (shortGateOk && bar.close < shortBreakout - buf) {
         if (sc > 0) {
           ctx.shortSetup = { level: shortBreakout, signalIndex: i };

@@ -1,0 +1,27 @@
+{
+  "artboards": [
+    { "file": "Small.dc.html",    "title": "Khổ nhỏ · 155×155",   "x": 0,    "y": 0,    "w": 275, "h": 275 },
+    { "file": "Medium.dc.html",   "title": "Khổ vừa · 329×155",   "x": 355,  "y": 0,    "w": 449, "h": 275 },
+    { "file": "Main.dc.html",     "title": "Khổ lớn · 329×345",   "x": 884,  "y": 0,    "w": 449, "h": 465 },
+    { "file": "Panel.dc.html",    "title": "Thanh menu + panel",  "x": 0,    "y": 585,  "w": 520, "h": 620 },
+    { "file": "Logo.dc.html",     "title": "Ba hướng logo",       "x": 600,  "y": 585,  "w": 900, "h": 520 },
+    { "file": "Material.dc.html", "title": "Vật liệu kính",       "x": 0,    "y": 1325, "w": 900, "h": 560 }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -196,
+      "w": 620,
+      "text": "Widget giao dịch — bản Liquid Glass\n\nMọi khung đều đặt widget trên hình nền thật, vì kính chỉ đọc được khi có gì đó phía sau để khúc xạ. Đặt trên nền phẳng thì nó chỉ là một ô xám.\n\nGiữ nguyên thứ tự đọc và token màu đã chốt ở bản v1: kính đổi VẬT LIỆU, không đổi thông tin hay giọng chữ."
+    },
+    {
+      "id": "pick-logo",
+      "x": 1560,
+      "y": 585,
+      "w": 250,
+      "text": "Chọn một hướng logo\n\nCả ba đều xem được ở 18px trên nền sáng và nền tối — đó là chỗ logo sống hoặc chết, không phải ở icon 512px.\n\nNói tôi chữ A, B hay C, tôi dựng bộ icon đủ cỡ và ghép vào app."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

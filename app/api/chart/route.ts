@@ -8,9 +8,10 @@ export const maxDuration = 60;
 export async function GET(request: NextRequest) {
   const daysParam = request.nextUrl.searchParams.get("days");
   const days = Math.min(400, Math.max(30, parseInt(daysParam ?? "120", 10) || 120));
+  const symbol = request.nextUrl.searchParams.get("symbol") ?? "btcusdt";
 
   try {
-    const payload = await buildChartPayload(days);
+    const payload = await buildChartPayload(days, symbol);
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store" },
     });

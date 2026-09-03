@@ -21,7 +21,8 @@
 
 import { FxCandle, loadH1 } from "./fx-data";
 
-const PAIRS = ["EURUSD", "GBPUSD", "USDJPY"];
+/** Mặc định 3 major (bản gốc); truyền symbol qua dòng lệnh để chĩa vào công cụ khác. */
+const PAIRS = process.argv.slice(2).length ? process.argv.slice(2) : ["EURUSD", "GBPUSD", "USDJPY"];
 const RANGE_START_H = 22, RANGE_END_H = 7, ENTRY_END_H = 12, EXIT_H = 21;
 const FILTERS: [string, number][] = [["không lọc", 0], ["Á ≤ 0,8×ATR", 0.8]];
 const TARGETS: [string, number][] = [["giữ tới 21h", 0], ["1R", 1], ["2R", 2]];
@@ -30,7 +31,7 @@ const SLIP_PCT = 0.002;
 const hourOf = (ms: number) => new Date(ms).getUTCHours();
 const dayOf = (ms: number) => Math.floor(ms / 86400e3);
 
-interface Trade { netR: number; dir: "long" | "short"; time: number }
+interface Trade { netR: number; grossR: number; spreadR: number; slipR: number; dir: "long" | "short"; time: number }
 
 function runSession(bars: FxCandle[], filterMult: number, targetR: number): Trade[] {
   // ATR20 ngày (xấp xỉ bằng biên độ ngày trung bình 20 phiên gần nhất) — chỉ dùng nến ĐÃ ĐÓNG.
@@ -92,9 +93,9 @@ function runSession(bars: FxCandle[], filterMult: number, targetR: number): Trad
     }
 
     const gross = (dir === "long" ? exit - entry : entry - exit) / risk;
-    const spread = group[entryIdx].spread;
-    const costR = (spread + 2 * (SLIP_PCT / 100) * entry) / risk;
-    trades.push({ netR: gross - costR, dir, time: group[entryIdx].openTime });
+    const spreadR = group[entryIdx].spread / risk;
+    const slipR = (2 * (SLIP_PCT / 100) * entry) / risk;
+    trades.push({ netR: gross - spreadR - slipR, grossR: gross, spreadR, slipR, dir, time: group[entryIdx].openTime });
   }
   return trades;
 }
@@ -111,8 +112,19 @@ function summarize(trades: Trade[]) {
     byYear.set(y, (byYear.get(y) ?? 0) + t.netR);
   }
   const yrs = [...byYear.values()];
+  // BIÊN PHÁT HIỆN: "net ≈ 0" có hai nghĩa rất khác nhau — (a) không có edge, hoặc (b) có edge
+  // nhưng chi phí ăn hết. Chỉ phân biệt được khi in gross và cost riêng ra.
+  const gross = trades.reduce((s, t) => s + t.grossR, 0);
+  const gMean = gross / n;
+  const gSd = Math.sqrt(trades.reduce((s, t) => s + (t.grossR - gMean) ** 2, 0) / (n - 1));
+  const spreadR = trades.reduce((s, t) => s + t.spreadR, 0);
+  const slipR = trades.reduce((s, t) => s + t.slipR, 0);
   return {
-    n, net, exp: mean,
+    n, net, exp: mean, gross, spreadR, slipR,
+    // Spread hoà vốn = bao nhiêu % spread lịch sử thì net về 0. >100% ⇒ đã lãi ở spread hôm nay;
+    // <100% ⇒ cần venue rẻ hơn đúng tỉ lệ đó mới hoà.
+    beSpread: spreadR > 0 ? (gross - slipR) / spreadR : 0,
+    tGross: gSd > 0 ? gMean / (gSd / Math.sqrt(n)) : 0,
     wr: trades.filter((t) => t.netR > 0).length / n,
     t: sd > 0 ? mean / (sd / Math.sqrt(n)) : 0,
     posYears: yrs.filter((v) => v > 0).length, nYears: yrs.length,
@@ -120,7 +132,7 @@ function summarize(trades: Trade[]) {
 }
 
 async function main() {
-  console.log("═══ PHÁ VỠ PHIÊN LONDON — họ intraday, 3 major, 22,5 năm nến H1 ═══");
+  console.log(`═══ PHÁ VỠ PHIÊN LONDON — họ intraday, ${PAIRS.join(" ")}, nến H1 ═══`);
   console.log("Đọc cột t-stat: |t| < 2 ⇒ không phân biệt được với 0.\n");
   const data = new Map(PAIRS.map((p) => [p, loadH1(p)]));
 
@@ -143,7 +155,26 @@ async function main() {
   console.log("\n─── Từng cặp, biến thể chuẩn (không lọc · giữ tới 21h) ───");
   for (const p of PAIRS) {
     const s = summarize(runSession(data.get(p)!, 0, 0));
-    if (s) console.log(`${p.padEnd(10)} ${String(s.n).padStart(6)} lệnh  NET ${s.net.toFixed(0).padStart(7)}R  exp ${s.exp.toFixed(4)}  t ${s.t.toFixed(2).padStart(6)}  năm+ ${s.posYears}/${s.nYears}`);
+    if (s) console.log(
+      `${p.padEnd(10)} ${String(s.n).padStart(6)} lệnh  GROSS ${s.gross.toFixed(0).padStart(6)}R (t ${s.tGross.toFixed(2).padStart(5)})  ` +
+      `spread −${s.spreadR.toFixed(0).padStart(4)}R  trượt −${s.slipR.toFixed(0).padStart(4)}R  ` +
+      `NET ${s.net.toFixed(0).padStart(6)}R  spread hoà vốn ${(s.beSpread * 100).toFixed(0).padStart(4)}%  năm+ ${s.posYears}/${s.nYears}`);
+  }
+
+  // Spread lịch sử 22 năm KHÔNG phải spread hôm nay. Nếu edge chỉ hoà vốn nhờ spread nén lại thì
+  // phần dương sẽ dồn hết vào các năm gần đây — đúng cái bẫy đã bắt được ở nhánh vàng lần trước.
+  console.log("\n─── THEO NĂM (biến thể chuẩn) — spread nén lại hay edge dồn cuối kỳ? ───");
+  for (const p of PAIRS) {
+    const ts = runSession(data.get(p)!, 0, 0);
+    const years = [...new Set(ts.map((t) => new Date(t.time).getUTCFullYear()))].sort();
+    console.log(`${p}:`);
+    for (const y of years) {
+      const rs = ts.filter((t) => new Date(t.time).getUTCFullYear() === y);
+      const g = rs.reduce((s, t) => s + t.grossR, 0), sp = rs.reduce((s, t) => s + t.spreadR, 0);
+      const nt = rs.reduce((s, t) => s + t.netR, 0);
+      console.log(`  ${y}  ${String(rs.length).padStart(4)} lệnh  gross ${g.toFixed(1).padStart(7)}R  ` +
+        `spread ${(sp / rs.length).toFixed(4)}R/lệnh  net ${nt.toFixed(1).padStart(7)}R`);
+    }
   }
 }
 

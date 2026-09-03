@@ -7,15 +7,13 @@
  * nhưng vẫn dùng chi phí Binance để cô lập khác biệt entry/exit khỏi khác biệt venue.
  *
  * Run:
- *   ./node_modules/.bin/ts-node key-volume-backtest.ts [days] [riskPct] [symbols] [model]
+ *   ./node_modules/.bin/ts-node key-volume-backtest.ts [days] [riskPct] [symbols]
  */
 import "./load-env";
 import { runBacktest as runSmcBacktest } from "./backtest";
 import {
   KEY_VOLUME_CONFIG,
-  KEY_VOLUME_DOCUMENT_V1_CONFIG,
   KeyVolumeDiagnostics,
-  KeyVolumeEntryModel,
   KeyVolumeTrade,
   runKeyVolume,
 } from "./key-volume";
@@ -216,21 +214,25 @@ function sumDiagnostics(
 ): KeyVolumeDiagnostics {
   const out: KeyVolumeDiagnostics = {
     m15Levels: 0,
-    h1Levels: 0,
-    h4Levels: 0,
-    confluentTouches: 0,
+    keyTouches: 0,
     touchVolumeConfirmed: 0,
     sweeps: 0,
-    firstBos: 0,
-    secondBos: 0,
     candlePatterns: 0,
-    profileAccepted: 0,
+    rejectedKeyOutsideBlock: 0,
+    rejectedNoDeparture: 0,
     plans: 0,
+    sweepBranchPlans: 0,
+    volumeBranchPlans: 0,
     entries: 0,
+    rejectedDepart: 0,
+    boxesArmed: 0,
+    boxesRetouched: 0,
+    boxesBroken: 0,
+    boxesExpired: 0,
+    boxesUnresolved: 0,
     rejectedRisk: 0,
     rejectedRoom: 0,
     rejectedFirstTouch: 0,
-    rejectedDailyTrap: 0,
     rejectedDouble: 0,
     rejectedSession: 0,
   };
@@ -272,15 +274,9 @@ async function main(): Promise<void> {
   const symbols = (process.argv[4]?.split(",") ?? CONFIG.symbols)
     .map((symbol) => symbol.trim().toLowerCase())
     .filter(Boolean);
-  const entryModel = (process.argv[5] ?? KEY_VOLUME_CONFIG.entryModel) as KeyVolumeEntryModel;
-  const keyVolumeConfig = entryModel === "document-v1"
-    ? KEY_VOLUME_DOCUMENT_V1_CONFIG
-    : KEY_VOLUME_CONFIG;
+  const keyVolumeConfig = KEY_VOLUME_CONFIG;
   if (!(days > 0) || !(riskPct > 0) || !(maxLeverage > 0) || !symbols.length) {
     throw new Error("Tham số phải là: days>0, riskPct>0, LEVERAGE>0 và ít nhất một symbol");
-  }
-  if (!["volume-retest", "document-v1"].includes(entryModel)) {
-    throw new Error("model phải là volume-retest hoặc document-v1");
   }
 
   const totalBars = Math.ceil((days + WARMUP_DAYS) * TF_MS["1d"] / TF_MS["5m"]) + 12;
@@ -345,11 +341,12 @@ async function main(): Promise<void> {
   const turtleParams: TurtleParams = { ...T, gate: turtleGate };
 
   for (const [symbol, base] of baseBySymbol) {
-    const keyVolume = runKeyVolume(symbol, base, keyVolumeConfig);
+    const m15 = closedOnly(aggregate(base, "15m", "5m"), "15m", periodEnd);
+    // Key Volume chạy trọn trên M15 — engine không còn nhận nến 5m.
+    const keyVolume = runKeyVolume(symbol, m15, keyVolumeConfig);
     keyVolumeTrades.push(...keyVolume.trades);
     diagnostics.push(keyVolume.diagnostics);
 
-    const m15 = closedOnly(aggregate(base, "15m", "5m"), "15m", periodEnd);
     smcTrades.push(...runSmcBacktest(symbol, m15));
     const h4 = fourHourBySymbol.get(symbol)!;
     turtleTrades.push(...runTurtle(symbol, h4, turtleParams));
@@ -404,22 +401,14 @@ async function main(): Promise<void> {
 
   const diag = sumDiagnostics(diagnostics);
   console.log("\nKey Volume funnel (gồm cả warmup để chẩn đoán state machine):");
-  const modelFunnel = keyVolumeConfig.entryModel === "volume-retest"
-    ? ` -> volume@key ${diag.touchVolumeConfirmed}`
-      + ` -> sweep ${diag.sweeps}`
-      + (keyVolumeConfig.entryTrigger === "candle-pattern"
-        ? ` -> mô hình nến ${diag.candlePatterns}`
-        : ` -> BOS ${diag.firstBos}`)
-    : ` -> sweep ${diag.sweeps}`
-      + ` -> BOS1 ${diag.firstBos}`
-      + ` -> BOS2 ${diag.secondBos}`
-      + ` -> OB+HVN ${diag.profileAccepted}`;
   console.log(
-    `  model ${keyVolumeConfig.entryModel}`
-    + ` · key M15/H1/H4 ${diag.m15Levels}/${diag.h1Levels}/${diag.h4Levels}`
-    + ` -> touch ${diag.confluentTouches}`
-    + modelFunnel
+    `  key ${keyVolumeConfig.confirmTf} ${diag.m15Levels}`
+    + ` -> chạm key ${diag.keyTouches}`
+    + ` -> volume@key ${diag.touchVolumeConfirmed}`
+    + ` -> quét thanh khoản ${diag.sweeps}`
+    + ` -> mô hình nến ${diag.candlePatterns}`
     + ` -> plan ${diag.plans}`
+    + ` (quét ${diag.sweepBranchPlans} / nến+volume ${diag.volumeBranchPlans})`
     + ` -> entry ${diag.entries}`,
   );
   console.log(
@@ -427,8 +416,25 @@ async function main(): Promise<void> {
     + ` · hết dư địa trước ${keyVolumeConfig.minRR}R ${diag.rejectedRoom}`,
   );
   console.log(
+    `  Nhánh key: chạm ${diag.keyTouches} -> đủ volume ${diag.touchVolumeConfirmed}`
+    + ` · bỏ vì giá CHƯA TỪNG rời key ${diag.rejectedNoDeparture}`
+    + ` · bỏ vì key NGOÀI thân hộp ${diag.rejectedKeyOutsideBlock}`
+    + ` -> cụm hợp lệ ${diag.candlePatterns}`,
+  );
+  console.log(
+    `  Hộp bị bỏ vì giá ĐÓNG chưa rời hộp đủ ${keyVolumeConfig.obDepartBars} nến: ${diag.rejectedDepart}`,
+  );
+  console.log(
+    `  Hộp canh retest: trang bị ${diag.boxesArmed}`
+    + ` -> giá quay lại ${diag.boxesRetouched}`
+    + ` -> vào lệnh ${diag.entries}`
+    + ` (${diag.boxesArmed ? (100 * diag.entries / diag.boxesArmed).toFixed(1) : "0.0"}%)`
+    + ` · hộp bị phá ${diag.boxesBroken}`
+    + ` · hết ${keyVolumeConfig.boxWaitBars} nến canh ${diag.boxesExpired}`
+    + ` · còn treo cuối kỳ ${diag.boxesUnresolved}`,
+  );
+  console.log(
     `  Từ chối trước đó: chạm lần đầu ${diag.rejectedFirstTouch}`
-    + ` · gate Daily trap ${diag.rejectedDailyTrap}`
     + ` · hai đỉnh/đáy ${diag.rejectedDouble}`
     + ` · ngoài phiên ${diag.rejectedSession}`,
   );
@@ -495,12 +501,11 @@ async function main(): Promise<void> {
       console.log(
         `    ${trade.symbol.toUpperCase()} ${trade.dir.toUpperCase()} ${time}`
         + ` · ${signed(trade.netR, 2)}R (${trade.exitReason})`
-        + ` · ${trade.model}`
-        + ` · keyVol ${trade.keyVolumeRatio.toFixed(2)}x`
-        + `${trade.triggerVolumeRatio == null ? "" : `/trigger ${trade.triggerVolumeRatio.toFixed(2)}x`}`
-        + `${trade.higherVolumeRatio == null ? "" : `/H4 ${trade.higherVolumeRatio.toFixed(2)}x`}`
+        + ` · ${trade.branch}`
+        + ` · keyVol ${trade.keyVolumeRatio == null ? "—" : `${trade.keyVolumeRatio.toFixed(2)}x`}`
+        + `/trigger ${trade.triggerVolumeRatio.toFixed(2)}x`
         + ` · hold ${(trade.exitTime - trade.entryTime) / TF_MS["1h"] < 1
-          ? `${Math.round((trade.exitTime - trade.entryTime) / TF_MS["5m"]) * 5}m`
+          ? `${Math.round((trade.exitTime - trade.entryTime) / TF_MS["15m"]) * 15}m`
           : `${((trade.exitTime - trade.entryTime) / TF_MS["1h"]).toFixed(1)}h`}`,
       );
     }
@@ -511,7 +516,7 @@ async function main(): Promise<void> {
   console.log("  - KeyVol OHLCV và SMC là pullback/reversal có xác nhận; Turtle/Fast là breakout trend-following.");
   console.log("  - Turtle/Fast tính mỗi pyramid unit là một trade/R; Key Volume và SMC là một vị thế mỗi signal.");
   console.log("  - Fast production chạy MEXC, nhưng bảng cố ý dùng cùng Binance costs để so logic, không so venue.");
-  console.log("  - Macro/chọn key discretionary chưa có; HVN chỉ xuất hiện ở document-v1 và là proxy OHLCV.");
+  console.log("  - Key Volume chạy trọn trên M15 (nến 5m chỉ mô phỏng đường đi trong nến); không còn trần giữ lệnh.");
 }
 
 // Xem turtle.ts: `require.main === module` một mình không an toàn khi file bị bundle.
