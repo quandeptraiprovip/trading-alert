@@ -38,6 +38,16 @@ const BOT_CONTAINER = process.env.WIDGET_BOT_CONTAINER?.trim() || "swing-bot";
 const STALE_AFTER_MS = Number(process.env.WIDGET_STALE_MS ?? 2 * 4 * 60 * 60 * 1000);
 const MAX_RISK_PCT = Number(process.env.MAX_PORTFOLIO_RISK_PCT ?? 20) / 100;
 
+/**
+ * Khoá CHỈ ĐỌC riêng cho widget. Không đặt thì rơi về khoá của bot, nên thêm biến
+ * này không làm hỏng cấu hình đang chạy. Tách khoá để thu hồi/đổi khoá widget
+ * không phải chạm vào khoá đang giữ vị thế thật.
+ */
+const READ_ONLY_KEYS = {
+  binance: { apiKey: process.env.BINANCE_READ_API_KEY, apiSecret: process.env.BINANCE_READ_API_SECRET },
+  mexc: { apiKey: process.env.MEXC_READ_API_KEY, apiSecret: process.env.MEXC_READ_API_SECRET },
+};
+
 export type HealthState = "running" | "stale" | "stopped";
 
 export interface WidgetPosition {
@@ -320,7 +330,7 @@ async function binanceStop(
 
 async function readBinance(state: Map<string, StateEntry>, now: number): Promise<WidgetVenue> {
   const venue: WidgetVenue = { id: "binance", name: "BINANCE", equity: null, ok: false, error: null, positions: [] };
-  const api = createBinanceFromEnv();
+  const api = createBinanceFromEnv(READ_ONLY_KEYS.binance);
   if (!api) {
     venue.error = "Chưa có API key";
     return venue;
@@ -362,7 +372,7 @@ async function readBinance(state: Map<string, StateEntry>, now: number): Promise
 
 async function readMexc(state: Map<string, StateEntry>, now: number): Promise<WidgetVenue> {
   const venue: WidgetVenue = { id: "mexc", name: "MEXC", equity: null, ok: false, error: null, positions: [] };
-  const api = createMexcFromEnv();
+  const api = createMexcFromEnv(READ_ONLY_KEYS.mexc);
   if (!api) {
     venue.error = "Chưa có API key";
     return venue;

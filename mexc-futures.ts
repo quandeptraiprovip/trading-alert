@@ -515,9 +515,10 @@ export class MexcFutures {
   }
 }
 
-export function createMexcFromEnv(): MexcFutures | null {
-  const apiKey = process.env.MEXC_API_KEY?.trim();
-  const apiSecret = process.env.MEXC_API_SECRET?.trim();
+/** `creds` để bên gọi dùng khoá khác khoá của bot — widget truyền khoá CHỈ ĐỌC vào đây. */
+export function createMexcFromEnv(creds?: { apiKey?: string; apiSecret?: string }): MexcFutures | null {
+  const apiKey = creds?.apiKey?.trim() || process.env.MEXC_API_KEY?.trim();
+  const apiSecret = creds?.apiSecret?.trim() || process.env.MEXC_API_SECRET?.trim();
   if (!apiKey || !apiSecret) return null;
   return new MexcFutures({
     apiKey,

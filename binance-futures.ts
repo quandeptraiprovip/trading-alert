@@ -361,9 +361,10 @@ export class BinanceFutures {
 }
 
 /** Khởi tạo client từ env. Trả null nếu thiếu key (bot chạy alert-only như cũ). */
-export function createBinanceFromEnv(): BinanceFutures | null {
-  const apiKey = process.env.BINANCE_API_KEY;
-  const apiSecret = process.env.BINANCE_API_SECRET;
+/** `creds` để bên gọi dùng khoá khác khoá của bot — widget truyền khoá CHỈ ĐỌC vào đây. */
+export function createBinanceFromEnv(creds?: { apiKey?: string; apiSecret?: string }): BinanceFutures | null {
+  const apiKey = creds?.apiKey?.trim() || process.env.BINANCE_API_KEY;
+  const apiSecret = creds?.apiSecret?.trim() || process.env.BINANCE_API_SECRET;
   if (!apiKey || !apiSecret) return null;
   const testnet = (process.env.BINANCE_TESTNET ?? "true").toLowerCase() !== "false";
   const baseUrl =
