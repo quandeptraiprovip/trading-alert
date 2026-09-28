@@ -220,3 +220,44 @@ Code đã chứng minh không bắt chước được tay (0/6), nên phần nà
 - Binance — định nghĩa Top Trader Long/Short Ratio:
   https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Top-Trader-Long-Short-Ratio
 - Dữ liệu metrics: https://data.binance.vision/?prefix=data/futures/um/daily/metrics/
+
+---
+
+## Phụ lục 1 — làm rõ TRƯỚC khi tải dữ liệu OI (28/09, sau commit `8dbfadd`, trước mọi lần tải metrics)
+
+Các điểm dưới đây bản gốc chưa nói rõ. Chúng được chốt khi CHƯA có dòng dữ liệu OI nào trên máy.
+
+**A1**
+- Cấu hình cố định đúng như lần chạy 28/08, **không** lấy theo `KEY_VOLUME_CONFIG` hiện tại. Bản hiện
+  tại đã đổi `volumeLookback` 96→12 và `volumeSpikeMult` 2→4 sau ngày 01/09. Cố định: trung vị
+  **96 nến**, `keyTouchAtr` 0,2, `keyMaxAgeDays` 180, FWD 12, **400 ngày**, CORE8, ngưỡng 2×/6×/12×.
+  Cửa 2 dùng R0/R4/R5loc, Cửa 3 dùng R0/R4.
+- ΔOI của nến M15 = OI(snapshot tại openTime + 15 phút) − OI(snapshot tại openTime), lấy trên lưới
+  5 phút. Thiếu snapshot hoặc ΔOI = 0 thì loại và **in số bị loại**.
+- **Tiêu chí đậu A1:** có ít nhất một ô (ngưỡng, bậc) đậu **cả hai** cửa.
+  - Cửa 2: `spike_MỞ − syn_MỞ − biên > 0,246 ATR`. Biên dùng **z = 2,39** (Bonferroni), không dùng 1,96.
+  - Cửa 3 cùng ô: `WR_MỞ / WR_random ≥ 1,246` và `WR_MỞ − ci > WR_synMỞ + ci`.
+
+**B1/B2**
+- R của vị thế = tổng `netR` các unit với **trọng số 1**. Nhãn là thuộc tính của lệnh, còn heat là
+  phép co giãn cấp danh mục; với rổ 30 coin, heat làm trọng số méo không liên quan tới nhãn.
+- Vũ trụ chính = luật `buildLiquidityUniverse` (top-**30**, trung vị quoteVolume 90 ngày, tái cân bằng
+  30 ngày) trên `POOL46`, chỉ tính vị thế vào từ **01/12/2021**. `loadPool` phải báo 0 symbol lỗi, nếu
+  không thì dừng.
+- OI dùng snapshot 5 phút có `create_time` ≤ giờ đóng nến vào lệnh, và snapshot ≤ (giờ đó − cửa sổ).
+  Cửa sổ LONG = 15 ngày, SHORT = 30 ngày (`T.entryDays`, `T.shortEntryDays`).
+- B2: funding quy về đơn vị 8 giờ (rate × 8 / khoảng giờ giữa hai kỳ thanh toán). Lấy trung bình trên
+  cửa sổ 15 ngày trước giờ vào lệnh. Phân vị của nó so với chuỗi trung bình-15-ngày tính tại mỗi kỳ
+  funding trong 365 ngày trước đó. Đông = phân vị ≥ 2/3, vắng = phân vị < 1/3.
+- **Thống kê:** D = P(net ≥ +3R | nhãn A) − P(net ≥ +3R | nhãn B).
+  - Bootstrap 2.000 lần theo khối **tháng dương lịch của giờ vào lệnh**; z = D / sd_bootstrap.
+  - B1 hai phía: |z| ≥ 2,39. B2 một phía: z ≤ −2,39.
+- **Nhãn ngẫu nhiên:** hoán vị nhãn 1.000 lần, giữ nguyên số lượng. |D| thật phải vượt phân vị 99 của
+  |D_hoán vị| (B2: D thật dưới phân vị 1).
+- **Nhãn giả:** OI/funding dời **−365 ngày**; nếu thiếu dữ liệu thì dời +365. Yêu cầu |D_giả| < ½|D thật|.
+- **Nhiễu động lượng:** chia tercile theo |ln(close lúc vào / close lúc bắt đầu cửa sổ)|. D phải cùng dấu
+  ở ≥ 2/3 tầng.
+- **Chỉ cần cùng dấu:** TB netR và CORE8.
+
+**Thứ tự chạy:** Cửa 0 (chỉ in số lượng nhãn, số thiếu, biên phát hiện; KHÔNG in kết cục) trước, rồi
+mới Cửa 1. Không sửa gì giữa hai bước, trừ khi Cửa 0 báo lỗi dữ liệu.
