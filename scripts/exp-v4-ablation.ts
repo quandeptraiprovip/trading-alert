@@ -53,8 +53,8 @@ function aggregatePhase(h1: Candle[], offsetH: number): Candle[] {
       low: Math.min(...g.map((x) => x.low)),
       close: g[3].close,
       volume: g.reduce((s, x) => s + x.volume, 0),
-      quoteVolume: g.reduce((s, x) => s + x.quoteVolume, 0),
-      takerBuyVolume: g.reduce((s, x) => s + x.takerBuyVolume, 0),
+      quoteVolume: g.reduce((s, x) => s + (x.quoteVolume ?? 0), 0),
+      takerBuyVolume: g.reduce((s, x) => s + (x.takerBuyVolume ?? 0), 0),
     });
   }
   return out;
@@ -80,6 +80,28 @@ function netDD(x: number[]): { net: number; dd: number; nd: number } {
   let e = 0, peak = 0, dd = 0;
   for (const v of x) { e += v; peak = Math.max(peak, e); dd = Math.max(dd, peak - e); }
   return { net: e, dd, nd: dd > 0 ? e / dd : 0 };
+}
+
+/**
+ * CỘT MÔ TẢ (thêm SAU lần chạy đầu, KHÔNG đổi phán quyết): khoảng tin cậy 90% của ΔSharpe bằng
+ * bootstrap khối CẶP (khối 20 ngày, cùng chỉ số ngày cho hai chuỗi) trên chuỗi TB 4 pha. Tiêu chí chốt
+ * trước chỉ xét DẤU, nên cần cột này để biết chênh nào nằm trong nhiễu.
+ */
+function pairedBootCI(a: number[], b: number[], block = 20, reps = 1000): [number, number] {
+  let seed = 20260928;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const n = a.length;
+  const out: number[] = [];
+  for (let r = 0; r < reps; r++) {
+    const ra: number[] = [], rb: number[] = [];
+    while (ra.length < n) {
+      const s = Math.floor(rnd() * (n - block));
+      for (let k = 0; k < block && ra.length < n; k++) { ra.push(a[s + k]); rb.push(b[s + k]); }
+    }
+    out.push(sharpe(ra) - sharpe(rb));
+  }
+  out.sort((x, y) => x - y);
+  return [out[Math.floor(0.05 * reps)], out[Math.floor(0.95 * reps)]];
 }
 
 interface Variant { name: string; p: (base: ExtParams, gate: Gate) => ExtParams; admit: boolean }
@@ -199,6 +221,11 @@ async function main() {
       + (v === VARIANTS[0] ? "" : `  ${topYear[0]} ${(100 * topShare).toFixed(0)}%`)
       + (v === VARIANTS[0] ? "" : `  ⇒ ${verdict}`),
     );
+    if (v !== VARIANTS[0]) {
+      const [lo, hi] = pairedBootCI(avgDaily, avgBase);
+      const zero = lo > 0 ? "cả khoảng > 0" : hi < 0 ? "cả khoảng < 0" : "CHỨA 0 (nhiễu)";
+      console.log(`${"".padEnd(30)}ΔSharpe TB-pha ${(sharpe(avgDaily) - sharpe(avgBase)).toFixed(3)} · 90% CI [${lo.toFixed(3)}; ${hi.toFixed(3)}] ${zero}`);
+    }
   }
   console.log(`\nNET R / maxDD / N/DD là của pha 0h (production). "năm lớn nhất" = năm mang phần lớn nhất của`
     + ` phần CHÊNH (bỏ − v4) dương, TB 4 pha.`);
