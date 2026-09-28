@@ -261,3 +261,75 @@ Các điểm dưới đây bản gốc chưa nói rõ. Chúng được chốt kh
 
 **Thứ tự chạy:** Cửa 0 (chỉ in số lượng nhãn, số thiếu, biên phát hiện; KHÔNG in kết cục) trước, rồi
 mới Cửa 1. Không sửa gì giữa hai bước, trừ khi Cửa 0 báo lỗi dữ liệu.
+
+---
+
+## KẾT QUẢ — 28/09/2026 (chạy đúng một lần sau hai commit khoá `8dbfadd`, `4e20545`)
+
+Công cụ: `scripts/oi-metrics.ts` (tải/cache metrics + funding), `scripts/exp-oi-key-premise.ts` (A1),
+`scripts/exp-oi-breakout.ts` (B1/B2). Mỗi script có hai chế độ `gate0` (chỉ đếm) và `gate1`.
+
+### Phán quyết: RỚT 3/3. Đóng họ OI/funding/positioning theo luật dừng.
+
+| | Cửa 0 | Cửa 1 | lý do chính |
+|---|---|---|---|
+| A1 key có định danh | dữ liệu ✓ (thiếu 0,14%), cân bằng ✓ | **RỚT** | không ô nào đậu dù chỉ một cửa. Chiều hiệu ứng **ngược** giả thuyết |
+| B1 ΔOI breakout | ✓ (thiếu 2,6%, A 58%) | **RỚT** | z = 1,82 < 2,39; nhãn giả −1,44 điểm % ≈ ½ hiệu ứng thật |
+| B2 funding LONG | ✓ (A 71%) | **RỚT** | z = −1,43; nhãn giả cho hiệu ứng **cùng độ lớn, ngược dấu** (+6,47) |
+
+**Lỗi đăng ký, xử lý theo phía bảo thủ:** §3 A1 đòi "biên phát hiện 95% < 0,05 ATR". Tiêu chí này chép
+từ bộ thử 28/08, và không thể đạt khi tách đôi mẫu: Cửa 0 cho biên nhỏ nhất là 0,103 ATR. Vì vậy phán
+quyết A1 bị cố định là RỚT trước khi chạy Cửa 1. Kết quả Cửa 1 cũng rớt độc lập theo tiêu chí của phụ
+lục 1, nên lỗi này không đổi kết luận.
+
+### A1 — số chính (CORE8, M15, 400 ngày tới 28/09/2026)
+
+Nến volume đột biến chia **đúng 50/50** giữa OI tăng và OI giảm ở mọi ngưỡng 2×/6×/12×. Tự điều này
+đã nói volume đột biến không nghiêng về phía "cá mập mở vị thế".
+
+| ô | spike MỞ | spike ĐÓNG | syn MỞ | MỞ − syn (±biên z=2,39) |
+|---|---:|---:|---:|---:|
+| 2× R0 | −0,039 | −0,021 | +0,002 | −0,041 ±0,103 |
+| 6× R0 | −0,107 | −0,086 | +0,002 | −0,108 ±0,175 |
+| 6× R4 | **−0,334** | +0,009 | +0,002 | −0,336 ±0,277 |
+| 6× R5loc | **−0,422** | +0,007 | −0,006 | −0,417 ±0,353 |
+| 12× R0 | −0,385 | −0,122 | +0,002 | −0,387 ±0,417 |
+
+(Đơn vị: bước giá 12 nến theo chiều BẬT, tính bằng ATR. Âm nghĩa là giá **đi tiếp qua mức**.)
+
+Cửa 3, cấu trúc rào: WR_MỞ / WR_random = 0,82–1,17, không ô nào đạt 1,246. Ở 6× R4, WR bật tại key MỞ
+là **15,9%**, thấp hơn cả vào lệnh ngẫu nhiên (19,5%).
+
+**Phát hiện mô tả, KHÔNG phải kết luận** (hậu nghiệm, chỉ thấy ở ô thưa, và R4/R5loc lồng nhau):
+key do **mở vị thế** tạo ra bị giá **xuyên qua** nhiều hơn key do đóng vị thế. Ở 6× R4, MỞ − ĐÓNG =
+−0,34 ATR, z ≈ −3,0 (ước từ sd ≈ 3,2). Điều này ngược với câu chuyện "cá mập bảo vệ key". Nó khớp với
+cách đọc thông thường: vị thế mới mở kéo theo xu hướng tiếp diễn. Muốn thành luật thì phải đăng ký
+trước và đo trên dữ liệu **sau 28/09/2026**. Không được đo lại trên 400 ngày này.
+
+### B1/B2 — số chính (Turtle live-params, top-30 point-in-time, 3.481 vị thế từ 01/12/2021)
+
+| | P(net ≥ +3R) A | B | D | z (bootstrap tháng) | TB netR A / B | CORE8 D |
+|---|---:|---:|---:|---:|---:|---:|
+| B1 (A = OI tăng) | 12,6% | 9,7% | +2,87 | 1,82 | 0,643 / 0,623 | +5,49 |
+| B2 (A = funding đông) | 6,6% | 13,4% | −6,72 | −1,43 | **0,004 / 1,950** | −14,09 |
+
+- **Phép hoán vị nhãn đậu ở cả hai nhưng không đáng tin:** nó bỏ qua việc lệnh trend dồn cụm theo
+  thời gian. sd bootstrap theo tháng lớn hơn sd ngầm của phép hoán vị khoảng 1,5 lần (B1: 1,58 so với
+  ≈1,09 điểm %) và 2 lần (B2: 4,70 so với ≈2,37).
+  Đây là lý do protocol chọn bootstrap tháng làm phép chính.
+- **B2 là trường hợp đáng nhớ nhất.** Chênh 1,95R/vị thế là con số trông rất hấp dẫn, và chiều khớp với
+  BIS WP 1087. Nhưng funding của **năm trước** (nhãn giả) cho D = +6,47, cùng độ lớn và ngược dấu. Nhãn
+  funding thực chất đang đo "đang ở đâu trong chu kỳ tăng giá": funding thấp so với năm trước tức là đầu
+  chu kỳ, nơi có các lệnh LONG lớn nhất. 4,8 năm dữ liệu chỉ chứa vài chu kỳ. Không có cách nào tách
+  được hiệu ứng thật khỏi thời điểm với dữ liệu hiện có, và thêm tham số cũng không cứu được.
+- B1 đúng chiều "tiền mới thì trend bền" nhưng yếu. Chênh TB netR gần bằng 0 (0,643 so với 0,623R),
+  nên nó không đáng tiền kể cả khi có thật.
+
+### Hệ quả
+
+1. Vòng này kiểm được lời phản bác cuối cùng cho mệnh đề Key: "volume nến mơ hồ, phải biết ai tạo ra
+   nó". Biết ai tạo ra nó (qua OI) **vẫn không làm key có phản ứng bật**. Key volume dạng số hoá được
+   coi là đóng trên crypto perp.
+2. Thông tin định vị (OI, funding) **không** thêm được gì đo được vào Turtle. Giữ nguyên v4. Không thêm
+   bộ lọc nào.
+3. Tổng số phép thử của họ này là 3. Nó không làm xấu thêm ngưỡng Reality Check của các họ khác.
