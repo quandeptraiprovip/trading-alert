@@ -26,7 +26,6 @@ type Variant = { name: string; overrides: Partial<KeyVolumeParams> };
 const LEGACY: Partial<KeyVolumeParams> = {
   targetSourceTfs: ["15m", "1h", "4h"],
   stopMode: "sweep-window",
-  requireFollowThrough: false,
 };
 
 /**

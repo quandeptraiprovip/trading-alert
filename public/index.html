@@ -177,6 +177,7 @@
                   <span>L <b id="legend-low">—</b></span>
                   <span>C <b id="legend-close">—</b></span>
                   <span class="legend-volume">VOL <b id="legend-volume">—</b></span>
+                  <span class="legend-rsi">RSI <b id="legend-rsi">—</b></span>
                 </div>
                 <div class="chart-view-controls">
                   <div class="chart-view-switch" role="group" aria-label="Lọc lệnh hiển thị trên biểu đồ">
@@ -383,11 +384,12 @@
                     <tr>
                       <th scope="col">Thời gian</th>
                       <th scope="col">Lệnh</th>
-                      <th scope="col">Key</th>
-                      <th scope="col">Entry / SL</th>
-                      <th scope="col">Thoát / Kết quả</th>
-                      <th scope="col">Lý do vào lệnh</th>
-                      <th scope="col"><span class="sr-only">Thao tác</span></th>
+                      <th scope="col">Dấu hiệu vào</th>
+                      <th scope="col">Vào → SL</th>
+                      <th scope="col">Vì sao thoát</th>
+                      <th scope="col">Giữ</th>
+                      <th scope="col">Bốn chặng</th>
+                      <th scope="col">Kết quả</th>
                     </tr>
                   </thead>
                   <tbody id="keyvol-body"></tbody>
@@ -494,28 +496,25 @@
 
             <section class="evidence-card is-empty" id="evidence-card" aria-labelledby="evidence-title" aria-live="polite">
               <header class="evidence-head">
-                <div>
-                  <span class="section-eyebrow">WHY THIS ENTRY</span>
-                  <h3 id="evidence-title">Vì sao vào lệnh này</h3>
-                </div>
+                <h3 id="evidence-title">Vì sao vào lệnh</h3>
+                <span class="evidence-when" id="evidence-when"></span>
                 <button class="evidence-clear" id="evidence-clear" type="button" hidden aria-label="Bỏ chọn lệnh">×</button>
               </header>
-              <p class="evidence-empty" id="evidence-empty">Chọn một lệnh ở bảng <strong>Lệnh bot</strong> hoặc <strong>Key Volume</strong> để xem từng điều kiện đã được kiểm.</p>
+              <p class="evidence-empty" id="evidence-empty">Chọn một lệnh ở bảng <strong>Lệnh bot</strong> hoặc <strong>Key Volume</strong> để đọc lại quyết định của nó.</p>
               <div class="evidence-body" id="evidence-body" hidden>
-                <div class="evidence-identity" id="evidence-identity" hidden>
+                <div class="evidence-verdict" id="evidence-identity" hidden>
                   <span class="evidence-side" id="evidence-side"></span>
-                  <span class="evidence-branch" id="evidence-branch"></span>
+                  <p id="evidence-verdict-text"></p>
                   <strong class="evidence-r" id="evidence-r"></strong>
                 </div>
-                <p class="evidence-headline" id="evidence-headline"></p>
-                <p class="evidence-summary" id="evidence-summary"></p>
-                <dl class="evidence-metrics" id="evidence-metrics" hidden>
+                <div class="evidence-chain" id="evidence-chain" hidden></div>
+                <dl class="evidence-facts" id="evidence-metrics" hidden>
                   <div><dt>Rủi ro</dt><dd id="evidence-risk">—</dd></div>
                   <div><dt>Dư địa</dt><dd id="evidence-room">—</dd></div>
                   <div><dt>Giữ lệnh</dt><dd id="evidence-hold">—</dd></div>
                 </dl>
-                <ol class="evidence-list" id="evidence-list"></ol>
-                <p class="evidence-hint">Rê chuột lên từng dòng để thấy vị trí của nó trên chart.</p>
+                <div class="evidence-stages" id="evidence-list"></div>
+                <p class="evidence-hint">Rê chuột một dòng để chart chỉ sáng đúng dấu hiệu đó · bấm để ghim lại.</p>
               </div>
             </section>
 

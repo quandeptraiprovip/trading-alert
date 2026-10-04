@@ -77,7 +77,7 @@ async function main(): Promise<void> {
       }
       if (!setup) continue;
 
-      const cluster = reversalOrderBlock(confirm, i, setup.dir);
+      const cluster = reversalOrderBlock(confirm, i, setup.dir, atr[i]);
       if (!cluster) continue;
       clusters++;
 

@@ -26,13 +26,22 @@ const DRAWING_OVERLAY = 4;
 const KEYVOL_OVERLAY = 8;
 const EVIDENCE_OVERLAY = 16;
 const ALL_OVERLAYS = ORDER_OVERLAY | STRATEGY_OVERLAY | DRAWING_OVERLAY | KEYVOL_OVERLAY | EVIDENCE_OVERLAY;
+// Cùng màu với --green/--red/--blue/--amber và màu nguồn của .readonly-position-tool.
+const AXIS_LEVEL_COLORS = { tp: "#4ee2a1", sl: "#ff6b70", entry: "#65a9ff", turtle: "#f3ba63", fast: "#a98bff" };
 const KEYVOL_TF_LABEL = { "15m": "M15" };
 const KEYVOL_MAX_DRAWN = 240;
+/**
+ * Vạch ngưỡng của mọi thước điều kiện đứng ở đúng một vị trí (% bề rộng), nên
+ * quét dọc một cột là so được ngay cái nào vượt xa, cái nào vừa đủ.
+ */
+const EVIDENCE_GATE_AT = 45;
 
 /** Nhánh nào sinh ra lệnh. Nhánh quét KHÔNG dùng key ở khâu nào — phải nói rõ. */
 const FXDREAM_BRANCH_META = {
   "sweep-reclaim": { tag: "NHÁNH QUÉT · KHÔNG KEY", cls: "is-sweep", usesKey: false },
   "volume-reversal": { tag: "KEY + HỘP · RETEST", cls: "is-key", usesKey: true },
+  "key-trap": { tag: "KEY · TRAP QUAY VỀ", cls: "is-key", usesKey: true },
+  "key-lower-high": { tag: "KEY · ĐỈNH THẤP DẦN · LỆNH CHỜ", cls: "is-key", usesKey: true },
 };
 
 /** Trần dư địa vẽ được trên thước R; vượt trần thì nén về mép + dấu ngắt "≫". */
@@ -60,9 +69,11 @@ function fxClustersBuilt(d) {
  *     bậc "hộp chờ retest" trở đi không tách được riêng nhánh key → gắn nhãn scope.
  *  2. `boxesRetouched` KHÔNG phân hoạch với `boxesBroken`: một hộp có thể quay lại
  *     rồi vẫn vỡ. Nó là thống kê bên lề, không phải một bậc.
- *  3. `boxesArmed = entries + boxesBroken + boxesExpired + boxesUnresolved` là phân
- *     hoạch KHÍT, còn `rejectedRisk`/`rejectedRoom` nằm BÊN TRONG các bucket đó
- *     (nến xác nhận bị từ chối, hộp vẫn còn sống) → ghi ở dòng giải thích, không trừ.
+ *  3. Hộp: `boxesArmed` = lệnh vào từ hộp + `boxesBroken` + `boxesExpired` +
+ *     `boxesUnresolved`, còn `rejectedRisk`/`rejectedRoom` nằm BÊN TRONG các bucket
+ *     đó (nến xác nhận bị từ chối, hộp vẫn còn sống) → ghi ở dòng giải thích, không
+ *     trừ. Lệnh chờ nhánh quét: `limitsPlaced` = khớp + bị loại lúc khớp +
+ *     `limitsExpired` + `limitsUnresolved`.
  */
 const FXDREAM_FUNNEL_STAGES = [
   {
@@ -104,7 +115,7 @@ const FXDREAM_FUNNEL_STAGES = [
   },
   {
     key: "candlePatterns",
-    label: "cụm hợp lệ",
+    label: "tín hiệu hợp lệ",
     scope: "key",
     value: (d) => Number(d.candlePatterns || 0),
     leaks: (d) => {
@@ -115,7 +126,7 @@ const FXDREAM_FUNNEL_STAGES = [
         { text: `−${fxCount(d.rejectedKeyOutsideBlock)} key nằm NGOÀI thân hộp` },
       ];
     },
-    detail: (d) => `${fxCount(d.candlePatterns)} cụm nến đảo chiều hợp lệ: dựng được hộp (lấy THÂN nến, bỏ râu) VÀ đường key chạy xuyên thân hộp. Không có cửa thứ hai thì hộp chỉ là một cụm nến bất kỳ.`,
+    detail: (d) => `${fxCount(d.candlePatterns)} tín hiệu bóp cò hợp lệ, trong đó ${fxCount(d.structureSignals)} là tín hiệu A (hai đáy/đỉnh tại key + RSI phân kỳ). Phần còn lại là cụm mũi nhọn: dựng được hộp (lấy THÂN nến, bỏ râu) VÀ đường key chạy xuyên thân hộp. Tín hiệu A có phép đo "tại key" riêng nên không qua cửa key-trong-hộp.`,
   },
   {
     key: "volumeBranchPlans",
@@ -127,11 +138,14 @@ const FXDREAM_FUNNEL_STAGES = [
   },
   {
     key: "boxesArmed",
-    label: "hộp chờ retest",
+    label: "hộp / lệnh chờ",
     scope: "both",
-    value: (d) => Number(d.boxesArmed || 0),
-    leaks: (d) => [{ text: `+${fxCount(d.sweepBranchPlans)} hộp nhánh quét`, warn: true }],
-    detail: (d) => `${fxCount(d.boxesArmed)} hộp được trang bị để canh giá quay lại — gồm ${fxCount(d.volumeBranchPlans)} hộp nhánh key và ${fxCount(d.sweepBranchPlans)} hộp nhánh quét, vì từ đây engine mô phỏng chung một sổ. Trong số đó ${fxCount(d.boxesRetouched)} hộp thấy giá quay lại chạm ít nhất một nến — nhưng chạm rồi vẫn vỡ được, nên đó là thống kê bên lề chứ không phải một bậc.`,
+    value: (d) => Number(d.boxesArmed || 0) + Number(d.limitsPlaced || 0) + Number(d.keyTrapPlans || 0),
+    leaks: (d) => [
+      { text: `+${fxCount(d.limitsPlaced)} lệnh chờ nhánh quét`, warn: true },
+      { text: `+${fxCount(d.keyTrapPlans)} trap qua key vào ngay`, warn: true },
+    ],
+    detail: (d) => `${fxCount(d.boxesArmed)} hộp được trang bị để canh giá quay lại, ${fxCount(d.limitsPlaced)} lệnh chờ ở mép order block của nhánh quét, và ${fxCount(d.keyTrapPlans)} trap qua key (vào ngay ở giá đóng nến quay về, bị chặn là mất luôn) — từ đây engine mô phỏng chung một sổ. Trong số hộp, ${fxCount(d.boxesRetouched)} hộp thấy giá quay lại chạm ít nhất một nến — nhưng chạm rồi vẫn vỡ được, nên đó là thống kê bên lề chứ không phải một bậc.`,
   },
   {
     key: "entries",
@@ -141,10 +155,11 @@ const FXDREAM_FUNNEL_STAGES = [
     value: (d) => Number(d.entries || 0),
     leaks: (d) => [
       { text: `−${fxCount(d.boxesBroken)} vỡ hộp` },
-      { text: `−${fxCount(d.boxesExpired)} hết hạn chờ` },
-      { text: `−${fxCount(d.boxesUnresolved)} hết dữ liệu`, warn: true },
+      { text: `−${fxCount(d.boxesExpired)} hộp hết hạn chờ` },
+      { text: `−${fxCount(d.limitsExpired)} lệnh chờ không khớp` },
+      { text: `−${fxCount(Number(d.boxesUnresolved || 0) + Number(d.limitsUnresolved || 0))} hết dữ liệu`, warn: true },
     ],
-    detail: (d, ctx) => `${fxCount(d.entries)} lệnh mở, trong đó ${fxCount(ctx.keyBranchEntries)} thuộc nhánh key. Bốn chip trên phân hoạch KHÍT với số hộp đã trang bị. Riêng ${fxCount(d.rejectedRoom)} lần bị loại vì dư địa dưới minRR và ${fxCount(d.rejectedRisk)} lần vì rủi ro vượt trần nằm BÊN TRONG các chip đó — nến xác nhận bị từ chối nhưng hộp vẫn còn sống, nên không trừ thêm.`,
+    detail: (d, ctx) => `${fxCount(d.entries)} lệnh mở, trong đó ${fxCount(ctx.keyBranchEntries)} thuộc nhánh key. ${fxCount(d.rejectedRoom)} lần bị loại vì dư địa dưới minRR và ${fxCount(d.rejectedRisk)} lần vì rủi ro vượt trần: với hộp, nến xác nhận bị từ chối nhưng hộp vẫn sống nên không trừ thêm; với lệnh chờ, khớp mà trượt cửa thì lệnh rời sổ luôn.`,
   },
 ];
 
@@ -155,7 +170,10 @@ const CHART_LAYER_DEFS = [
   { key: "evidence", label: "Soi bằng chứng", hint: "sáng lên khi rê chuột ở bảng phải" },
   { key: "context", label: "Ngữ cảnh Turtle/Fast", hint: "kênh breakout của sổ bot khác" },
   { key: "draw", label: "Hình vẽ tay", hint: "vùng phản ứng và đường tự vẽ" },
+  { key: "rsi", label: "RSI 14", hint: "RSI Wilder dưới volume · mốc 30/70" },
 ];
+// Cùng chu kỳ với tín hiệu A của engine (KEY_VOLUME_CONFIG.rsiPeriod).
+const RSI_PERIOD = 14;
 const MIN_POSITION_WIDTH = 28;
 const COIN_META = {
   BTC: { name: "Bitcoin", mark: "₿" },
@@ -217,6 +235,8 @@ const dom = {
   legendLow: document.querySelector("#legend-low"),
   legendClose: document.querySelector("#legend-close"),
   legendVolume: document.querySelector("#legend-volume"),
+  legendRsi: document.querySelector("#legend-rsi"),
+  legendRsiWrap: document.querySelector(".legend-rsi"),
   legendSymbol: document.querySelector("#legend-symbol"),
   volumeCaption: document.querySelector("#volume-caption"),
   chartLoadingText: document.querySelector("#chart-loading-text"),
@@ -297,8 +317,9 @@ const dom = {
   evidenceCard: document.querySelector("#evidence-card"),
   evidenceEmpty: document.querySelector("#evidence-empty"),
   evidenceBody: document.querySelector("#evidence-body"),
-  evidenceHeadline: document.querySelector("#evidence-headline"),
-  evidenceSummary: document.querySelector("#evidence-summary"),
+  evidenceWhen: document.querySelector("#evidence-when"),
+  evidenceVerdict: document.querySelector("#evidence-verdict-text"),
+  evidenceChain: document.querySelector("#evidence-chain"),
   evidenceList: document.querySelector("#evidence-list"),
   evidenceClear: document.querySelector("#evidence-clear"),
   keyvolJudged: document.querySelector("#keyvol-judged"),
@@ -325,7 +346,6 @@ const dom = {
   layerMenuCount: document.querySelector("#layer-menu-count"),
   evidenceIdentity: document.querySelector("#evidence-identity"),
   evidenceSide: document.querySelector("#evidence-side"),
-  evidenceBranch: document.querySelector("#evidence-branch"),
   evidenceR: document.querySelector("#evidence-r"),
   evidenceMetrics: document.querySelector("#evidence-metrics"),
   evidenceRisk: document.querySelector("#evidence-risk"),
@@ -337,8 +357,11 @@ const state = {
   chart: null,
   candleSeries: null,
   volumeSeries: null,
+  rsiSeries: null,
   candles: [],
   volumeByTime: new Map(),
+  rsiByTime: new Map(),
+  axisPriceLines: new Map(),
   strategyTrades: [],
   strategyFilter: "all",
   strategyAuditLoaded: false,
@@ -378,12 +401,13 @@ const state = {
   keyvolFilters: { enabled: true, tfs: new Set(["15m"]), minRatio: 3, unbrokenOnly: true },
   evidenceTrade: null,
   evidenceHover: null,
+  evidencePinned: null,
   keyVerdicts: [],
   selectedKeyId: null,
   keyNoteTimer: null,
   fxdreamFilter: "all",
   funnelStage: FXDREAM_FUNNEL_STAGES.length - 1,
-  chartLayers: { position: true, keys: true, evidence: true, context: true, draw: true },
+  chartLayers: { position: true, keys: true, evidence: true, context: true, draw: true, rsi: true },
   layerMenuOpen: false,
 };
 
@@ -806,15 +830,35 @@ function initChart() {
     priceLineVisible: false,
     lastValueVisible: false,
   });
-  state.chart.priceScale("volume").applyOptions({
-    scaleMargins: { top: 0.79, bottom: 0 },
-    borderVisible: false,
+  state.chart.priceScale("volume").applyOptions({ borderVisible: false });
+
+  state.rsiSeries = state.chart.addLineSeries({
+    priceScaleId: "rsi",
+    color: "#b48ef0",
+    lineWidth: 1,
+    priceFormat: { type: "custom", formatter: (value) => value.toFixed(1), minMove: 0.1 },
+    autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
+    priceLineVisible: false,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
   });
+  state.chart.priceScale("rsi").applyOptions({ borderVisible: false });
+  for (const price of [70, 30]) {
+    state.rsiSeries.createPriceLine({
+      price,
+      color: "rgba(145, 158, 155, 0.38)",
+      lineWidth: 1,
+      lineStyle: LineStyle.Dashed,
+      axisLabelVisible: false,
+    });
+  }
+  applyRsiLayout();
 
   state.chart.subscribeCrosshairMove((param) => {
     const candle = param.seriesData.get(state.candleSeries);
     const volume = param.seriesData.get(state.volumeSeries);
-    if (candle && "open" in candle) updateLegend(candle, volume?.value);
+    const rsi = param.seriesData.get(state.rsiSeries);
+    if (candle && "open" in candle) updateLegend(candle, volume?.value, rsi?.value);
     else updateLegend(state.candles.at(-1));
   });
 
@@ -873,8 +917,19 @@ function setChartData(rawCandles, source) {
     return point;
   });
 
+  const rsi = rsiSeries(candles, RSI_PERIOD);
+  state.rsiByTime.clear();
+  const rsiData = [];
+  candles.forEach((candle, i) => {
+    if (!Number.isFinite(rsi[i])) return;
+    const time = Math.floor(candle.t / 1000);
+    state.rsiByTime.set(time, rsi[i]);
+    rsiData.push({ time, value: rsi[i] });
+  });
+
   state.candleSeries.setData(candleData);
   state.volumeSeries.setData(volumeData);
+  state.rsiSeries?.setData(rsiData);
   updateMarketTape();
   updateLegend(candles.at(-1));
 
@@ -1349,6 +1404,17 @@ function renderKeyVolumeFunnel() {
   const values = FXDREAM_FUNNEL_STAGES.map((stage) => stage.value(diagnostics, ctx));
   const max = Math.max(1, ...values);
   const logMax = Math.log(max + 1);
+  // Bậc rụng nhiều nhất là câu trả lời cho "setup chết ở cửa nào" — để mọi bậc
+  // ngang nhau thì phải tự trừ bằng mắt.
+  let worst = -1;
+  let worstDrop = 0;
+  for (let i = 1; i < values.length; i++) {
+    const drop = values[i - 1] - values[i];
+    if (drop > worstDrop) {
+      worstDrop = drop;
+      worst = i;
+    }
+  }
   dom.keyvolFunnel.innerHTML = FXDREAM_FUNNEL_STAGES
     .map((stage, index) => {
       const value = values[index];
@@ -1357,11 +1423,12 @@ function renderKeyVolumeFunnel() {
         .map((leak) => `<i class="keyvol-leak${leak.warn ? " is-warn" : ""}">${escapeHtml(leak.text)}</i>`)
         .join("");
       return `
-        <li class="keyvol-funnel-step${stage.final ? " is-final" : ""}${index === state.funnelStage ? " is-active" : ""}" style="--keyvol-share:${share}%">
+        <li class="keyvol-funnel-step${stage.final ? " is-final" : ""}${index === worst ? " is-worst" : ""}${index === state.funnelStage ? " is-active" : ""}" style="--keyvol-share:${share}%">
           <button type="button" data-funnel-stage="${index}" aria-pressed="${index === state.funnelStage}">
             <b>${fxCount(value)}</b>
             <span>${escapeHtml(stage.label)}</span>
             <em class="keyvol-scope${stage.scope === "both" ? " is-both" : ""}">${stage.scope === "both" ? "cả 2 nhánh" : "nhánh key"}</em>
+            ${index === worst ? `<span class="keyvol-worst">rụng nhiều nhất · −${fxCount(worstDrop)}</span>` : ""}
           </button>
           <span class="keyvol-leaks">${leaks}</span>
         </li>`;
@@ -1395,6 +1462,42 @@ function chartLayerNode(key) {
   return null;
 }
 
+/**
+ * Lightweight Charts 4 không có pane riêng: nến, volume và RSI chia nhau một pane
+ * theo scaleMargins. Tắt RSI thì trả chỗ lại cho nến như bố cục cũ.
+ */
+function applyRsiLayout() {
+  if (!state.chart || !state.rsiSeries) return;
+  const on = !!state.chartLayers.rsi;
+  state.rsiSeries.applyOptions({ visible: on });
+  state.chart.priceScale("right").applyOptions({ scaleMargins: { top: 0.07, bottom: on ? 0.42 : 0.27 } });
+  state.chart.priceScale("volume").applyOptions({ scaleMargins: on ? { top: 0.6, bottom: 0.22 } : { top: 0.79, bottom: 0 } });
+  state.chart.priceScale("rsi").applyOptions({ scaleMargins: { top: 0.81, bottom: 0.02 } });
+  if (dom.legendRsiWrap) dom.legendRsiWrap.style.display = on ? "" : "none";
+}
+
+/** RSI Wilder, cùng công thức với `rsiSeries` ở key-volume.ts. NaN ở `period` nến đầu. */
+function rsiSeries(candles, period) {
+  const out = new Array(candles.length).fill(NaN);
+  let avgGain = 0;
+  let avgLoss = 0;
+  for (let i = 1; i < candles.length; i++) {
+    const change = candles[i].c - candles[i - 1].c;
+    const gain = Math.max(change, 0);
+    const loss = Math.max(-change, 0);
+    if (i <= period) {
+      avgGain += gain / period;
+      avgLoss += loss / period;
+      if (i < period) continue;
+    } else {
+      avgGain = (avgGain * (period - 1) + gain) / period;
+      avgLoss = (avgLoss * (period - 1) + loss) / period;
+    }
+    out[i] = avgLoss === 0 ? 100 : avgGain === 0 ? 0 : 100 - 100 / (1 + avgGain / avgLoss);
+  }
+  return out;
+}
+
 function applyChartLayers() {
   for (const def of CHART_LAYER_DEFS) {
     chartLayerNode(def.key)?.classList.toggle("is-layer-off", !state.chartLayers[def.key]);
@@ -1425,6 +1528,11 @@ function toggleChartLayer(key) {
   if (!(key in state.chartLayers)) return;
   state.chartLayers[key] = !state.chartLayers[key];
   renderLayerMenu();
+  if (key === "position") scheduleOverlayRender(ORDER_OVERLAY);
+  if (key === "rsi") {
+    applyRsiLayout();
+    scheduleOverlayRender();
+  }
 }
 
 function setLayerMenuOpen(open) {
@@ -1439,6 +1547,27 @@ function setLayerMenuOpen(open) {
 function handleFunnelClick(event) {
   const button = event.target.closest("[data-funnel-stage]");
   if (button) setFunnelStage(Number(button.dataset.funnelStage));
+}
+
+/**
+ * Bốn thanh "chặng" thay cho một dải chấm. Một dãy 13 chấm không nói được setup
+ * chết ở khâu nào; bốn thanh theo đúng bốn chặng thì nhìn là biết.
+ * Lệnh Turtle/Fast không có `stages` nên trả về một thanh duy nhất.
+ */
+function evidenceSegments(entry) {
+  const stages = Array.isArray(entry.stages) && entry.stages.length
+    ? entry.stages
+    : [{ title: "Điều kiện", items: entry.evidence || [] }];
+  return stages.map((stage) => ({
+    title: stage.title,
+    bad: stage.items.some((item) => item.state === "fail"),
+  }));
+}
+
+function evidenceSegmentsHtml(entry) {
+  return evidenceSegments(entry)
+    .map((seg) => `<i class="${seg.bad ? "is-fail" : "is-pass"}" title="${escapeHtml(seg.title)}"></i>`)
+    .join("");
 }
 
 function renderKeyVolumeTable() {
@@ -1472,36 +1601,27 @@ function renderKeyVolumeTable() {
   dom.keyvolEmpty.hidden = true;
   dom.keyvolBody.innerHTML = entries
     .map((entry) => {
-      const failed = entry.evidence.filter((item) => !item.pass).length;
+      const usesKey = !!FXDREAM_BRANCH_META[entry.branch]?.usesKey;
+      const cue = usesKey && entry.keyPrice != null
+        ? `key ${formatPrice(Number(entry.keyPrice))}`
+        : `quét ${entry.dir === "long" ? "đáy" : "đỉnh"}`;
       return `
         <tr data-keyvol-id="${escapeHtml(entry.id)}" class="${state.evidenceTrade?.id === entry.id ? "is-chart-active" : ""}">
           <td>${formatOrderTime(entry.entryTime)}</td>
           <td class="audit-order-cell">
             <span class="side-pill ${entry.dir}">${entry.dir === "long" ? "LONG" : "SHORT"}</span>
-            <small>${escapeHtml(fxdreamHoldLabel(entry))}</small>
           </td>
-          <td class="audit-price-stack">
-            <strong>${formatPrice(Number(entry.keyPrice))}</strong>
-            <span>${escapeHtml(entry.evidence[0]?.value || "")}</span>
+          <td class="keyvol-cue">
+            <span class="branch-chip ${usesKey ? "is-key" : "is-sweep"}">${escapeHtml(FXDREAM_BRANCH_META[entry.branch]?.tag || entry.branch)}</span>
+            <em>${escapeHtml(cue)}</em>
           </td>
-          <td class="audit-price-stack">
-            <strong>${formatPrice(Number(entry.entryPrice))}</strong>
-            <span>SL ${formatPrice(Number(entry.initialSL))}</span>
+          <td class="keyvol-levels">${formatPrice(Number(entry.entryPrice))} → ${formatPrice(Number(entry.initialSL))}</td>
+          <td class="keyvol-exit">
+            <i class="${entry.resultR >= 0 ? "is-win" : "is-loss"}"></i>${escapeHtml(entry.exitReasonLabel)}
           </td>
-          <td class="audit-result">
-            <strong class="${entry.netR >= 0 ? "is-positive" : "is-negative"}">${formatR(entry.netR)}</strong>
-            <span>${formatPrice(Number(entry.exitPrice))}</span>
-            <span class="closed-status">${escapeHtml(entry.exitReasonLabel)}</span>
-          </td>
-          <td class="audit-reason">
-            <strong>${escapeHtml(entry.summary)}</strong>
-            <span>${entry.evidence.length} điều kiện đã kiểm${failed ? ` · ${failed} không đạt` : ""}</span>
-          </td>
-          <td>
-            <div class="audit-row-actions">
-              <button class="audit-focus-button" type="button" data-keyvol-action="focus">Xem riêng</button>
-            </div>
-          </td>
+          <td class="keyvol-hold">${escapeHtml(fxdreamHoldLabel(entry))}</td>
+          <td><span class="evidence-segs">${evidenceSegmentsHtml(entry)}</span></td>
+          <td class="keyvol-result ${entry.resultR >= 0 ? "is-positive" : "is-negative"}">${escapeHtml(fxdreamResultText(entry))}</td>
         </tr>`;
     })
     .join("");
@@ -1514,6 +1634,11 @@ function fxdreamBarMinutes() {
   const match = /^(\d+)([mh])$/.exec(state.keyVolume?.baseTf || "15m");
   if (!match) return 15;
   return Number(match[1]) * (match[2] === "h" ? 60 : 1);
+}
+
+/** R của lệnh; lệnh đang mở chỉ có R TẠM TÍNH theo giá đóng nến cuối, ghi "≈". */
+function fxdreamResultText(entry) {
+  return `${entry.status === "open" ? "≈ " : ""}${formatR(Number(entry.resultR))}`;
 }
 
 function fxdreamHoldLabel(entry) {
@@ -1542,7 +1667,7 @@ function fxdreamTargetR(entry) {
 
 /**
  * R GROSS tại điểm thoát — vị trí hình học của chấm thoát trên thước.
- * Khác `netR` (đã trừ ma sát) và đó là chủ ý: thước nói hình học, chip nói kết quả.
+ * Khác `resultR` (R của cả lệnh, gồm phần chốt sớm) và đó là chủ ý: thước nói hình học, chip nói kết quả.
  */
 function fxdreamExitR(entry) {
   const risk = fxdreamRisk(entry);
@@ -1569,7 +1694,7 @@ function fxdreamRulerSvg(entry) {
   const rMax = Math.max(visTarget, visExit) + 0.35;
   const span = rMax - rMin;
   const x = (r) => 8 + ((r - rMin) / (span || 1)) * 252;
-  const win = Number(entry.netR) >= 0;
+  const win = Number(entry.resultR) >= 0;
   const breakMark = clipped
     ? `<text class="ruler-break" x="${(x(visTarget) - 5).toFixed(1)}" y="22" text-anchor="end">≫</text>`
     : "";
@@ -1600,26 +1725,27 @@ function fxdreamKeyLine(entry) {
 function renderFxdreamCard(entry) {
   const meta = FXDREAM_BRANCH_META[entry.branch] || { tag: entry.branch, cls: "", usesKey: false };
   const selected = state.evidenceTrade?.id === entry.id;
-  const passed = entry.evidence.filter((item) => item.pass).length;
-  const win = Number(entry.netR) >= 0;
-  const dots = entry.evidence
-    .map((item) => `<i class="fxdream-dot ${item.pass ? "is-pass" : "is-fail"}"></i>`)
+  const win = Number(entry.resultR) >= 0;
+  const segments = evidenceSegments(entry);
+  const failedStage = segments.find((seg) => seg.bad);
+  const segs = segments
+    .map((seg) => `<i class="${seg.bad ? "is-fail" : "is-pass"}" title="${escapeHtml(seg.title)}"></i>`)
     .join("");
   return `
-    <button class="fxdream-card is-${entry.dir} ${meta.cls}${selected ? " is-selected" : ""}" type="button" role="listitem" data-fxdream-id="${escapeHtml(entry.id)}" aria-pressed="${selected}">
+    <button class="fxdream-card is-${entry.dir} ${meta.cls}${entry.status === "open" ? " is-open" : ""}${selected ? " is-selected" : ""}" type="button" role="listitem" data-fxdream-id="${escapeHtml(entry.id)}" aria-pressed="${selected}">
       <span class="fxdream-card-top">
         <span class="fxdream-side">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="${entry.dir === "long" ? "M10 16V5m-4 4 4-4 4 4" : "M10 4v11m-4-4 4 4 4-4"}" /></svg>
           ${entry.dir === "long" ? "LONG" : "SHORT"}
         </span>
         <span class="fxdream-branch">${escapeHtml(meta.tag)}</span>
-        <span class="fxdream-r ${win ? "is-win" : "is-loss"}">${escapeHtml(formatR(Number(entry.netR)))}</span>
+        <span class="fxdream-r ${win ? "is-win" : "is-loss"}">${escapeHtml(formatR(Number(entry.resultR)))}</span>
       </span>
-      <span class="fxdream-when">${escapeHtml(formatOrderTime(entry.entryTime))} · ${escapeHtml(fxdreamHoldLabel(entry))}</span>
+      <span class="fxdream-when">${entry.status === "open" ? '<b class="fxdream-open">● ĐANG MỞ</b> · ' : ""}${escapeHtml(formatOrderTime(entry.entryTime))} · ${escapeHtml(fxdreamHoldLabel(entry))}</span>
       ${fxdreamRulerSvg(entry)}
       <span class="fxdream-key">${escapeHtml(fxdreamKeyLine(entry))}</span>
       <span class="fxdream-exit ${win ? "is-win" : "is-loss"}">${escapeHtml(entry.exitReasonLabel)}</span>
-      <span class="fxdream-dots">${dots}<em>${passed}/${entry.evidence.length} điều kiện</em></span>
+      <span class="fxdream-dots"><span class="evidence-segs">${segs}</span><em>${failedStage ? `hỏng ở ${escapeHtml(failedStage.title.toLowerCase())}` : "đủ bốn chặng"}</em></span>
     </button>`;
 }
 
@@ -1705,13 +1831,17 @@ function focusKeyVolumeEntry(entry) {
     id: entry.id,
     kind: "keyvol",
     keyId: entry.keyId,
-    headline: `KEY VOLUME · ${entry.dir === "long" ? "LONG" : "SHORT"} · ${formatOrderTime(entry.entryTime)} · ${formatR(entry.netR)}`,
+    when: `${formatOrderTime(entry.entryTime)} · M15`,
+    verdict: entry.verdict || entry.summary,
+    chain: entry.chain || [],
+    stages: entry.stages || null,
     summary: entry.summary,
     evidence: entry.evidence,
     side: entry.dir,
     branchTag: meta.tag,
     usesKey: meta.usesKey,
-    resultR: Number(entry.netR),
+    // Lệnh đang mở: thẻ bằng chứng ghi "đang mở", R tạm tính nằm ở chặng Kết thúc.
+    resultR: entry.status === "open" ? null : Number(entry.resultR),
     riskPct: risk > 0 ? (risk / Number(entry.entryPrice)) * 100 : null,
     targetR: fxdreamTargetR(entry),
     holdLabel: fxdreamHoldLabel(entry),
@@ -1888,6 +2018,7 @@ function renderKeyJudgeCard() {
 /* ── Thẻ "Vì sao vào lệnh" ───────────────────────────────────────────────── */
 
 function showEvidence(trade) {
+  state.evidencePinned = null;
   state.evidenceTrade = trade;
   state.evidenceHover = null;
   renderEvidenceCard();
@@ -1902,6 +2033,54 @@ function clearEvidence() {
   scheduleOverlayRender(KEYVOL_OVERLAY | EVIDENCE_OVERLAY);
 }
 
+/**
+ * Phiếu đọc một lệnh. Một câu kết luận trước, rồi chuỗi cơ chế, rồi bốn chặng.
+ * Mỗi điều kiện chỉ có một trong hai dạng và hai dạng trông KHÁC hẳn nhau:
+ *   · `so` — số đo to bên phải + thước có vạch ngưỡng, thấy ngay vượt bao xa;
+ *   · `co` — dấu tick + một câu.
+ * `data-evidence-index` vẫn đánh số PHẲNG qua mọi chặng vì lớp soi trên chart
+ * tra theo mảng `trade.evidence` đã phẳng hoá.
+ */
+function evidenceMeter(item) {
+  if (item.kind !== "so" || !(Number(item.gate) > 0)) return "";
+  const gateDir = item.gateDir === "lte" ? "lte" : "gte";
+  const fill = Math.max(3, Math.min(100, Math.round((Number(item.actual) / Number(item.gate)) * EVIDENCE_GATE_AT)));
+  // Vạch ngưỡng luôn đứng ở cùng một chỗ nên quét dọc một cột là so được ngay;
+  // dải đỏ là vùng KHÔNG ĐẠT — bên trái vạch với "≥", bên phải với "trần".
+  const zoneLeft = gateDir === "gte" ? 0 : EVIDENCE_GATE_AT;
+  const zoneWidth = gateDir === "gte" ? EVIDENCE_GATE_AT : 100 - EVIDENCE_GATE_AT;
+  return `
+    <span class="evidence-meter">
+      <i class="evidence-meter-bad" style="left:${zoneLeft}%;width:${zoneWidth}%"></i>
+      <i class="evidence-meter-fill" style="width:${fill}%"></i>
+      <i class="evidence-meter-gate" style="left:${EVIDENCE_GATE_AT}%"></i>
+      <i class="evidence-meter-gate-label" style="left:${EVIDENCE_GATE_AT}%">${escapeHtml(item.gateLabel || "")}</i>
+    </span>`;
+}
+
+function renderEvidenceItem(item, index) {
+  const state = item.state === "fail" ? "fail" : item.state === "info" ? "info" : "pass";
+  const mark = state === "pass" ? "✓" : state === "fail" ? "✗" : "·";
+  const right = item.kind === "so"
+    ? `<span class="evidence-value">${escapeHtml(item.value || "")}</span>`
+    : `<span class="evidence-tick">${mark}</span>`;
+  // Điều kiện dạng `co` của Turtle/Fast vẫn có ngưỡng bằng chữ — giữ lại dưới
+  // câu kể thay vì vứt đi, nhưng để nhỏ hẳn xuống.
+  const hint = item.kind === "co" && item.gateLabel
+    ? `<span class="evidence-hintline">ngưỡng: ${escapeHtml(item.gateLabel)}</span>`
+    : "";
+  return `
+    <button class="evidence-row is-${state}${item.chart ? " has-chart" : ""}" type="button" data-evidence-index="${index}">
+      <span class="evidence-row-top">
+        <b>${escapeHtml(item.label)}</b>
+        ${right}
+      </span>
+      ${evidenceMeter(item)}
+      <span class="evidence-say">${escapeHtml(item.say || "")}</span>
+      ${hint}
+    </button>`;
+}
+
 function renderEvidenceCard() {
   if (!dom.evidenceCard) return;
   const trade = state.evidenceTrade;
@@ -1909,52 +2088,85 @@ function renderEvidenceCard() {
   dom.evidenceEmpty.hidden = !!trade;
   dom.evidenceBody.hidden = !trade;
   dom.evidenceClear.hidden = !trade;
+  if (dom.evidenceWhen) dom.evidenceWhen.textContent = trade?.when || "";
   if (!trade) {
     dom.evidenceList.innerHTML = "";
     if (dom.evidenceIdentity) dom.evidenceIdentity.hidden = true;
     if (dom.evidenceMetrics) dom.evidenceMetrics.hidden = true;
+    if (dom.evidenceChain) dom.evidenceChain.hidden = true;
     return;
   }
   renderEvidenceIdentity(trade);
-  dom.evidenceHeadline.textContent = trade.headline;
-  dom.evidenceSummary.textContent = trade.summary;
-  dom.evidenceList.innerHTML = trade.evidence
-    .map((item, index) => `
-      <li class="evidence-item${item.pass ? "" : " is-failed"}${item.chart ? " has-chart" : ""}" data-evidence-index="${index}" tabindex="0">
-        <span class="evidence-mark" aria-hidden="true">${item.pass ? "✓" : "✗"}</span>
-        <div>
-          <b>${escapeHtml(item.label)}</b>
-          <span class="evidence-value">${escapeHtml(item.value)}</span>
-          <span class="evidence-threshold">ngưỡng: ${escapeHtml(item.threshold)}</span>
-        </div>
-      </li>`)
+
+  // Không có chặng (lệnh Turtle/Fast) thì dồn hết vào một chặng không tên —
+  // một đường vẽ duy nhất, không rẽ nhánh trong template.
+  const stages = Array.isArray(trade.stages) && trade.stages.length
+    ? trade.stages
+    : [{ n: "", title: "", items: trade.evidence || [] }];
+  let index = 0;
+  dom.evidenceList.innerHTML = stages
+    .map((stage) => {
+      let pass = 0;
+      let total = 0;
+      for (const item of stage.items) {
+        if (item.state === "info") continue;
+        total += 1;
+        if (item.state !== "fail") pass += 1;
+      }
+      const rows = stage.items.map((item) => renderEvidenceItem(item, index++)).join("");
+      const head = stage.title
+        ? `<div class="evidence-stage-head">
+             <span class="evidence-stage-n">${escapeHtml(stage.n)}</span>
+             <h4>${escapeHtml(stage.title)}</h4>
+             <em class="${pass === total ? "is-all" : "is-bad"}">${pass}/${total}</em>
+           </div>`
+        : "";
+      return `<div class="evidence-stage">${head}${rows}</div>`;
+    })
     .join("");
 }
 
 /**
- * Hàng nhận diện + ba con số của lệnh đang soi. Chỉ lệnh FX Dream có đủ dữ liệu
- * (rủi ro %, dư địa R, thời lượng giữ); lệnh Turtle/Fast thì ẩn hai vùng này đi
- * chứ không bịa số vào.
+ * Câu kết luận, chuỗi cơ chế và ba con số. Lệnh Turtle/Fast không có `chain`
+ * nên dải chip tự ẩn đi chứ không hiện một dải rỗng.
  */
 function renderEvidenceIdentity(trade) {
   const hasMeta = !!trade.branchTag;
   if (dom.evidenceIdentity) {
-    dom.evidenceIdentity.hidden = !hasMeta;
-    if (hasMeta) {
-      dom.evidenceSide.textContent = trade.side === "long" ? "LONG" : "SHORT";
-      dom.evidenceSide.className = `evidence-side is-${trade.side}`;
-      dom.evidenceBranch.textContent = trade.branchTag;
-      dom.evidenceBranch.className = `evidence-branch ${trade.usesKey ? "is-key" : "is-sweep"}`;
-      dom.evidenceR.textContent = formatR(Number(trade.resultR));
-      dom.evidenceR.className = `evidence-r ${Number(trade.resultR) >= 0 ? "is-win" : "is-loss"}`;
-    }
+    dom.evidenceIdentity.hidden = false;
+    dom.evidenceSide.textContent = trade.side === "long" ? "LONG" : "SHORT";
+    dom.evidenceSide.className = `evidence-side is-${trade.side}`;
+    if (dom.evidenceVerdict) dom.evidenceVerdict.textContent = trade.verdict || trade.summary || "";
+    // Vị thế còn mở chưa có R — nói thẳng "đang mở" chứ không in 0,00R.
+    const open = trade.resultR == null || !Number.isFinite(Number(trade.resultR));
+    dom.evidenceR.textContent = open ? "đang mở" : formatR(Number(trade.resultR));
+    dom.evidenceR.className = `evidence-r ${open ? "is-open" : Number(trade.resultR) >= 0 ? "is-win" : "is-loss"}`;
+  }
+  if (dom.evidenceChain) {
+    const chain = Array.isArray(trade.chain) ? trade.chain : [];
+    dom.evidenceChain.hidden = !chain.length;
+    dom.evidenceChain.innerHTML = chain
+      .map((text, i) => {
+        const cls = i === chain.length - 1 ? " is-last" : i === 0 && trade.usesKey ? " is-key" : "";
+        return `<span class="evidence-chip${cls}">${escapeHtml(text)}</span>`;
+      })
+      .join("");
   }
   if (!dom.evidenceMetrics) return;
   dom.evidenceMetrics.hidden = !hasMeta;
   if (!hasMeta) return;
-  dom.evidenceRisk.textContent = trade.riskPct == null ? "—" : `${trade.riskPct.toFixed(2)}% giá`;
+  dom.evidenceRisk.textContent = trade.riskPct == null ? "—" : `${trade.riskPct.toFixed(2)}%`;
   dom.evidenceRoom.textContent = `${Number(trade.targetR || 0).toFixed(2)}R`;
   dom.evidenceHold.textContent = trade.holdLabel || "—";
+}
+
+/** Bấm một dòng để GHIM nó lại; bấm lần nữa để nhả. */
+function toggleEvidencePin(index) {
+  state.evidencePinned = state.evidencePinned === index ? null : index;
+  setEvidenceHover(state.evidencePinned == null ? null : index);
+  for (const node of dom.evidenceList.querySelectorAll("[data-evidence-index]")) {
+    node.classList.toggle("is-pinned", Number(node.dataset.evidenceIndex) === state.evidencePinned);
+  }
 }
 
 function setEvidenceHover(index) {
@@ -1971,6 +2183,13 @@ function renderEvidenceHighlight() {
   if (!layer) return;
   const trade = state.evidenceTrade;
   const item = trade && state.evidenceHover != null ? trade.evidence[state.evidenceHover] : null;
+  // Đang soi một điều kiện thì MỜ mọi lớp khác đi, chỉ chừa đúng vùng đang soi.
+  // Vẽ thêm một hình lên trên mà không mờ nền thì hình đó lẫn vào chính đống
+  // key/hộp/SL đang vẽ sẵn — đúng chỗ khó đọc của bản cũ.
+  // Tắt lớp "Soi bằng chứng" thì đừng mờ gì cả — nếu không chart mờ đi mà
+  // chẳng có vùng sáng nào thay thế.
+  const focusOn = !!item?.chart && state.chartLayers.evidence !== false;
+  dom.chartWrap?.classList.toggle("is-evidence-focus", focusOn);
   if (!item?.chart || !state.chart || !state.candleSeries) {
     layer.innerHTML = "";
     return;
@@ -2019,11 +2238,17 @@ function setStrategyFilter(filter) {
 
 function focusStrategyTrade(trade) {
   showEvidence({
+    when: formatOrderTime(trade.entryTime),
     id: trade.id,
     kind: "bot",
     keyId: null,
     headline: `${trade.strategy === "turtle" ? "TURTLE" : "FAST"} · ${trade.dir === "long" ? "LONG" : "SHORT"} unit ${trade.unit} · ${formatOrderTime(trade.entryTime)}`,
+    verdict: trade.entryReason,
+    chain: [],
+    stages: null,
     summary: trade.entryReason,
+    side: trade.dir,
+    resultR: trade.resultR,
     evidence: Array.isArray(trade.evidence) ? trade.evidence : [],
   });
   if (!state.chart) return;
@@ -2065,7 +2290,7 @@ function updateMarketTape() {
   dom.volume24h.textContent = `${formatVolume(volume)} ${marketVolumeUnit()}`;
 }
 
-function updateLegend(candle, volumeValue) {
+function updateLegend(candle, volumeValue, rsiValue) {
   if (!candle) return;
   const open = Number(candle.o ?? candle.open);
   const high = Number(candle.h ?? candle.high);
@@ -2079,6 +2304,10 @@ function updateLegend(candle, volumeValue) {
   dom.legendLow.textContent = formatPrice(low);
   dom.legendClose.textContent = formatPrice(close);
   dom.legendVolume.textContent = `${formatVolume(Number(volume))} ${marketVolumeUnit()}`;
+  if (dom.legendRsi) {
+    const rsi = Number.isFinite(rsiValue) ? rsiValue : state.rsiByTime.get(time);
+    dom.legendRsi.textContent = Number.isFinite(rsi) ? rsi.toFixed(1) : "—";
+  }
 }
 
 async function loadMarketData({ notify = false } = {}) {
@@ -2186,6 +2415,20 @@ function positionCoordinateAtTime(time) {
   if (!state.chart || !state.candles.length || !Number.isFinite(time)) return null;
   const logical = (time - state.candles[0].t) / candleIntervalMs();
   return state.chart.timeScale().logicalToCoordinate(logical);
+}
+
+/**
+ * Toạ độ x của một THỜI ĐIỂM, khác `positionCoordinateAtTime` trả TÂM cây nến:
+ * giờ mở của một nến nằm ở MÉP TRÁI cây nến đó, nên lúc nến 10:00 đóng (10:15)
+ * rơi đúng ranh giới giữa nến 10:00 và nến 10:15. Ngoài vùng dữ liệu vẫn ngoại
+ * suy được.
+ */
+function momentCoordinate(milliseconds) {
+  const centre = positionCoordinateAtTime(milliseconds);
+  if (!Number.isFinite(centre)) return null;
+  const scale = state.chart.timeScale();
+  const spacing = scale.logicalToCoordinate(1) - scale.logicalToCoordinate(0);
+  return Number.isFinite(spacing) ? centre - spacing / 2 : centre;
 }
 
 function buildPlan(side, source = null, entryPrice = null, startTime = null, endTime = null, entryTime = null) {
@@ -2442,7 +2685,8 @@ function allReadOnlyPositions() {
     sl: Number(entry.initialSL),
     tp: Number(entry.target),
     exit: Number(entry.exitPrice),
-    resultR: Number(entry.netR),
+    open: entry.status === "open",
+    resultR: Number(entry.resultR),
     targetR: fxdreamTargetR(entry),
     entryTime: Number(entry.entryTime),
     exitTime: Number(entry.exitTime),
@@ -2558,10 +2802,11 @@ function renderReadOnlyTool(position, index) {
     : position.source === "keyvol"
       ? `${Number(position.targetR || 0).toFixed(2)}R`
       : "+2.00R";
+  // Lệnh FX Dream đang mở: vạch này là giá hiện tại, R tạm tính — không phải điểm thoát.
+  const exitTag = position.open ? "HIỆN TẠI" : "EXIT";
+  const exitR = `${position.open ? "≈ " : ""}${formatR(position.resultR)}`;
   const exitLine = Number.isFinite(position.exit)
-    ? `<button class="readonly-price-level readonly-exit-level${position.resultR >= 0 ? " is-win" : " is-loss"}" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="exit" aria-pressed="${selected}" aria-label="${position.label}: Exit ${formatPrice(position.exit)}, kết quả ${formatR(position.resultR)}">
-        <span class="readonly-level-tag"><b>${position.label} · EXIT</b><span>${formatPrice(position.exit)}</span><em>${formatR(position.resultR)}</em></span>
-      </button>`
+    ? `<button class="readonly-price-level readonly-exit-level${position.resultR >= 0 ? " is-win" : " is-loss"}" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="exit" aria-pressed="${selected}" aria-label="${position.label}: ${exitTag} ${formatPrice(position.exit)}, kết quả ${exitR}"></button>`
     : "";
   return `
     <div class="readonly-position-tool source-${position.source}${selected ? " is-selected" : ""}" data-overlay-id="${escapeHtml(position.id)}" data-position-index="${index}">
@@ -2571,15 +2816,9 @@ function renderReadOnlyTool(position, index) {
       <button class="readonly-position-zone readonly-risk-zone" type="button" data-overlay-id="${escapeHtml(position.id)}" aria-pressed="${selected}" aria-label="Chọn ${position.label}, vùng rủi ro đến Stop Loss">
         <span>${position.label} · SL −1R</span>
       </button>
-      <button class="readonly-price-level readonly-tp-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="tp" aria-pressed="${selected}" aria-label="${position.label}: ${tpLabel} ${formatPrice(position.tp)}">
-        <span class="readonly-level-tag"><b>${position.label} · ${tpLabel}</b><span>${formatPrice(position.tp)}</span><em>${tpR}</em></span>
-      </button>
-      <button class="readonly-price-level readonly-entry-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="entry" aria-pressed="${selected}" aria-label="${position.label}: Entry ${formatPrice(position.entry)}">
-        <span class="readonly-level-tag"><b>${position.label} · ENTRY</b><span>${formatPrice(position.entry)}</span><em>${sourceLabel}</em></span>
-      </button>
-      <button class="readonly-price-level readonly-sl-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="sl" aria-pressed="${selected}" aria-label="${position.label}: Stop Loss ${formatPrice(position.sl)}">
-        <span class="readonly-level-tag"><b>${position.label} · SL</b><span>${formatPrice(position.sl)}</span><em>−1R</em></span>
-      </button>
+      <button class="readonly-price-level readonly-tp-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="tp" aria-pressed="${selected}" aria-label="${position.label}: ${tpLabel} ${formatPrice(position.tp)}"></button>
+      <button class="readonly-price-level readonly-entry-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="entry" aria-pressed="${selected}" aria-label="${position.label}: Entry ${formatPrice(position.entry)}, ${sourceLabel}"></button>
+      <button class="readonly-price-level readonly-sl-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="sl" aria-pressed="${selected}" aria-label="${position.label}: Stop Loss ${formatPrice(position.sl)}"></button>
       <div class="position-start-time readonly-position-start-time" aria-label="${position.label}: bắt đầu ${formatOrderTime(leftEdgeEntryTime(position))}">
         <time>${formatOrderTime(leftEdgeEntryTime(position))}</time>
       </div>
@@ -2603,15 +2842,9 @@ function renderPlanTools() {
         <button class="position-zone risk-zone" type="button" data-action="select-tool" data-plan-id="${escapeHtml(plan.id)}" aria-pressed="${selected}" aria-keyshortcuts="Delete Backspace" aria-label="Chọn ${label} từ vùng rủi ro">
           <span>${label} · SL −1R</span>
         </button>
-        <button class="price-level tp-level" data-level="tp" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo Take Profit; dùng phím mũi tên để tinh chỉnh">
-          <span class="level-tag"><b>${label} · TP</b><span data-price-level="tp">${formatPrice(plan.tp)}</span><em data-tool-r>${rewardText}</em></span>
-        </button>
-        <button class="price-level entry-level" data-level="entry" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo toàn bộ vị thế từ Entry; dùng phím mũi tên để tinh chỉnh">
-          <span class="level-tag"><b>${label} · ENTRY</b><span data-price-level="entry">${formatPrice(plan.entry)}</span><em>kéo</em></span>
-        </button>
-        <button class="price-level sl-level" data-level="sl" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo Stop Loss; dùng phím mũi tên để tinh chỉnh">
-          <span class="level-tag"><b>${label} · SL</b><span data-price-level="sl">${formatPrice(plan.sl)}</span><em>−1R</em></span>
-        </button>
+        <button class="price-level tp-level" data-level="tp" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo Take Profit; dùng phím mũi tên để tinh chỉnh"></button>
+        <button class="price-level entry-level" data-level="entry" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo toàn bộ vị thế từ Entry; dùng phím mũi tên để tinh chỉnh"></button>
+        <button class="price-level sl-level" data-level="sl" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo Stop Loss; dùng phím mũi tên để tinh chỉnh"></button>
         <button class="position-width-handle position-width-start" data-width-edge="start" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo mép trái để thay đổi chiều ngang"></button>
         <button class="position-width-handle position-width-end" data-width-edge="end" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo mép phải để thay đổi chiều ngang"></button>
         <div class="position-start-time" aria-label="${label}: bắt đầu ${formatOrderTime(leftEdgeEntryTime(plan))}">
@@ -2812,8 +3045,45 @@ function renderChartOverlays() {
   renderDrawings();
 }
 
+/**
+ * Giá Entry/TP/SL/Exit của lệnh ĐANG CHỌN nằm trên cột giá bên phải thay vì
+ * thẻ nổi trong vùng nến. Chỉ lệnh đang chọn, để cột giá không thành bãi nhãn
+ * khi xem tất cả lệnh. `lineVisible: false` vì vạch trong hộp vị thế đã có.
+ */
+function syncAxisPriceLines(levels) {
+  const wanted = new Map(
+    (state.chartLayers.position ? levels : [])
+      .filter((level) => Number.isFinite(level.price))
+      .map((level) => [level.key, level]),
+  );
+  for (const [key, entry] of state.axisPriceLines) {
+    if (wanted.has(key)) continue;
+    state.candleSeries.removePriceLine(entry.line);
+    state.axisPriceLines.delete(key);
+  }
+  for (const [key, level] of wanted) {
+    const options = {
+      price: level.price,
+      color: level.color,
+      title: level.title,
+      lineVisible: false,
+      axisLabelVisible: true,
+      axisLabelColor: level.color,
+      axisLabelTextColor: "#05090c",
+    };
+    const existing = state.axisPriceLines.get(key);
+    if (!existing) {
+      state.axisPriceLines.set(key, { line: state.candleSeries.createPriceLine(options), level });
+    } else if (existing.level.price !== level.price || existing.level.color !== level.color || existing.level.title !== level.title) {
+      existing.line.applyOptions(options);
+      existing.level = level;
+    }
+  }
+}
+
 function renderOrderLevels() {
   if (!state.candleSeries) return;
+  const axisLevels = [];
   const chartHeight = dom.chartWrap.clientHeight * 0.77;
   const chartWidth = dom.chartWrap.clientWidth;
   const plotRight = Math.max(120, chartWidth - 61);
@@ -2873,13 +3143,16 @@ function renderOrderLevels() {
       const visible = Number.isFinite(coordinate) && coordinate >= -20 && coordinate <= chartHeight + 20;
       button.hidden = !visible;
       if (visible) button.style.top = `${coordinate}px`;
-      const price = button.querySelector(`[data-price-level="${button.dataset.level}"]`);
-      if (price) price.textContent = formatPrice(plan[button.dataset.level]);
+    }
+    if (!state.selectedOverlayId && plan.id === state.selectedPlanId) {
+      axisLevels.push(
+        { key: `${plan.id}:tp`, price: plan.tp, color: AXIS_LEVEL_COLORS.tp, title: "TP" },
+        { key: `${plan.id}:entry`, price: plan.entry, color: AXIS_LEVEL_COLORS.entry, title: "ENTRY" },
+        { key: `${plan.id}:sl`, price: plan.sl, color: AXIS_LEVEL_COLORS.sl, title: "SL" },
+      );
     }
 
     const calculation = calculatePlan(plan);
-    const toolR = tool.querySelector("[data-tool-r]");
-    if (toolR) toolR.textContent = calculation.valid ? formatR(calculation.rewardR) : "—";
     const rewardLabel = tool.querySelector(".reward-zone span");
     if (rewardLabel) rewardLabel.textContent = `${getPlanLabel(plan)} · TP ${calculation.valid ? formatR(calculation.rewardR) : "—"}`;
 
@@ -2923,6 +3196,19 @@ function renderOrderLevels() {
         right = plotRight;
       }
       savedIndex += 1;
+    } else if (position.source === "keyvol") {
+      // Lệnh Key Volume mang THỜI ĐIỂM khớp (lúc nến vào/thoát đóng), không phải
+      // giờ mở nến: mép hộp nằm đúng ranh giới hai cây nến. Không ép bề rộng tối
+      // thiểu và không dời mép trái — lệnh 2 nến phải trông đúng là 2 nến, nhãn
+      // giá có min-width riêng nên vẫn đọc được khi hộp hẹp.
+      const start = momentCoordinate(position.entryTime);
+      const naturalEnd = momentCoordinate(position.exitTime);
+      if (!Number.isFinite(start) || !Number.isFinite(naturalEnd) || naturalEnd < 0 || start > plotRight) {
+        tool.hidden = true;
+        continue;
+      }
+      left = Math.max(0, start);
+      right = Math.min(plotRight, Math.max(naturalEnd, start + 2));
     } else {
       const start = state.chart.timeScale().timeToCoordinate(Math.floor(position.entryTime / 1000));
       const naturalEnd = position.exitTime
@@ -2956,6 +3242,15 @@ function renderOrderLevels() {
       button.hidden = !visible;
       if (visible) button.style.top = `${coordinate}px`;
     }
+    if (position.id === state.selectedOverlayId) {
+      const exitColor = position.resultR >= 0 ? AXIS_LEVEL_COLORS.tp : AXIS_LEVEL_COLORS.sl;
+      axisLevels.push(
+        { key: `${position.id}:tp`, price: position.tp, color: AXIS_LEVEL_COLORS.tp, title: position.source === "saved" ? "TP" : position.source === "keyvol" ? "MỤC TIÊU" : "TP REF" },
+        { key: `${position.id}:entry`, price: position.entry, color: AXIS_LEVEL_COLORS[position.source] || AXIS_LEVEL_COLORS.entry, title: "ENTRY" },
+        { key: `${position.id}:sl`, price: position.sl, color: AXIS_LEVEL_COLORS.sl, title: "SL" },
+        { key: `${position.id}:exit`, price: position.exit, color: exitColor, title: position.open ? "HIỆN TẠI" : "EXIT" },
+      );
+    }
 
     const positionZone = (selector, first, second) => {
       const zone = tool.querySelector(selector);
@@ -2972,6 +3267,7 @@ function renderOrderLevels() {
     positionZone(".readonly-reward-zone", coordinates.entry, coordinates.tp);
     positionZone(".readonly-risk-zone", coordinates.entry, coordinates.sl);
   }
+  syncAxisPriceLines(axisLevels);
 }
 
 function loadDrawings() {
@@ -3847,6 +4143,7 @@ function changeSymbol(nextSymbol) {
   state.candleSeries?.setData([]);
   state.candleSeries?.setMarkers([]);
   state.volumeSeries?.setData([]);
+  state.rsiSeries?.setData([]);
   setActiveMethods(methodsForSymbol(next));
   updateInstrumentUi();
   loadDraftPlans();
@@ -4038,7 +4335,11 @@ function bindEvents() {
     const item = event.target.closest("[data-evidence-index]");
     if (item) setEvidenceHover(Number(item.dataset.evidenceIndex));
   });
-  dom.evidenceList.addEventListener("pointerleave", () => setEvidenceHover(null));
+  dom.evidenceList.addEventListener("pointerleave", () => setEvidenceHover(state.evidencePinned));
+  dom.evidenceList.addEventListener("click", (event) => {
+    const item = event.target.closest("[data-evidence-index]");
+    if (item) toggleEvidencePin(Number(item.dataset.evidenceIndex));
+  });
 
   for (const button of dom.strategyFilterButtons) {
     button.addEventListener("click", () => setStrategyFilter(button.dataset.strategyFilter));

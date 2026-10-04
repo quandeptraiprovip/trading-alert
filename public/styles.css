@@ -17,7 +17,7 @@
   --amber: #f3ba63;
   --rail-size: 46px;
   --fxdream-size: 312px;
-  --planner-size: 340px;
+  --planner-size: 372px;
   --header-size: 48px;
   --toolbar-size: 39px;
   --dock-tabs-size: 35px;
@@ -849,6 +849,10 @@ a:focus-visible {
   color: var(--blue);
 }
 
+.ohlcv-strip .legend-rsi b {
+  color: #b48ef0;
+}
+
 .chart-view-controls {
   display: flex;
   min-width: 0;
@@ -1430,43 +1434,6 @@ body.is-drawing-shape * {
   --level-color: var(--red);
 }
 
-.level-tag {
-  position: absolute;
-  top: 50%;
-  left: 5px;
-  display: grid;
-  min-width: 142px;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 7px;
-  transform: translateY(-50%);
-  border: 1px solid color-mix(in srgb, var(--level-color), transparent 48%);
-  border-radius: 4px;
-  background: color-mix(in srgb, #10161a 88%, var(--level-color) 12%);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
-  font: 600 9px/1 var(--mono);
-}
-
-.level-tag b {
-  font-size: 8px;
-  letter-spacing: 0.05em;
-}
-
-.level-tag span {
-  color: var(--text);
-  text-align: right;
-}
-
-.level-tag em {
-  min-width: 31px;
-  padding-left: 6px;
-  border-left: 1px solid color-mix(in srgb, var(--level-color), transparent 70%);
-  color: var(--level-color);
-  font-style: normal;
-  text-align: right;
-}
-
 .readonly-position-tool {
   --readonly-left: 36%;
   --readonly-right: 61px;
@@ -1586,42 +1553,6 @@ body.is-drawing-shape * {
 
 .readonly-exit-level.is-loss {
   --readonly-level-color: var(--red);
-}
-
-.readonly-level-tag {
-  position: absolute;
-  top: 50%;
-  left: 5px;
-  display: grid;
-  min-width: 146px;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 6px;
-  transform: translateY(-50%);
-  border: 1px solid color-mix(in srgb, var(--readonly-level-color), transparent 45%);
-  border-radius: 4px;
-  background: color-mix(in srgb, #10161a 87%, var(--readonly-level-color) 13%);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.27);
-  font: 600 8px/1 var(--mono);
-}
-
-.readonly-level-tag b {
-  letter-spacing: 0.035em;
-}
-
-.readonly-level-tag span {
-  color: var(--text);
-  text-align: right;
-}
-
-.readonly-level-tag em {
-  min-width: 28px;
-  padding-left: 5px;
-  border-left: 1px solid color-mix(in srgb, var(--readonly-level-color), transparent 70%);
-  color: var(--readonly-level-color);
-  font-style: normal;
-  text-align: right;
 }
 
 .chart-loading {
@@ -3230,11 +3161,6 @@ body.is-width-dragging * {
     right: 47px;
   }
 
-  .level-tag {
-    min-width: 127px;
-    gap: 5px;
-  }
-
   .journal-header {
     align-items: flex-start;
     flex-direction: column;
@@ -3582,11 +3508,14 @@ body.is-width-dragging * {
 }
 
 /* ── Thẻ "Vì sao vào lệnh" ────────────────────────────────────────────────── */
+/* ══ Phiếu đọc một lệnh ═════════════════════════════════════════════════════
+   Chữ to hơn hẳn bản cũ, mono CHỈ dành cho số, mỗi điều kiện là một câu, và mọi
+   ngưỡng có số đo đều được vẽ thành thước để thấy vượt qua bao xa. */
 .evidence-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 11px;
+  padding: 13px 12px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface-raised);
@@ -3596,14 +3525,20 @@ body.is-width-dragging * {
 }
 .evidence-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
 }
 .evidence-head h3 {
-  margin: 2px 0 0;
-  font: 650 13px var(--sans);
-  color: var(--text);
+  margin: 0;
+  color: var(--muted);
+  font: 600 9.5px var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.evidence-when {
+  margin-left: auto;
+  color: var(--muted);
+  font: 500 10px var(--mono);
 }
 .evidence-clear {
   border: none;
@@ -3619,76 +3554,247 @@ body.is-width-dragging * {
 .evidence-empty {
   margin: 0;
   color: var(--muted);
-  font: 400 11px/1.5 var(--sans);
+  font: 400 11.5px/1.55 var(--sans);
 }
+.evidence-body {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+/* ── câu kết luận: đọc một dòng này là hiểu vì sao vào ─────────────────── */
+.evidence-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.evidence-verdict p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font: 400 13.5px/1.5 var(--sans);
+  letter-spacing: -0.005em;
+  text-wrap: pretty;
+}
+
+/* ── chuỗi cơ chế: cả lệnh gói trong một dòng chip ─────────────────────── */
+.evidence-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.evidence-chip {
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font: 500 10px var(--sans);
+}
+.evidence-chip.is-key {
+  background: rgba(243, 186, 99, 0.13);
+  color: var(--amber);
+}
+.evidence-chip.is-last {
+  background: rgba(101, 169, 255, 0.15);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+/* ── bốn chặng ────────────────────────────────────────────────────────── */
+.evidence-stages {
+  display: flex;
+  flex-direction: column;
+}
+.evidence-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.evidence-stage:first-child .evidence-stage-head {
+  margin-top: 2px;
+}
+.evidence-stage-n {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font: 700 9.5px var(--sans);
+}
+.evidence-stage-head h4 {
+  margin: 0;
+  color: var(--text);
+  font: 650 10.5px var(--sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.evidence-stage-head em {
+  margin-left: auto;
+  font-style: normal;
+  font: 600 10px var(--mono);
+  color: var(--muted);
+}
+.evidence-stage-head em.is-all { color: var(--green); }
+.evidence-stage-head em.is-bad { color: var(--red); }
+
+/* ── một điều kiện ────────────────────────────────────────────────────── */
+.evidence-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px 8px;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: default;
+}
+.evidence-row.has-chart {
+  cursor: crosshair;
+}
+.evidence-row:hover {
+  background: var(--surface-soft);
+}
+.evidence-row.is-hovered,
+.evidence-row.is-pinned {
+  border-color: rgba(101, 169, 255, 0.45);
+  background: rgba(101, 169, 255, 0.08);
+}
+.evidence-row:focus-visible {
+  outline: 1px solid var(--blue);
+  outline-offset: 1px;
+}
+.evidence-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.evidence-row-top b {
+  color: var(--text);
+  font: 600 12px var(--sans);
+  letter-spacing: -0.005em;
+}
+.evidence-value {
+  margin-left: auto;
+  flex: none;
+  color: var(--green);
+  font: 600 13.5px var(--mono);
+  letter-spacing: -0.02em;
+}
+.evidence-row.is-fail .evidence-value { color: var(--red); }
+.evidence-tick {
+  margin-left: auto;
+  flex: none;
+  align-self: center;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(78, 226, 161, 0.16);
+  color: var(--green);
+  font: 700 9px var(--sans);
+}
+.evidence-row.is-fail .evidence-tick {
+  background: rgba(255, 107, 112, 0.16);
+  color: var(--red);
+}
+.evidence-row.is-info .evidence-tick {
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+/* Thước: vạch ngưỡng đứng cùng một chỗ ở mọi dòng, dải đỏ là vùng KHÔNG ĐẠT. */
+.evidence-meter {
+  position: relative;
+  display: block;
+  height: 6px;
+  margin: 8px 0 17px;
+  border-radius: 3px;
+  background: var(--surface-soft);
+}
+.evidence-meter i {
+  position: absolute;
+}
+.evidence-meter-bad {
+  top: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 107, 112, 0.14);
+}
+.evidence-meter-fill {
+  left: 0;
+  top: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--green);
+}
+.evidence-row.is-fail .evidence-meter-fill {
+  background: var(--red);
+}
+.evidence-meter-gate {
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  background: var(--text-soft);
+}
+.evidence-meter-gate-label {
+  top: 12px;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font: 500 9px var(--mono);
+  font-style: normal;
+  white-space: nowrap;
+}
+.evidence-say {
+  display: block;
+  color: var(--text-soft);
+  font: 400 11.5px/1.55 var(--sans);
+  text-wrap: pretty;
+}
+.evidence-hintline {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font: 400 9.5px/1.4 var(--sans);
+}
+.evidence-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font: 400 10px var(--sans);
+}
+
+/* Bốn thanh chặng — dùng chung cho thẻ lệnh và bảng dưới chart. */
+.evidence-segs {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+}
+.evidence-segs i {
+  width: 20px;
+  height: 5px;
+  border-radius: 2px;
+  background: rgba(78, 226, 161, 0.75);
+}
+.evidence-segs i.is-fail {
+  background: var(--red);
+}
+
+/* Thẻ chấm nhãn Key dùng lại kiểu tiêu đề này. */
 .evidence-headline {
   margin: 0;
   color: var(--blue);
   font: 650 10px var(--mono);
   letter-spacing: 0.03em;
-}
-.evidence-summary {
-  margin: 0;
-  color: var(--text-soft);
-  font: 400 11px/1.5 var(--sans);
-}
-.evidence-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.evidence-item {
-  display: flex;
-  gap: 7px;
-  padding: 6px 7px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: var(--surface-soft);
-}
-.evidence-item.has-chart {
-  cursor: crosshair;
-}
-.evidence-item.is-hovered {
-  border-color: rgba(101, 169, 255, 0.5);
-  background: rgba(101, 169, 255, 0.09);
-}
-.evidence-item:focus-visible {
-  outline: 1px solid var(--blue);
-  outline-offset: 1px;
-}
-.evidence-mark {
-  flex: none;
-  width: 13px;
-  color: var(--green);
-  font: 650 11px var(--mono);
-}
-.evidence-item.is-failed .evidence-mark {
-  color: var(--red);
-}
-.evidence-item b {
-  display: block;
-  color: var(--text);
-  font: 600 11px var(--sans);
-}
-.evidence-value {
-  display: block;
-  margin-top: 1px;
-  color: var(--text-soft);
-  font: 400 10.5px/1.45 var(--mono);
-}
-.evidence-threshold {
-  display: block;
-  margin-top: 1px;
-  color: var(--muted);
-  font: 400 10px/1.4 var(--sans);
-}
-.evidence-hint {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font: 400 10px var(--sans);
 }
 
 /* ── Chấm nhãn Key: đáng tin / không đáng tin ─────────────────────────────── */
@@ -4011,6 +4117,16 @@ body.is-width-dragging * {
   color: var(--amber);
 }
 
+/* Lệnh đang mở: viền nét đứt + nhãn xanh dương, R chỉ là tạm tính. */
+.fxdream-card.is-open { border-style: dashed; border-left-style: solid; }
+
+.fxdream-open {
+  color: var(--blue);
+  font: 700 9px/1.35 var(--sans);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
 .fxdream-r {
   margin-left: auto;
   padding: 2px 6px;
@@ -4072,17 +4188,8 @@ body.is-width-dragging * {
   margin-top: 7px;
 }
 
-.fxdream-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.fxdream-dot.is-pass { background: var(--green); }
-.fxdream-dot.is-fail { background: var(--red); }
-
 .fxdream-dots em {
-  margin-left: 3px;
+  margin-left: 5px;
   color: var(--muted);
   font: 600 9px/1 var(--sans);
   font-style: normal;
@@ -4290,87 +4397,59 @@ body.is-width-dragging * {
   color: var(--green);
 }
 
-/* ── Thẻ bằng chứng: hàng nhận diện + ba con số ───────────────────────────── */
-.evidence-identity {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
+/* ── Hàng nhận diện + ba con số của phiếu đọc ────────────────────────────── */
 .evidence-side {
-  font: 800 12px/1 var(--sans);
-  letter-spacing: 0.04em;
+  flex: none;
+  margin-top: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font: 700 10.5px var(--sans);
+  letter-spacing: 0.05em;
 }
-
-.evidence-side.is-long { color: var(--green); }
-.evidence-side.is-short { color: var(--red); }
-
-.evidence-branch {
-  padding: 2px 5px;
-  border-radius: 3px;
-  font: 700 9px/1.35 var(--sans);
-  letter-spacing: 0.04em;
+.evidence-side.is-long {
+  background: rgba(78, 226, 161, 0.14);
+  color: var(--green);
 }
-
-.evidence-branch.is-key {
-  background: rgba(101, 169, 255, 0.13);
-  color: #79c8ff;
+.evidence-side.is-short {
+  background: rgba(255, 107, 112, 0.13);
+  color: var(--red);
 }
-
-.evidence-branch.is-sweep {
-  background: rgba(243, 186, 99, 0.13);
-  color: var(--amber);
-}
-
 .evidence-r {
-  margin-left: auto;
-  font: 700 15px/1 var(--mono);
+  flex: none;
+  font: 650 16px var(--mono);
+  letter-spacing: -0.02em;
 }
-
 .evidence-r.is-win { color: var(--green); }
 .evidence-r.is-loss { color: var(--red); }
+.evidence-r.is-open { color: var(--muted); font-size: 11px; font-weight: 500; }
 
-.evidence-metrics {
+.evidence-facts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
   margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 4px;
   background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
 }
-
-.evidence-metrics > div {
-  padding: 6px 8px;
-  background: #0a0e11;
+.evidence-facts > div {
+  background: var(--surface-soft);
+  padding: 7px 9px;
 }
-
-.evidence-metrics dt {
+.evidence-facts dt {
   color: var(--muted);
-  font: 600 8px/1.3 var(--sans);
-  letter-spacing: 0.05em;
+  font: 500 8.5px var(--sans);
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
-
-.evidence-metrics dd {
-  margin: 2px 0 0;
-  font: 700 12px/1.3 var(--mono);
+.evidence-facts dd {
+  margin: 3px 0 0;
+  color: var(--text);
+  font: 600 13px var(--mono);
+  letter-spacing: -0.01em;
 }
 
-.evidence-metrics div:nth-child(1) dd { color: var(--red); }
-.evidence-metrics div:nth-child(2) dd { color: var(--green); }
-.evidence-metrics div:nth-child(3) dd { color: var(--text-soft); }
-
-.keyvol-funnel-step .keyvol-scope {
-  display: block;
-  color: #4e5a58;
-  font: 600 8px/1.3 var(--sans);
-  font-style: normal;
-  letter-spacing: 0.02em;
-}
-
-/* Ba bậc cuối đếm CHUNG cả hai nhánh — phải nhìn thấy được, không thì đọc lẫn. */
 .keyvol-funnel-step .keyvol-scope.is-both {
   color: var(--amber);
 }
@@ -4379,8 +4458,9 @@ body.is-width-dragging * {
    và dòng trạng thái "đang replay" vẫn hiện bên dưới danh sách thẻ đã render. */
 .fxdream-rail-empty[hidden],
 .layer-menu-list[hidden],
-.evidence-identity[hidden],
-.evidence-metrics[hidden] {
+.evidence-verdict[hidden],
+.evidence-chain[hidden],
+.evidence-facts[hidden] {
   display: none;
 }
 
@@ -4399,4 +4479,97 @@ body.is-width-dragging * {
   .fxdream-rail {
     display: none;
   }
+}
+
+
+/* ══ Soi một điều kiện: mờ hết, chỉ chừa vùng đang nói tới ═══════════════════
+   Bản cũ chỉ vẽ thêm một hình lên trên, nên hình đó lẫn vào chính đống key /
+   hộp / SL đang vẽ sẵn. Mờ nền đi thì mắt không phải tự tìm. */
+.chart-wrap.is-evidence-focus .keyvol-layer,
+.chart-wrap.is-evidence-focus .strategy-context-layer,
+.chart-wrap.is-evidence-focus .drawing-layer,
+.chart-wrap.is-evidence-focus .order-levels {
+  opacity: 0.18;
+  transition: opacity 0.12s ease;
+}
+
+/* ══ Bảng Key Volume dưới chart ═════════════════════════════════════════════ */
+.keyvol-cue {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.keyvol-cue em {
+  font-style: normal;
+  color: var(--text);
+  font: 500 11px var(--mono);
+}
+
+.branch-chip {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font: 600 9px var(--sans);
+  letter-spacing: 0.03em;
+}
+
+.branch-chip.is-key {
+  background: rgba(243, 186, 99, 0.14);
+  color: var(--amber);
+}
+
+.branch-chip.is-sweep {
+  background: rgba(101, 169, 255, 0.14);
+  color: var(--blue);
+}
+
+.keyvol-levels,
+.keyvol-hold {
+  color: var(--text);
+  font: 500 11px var(--mono);
+  white-space: nowrap;
+}
+
+.keyvol-exit {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.keyvol-exit i {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.keyvol-exit i.is-loss {
+  background: var(--red);
+}
+
+.keyvol-result {
+  font: 650 13px var(--mono);
+  white-space: nowrap;
+}
+
+.keyvol-result.is-positive { color: var(--green); }
+.keyvol-result.is-negative { color: var(--red); }
+
+/* ══ Bậc phễu rụng nhiều nhất ═══════════════════════════════════════════════
+   "Setup chết ở cửa nào" là câu hỏi của cả dải phễu — để mọi bậc ngang nhau thì
+   người đọc phải tự trừ bằng mắt. */
+.keyvol-funnel-step.is-worst button {
+  border-color: rgba(255, 107, 112, 0.45);
+}
+
+.keyvol-worst {
+  display: block;
+  margin-top: 2px;
+  color: var(--red);
+  font: 600 8.5px var(--mono);
+  letter-spacing: 0.02em;
 }

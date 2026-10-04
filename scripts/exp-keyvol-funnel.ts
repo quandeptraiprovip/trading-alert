@@ -43,8 +43,6 @@ async function main() {
     ["bỏ sàn RR (minRR=0)", { minRR: 0 }],
     ["target capped-R thay vì structure", { targetMode: "capped-r", requireStructuralTarget: false }],
     ["bỏ RR + target capped-R", { minRR: 0, targetMode: "capped-r", requireStructuralTarget: false }],
-    ["bỏ follow-through", { requireFollowThrough: false }],
-    ["bỏ RR + capped-R + follow-through", { minRR: 0, targetMode: "capped-r", requireStructuralTarget: false, requireFollowThrough: false }],
   ];
 
   for (const [label, over] of variants) {

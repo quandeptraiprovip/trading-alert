@@ -15,16 +15,21 @@ RUN set -eu; \
     BUILD_ID="$(find . -type f -name '*.ts' -not -path './node_modules/*' | LC_ALL=C sort | xargs cat | sha256sum | cut -c1-7)"; \
     BUILD_TIME="$(date -u +%Y-%m-%dT%H:%MZ)"; \
     echo "BUILD_ID=$BUILD_ID BUILD_TIME=$BUILD_TIME"; \
+    npx esbuild fxdream-bot.ts     --bundle --platform=node --target=node20 --format=cjs --external:@resvg/resvg-js --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/fxdream-bot.js; \
     npx esbuild btc-alert-bot.ts   --bundle --platform=node --target=node20 --format=cjs --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/bot.js; \
     npx esbuild chart-server.ts     --bundle --platform=node --target=node20 --format=cjs --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/chart.js; \
     npx esbuild dashboard-server.ts --bundle --platform=node --target=node20 --format=cjs --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/dashboard.js
 
 # ---- Runtime: chỉ node + 2 file JS + public (không node_modules) ----
 FROM node:20-alpine
-RUN apk add --no-cache tzdata
+# font-dejavu: chữ tiếng Việt có dấu trong ảnh đề nghị vào lệnh của FX Dream.
+RUN apk add --no-cache tzdata font-dejavu
 ENV TZ=Asia/Ho_Chi_Minh \
     NODE_ENV=production
 WORKDIR /app
+# resvg (SVG → PNG cho ảnh Telegram) là gói native, không bundle được — cài riêng, npm tự chọn
+# bản musl đúng kiến trúc (x64/arm64).
+RUN npm install --no-save --no-package-lock @resvg/resvg-js@2.6.2 && npm cache clean --force
 COPY --from=builder /src/dist/ ./
 COPY --from=builder /src/public/ ./public/
 

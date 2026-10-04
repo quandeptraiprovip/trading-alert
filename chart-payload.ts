@@ -22,7 +22,7 @@ import {
 import { ExtParams, OpenUnit, UnitTrade, runBooks } from "./scripts/portfolio-engine";
 import { getBotUniverse } from "./bot-universe";
 import { fetchOandaGoldM15 } from "./oanda-fetch";
-import { EvidenceItem, buildKeyVolumeView } from "./chart-keyvolume";
+import { EvidenceGeometry, EvidenceItem, buildKeyVolumeView } from "./chart-keyvolume";
 
 /** Cửa sổ Key Volume (ngày). Ngắn hơn chart vì detector M15 sinh ~12 key/ngày. */
 const KEY_VOLUME_CHART_DAYS = 45;
@@ -97,7 +97,31 @@ function auditExitReason(strategy: AuditUnit["strategy"], dir: AuditUnit["dir"],
   return "Giá chạm hard SL đang có hiệu lực.";
 }
 
-type AuditEntry = { summary: string; evidence: EvidenceItem[] };
+/**
+ * Bằng chứng của Turtle/Fast vẫn viết theo lối cũ (đo được / ngưỡng / đạt).
+ * `toEvidenceItem` nâng nó lên đúng một mô hình với Key Volume để tầng UI chỉ
+ * còn MỘT đường vẽ — không đổi một chữ nào trong nội dung các điều kiện.
+ */
+type LegacyEvidence = {
+  label: string;
+  value: string;
+  threshold: string;
+  pass: boolean;
+  chart?: EvidenceGeometry;
+};
+
+function toEvidenceItem(item: LegacyEvidence): EvidenceItem {
+  return {
+    kind: "co",
+    label: item.label,
+    say: item.value,
+    state: item.pass ? "pass" : "fail",
+    gateLabel: item.threshold,
+    chart: item.chart,
+  };
+}
+
+type AuditEntry = { summary: string; evidence: LegacyEvidence[] };
 
 function auditEntryReason(
   unit: AuditUnit,
@@ -122,20 +146,20 @@ function auditEntryReason(
   const tfMs = TF_MS[T.tf];
   const contextStart = Math.max(candles[0].openTime, unit.entryTime - 3 * tfMs);
 
-  const emaItem: EvidenceItem = {
+  const emaItem: LegacyEvidence = {
     label: `Giá so với EMA${T.trendLen}`,
     value: `close ${close} ${unit.dir === "long" ? ">" : "<"} EMA${T.trendLen} ${emaValue}`,
     threshold: unit.dir === "long" ? `phải ở TRÊN EMA${T.trendLen}` : `phải ở DƯỚI EMA${T.trendLen}`,
     pass: unit.dir === "long" ? bar.close > ema50[index] : bar.close < ema50[index],
     chart: { kind: "level", startTime: contextStart, endTime: unit.entryTime, priceA: ema50[index] },
   };
-  const gateItem: EvidenceItem = {
+  const gateItem: LegacyEvidence = {
     label: `Cổng xu hướng BTC ${T.btcGateFast / 6}/${T.btcGateSlow / 6} ngày`,
     value: gateText,
     threshold: unit.dir === "long" ? "LONG chỉ được mở khi cổng PASS" : "không áp dụng cho SHORT",
     pass: gatePass,
   };
-  const slItem = (detail: string): EvidenceItem => ({
+  const slItem = (detail: string): LegacyEvidence => ({
     label: "Stop loss ban đầu",
     value: `${fmtEvidencePrice(unit.initialSL)} — ${detail}`,
     threshold: `1R = ${fmtEvidencePrice(Math.abs(unit.entryPrice - unit.initialSL))}`,
@@ -411,7 +435,7 @@ function buildStrategyAudit(
         status: unit.exitTime === null ? ("open" as const) : ("closed" as const),
         resultR: unit.resultR,
         entryReason: entry.summary,
-        evidence: entry.evidence,
+        evidence: entry.evidence.map(toEvidenceItem),
         chartContext: buildChartContext(unit, allUnits, candles, atr, fastEntryDays, entry.summary),
       };
     })

@@ -324,6 +324,55 @@ export class BinanceFutures {
     return r.algoId;
   }
 
+  /** Lệnh LIMIT GTC mở vị thế. Giá đã vượt qua mức (mua trên giá / bán dưới giá) thì khớp ngay như taker. */
+  async limitOrder(symbol: string, side: OrderSide, qty: number, price: number, clientId?: string): Promise<NewOrderResult> {
+    const r = await this.signed<any>("POST", "/fapi/v1/order", {
+      symbol: symbol.toUpperCase(),
+      side,
+      type: "LIMIT",
+      timeInForce: "GTC",
+      quantity: qty,
+      price: this.roundPrice(symbol, price),
+      newClientOrderId: clientId,
+      newOrderRespType: "RESULT",
+    });
+    return {
+      orderId: r.orderId,
+      clientOrderId: r.clientOrderId,
+      status: r.status,
+      avgPrice: parseFloat(r.avgPrice ?? "0"),
+      executedQty: parseFloat(r.executedQty ?? "0"),
+    };
+  }
+
+  /** Trạng thái một lệnh thường (NEW / PARTIALLY_FILLED / FILLED / CANCELED / EXPIRED). */
+  async getOrder(symbol: string, orderId: number): Promise<NewOrderResult> {
+    const r = await this.signed<any>("GET", "/fapi/v1/order", { symbol: symbol.toUpperCase(), orderId });
+    return {
+      orderId: r.orderId,
+      clientOrderId: r.clientOrderId,
+      status: r.status,
+      avgPrice: parseFloat(r.avgPrice ?? "0"),
+      executedQty: parseFloat(r.executedQty ?? "0"),
+    };
+  }
+
+  /** Chốt MỘT PHẦN trên sàn: TAKE_PROFIT_MARKET algo reduceOnly với khối lượng cố định. */
+  async takeProfitMarketReduce(symbol: string, side: OrderSide, stopPrice: number, qty: number, clientId?: string): Promise<number> {
+    const r = await this.signed<any>("POST", "/fapi/v1/algoOrder", {
+      algoType: "CONDITIONAL",
+      symbol: symbol.toUpperCase(),
+      side,
+      type: "TAKE_PROFIT_MARKET",
+      triggerPrice: this.roundPrice(symbol, stopPrice),
+      quantity: qty,
+      reduceOnly: "true",
+      workingType: "CONTRACT_PRICE",
+      clientAlgoId: clientId,
+    });
+    return r.algoId;
+  }
+
   async cancelOrder(symbol: string, orderId: number): Promise<void> {
     try {
       await this.signed("DELETE", "/fapi/v1/order", { symbol: symbol.toUpperCase(), orderId });

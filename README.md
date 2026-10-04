@@ -51,23 +51,36 @@ giữ lệnh.
 
 **NHÁNH 1 — `sweep-reclaim`, thuần săn thanh khoản, không đụng tới key.**
 
-1. **Bóp cò** — nến M15 thủng đỉnh/đáy **96 nến trước (một ngày)** rồi ĐÓNG lại trong biên. Hết.
-   Không cần key, không cần nến chạm key, không cần volume, không cần mô hình nến xác nhận.
-2. **Hướng** — quét đáy → LONG, quét đỉnh → SHORT. Nến quét cả hai đầu rồi đóng vào trong không
+1. **Bóp cò** — nến M15 thủng đỉnh/đáy của **480 nến (5 ngày) ngay trước nó** (cuộn liên tục) rồi
+   giá trở lại trong biên: **rút râu** (chính nến đó đóng lại bên trong) hoặc **chạy từ từ lại** (nến
+   thủng đóng ngoài, nằm ngoài tối đa 16 nến rồi một nến đóng trở lại vào trong). Không cần key,
+   không cần nến chạm key, không cần volume, không cần mô hình nến xác nhận.
+2. **Hướng** — quét đáy → LONG, quét đỉnh → SHORT. Nến đóng lại vào trong cả hai mức một lúc không
    nói được chiều nào nên bị bỏ.
-3. **SL** — ngay ngoài **cái râu vừa tạo** của chính nến quét, đệm `0.15×ATR`.
-4. **TP** — cụm thanh khoản **đối diện**: đỉnh/đáy của đúng cửa sổ 96 nến đó ở phía bên kia.
+3. **Vào lệnh** (03/10/26) — **ngay ở giá đóng** của nến rút râu / nến đóng trở lại, không qua ba
+   bước hộp (`sweepEntry: "reclaim-close"`; luật hộp cũ còn ở `"box-retest"` để so sánh).
+4. **SL** — ngay ngoài **điểm xa nhất** giá đi được ngoài mức (chính cái râu ở kiểu rút râu), đệm
+   `0.15×ATR`.
+5. **TP** — cụm thanh khoản **đối diện**: đỉnh/đáy của đúng cửa sổ 480 nến đó ở phía bên kia.
 
 **NHÁNH 2 — `volume-reversal`, nhánh dùng key** (không đổi):
 
 1. **Key** — nến M15 có volume `≥2×` **trung vị 12 nến XUNG QUANH** (6 trước + 6 sau, đúng cách mắt
    người chấm trên chart). Vì cửa sổ có tâm, key chỉ được coi là biết được **sau khi nến cuối cửa sổ
-   đóng**; `confirmedAt` ghi đúng mốc đó nên replay không nhìn trước.
+   đóng**; `confirmedAt` ghi đúng mốc đó nên replay không nhìn trước. Key chỉ **dùng được sau khi
+   chín** (03/10/26): giá rời ≥1 ATR → quay lại chạm → đóng bật ≥1 ATR trong 6 nến; đóng xuyên
+   trước đó thì key chết. `maturedAt` là mốc dùng được.
 2. **Hướng** — giá đang ở TRÊN key thì key là đỡ → LONG; ở DƯỚI thì key là cản → SHORT. Mốc so sánh
-   là giữa vùng key.
-3. **Bóp cò** — mô hình nến đảo chiều tại key (nhấn chìm / inside bar / 3-bar reversal, bám
-   [LiveTrade +50R](https://www.youtube.com/watch?v=aPu9ojfAJY0) và `#50 SFP`), volume cây bóp cò
-   `≥1.2×` trung vị các nến liền trước.
+   là giữa vùng key. Mỗi kế hoạch/lệnh mang nhãn `approach`: `bounce` (giá về từ đúng phía) hoặc
+   `breakout` (nến chạm vừa xuyên qua key) để báo cáo tách riêng.
+3. **Bóp cò** — cụm nến đảo chiều tại key là một **mũi nhọn**: giá lao nhanh rồi bật ngược lại
+   (chữ V nhiều nến / hai nến liền kề / một nến râu dài, đo bằng ATR; xem đầu `key-volume.ts`),
+   volume cây bóp cò `≥1.2×` trung vị các nến liền trước. Hộp order block là thân 2–3 nến kết
+   thúc ở nến đáy của mũi nhọn. Song song với cụm có **tín hiệu A** cũng bóp cò được tại key: hai
+   đáy/đỉnh + RSI(14) phân kỳ (đáy 2 không cao hơn đáy 1, đáy 1 là swing tại key liền trước), dựng
+   hộp quanh đáy 2 rồi vào lệnh qua cùng cổng ba bước. "Hai higher high / lower low" **không còn là
+   cò** (03/10/26): nó là bước xác nhận trước khi vào — sau nến đáy phải có hai đỉnh (đáy) swing liền
+   nhau tăng (giảm) dần.
 4. **SL** theo `stopMode`; **TP** là key đối diện gần nhất.
 
 Cả hai nhánh vào ở **open nến M15 kế tiếp** và qua cùng hai cửa cuối: SL `≤3%` giá, dư địa `≥3R`.

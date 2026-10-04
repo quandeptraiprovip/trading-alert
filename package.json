@@ -12,6 +12,7 @@
     "telegram:test": "ts-node telegram-test.ts",
     "test:mexc": "ts-node test-mexc.ts",
     "test:key-volume": "ts-node test-key-volume.ts",
+    "test:fxdream-live": "ts-node test-fxdream-live.ts",
     "test:fxdream": "ts-node test-fxdream-v2.ts",
     "test:fxdream-journal": "ts-node test-fxdream-journal.ts",
     "test:alt-trend": "ts-node test-alt-trend.ts",
@@ -31,6 +32,7 @@
     "widget": "ts-node widget-server.ts"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "axios": "^1.6.0",
     "dotenv": "^16.3.0",
     "next": "^14.2.29",

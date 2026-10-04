@@ -117,24 +117,36 @@ export async function flushPendingTelegram(cfg: TelegramConfig): Promise<void> {
   }
 }
 
-/** Đọc tin nhắn đến (lệnh) từ Telegram. Trả [] nếu chưa cấu hình / lỗi. */
+/** Một lượt bấm nút inline (callback_query). */
+export type TelegramCallback = { id: string; data: string; messageId: number };
+
+/**
+ * Đọc tin nhắn đến (lệnh) và lượt bấm nút từ Telegram. Trả [] nếu chưa cấu hình, null nếu lỗi.
+ * Lượt bấm nút có `text` rỗng và `callback` khác undefined.
+ */
 export async function getTelegramUpdates(
   cfg: TelegramConfig,
   offset: number
-): Promise<{ id: number; text: string; chatId: string }[] | null> {
+): Promise<{ id: number; text: string; chatId: string; callback?: TelegramCallback }[] | null> {
   if (!cfg.enabled) return [];
   try {
     const res = await axios.get(`https://api.telegram.org/bot${cfg.botToken}/getUpdates`, {
-      params: { offset, timeout: 0, allowed_updates: JSON.stringify(["message"]) },
+      params: { offset, timeout: 0, allowed_updates: JSON.stringify(["message", "callback_query"]) },
       timeout: 15000,
       httpsAgent,
     });
     const result = (res.data?.result ?? []) as any[];
-    return result.map((u) => ({
-      id: u.update_id as number,
-      text: (u.message?.text ?? "") as string,
-      chatId: String(u.message?.chat?.id ?? ""),
-    }));
+    return result.map((u) => {
+      const cq = u.callback_query;
+      return {
+        id: u.update_id as number,
+        text: (u.message?.text ?? "") as string,
+        chatId: String(cq?.message?.chat?.id ?? u.message?.chat?.id ?? ""),
+        callback: cq
+          ? { id: String(cq.id), data: String(cq.data ?? ""), messageId: Number(cq.message?.message_id ?? 0) }
+          : undefined,
+      };
+    });
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       const status = err.response?.status;
@@ -144,6 +156,80 @@ export async function getTelegramUpdates(
       console.error("[Telegram] getUpdates lỗi:", String(err));
     }
     return null;
+  }
+}
+
+export type InlineButton = { text: string; data: string };
+
+/**
+ * Gửi ảnh PNG kèm chú thích (văn bản thường, ≤1024 ký tự) và hàng nút bấm. Trả message_id,
+ * hoặc null khi chưa cấu hình / lỗi. Thử lại 3 lần như `sendTelegram`.
+ */
+export async function sendTelegramPhoto(
+  cfg: TelegramConfig,
+  png: Buffer,
+  caption: string,
+  buttons?: InlineButton[],
+): Promise<number | null> {
+  if (!cfg.enabled) {
+    console.log("\n[Telegram — chưa cấu hình, ảnh không gửi]\n" + caption + "\n");
+    return null;
+  }
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const form = new FormData();
+      form.append("chat_id", cfg.chatId);
+      form.append("caption", caption.slice(0, 1024));
+      if (buttons?.length) {
+        form.append("reply_markup", JSON.stringify({
+          inline_keyboard: [buttons.map((b) => ({ text: b.text, callback_data: b.data }))],
+        }));
+      }
+      form.append("photo", new Blob([new Uint8Array(png)], { type: "image/png" }), "fxdream.png");
+      const res = await axios.post(`https://api.telegram.org/bot${cfg.botToken}/sendPhoto`, form, {
+        timeout: 30000,
+        httpsAgent,
+      });
+      return Number(res.data?.result?.message_id ?? 0) || null;
+    } catch (err: unknown) {
+      lastErr = err;
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+      if (status && status >= 400 && status < 500) break;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+    }
+  }
+  const data = axios.isAxiosError(lastErr) ? lastErr.response?.data : undefined;
+  console.error("[Telegram] sendPhoto lỗi:", data ?? (lastErr instanceof Error ? lastErr.message : String(lastErr)));
+  return null;
+}
+
+/** Thay chú thích ảnh đã gửi và GỠ hàng nút (bấm xong thì nút không còn bấm lại được). */
+export async function editTelegramCaption(cfg: TelegramConfig, messageId: number, caption: string): Promise<void> {
+  if (!cfg.enabled || !messageId) return;
+  try {
+    await axios.post(`https://api.telegram.org/bot${cfg.botToken}/editMessageCaption`, {
+      chat_id: cfg.chatId,
+      message_id: messageId,
+      caption: caption.slice(0, 1024),
+      reply_markup: { inline_keyboard: [] },
+    }, { timeout: 15000, httpsAgent });
+  } catch (err: unknown) {
+    const data = axios.isAxiosError(err) ? err.response?.data : undefined;
+    console.error("[Telegram] editMessageCaption lỗi:", data ?? (err instanceof Error ? err.message : String(err)));
+  }
+}
+
+/** Trả lời lượt bấm nút (tắt vòng xoay trên app, hiện một dòng ngắn). */
+export async function answerTelegramCallback(cfg: TelegramConfig, callbackId: string, text: string): Promise<void> {
+  if (!cfg.enabled) return;
+  try {
+    await axios.post(`https://api.telegram.org/bot${cfg.botToken}/answerCallbackQuery`, {
+      callback_query_id: callbackId,
+      text: text.slice(0, 190),
+    }, { timeout: 15000, httpsAgent });
+  } catch {
+    /* chỉ là phản hồi giao diện */
   }
 }
 

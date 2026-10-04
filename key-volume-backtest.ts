@@ -214,15 +214,21 @@ function sumDiagnostics(
 ): KeyVolumeDiagnostics {
   const out: KeyVolumeDiagnostics = {
     m15Levels: 0,
+    keysMatured: 0,
     keyTouches: 0,
     touchVolumeConfirmed: 0,
     sweeps: 0,
+    sweepsSlow: 0,
     candlePatterns: 0,
+    structureSignals: 0,
+    rejectedNoStructure: 0,
     rejectedKeyOutsideBlock: 0,
     rejectedNoDeparture: 0,
     plans: 0,
     sweepBranchPlans: 0,
     volumeBranchPlans: 0,
+    keyTrapPlans: 0,
+    lowerHighPlans: 0,
     entries: 0,
     rejectedDepart: 0,
     boxesArmed: 0,
@@ -230,6 +236,9 @@ function sumDiagnostics(
     boxesBroken: 0,
     boxesExpired: 0,
     boxesUnresolved: 0,
+    limitsPlaced: 0,
+    limitsExpired: 0,
+    limitsUnresolved: 0,
     rejectedRisk: 0,
     rejectedRoom: 0,
     rejectedFirstTouch: 0,
@@ -403,17 +412,19 @@ async function main(): Promise<void> {
   console.log("\nKey Volume funnel (gồm cả warmup để chẩn đoán state machine):");
   console.log(
     `  key ${keyVolumeConfig.confirmTf} ${diag.m15Levels}`
+    + ` -> chín ${diag.keysMatured}`
     + ` -> chạm key ${diag.keyTouches}`
     + ` -> volume@key ${diag.touchVolumeConfirmed}`
-    + ` -> quét thanh khoản ${diag.sweeps}`
+    + ` -> quét thanh khoản ${diag.sweeps} (chạy từ từ lại ${diag.sweepsSlow})`
     + ` -> mô hình nến ${diag.candlePatterns}`
     + ` -> plan ${diag.plans}`
-    + ` (quét ${diag.sweepBranchPlans} / nến+volume ${diag.volumeBranchPlans})`
+    + ` (quét ${diag.sweepBranchPlans} / nến+volume ${diag.volumeBranchPlans} / trap ${diag.keyTrapPlans} / đỉnh thấp dần ${diag.lowerHighPlans})`
     + ` -> entry ${diag.entries}`,
   );
   console.log(
     `  Từ chối tại entry: risk/SL ${diag.rejectedRisk}`
-    + ` · hết dư địa trước ${keyVolumeConfig.minRR}R ${diag.rejectedRoom}`,
+    + ` · hết dư địa trước ${keyVolumeConfig.minRR}R ${diag.rejectedRoom}`
+    + ` · chưa có hai swing xác nhận ${diag.rejectedNoStructure}`,
   );
   console.log(
     `  Nhánh key: chạm ${diag.keyTouches} -> đủ volume ${diag.touchVolumeConfirmed}`
