@@ -13,7 +13,7 @@
  *      00:00–06:00 (giờ VN, tính theo lúc nến tín hiệu đóng): TỰ VÀO, không hỏi, rồi báo.
  *   3. Khớp xong: SL (STOP_MARKET closePosition), TP ở mục tiêu (closePosition), chốt 33% ở +1R
  *      (reduceOnly) nếu mục tiêu xa hơn 1R. Chốt 33% khớp thì dời SL về giá vào.
- *   4. Rủi ro cố định `riskUsd` mỗi lệnh. Một lệnh mỗi lúc: đang có vị thế hoặc lệnh chờ thì tín
+ *   4. Rủi ro cố định `riskUsd` mỗi lệnh bạn duyệt; lệnh TỰ VÀO ban đêm chỉ một nửa. Một lệnh mỗi lúc: đang có vị thế hoặc lệnh chờ thì tín
  *      hiệu mới chỉ báo chữ.
  *
  * AN TOÀN:
@@ -558,12 +558,18 @@ export class FxDreamLive {
     };
   }
 
+  /** Rủi ro $ của đề nghị: tự vào ban đêm chỉ dùng một nửa (user 05/10/26). */
+  private riskUsdFor(p: Pick<FxProposal, "auto">): number {
+    return p.auto ? this.o.riskUsd / 2 : this.o.riskUsd;
+  }
+
   private footer(p: FxProposal): string[] {
     const risk = Math.abs(p.entry - p.stop);
-    const qty = this.o.venue ? this.o.venue.roundQty(this.o.symbol, this.o.riskUsd / risk) : this.o.riskUsd / risk;
+    const riskUsd = this.riskUsdFor(p);
+    const qty = this.o.venue ? this.o.venue.roundQty(this.o.symbol, riskUsd / risk) : riskUsd / risk;
     const rr = Math.abs(p.target - p.entry) / risk;
     return [
-      `Rủi ro $${this.o.riskUsd} · khối lượng ~${qty} ${this.o.symbol.replace(/usdt$/i, "").toUpperCase()} · notional ~$${fmt(qty * p.entry)} · SL cách ${((risk / p.entry) * 100).toFixed(2)}%`,
+      `Rủi ro $${riskUsd}${p.auto ? " (nửa — tự vào ban đêm)" : ""} · khối lượng ~${qty} ${this.o.symbol.replace(/usdt$/i, "").toUpperCase()} · notional ~$${fmt(qty * p.entry)} · SL cách ${((risk / p.entry) * 100).toFixed(2)}%`,
       `Mục tiêu ${rr.toFixed(2)}R (${p.edited?.includes("tp") ? "bạn đặt" : "key đối diện"})${p.partial ? " · chốt 33% ở 1R rồi dời SL về giá vào" : " · mục tiêu dưới 1R nên không chốt một phần"}`,
       p.edited?.length
         ? `Bạn đã sửa tay: ${p.edited.map((f) => f.toUpperCase()).join(", ")} (khác đề xuất của engine).`
@@ -578,7 +584,7 @@ export class FxDreamLive {
       `${p.dir === "long" ? "🟢 LONG" : "🔴 SHORT"} ${this.o.symbol.toUpperCase()} — ${BRANCH_LABEL[p.branch]}`,
       p.keyPrice != null ? `Key ${fmt(p.keyPrice)}` : "Không dùng key",
       `${p.kind === "market" ? "Vào (giá đóng)" : "LIMIT"} ${fmt(p.entry)} · SL ${fmt(p.stop)} · TP ${fmt(p.target)} (${rr.toFixed(2)}R)`,
-      `Rủi ro $${this.o.riskUsd} · nến ${vnTime(p.createdAt - M15)}`,
+      `Rủi ro $${this.riskUsdFor(p)}${p.auto ? " (nửa, tự vào)" : ""} · nến ${vnTime(p.createdAt - M15)}`,
       ...(p.edited?.length ? [`✏️ Đã sửa tay: ${p.edited.map((f) => f.toUpperCase()).join(", ")}`] : []),
     ].join("\n");
   }
@@ -774,7 +780,7 @@ export class FxDreamLive {
       }
       const f = venue.getFilters(sym);
       const stopDist = Math.abs(plannedEntry - venue.roundPrice(sym, p.stop));
-      const qty = venue.roundQty(sym, this.o.riskUsd / stopDist);
+      const qty = venue.roundQty(sym, this.riskUsdFor(p) / stopDist);
       if (!(qty >= f.minQty)) return fail(`khối lượng ${qty} < tối thiểu ${f.minQty}`);
       if (qty * plannedEntry < f.minNotional) return fail(`notional $${fmt(qty * plannedEntry)} < tối thiểu $${f.minNotional}`);
       const eq = await venue.getEquity();
@@ -1082,7 +1088,7 @@ export class FxDreamLive {
   // ── báo cáo ────────────────────────────────────────────────────────────
   statusText(): string {
     const st = this.state;
-    const lines = [`🎯 FX Dream · ${this.o.symbol.toUpperCase()} · rủi ro $${this.o.riskUsd}/lệnh`];
+    const lines = [`🎯 FX Dream · ${this.o.symbol.toUpperCase()} · rủi ro $${this.o.riskUsd}/lệnh, tự vào ban đêm $${this.o.riskUsd / 2}`];
     lines.push(this.blocked ? `⛔ KHOÁ: ${this.blocked}` : this.canTrade() ? "Giao dịch thật: BẬT" : "ALERT-ONLY (chưa bật giao dịch thật)");
     lines.push(`Nến cuối đã xét: ${st.lastBarTime ? vnTime(st.lastBarTime) : "—"}`);
     if (st.position) {

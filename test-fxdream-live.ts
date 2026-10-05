@@ -205,6 +205,7 @@ async function testApproveFillPartialBreakeven(): Promise<void> {
   assert.ok(opened, "LIMIT phải khớp và mở vị thế");
   assert.equal(opened.entry, 99.3);
   assert.ok(opened.stop > 100.3, "SL ngoài đỉnh phản ứng");
+  assert.ok(opened.riskUsd > 4.5 && opened.riskUsd < 5.1, `lệnh bạn duyệt: rủi ro đủ $5, được ${opened.riskUsd}`);
   const closed = journal.find((e) => e.event === "closed");
   assert.ok(closed, "vị thế phải đóng");
   assert.equal(closed.reason, "SL về giá vào sau khi chốt 33%");
@@ -229,7 +230,9 @@ async function testNightAutoEnters(): Promise<void> {
   const p = fx.snapshot().proposals[0];
   assert.equal(p.auto, true);
   assert.equal(p.status, "approved");
-  assert.ok(journal.some((e) => e.event === "opened"), "tự vào lệnh");
+  const opened = journal.find((e) => e.event === "opened");
+  assert.ok(opened, "tự vào lệnh");
+  assert.ok(opened.riskUsd > 2 && opened.riskUsd < 2.6, `tự vào ban đêm: nửa rủi ro $2,5, được ${opened.riskUsd}`);
 }
 
 async function testForeignPositionBlocks(): Promise<void> {

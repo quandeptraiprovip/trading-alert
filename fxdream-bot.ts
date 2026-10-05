@@ -71,7 +71,7 @@ async function healthText(): Promise<string> {
     "🩺 *FX Dream bot*",
     `Code: ${buildLine()}`,
     `Engine: ${escapeMarkdown(engineLine())}`,
-    `Sàn: ${binance ? (TESTNET ? "Binance TESTNET" : "Binance ⚠️ MAINNET") : "không có (alert-only)"} · ${execCfg.marginType} ${execCfg.leverage}x · rủi ro $${RISK_USD}/lệnh`,
+    `Sàn: ${binance ? (TESTNET ? "Binance TESTNET" : "Binance ⚠️ MAINNET") : "không có (alert-only)"} · ${execCfg.marginType} ${execCfg.leverage}x · rủi ro $${RISK_USD}/lệnh (tự vào ban đêm $${RISK_USD / 2})`,
     `Dữ liệu nến: ${fx.lastDataAt ? `${Math.round((Date.now() - fx.lastDataAt) / 1000)}s trước` : "chưa có"}`,
   ];
   if (binance) {
@@ -168,7 +168,7 @@ async function main(): Promise<void> {
   }
 
   await fx.start();
-  await sendTelegram(telegram, `🎯 *FX Dream bot đã chạy*\n${escapeMarkdown(engineLine())}\nSMC/Turtle/Fast/MEXC: TẮT (không nạp)\n00:00–06:00 tự vào lệnh, còn lại hỏi ý trước.\n\n${await healthText()}`);
+  await sendTelegram(telegram, `🎯 *FX Dream bot đã chạy*\n${escapeMarkdown(engineLine())}\nSMC/Turtle/Fast/MEXC: TẮT (không nạp)\n00:00–06:00 tự vào lệnh với NỬA rủi ro, còn lại hỏi ý trước.\n\n${await healthText()}`);
   startCommandListener();
   startLoops();
   for (const sig of ["SIGINT", "SIGTERM"] as const) {
