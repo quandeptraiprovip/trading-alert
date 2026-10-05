@@ -145,17 +145,18 @@ async function replay(
   candles: Candle[],
   startAt: number,
   onPending: (fx: FxDreamLive, id: string) => Promise<void>,
-  setup?: (venue: FakeVenue) => void,
+  setup?: (venue: FakeVenue, dir: string) => void,
+  params = PARAMS,
 ) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fxdream-test-"));
   const venue = new FakeVenue();
   let idx = startAt;
   let clock = candles[idx].openTime + M15 + 5000;
   venue.cur = candles[idx];
-  setup?.(venue);
+  setup?.(venue, dir);
   const fx = new FxDreamLive({
     symbol: "test", venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, leverage: 10,
-    dataDir: dir, isTradingReady: () => true, params: PARAMS, now: () => clock,
+    dataDir: dir, isTradingReady: () => true, params, now: () => clock,
     fetchClosed: async (n) => candles.slice(Math.max(0, idx + 1 - n), idx + 1),
   });
   const log = console.log;
@@ -233,6 +234,38 @@ async function testNightAutoEnters(): Promise<void> {
   const opened = journal.find((e) => e.event === "opened");
   assert.ok(opened, "tự vào lệnh");
   assert.ok(opened.riskUsd > 2 && opened.riskUsd < 2.6, `tự vào ban đêm: nửa rủi ro $2,5, được ${opened.riskUsd}`);
+}
+
+/** User 06/10/26: ban đêm mà TP < 1R thì KHÔNG tự vào — hỏi như ban ngày, duyệt thì đủ $5. */
+async function testNightThinTargetAsks(): Promise<void> {
+  let asked = 0;
+  const { fx, journal } = await replay(fixture(NIGHT, TAIL), CONFIRM - 1, async (f, id) => {
+    asked++;
+    await f.decide(id, true);
+  }, undefined, { ...PARAMS, finalTargetR: 0.5 });
+  const p = fx.snapshot().proposals[0];
+  assert.ok(Math.abs(p.target - p.entry) < Math.abs(p.entry - p.stop), "fixture phải có TP < 1R");
+  assert.equal(p.auto, false, "TP < 1R ban đêm không được tự vào");
+  assert.equal(asked, 1, "phải hỏi ý");
+  const opened = journal.find((e) => e.event === "opened");
+  assert.ok(opened && opened.riskUsd > 4.5, "bạn duyệt thì rủi ro đủ $5");
+}
+
+/** Ổ đầy (06/10/26): ghi state lỗi không được làm bot bỏ dở việc huỷ LIMIT hết hạn. */
+async function testLimitExpiresWhenDiskFull(): Promise<void> {
+  const AWAY: Bar = { open: 99.0, high: 99.1, low: 98.9, close: 99.0 };
+  const { fx, venue, journal } = await replay(
+    fixture(DAY, Array(20).fill(AWAY)),
+    CONFIRM - 1,
+    (f, id) => f.decide(id, true),
+    (_v, dir) => fs.mkdirSync(path.join(dir, "fxdream-state.json.tmp")), // writeFileSync → EISDIR
+  );
+  assert.equal(fx.snapshot().proposals[0].status, "approved");
+  assert.ok(journal.some((e) => e.event === "limit-placed"), "LIMIT phải được đặt");
+  assert.ok(journal.some((e) => e.event === "limit-expired"), "hết 16 nến phải huỷ LIMIT dù không ghi được state");
+  assert.equal(venue.orders.length, 0, "không còn lệnh chờ trên sàn");
+  assert.equal(fx.snapshot().working, null);
+  assert.equal(venue.fills.length, 0);
 }
 
 async function testForeignPositionBlocks(): Promise<void> {
@@ -380,6 +413,8 @@ function testImageRenders(): void {
   await testApproveFillPartialBreakeven();
   await testRejectPlacesNothing();
   await testNightAutoEnters();
+  await testNightThinTargetAsks();
+  await testLimitExpiresWhenDiskFull();
   await testForeignPositionBlocks();
   await testUnansweredProposalExpires();
   testParsePrice();

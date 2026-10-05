@@ -261,6 +261,7 @@ export class FxDreamLive {
   /** Lý do khoá giao dịch (vị thế/lệnh lạ trên sàn). null = không khoá. */
   blocked: string | null = null;
   lastDataAt = 0;
+  private saveFailing = false;
 
   constructor(opts: FxDreamLiveOptions) {
     this.o = {
@@ -287,9 +288,29 @@ export class FxDreamLive {
     return { lastBarTime: 0, proposals: [], working: null, position: null };
   }
 
+  /**
+   * Ghi state lỗi (vd ổ đầy 06/10/26) KHÔNG được ném: ném giữa chừng làm vòng tick bỏ dở
+   * (huỷ lệnh trên sàn xong mà không báo, không xét tín hiệu). Bot chạy tiếp bằng state trong
+   * RAM và báo Telegram một lần cho tới khi ghi lại được.
+   */
   private save(): void {
     this.state.proposals = this.state.proposals.slice(-50);
-    atomicWriteFileSync(this.stateFile, JSON.stringify(this.state, null, 2));
+    try {
+      atomicWriteFileSync(this.stateFile, JSON.stringify(this.state, null, 2));
+      if (this.saveFailing) {
+        this.saveFailing = false;
+        void sendTelegram(this.o.telegram, "✅ FX Dream: ghi state lại được rồi.", undefined);
+      }
+    } catch (err) {
+      console.error("[FX Dream] ghi state lỗi:", errMsg(err));
+      if (this.saveFailing) return;
+      this.saveFailing = true;
+      void sendTelegram(
+        this.o.telegram,
+        `🚨 FX Dream: KHÔNG ghi được state (${errMsg(err)}). Bot vẫn chạy bằng bộ nhớ, nhưng nếu khởi động lại sẽ mất trạng thái mới nhất. Kiểm tra ổ đĩa máy bot (df -h).`,
+        undefined,
+      );
+    }
   }
 
   private journal(entry: Record<string, unknown>): void {
@@ -441,6 +462,9 @@ export class FxDreamLive {
     const best = signals.sort((a, b) => b.plan.score - a.plan.score)[0];
     const risk = Math.abs(best.entry - best.stop);
     const partialPrice = best.plan.direction === "long" ? best.entry + risk : best.entry - risk;
+    const night = isNightVn(closeTime);
+    // User 06/10/26: ban đêm chỉ TỰ VÀO khi TP ≥ 1R; dưới 1R (vd 0,21R lúc 01:15) thì hỏi như ban ngày.
+    const thinTarget = Math.abs(best.target - best.entry) < risk;
     const proposal: FxProposal = {
       id: `${closeTime.toString(36)}${best.plan.branch.length}`,
       planId: best.plan.id,
@@ -454,7 +478,7 @@ export class FxDreamLive {
       partial: Math.abs(best.target - best.entry) > risk ? partialPrice : null,
       createdAt: closeTime,
       expiresAt: best.expiresAt,
-      auto: isNightVn(closeTime),
+      auto: night && !thinTarget,
       messageId: null,
       status: "pending",
     };
@@ -492,7 +516,7 @@ export class FxDreamLive {
       this.save();
       return;
     }
-    await this.sendAsk(proposal, png);
+    await this.sendAsk(proposal, png, night ? `🌙 Giờ đêm nhưng TP chỉ ${(Math.abs(best.target - best.entry) / risk).toFixed(2)}R (< 1R) — KHÔNG tự vào, hỏi ý bạn.\n` : "");
   }
 
   private render(p: FxProposal): Buffer | null {
@@ -885,6 +909,7 @@ export class FxDreamLive {
     if (order.status === "FILLED") {
       const msg = await this.openPosition(base, order.executedQty, order.avgPrice || w.edge);
       await sendTelegram(this.o.telegram, `📥 LIMIT ĐÃ KHỚP\n${msg}`, undefined);
+      await this.markPhoto(p, `📥 LIMIT ĐÃ KHỚP\n${msg}`);
       return;
     }
     const expired = this.o.now() >= w.expiresAt;
@@ -892,6 +917,7 @@ export class FxDreamLive {
       await venue.cancelOrder(this.o.symbol, w.orderId);
       const msg = await this.openPosition(base, order.executedQty, order.avgPrice || w.edge);
       await sendTelegram(this.o.telegram, `📥 LIMIT khớp MỘT PHẦN rồi hết hạn — giữ phần đã khớp\n${msg}`, undefined);
+      await this.markPhoto(p, `📥 LIMIT khớp MỘT PHẦN rồi hết hạn\n${msg}`);
       return;
     }
     if (order.status === "NEW" && expired) {
@@ -900,12 +926,14 @@ export class FxDreamLive {
       if (after.executedQty > 0) {
         const msg = await this.openPosition(base, after.executedQty, after.avgPrice || w.edge);
         await sendTelegram(this.o.telegram, `📥 LIMIT khớp ngay lúc huỷ — giữ phần đã khớp\n${msg}`, undefined);
+        await this.markPhoto(p, `📥 LIMIT khớp ngay lúc huỷ\n${msg}`);
         return;
       }
       this.state.working = null;
       this.save();
       this.journal({ event: "limit-expired", proposal: w.proposalId });
       await sendTelegram(this.o.telegram, `⌛ LIMIT ${fmt(w.edge)} hết hạn, giá không quay lại — đã huỷ.`, undefined);
+      await this.markPhoto(p, `⌛ Hết hạn lúc ${vnTime(w.expiresAt)}, giá không quay lại — ĐÃ HUỶ LIMIT.`);
       return;
     }
     if (order.status === "CANCELED" || order.status === "EXPIRED" || order.status === "REJECTED") {
@@ -914,10 +942,17 @@ export class FxDreamLive {
       if (order.executedQty > 0) {
         const msg = await this.openPosition(base, order.executedQty, order.avgPrice || w.edge);
         await sendTelegram(this.o.telegram, `📥 LIMIT bị huỷ ngoài bot nhưng đã khớp một phần\n${msg}`, undefined);
+        await this.markPhoto(p, `📥 LIMIT bị huỷ ngoài bot, đã khớp một phần\n${msg}`);
         return;
       }
       await sendTelegram(this.o.telegram, `ℹ️ LIMIT ${fmt(w.edge)} bị huỷ/từ chối ngoài bot (${order.status}).`, undefined);
+      await this.markPhoto(p, `ℹ️ LIMIT bị huỷ/từ chối ngoài bot (${order.status}).`);
     }
+  }
+
+  /** Kết cục của lệnh chờ ghi luôn vào ảnh gốc — ảnh không còn nói "tự huỷ lúc …" sau khi đã huỷ. */
+  private async markPhoto(p: FxProposal | undefined, line: string): Promise<void> {
+    if (p?.messageId) await editTelegramCaption(this.o.telegram, p.messageId, `${this.caption(p)}\n\n${line}`);
   }
 
   private async managePosition(): Promise<void> {
