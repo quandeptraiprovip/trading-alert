@@ -299,6 +299,68 @@ async function testTextIgnoredWhenNotEditing(): Promise<void> {
   assert.equal(used, false);
 }
 
+/** Sàn báo lỗi lúc đặt LIMIT → đề nghị "failed" nhưng còn thử lại được; ✅ lần hai đặt lệnh bình thường. */
+async function testRetryAfterVenueError(): Promise<void> {
+  let calls = 0;
+  const { fx, journal } = await replay(fixture(DAY, TAIL), CONFIRM - 1, async (f, id) => {
+    await f.decide(id, true);
+    const p = f.snapshot().proposals.find((x) => x.id === id)!;
+    assert.equal(p.status, "failed");
+    assert.equal(p.retryable, true, "lỗi sàn phải cho thử lại");
+    assert.match(p.note!, /lỗi sàn: Timestamp/);
+    await f.decide(id, true);
+  }, (v) => {
+    const orig = v.limitOrder.bind(v);
+    v.limitOrder = async (...args: Parameters<FakeVenue["limitOrder"]>) => {
+      if (calls++ === 0) throw new Error("Timestamp for this request is outside of the recvWindow");
+      return orig(...args);
+    };
+  });
+  assert.equal(calls, 2);
+  const p = fx.snapshot().proposals[0];
+  assert.equal(p.status, "approved");
+  assert.ok(journal.some((e) => e.event === "opened"), "thử lại phải vào lệnh");
+}
+
+/** Báo lỗi nhưng lệnh THẬT ra đã lên sàn (timeout): thử lại phải khoá, không đặt lệnh thứ hai. */
+async function testRetryDoesNotDoubleOrder(): Promise<void> {
+  let calls = 0;
+  const { fx, venue } = await replay(fixture(DAY, TAIL), CONFIRM - 1, async (f, id) => {
+    await f.decide(id, true);
+    await f.decide(id, true);
+  }, (v) => {
+    const orig = v.limitOrder.bind(v);
+    v.limitOrder = async (...args: Parameters<FakeVenue["limitOrder"]>) => {
+      calls++;
+      await orig(...args);
+      throw new Error("timeout of 10000ms exceeded");
+    };
+  });
+  assert.equal(calls, 1, "không được gửi lệnh lần hai");
+  assert.ok(fx.blocked, "lệnh lạ trên sàn phải khoá bot");
+  const p = fx.snapshot().proposals[0];
+  assert.equal(p.status, "failed");
+  assert.equal(p.retryable, false);
+  assert.ok(venue.orders.length + venue.fills.length <= 1);
+}
+
+/** Lỗi sàn mà không thử lại: quá hạn đề nghị thì mất quyền thử lại, bấm nút cũ không đặt lệnh. */
+async function testRetryExpires(): Promise<void> {
+  let first = true;
+  const { fx } = await replay(fixture(DAY, Array(21).fill(BELOW)), CONFIRM - 1, async (f, id) => {
+    if (!first) return;
+    first = false;
+    await f.decide(id, true);
+  }, (v) => {
+    v.limitOrder = async () => { throw new Error("Service unavailable"); };
+  });
+  const p = fx.snapshot().proposals[0];
+  assert.equal(p.status, "failed");
+  assert.equal(p.retryable, false, "quá hạn đề nghị thì hết thử lại");
+  await fx.decide(p.id, true);
+  assert.equal(fx.snapshot().proposals[0].status, "failed", "bấm nút cũ sau hạn không đặt lệnh");
+}
+
 function testImageRenders(): void {
   const candles = fixture(DAY, TAIL).slice(-96);
   const svg = buildProposalSvg({
@@ -320,6 +382,9 @@ function testImageRenders(): void {
   testParsePrice();
   await testEditThenApprove();
   await testTextIgnoredWhenNotEditing();
+  await testRetryAfterVenueError();
+  await testRetryDoesNotDoubleOrder();
+  await testRetryExpires();
   testImageRenders();
   console.log("FX Dream live tests: OK");
 })().catch((err) => {

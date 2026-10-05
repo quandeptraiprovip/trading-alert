@@ -111,7 +111,7 @@ function startCommandListener(): void {
           else if (cmd === "/health") await sendTelegram(telegram, await healthText());
           else if (cmd === "/status" || cmd === "/start") await sendTelegram(telegram, fx.statusText(), undefined);
           else if (cmd === "/help") {
-            await sendTelegram(telegram, "🤖 FX Dream bot\n/status — vị thế, lệnh chờ, đề nghị đang chờ\n/health — code, engine, sàn, số dư\nẢnh đề nghị có nút ✅ Vào lệnh / ✏️ Sửa (gõ entry/sl/tp mới) / ❌ Bỏ qua.", undefined);
+            await sendTelegram(telegram, "🤖 FX Dream bot\n/status — vị thế, lệnh chờ, đề nghị đang chờ\n/health — code, engine, sàn, số dư\nẢnh đề nghị có nút ✅ Vào lệnh / ✏️ Sửa (gõ entry/sl/tp mới) / ❌ Bỏ qua.\nSàn báo lỗi lúc đặt lệnh → nút 🔁 Thử lại (còn trong hạn của đề nghị).", undefined);
           }
         } catch (err) {
           console.error("[Cmd] lỗi:", err);

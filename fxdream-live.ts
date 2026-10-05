@@ -39,6 +39,7 @@ import {
   runKeyVolumeCandidates,
 } from "./key-volume";
 import {
+  InlineButton,
   TelegramCallback,
   TelegramConfig,
   answerTelegramCallback,
@@ -96,6 +97,8 @@ export interface FxProposal {
   note?: string;
   /** Giá bạn đã sửa tay trước khi duyệt. */
   edited?: ("entry" | "sl" | "tp")[];
+  /** Thất bại vì sàn báo lỗi (không phải vì luật) — còn hạn thì được bấm 🔁 Thử lại. */
+  retryable?: boolean;
 }
 
 interface FxWorking {
@@ -484,8 +487,8 @@ export class FxDreamLive {
       const result = await this.execute(proposal);
       const caption = `${this.caption(proposal)}\n\n🌙 00:00–06:00 — TỰ VÀO, không hỏi.\n${result}`;
       proposal.messageId = png
-        ? await sendTelegramPhoto(this.o.telegram, png, caption)
-        : (await sendTelegram(this.o.telegram, caption, undefined), null);
+        ? await sendTelegramPhoto(this.o.telegram, png, caption, this.retryButtons(proposal))
+        : (await sendTelegram(this.o.telegram, caption + this.retryHint(proposal), undefined), null);
       this.save();
       return;
     }
@@ -694,9 +697,11 @@ export class FxDreamLive {
       const p = this.state.proposals.find((x) => x.id === id);
       const answer = (text: string) => (callbackId ? answerTelegramCallback(this.o.telegram, callbackId, text) : sendTelegram(this.o.telegram, text, undefined));
       if (!p) return void (await answer("Không tìm thấy đề nghị này."));
-      if (p.status !== "pending") return void (await answer(`Đề nghị đã ${p.status}.`));
+      const retrying = p.status === "failed" && p.retryable === true;
+      if (p.status !== "pending" && !retrying) return void (await answer(`Đề nghị đã ${p.status}.`));
       if (this.o.now() > p.expiresAt) {
         p.status = "expired";
+        p.retryable = false;
         this.save();
         await answer("Đã hết hạn.");
         if (p.messageId) await editTelegramCaption(this.o.telegram, p.messageId, `${this.caption(p)}\n\n⌛ Hết hạn — không vào.`);
@@ -704,24 +709,39 @@ export class FxDreamLive {
       }
       if (!approve) {
         p.status = "rejected";
+        p.retryable = false;
         this.save();
         await answer("Đã bỏ qua.");
         if (p.messageId) await editTelegramCaption(this.o.telegram, p.messageId, `${this.caption(p)}\n\n❌ Bạn đã bỏ qua.`);
         return;
       }
-      await answer("Đang đặt lệnh…");
-      const result = await this.execute(p);
-      if (p.messageId) await editTelegramCaption(this.o.telegram, p.messageId, `${this.caption(p)}\n\n${result}`);
-      else await sendTelegram(this.o.telegram, result, undefined);
+      await answer(retrying ? "Đang thử lại…" : "Đang đặt lệnh…");
+      const result = await this.execute(p, retrying);
+      if (p.messageId) await editTelegramCaption(this.o.telegram, p.messageId, `${this.caption(p)}\n\n${result}`, this.retryButtons(p));
+      else await sendTelegram(this.o.telegram, result + this.retryHint(p), undefined);
     });
+  }
+
+  /** Lỗi sàn còn trong hạn → nút 🔁 Thử lại (gửi lại qua `decide`) / ❌ Bỏ qua. */
+  private retryButtons(p: FxProposal): InlineButton[] | undefined {
+    if (p.status !== "failed" || !p.retryable) return undefined;
+    return [
+      { text: "🔁 Thử lại", data: `fx:y:${p.id}` },
+      { text: "❌ Bỏ qua", data: `fx:n:${p.id}` },
+    ];
+  }
+
+  private retryHint(p: FxProposal): string {
+    return this.retryButtons(p) ? `\nGõ /yes_${p.id} để thử lại (tới ${vnTime(p.expiresAt)}) hoặc /no_${p.id} để bỏ.` : "";
   }
 
   // ── đặt lệnh ───────────────────────────────────────────────────────────
   /** Thực thi đề nghị đã được đồng ý (hoặc tự vào ban đêm). Trả một dòng kết quả cho caption. */
-  private async execute(p: FxProposal): Promise<string> {
-    const fail = (why: string) => {
+  private async execute(p: FxProposal, retrying = false): Promise<string> {
+    const fail = (why: string, retryable = false) => {
       p.status = "failed";
       p.note = why;
+      p.retryable = retryable;
       this.save();
       this.journal({ event: "rejected", proposal: p.id, why });
       return `⚠️ Không vào: ${why}`;
@@ -731,6 +751,12 @@ export class FxDreamLive {
     const venue = this.o.venue!;
     const sym = this.o.symbol;
     try {
+      if (retrying) {
+        // Lần trước báo lỗi nhưng lệnh vẫn có thể đã lọt lên sàn (timeout) → đối soát trước,
+        // thấy vị thế/lệnh lạ thì KHOÁ chứ không đặt thêm lệnh thứ hai.
+        await this.reconcile();
+        if (this.blocked) return fail(this.blocked);
+      }
       const venuePos = await venue.getPosition(sym);
       if (venuePos.positionAmt !== 0) {
         await this.reconcile();
@@ -775,14 +801,14 @@ export class FxDreamLive {
       }
 
       const fill = await venue.marketOrder(sym, openSide(p.dir), qty, `fx${p.id}`);
-      if (!(fill.executedQty > 0)) return fail(`MARKET không khớp (${fill.status})`);
+      if (!(fill.executedQty > 0)) return fail(`MARKET không khớp (${fill.status})`, true);
       p.status = "approved";
       const avg = fill.avgPrice || price;
       this.closeOtherPending(p.id);
       const protectedMsg = await this.openPosition(p, fill.executedQty, avg);
       return protectedMsg;
     } catch (err) {
-      return fail(`lỗi sàn: ${errMsg(err)}`);
+      return fail(`lỗi sàn: ${errMsg(err)}`, true);
     }
   }
 
@@ -1010,6 +1036,12 @@ export class FxDreamLive {
       this.save();
     }
     for (const p of this.state.proposals) {
+      if (p.status === "failed" && p.retryable && now > p.expiresAt) {
+        p.retryable = false;
+        this.save();
+        if (p.messageId) await editTelegramCaption(this.o.telegram, p.messageId, `${this.caption(p)}\n\n⚠️ Không vào: ${p.note}\n⌛ Hết hạn thử lại.`);
+        continue;
+      }
       if (p.status !== "pending" || now <= p.expiresAt) continue;
       p.status = "expired";
       this.save();

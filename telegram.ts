@@ -204,15 +204,18 @@ export async function sendTelegramPhoto(
   return null;
 }
 
-/** Thay chú thích ảnh đã gửi và GỠ hàng nút (bấm xong thì nút không còn bấm lại được). */
-export async function editTelegramCaption(cfg: TelegramConfig, messageId: number, caption: string): Promise<void> {
+/**
+ * Thay chú thích ảnh đã gửi và GỠ hàng nút (bấm xong thì nút không còn bấm lại được),
+ * hoặc thay bằng hàng nút `buttons` nếu có.
+ */
+export async function editTelegramCaption(cfg: TelegramConfig, messageId: number, caption: string, buttons?: InlineButton[]): Promise<void> {
   if (!cfg.enabled || !messageId) return;
   try {
     await axios.post(`https://api.telegram.org/bot${cfg.botToken}/editMessageCaption`, {
       chat_id: cfg.chatId,
       message_id: messageId,
       caption: caption.slice(0, 1024),
-      reply_markup: { inline_keyboard: [] },
+      reply_markup: { inline_keyboard: buttons?.length ? [buttons.map((b) => ({ text: b.text, callback_data: b.data }))] : [] },
     }, { timeout: 15000, httpsAgent });
   } catch (err: unknown) {
     const data = axios.isAxiosError(err) ? err.response?.data : undefined;
