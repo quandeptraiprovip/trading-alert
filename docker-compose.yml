@@ -1,13 +1,13 @@
-# Mặc định chỉ chạy UI chart + dashboard. Bot nằm trong profile "trading"
-# và chỉ được bật khi gọi profile đó một cách rõ ràng.
+# Mọi service đều nằm trong profile, phải gọi rõ: bot = "trading", chart + dashboard = "ui"
+# (user 06/10/26: máy bot chỉ chạy bot; UI tắt mặc định).
 #
 #   # LẦN ĐẦU: state atomic cần mount cả thư mục, không bind-mount từng file.
 #   mkdir -p trading-runtime/chart-playbook fast-trend-mexc-runtime
 #   touch trading-runtime/bot-state.json trading-runtime/trades-live.jsonl \
 #         trading-runtime/turtle-state.json trading-runtime/turtle-trades.jsonl
 #
-#   docker compose up -d --build      # UI + dashboard, KHÔNG bật Turtle/Fast
-#   docker compose --profile trading up -d --build  # explicit: bật thêm bot
+#   docker compose --profile trading up -d --build  # chỉ bot
+#   docker compose --profile ui up -d --build       # chỉ chart + dashboard (khi cần xem)
 #   docker compose logs -f swing-bot  # xem log bot (tìm "🐢 Turtle:" và "THỰC THI BẬT")
 #   docker compose down               # dừng
 #
@@ -41,6 +41,7 @@ services:
     restart: unless-stopped
 
   swing-chart:
+    profiles: ["ui"]
     build: .
     image: swing-alert-bot
     container_name: swing-chart
@@ -77,6 +78,7 @@ services:
   # ⚠️ Cổng 3848 chỉ bind localhost — KHÔNG mở ra Internet (hiển thị số dư/vị thế).
   #    Truy cập từ xa qua SSH tunnel: ssh -L 3848:localhost:3848 user@vm
   swing-dashboard:
+    profiles: ["ui"]
     build: .
     image: swing-alert-bot
     container_name: swing-dashboard
