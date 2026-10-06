@@ -22,6 +22,7 @@ import {
 import { ExtParams, OpenUnit, UnitTrade, runBooks } from "./scripts/portfolio-engine";
 import { getBotUniverse } from "./bot-universe";
 import { fetchOandaGoldM15 } from "./oanda-fetch";
+import { dropsWeekendBars, goldClosedNy } from "./market-hours";
 import { EvidenceGeometry, EvidenceItem, buildKeyVolumeView } from "./chart-keyvolume";
 
 /** Cửa sổ Key Volume (ngày). Ngắn hơn chart vì detector M15 sinh ~12 key/ngày. */
@@ -465,6 +466,8 @@ function chartUniverse(universe: ReturnType<typeof getBotUniverse>) {
         ...(universe.fast.includes(candidate) ? ["fast"] : []),
       ],
     })),
+    // Vàng Binance (TradFi perp) — xem lớp FX Dream; ngoài rổ Turtle/Fast.
+    { symbol: "XAUUSDT", venue: "BINANCE", strategies: [] },
     { symbol: "XAUUSD", venue: "OANDA", strategies: [] },
   ];
 }
@@ -534,12 +537,16 @@ export async function buildChartPayload(days: number, symbol = "btcusdt"): Promi
   // (~12 key/ngày) — kéo dài thêm chỉ làm phình payload chứ không thêm thông tin.
   const keyVolumeDays = Math.min(days, KEY_VOLUME_CHART_DAYS);
   const keyVolumeBars = Math.ceil(keyVolumeDays * (TF_MS["1d"] / TF_MS["15m"])) + 400;
-  const [ltf, rawStrategyCandles, rawBtcCandles, rawKeyVolumeM15] = await Promise.all([
+  const [rawLtf, rawStrategyCandles, rawBtcCandles, rawKeyVolumeAll] = await Promise.all([
     fetchKlinesPaged(sym, CONFIG.entryTf, totalBars),
     strategyPromise,
     btcPromise,
     fetchKlinesPaged(sym, "15m", keyVolumeBars),
   ]);
+  // Vàng: bỏ nến lúc thị trường thật đóng cửa cuối tuần — cả phần vẽ lẫn engine Key Volume.
+  const dropWeekend = dropsWeekendBars(sym);
+  const ltf = dropWeekend ? rawLtf.filter((c) => !goldClosedNy(c.openTime)) : rawLtf;
+  const rawKeyVolumeM15 = dropWeekend ? rawKeyVolumeAll.filter((c) => !goldClosedNy(c.openTime)) : rawKeyVolumeAll;
   const now = Date.now();
   const strategyCandles = rawStrategyCandles.filter((candle) => candle.openTime + TF_MS[T.tf] <= now);
   const btcCandles = rawBtcCandles.filter((candle) => candle.openTime + TF_MS[T.tf] <= now);

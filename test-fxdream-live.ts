@@ -8,7 +8,8 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { FxDreamLive, FxVenue, isNightVn, parseEditText, parsePrice } from "./fxdream-live";
+import { FxDreamLive, FxDreamLiveOptions, isNightVn, parseEditText, parsePrice } from "./fxdream-live";
+import { FakeVenue } from "./fxdream-fake-venue";
 import { KEY_VOLUME_CONFIG } from "./key-volume";
 import { buildProposalSvg, renderPng } from "./fxdream-image";
 import { Candle, TF_MS } from "./strategy";
@@ -52,94 +53,6 @@ const PARAMS = {
   enableKeyTrapBranch: false,
 };
 
-class FakeVenue implements FxVenue {
-  cur!: Candle;
-  pos = 0;
-  entry = 0;
-  orders: any[] = [];
-  done = new Map<number, any>();
-  algos: any[] = [];
-  fills: any[] = [];
-  private id = 1;
-  getFilters() {
-    return { symbol: "TEST", stepSize: 0.001, qtyPrecision: 3, tickSize: 0.01, pricePrecision: 2, minQty: 0.001, minNotional: 5 };
-  }
-  roundQty(_s: string, q: number) { return Math.floor(q * 1000 + 1e-9) / 1000; }
-  roundPrice(_s: string, p: number) { return Math.round(p * 100) / 100; }
-  async getEquity() { return { walletBalance: 1000, available: 1000 }; }
-  async getPosition() {
-    return { symbol: "TEST", positionAmt: this.pos, entryPrice: this.entry, markPrice: this.cur.close, unrealizedProfit: 0, liquidationPrice: 0, leverage: 10 };
-  }
-  private fill(side: string, qty: number, price: number, reduce: boolean) {
-    const realized = reduce ? (this.pos > 0 ? (price - this.entry) * qty : (this.entry - price) * qty) : 0;
-    if (!reduce) this.entry = price;
-    this.pos = Math.round((this.pos + (side === "BUY" ? qty : -qty)) * 1000) / 1000;
-    this.fills.push({ time: this.cur.openTime, price, qty, realizedPnl: realized, commission: 0, side });
-  }
-  async marketOrder(_s: string, side: any, qty: number) {
-    this.fill(side, qty, this.cur.close, false);
-    return { orderId: this.id++, clientOrderId: "", status: "FILLED", avgPrice: this.cur.close, executedQty: qty };
-  }
-  async marketClose(_s: string, side: any, qty: number) {
-    this.fill(side, qty, this.cur.close, true);
-    return { orderId: this.id++, clientOrderId: "", status: "FILLED", avgPrice: this.cur.close, executedQty: qty };
-  }
-  async limitOrder(_s: string, side: any, qty: number, price: number) {
-    const o = { orderId: this.id++, side, qty, price, status: "NEW", executedQty: 0, avgPrice: 0 };
-    this.orders.push(o);
-    return { ...o, clientOrderId: "" };
-  }
-  async getOrder(_s: string, id: number) {
-    const o = this.orders.find((x) => x.orderId === id) ?? this.done.get(id);
-    return { orderId: id, clientOrderId: "", status: o.status, avgPrice: o.avgPrice, executedQty: o.executedQty };
-  }
-  async cancelOrder(_s: string, id: number) {
-    const o = this.orders.find((x) => x.orderId === id);
-    if (!o) return;
-    o.status = "CANCELED";
-    this.done.set(id, o);
-    this.orders = this.orders.filter((x) => x !== o);
-  }
-  private algo(orderType: string, side: any, p: number, qty?: number) {
-    const algoId = this.id++;
-    this.algos.push({ algoId, orderType, side, triggerPrice: String(p), qty, close: qty == null });
-    return algoId;
-  }
-  async stopMarketClose(_s: string, side: any, p: number) { return this.algo("STOP_MARKET", side, p); }
-  async takeProfitMarketClose(_s: string, side: any, p: number) { return this.algo("TAKE_PROFIT_MARKET", side, p); }
-  async takeProfitMarketReduce(_s: string, side: any, p: number, qty: number) { return this.algo("TAKE_PROFIT_MARKET", side, p, qty); }
-  async cancelAlgoOrder(id: number) { this.algos = this.algos.filter((a) => a.algoId !== id); }
-  async cancelAllOpenOrders() { this.orders = []; }
-  async cancelAllAlgoOpenOrders() { this.algos = []; }
-  async getOpenOrders() { return this.orders; }
-  async getOpenAlgoOrders() { return this.algos; }
-  async getUserTrades(_s: string, since: number) { return this.fills.filter((f) => f.time >= since); }
-  /** Giá chạy trong một nến: lệnh chờ khớp, rồi SL trước (bi quan), rồi TP. */
-  step(c: Candle) {
-    this.cur = c;
-    for (const o of [...this.orders]) {
-      if (!(o.side === "SELL" ? c.high >= o.price : c.low <= o.price)) continue;
-      const px = o.side === "SELL" ? Math.max(o.price, c.open) : Math.min(o.price, c.open);
-      this.fill(o.side, o.qty, px, false);
-      Object.assign(o, { status: "FILLED", executedQty: o.qty, avgPrice: px });
-      this.done.set(o.orderId, o);
-      this.orders = this.orders.filter((x) => x !== o);
-    }
-    if (this.pos === 0) return;
-    const long = this.pos > 0;
-    for (const type of ["STOP_MARKET", "TAKE_PROFIT_MARKET"]) {
-      for (const a of this.algos.filter((x) => x.orderType === type).sort((x, y) => Number(x.close) - Number(y.close))) {
-        const p = +a.triggerPrice;
-        const hit = type === "STOP_MARKET" ? (long ? c.low <= p : c.high >= p) : (long ? c.high >= p : c.low <= p);
-        if (this.pos === 0 || !hit) continue;
-        this.fill(a.side, a.close ? Math.abs(this.pos) : a.qty, p, true);
-        this.algos = this.algos.filter((x) => x !== a);
-      }
-    }
-    if (this.pos === 0) this.algos = [];
-  }
-}
-
 /** Chạy bot từ nến `startAt` tới hết `candles`; `onPending` quyết định từng đề nghị. */
 async function replay(
   candles: Candle[],
@@ -147,6 +60,7 @@ async function replay(
   onPending: (fx: FxDreamLive, id: string) => Promise<void>,
   setup?: (venue: FakeVenue, dir: string) => void,
   params = PARAMS,
+  extra: Pick<FxDreamLiveOptions, "symbol" | "stateName" | "marketClosed"> = { symbol: "test" },
 ) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fxdream-test-"));
   const venue = new FakeVenue();
@@ -155,7 +69,7 @@ async function replay(
   venue.cur = candles[idx];
   setup?.(venue, dir);
   const fx = new FxDreamLive({
-    symbol: "test", venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, leverage: 10,
+    ...extra, venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, leverage: 10,
     dataDir: dir, isTradingReady: () => true, params, now: () => clock,
     fetchClosed: async (n) => candles.slice(Math.max(0, idx + 1 - n), idx + 1),
   });
@@ -172,10 +86,11 @@ async function replay(
   } finally {
     console.log = log;
   }
-  const journal = fs.existsSync(path.join(dir, "fxdream-trades.jsonl"))
-    ? fs.readFileSync(path.join(dir, "fxdream-trades.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l))
+  const journalFile = path.join(dir, `${extra.stateName ?? "fxdream"}-trades.jsonl`);
+  const journal = fs.existsSync(journalFile)
+    ? fs.readFileSync(journalFile, "utf8").trim().split("\n").map((l) => JSON.parse(l))
     : [];
-  return { fx, venue, journal };
+  return { fx, venue, journal, dir };
 }
 
 // Giờ VN ban ngày: nến 0 mở lúc 07:00 VN ⇒ nến xác nhận đóng 15:30 VN.
@@ -296,6 +211,11 @@ function testParsePrice(): void {
   assert.deepEqual(parseEditText("sl 79400 tp 78300"), { stop: 79400, target: 78300 });
   assert.deepEqual(parseEditText("Vào: 78.850,5"), { entry: 78850.5 });
   assert.deepEqual(parseEditText("entry=78850 SL=79,400"), { entry: 78850, stop: 79400 });
+  // Giá vàng (2 số lẻ).
+  assert.equal(parsePrice("4172.35"), 4172.35);
+  assert.equal(parsePrice("4.172,35"), 4172.35);
+  assert.equal(parsePrice("4172,3"), 4172.3);
+  assert.deepEqual(parseEditText("sl 4155,8 tp 4262.4 entry 4,172.35"), { stop: 4155.8, target: 4262.4, entry: 4172.35 });
   assert.equal(parseEditText("ok"), null);
 }
 
@@ -309,6 +229,9 @@ async function testEditThenApprove(): Promise<void> {
     const bad = f.snapshot().proposals.find((x) => x.id === id)!;
     assert.equal(bad.stop, f.snapshot().proposals[0].stop, "SL dưới entry của lệnh SHORT bị từ chối, giữ nguyên");
     assert.equal(bad.edited, undefined);
+    // Gõ nhầm (thiếu chữ số): TP 9,7 vẫn đúng thứ tự TP < entry của SHORT nhưng lệch >20% giá → từ chối.
+    assert.equal(await f.handleText("tp 9.7"), true);
+    assert.equal(f.snapshot().proposals[0].edited, undefined, "giá lệch >20% so với giá hiện tại bị từ chối");
     assert.equal(await f.handleText("sl 100,5 tp 97"), true);
     await f.decide(id, true);
   });
@@ -397,6 +320,74 @@ async function testRetryExpires(): Promise<void> {
   assert.equal(fx.snapshot().proposals[0].status, "failed", "bấm nút cũ sau hạn không đặt lệnh");
 }
 
+/**
+ * Vàng (06/10/26): instance thứ hai cùng thư mục dữ liệu phải có file state/journal RIÊNG và id
+ * đề nghị mang tiền tố mã — nếu không, BTC và vàng ghi đè state của nhau, nút bấm vào nhầm mã.
+ */
+async function testSecondSymbolSeparateStateAndIds(): Promise<void> {
+  const { fx, journal, dir } = await replay(fixture(DAY, TAIL), CONFIRM - 1, (f, id) => f.decide(id, true), undefined, PARAMS,
+    { symbol: "xauusdt", stateName: "fxdream-xauusdt" });
+  const p = fx.snapshot().proposals[0];
+  assert.ok(p.id.startsWith("xau"), `id phải có tiền tố mã, được ${p.id}`);
+  assert.ok(fx.owns(p.id));
+  assert.equal(fx.owns(p.id.replace(/^xau/, "btc")), false, "id của mã khác không thuộc instance này");
+  assert.ok(fs.existsSync(path.join(dir, "fxdream-xauusdt-state.json")));
+  assert.equal(fs.existsSync(path.join(dir, "fxdream-state.json")), false, "không được đụng file state của BTC");
+  assert.ok(journal.some((e) => e.event === "opened"), "journal riêng của vàng phải ghi lệnh");
+}
+
+/** Bot truyền `marketClosed: undefined` cho BTC (06/10/26: từng làm bot sập lúc khởi động). */
+async function testUndefinedOptionsKeepDefaults(): Promise<void> {
+  const { fx } = await replay(fixture(DAY, TAIL), CONFIRM - 1, (f, id) => f.decide(id, true), undefined, PARAMS,
+    { symbol: "btcusdt", stateName: undefined, marketClosed: undefined });
+  assert.ok(fx.snapshot().proposals[0]?.id.startsWith("btc"), "BTC không có giờ đóng cửa vẫn phải ra đề nghị");
+}
+
+/** Bấm ✏️ ở mã khác: chế độ sửa ở mã này tắt, tin chữ không còn bị nó bắt. */
+async function testCancelEdit(): Promise<void> {
+  let used: boolean | null = null;
+  await replay(fixture(DAY, TAIL), CONFIRM - 1, async (f, id) => {
+    if (used !== null) return;
+    await f.startEdit(id);
+    await f.cancelEdit();
+    assert.equal(f.snapshot().editingId, null);
+    used = await f.handleText("sl 100,5");
+    await f.decide(id, false);
+  });
+  assert.equal(used, false);
+}
+
+/**
+ * Vàng: nến lúc thị trường đóng cửa bị bỏ khỏi engine, và tín hiệu trong giờ đầu sau khi mở cửa
+ * lại (05:00 sáng thứ Hai VN rơi vào khung tự vào ban đêm) phải HỎI chứ không tự vào.
+ */
+async function testReopenHourAsksAndClosedBarsDropped(): Promise<void> {
+  const GAP = 49 * 3600_000; // như một cuối tuần vàng
+  const base = fixture(NIGHT, TAIL);
+  // Chèn 10 nến "cuối tuần" (sẽ bị bỏ) ngay trước nến xác nhận, rồi dời nến xác nhận về sau khoảng đóng cửa.
+  const closedFrom = base[CONFIRM - 1].openTime + M15;
+  const closedTo = closedFrom + GAP;
+  const weekend: Candle[] = Array.from({ length: 10 }, (_, k) => ({
+    openTime: closedFrom + k * M15, open: 120, high: 130, low: 110, close: 120, volume: 99999, quoteVolume: 99999, takerBuyVolume: 1,
+  }));
+  const after = base.slice(CONFIRM).map((c) => ({ ...c, openTime: c.openTime + GAP }));
+  const candles = [...base.slice(0, CONFIRM), ...weekend, ...after];
+  const confirmBar = candles[CONFIRM + weekend.length];
+  assert.equal(isNightVn(confirmBar.openTime + M15), true, "fixture: nến xác nhận đóng giữa đêm");
+  let asked = 0;
+  const { fx, journal } = await replay(candles, CONFIRM - 1, async (f, id) => {
+    asked++;
+    await f.decide(id, true);
+  }, undefined, PARAMS, { symbol: "xauusdt", stateName: "fxdream-xauusdt", marketClosed: (ms) => ms >= closedFrom && ms < closedTo });
+  const p = fx.snapshot().proposals[0];
+  assert.ok(p, "bỏ nến cuối tuần thì mẫu hình vẫn nối liền, phải ra tín hiệu ở nến đầu tiên sau mở cửa");
+  assert.equal(p.createdAt, confirmBar.openTime + M15);
+  assert.equal(p.auto, false, "giờ đầu sau mở cửa không được tự vào dù là ban đêm");
+  assert.equal(asked, 1);
+  const opened = journal.find((e) => e.event === "opened");
+  assert.ok(opened && opened.riskUsd > 4.5, "bạn duyệt thì rủi ro đủ $5");
+}
+
 function testImageRenders(): void {
   const candles = fixture(DAY, TAIL).slice(-96);
   const svg = buildProposalSvg({
@@ -423,6 +414,10 @@ function testImageRenders(): void {
   await testRetryAfterVenueError();
   await testRetryDoesNotDoubleOrder();
   await testRetryExpires();
+  await testSecondSymbolSeparateStateAndIds();
+  await testCancelEdit();
+  await testUndefinedOptionsKeepDefaults();
+  await testReopenHourAsksAndClosedBarsDropped();
   testImageRenders();
   console.log("FX Dream live tests: OK");
 })().catch((err) => {

@@ -1260,9 +1260,39 @@ function snapChartTime(milliseconds) {
   const first = candles[0].t;
   const last = candles[candles.length - 1].t;
   const clamped = Math.max(first, Math.min(last, Number(milliseconds)));
+  return candles[Math.round(candleLogicalAt(clamped))].t;
+}
+
+/**
+ * Vị trí nến (logical, có phần lẻ) của một mốc thời gian, tìm theo thời gian THẬT chứ
+ * không chia cho 15 phút: XAUUSDT bỏ nến cuối tuần nên chuỗi nến có khoảng trống.
+ * Ngoài hai đầu dữ liệu thì ngoại suy theo bước nến.
+ */
+function candleLogicalAt(milliseconds) {
+  const candles = state.candles;
   const interval = candleIntervalMs();
-  const index = Math.max(0, Math.min(candles.length - 1, Math.round((clamped - first) / interval)));
-  return candles[index].t;
+  const last = candles.length - 1;
+  if (milliseconds <= candles[0].t) return (milliseconds - candles[0].t) / interval;
+  if (milliseconds >= candles[last].t) return last + (milliseconds - candles[last].t) / interval;
+  let lo = 0;
+  let hi = last;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (candles[mid].t <= milliseconds) lo = mid;
+    else hi = mid;
+  }
+  return lo + Math.min(1, (milliseconds - candles[lo].t) / interval);
+}
+
+/** Ngược lại của candleLogicalAt. */
+function candleTimeAtLogical(logical) {
+  const candles = state.candles;
+  const interval = candleIntervalMs();
+  const last = candles.length - 1;
+  if (logical <= 0) return candles[0].t + logical * interval;
+  if (logical >= last) return candles[last].t + (logical - last) * interval;
+  const index = Math.floor(logical);
+  return candles[index].t + (logical - index) * interval;
 }
 
 function geometryToPixels(geometry, plot) {
@@ -2401,20 +2431,17 @@ function candleIntervalMs() {
 function positionTimeAtCoordinate(x) {
   const logical = state.chart?.timeScale().coordinateToLogical(x);
   if (!Number.isFinite(logical) || !state.candles.length) return null;
-  return state.candles[0].t + logical * candleIntervalMs();
+  return candleTimeAtLogical(logical);
 }
 
 function snapToCandleTime(time) {
   if (!Number.isFinite(time) || !state.candles.length) return null;
-  const interval = candleIntervalMs();
-  const logical = Math.round((time - state.candles[0].t) / interval);
-  return state.candles[0].t + logical * interval;
+  return candleTimeAtLogical(Math.round(candleLogicalAt(time)));
 }
 
 function positionCoordinateAtTime(time) {
   if (!state.chart || !state.candles.length || !Number.isFinite(time)) return null;
-  const logical = (time - state.candles[0].t) / candleIntervalMs();
-  return state.chart.timeScale().logicalToCoordinate(logical);
+  return state.chart.timeScale().logicalToCoordinate(candleLogicalAt(time));
 }
 
 /**
@@ -3335,7 +3362,7 @@ function drawingPointFromEvent(event, rect = dom.chartWrap.getBoundingClientRect
   const price = state.candleSeries.coordinateToPrice(y);
   if (!Number.isFinite(logical) || !Number.isFinite(price)) return null;
   return {
-    time: state.candles[0].t + logical * FIFTEEN_MINUTES,
+    time: candleTimeAtLogical(logical),
     price: roundPrice(price),
     x,
     y,
@@ -3344,7 +3371,7 @@ function drawingPointFromEvent(event, rect = dom.chartWrap.getBoundingClientRect
 
 function drawingTimeToCoordinate(time) {
   if (!state.chart || !state.candles.length || !Number.isFinite(time)) return null;
-  const logical = (time - state.candles[0].t) / FIFTEEN_MINUTES;
+  const logical = candleLogicalAt(time);
   return state.chart.timeScale().logicalToCoordinate(logical);
 }
 

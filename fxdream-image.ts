@@ -60,8 +60,10 @@ function esc(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/** BTC ~86.000 → 1 số lẻ; vàng ~4.180 → 2 số lẻ (bước giá 0,01). */
 function fmt(n: number): string {
-  return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const digits = Math.abs(n) >= 10_000 ? 1 : 2;
+  return n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
 function hhmm(ms: number): string {

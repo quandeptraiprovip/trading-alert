@@ -20,7 +20,8 @@ services:
     build: .
     image: swing-alert-bot
     container_name: swing-bot
-    # User 04/10/26: chỉ FX Dream trên Binance BTCUSDT, hỏi ý trước khi vào (fxdream-bot.ts).
+    # User 04/10/26: chỉ FX Dream trên Binance, hỏi ý trước khi vào (fxdream-bot.ts).
+    # 06/10/26: BTCUSDT + vàng XAUUSDT (FXDREAM_SYMBOLS để đổi).
     # Bot cũ (SMC/Turtle/Fast/MEXC) vẫn build trong image: đổi lại `node bot.js` để quay về.
     command: node fxdream-bot.js
     env_file: .env.local

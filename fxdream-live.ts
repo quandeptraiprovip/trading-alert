@@ -19,7 +19,11 @@
  * AN TOÀN:
  *   · Không bao giờ để vị thế trần: đặt SL lỗi → đóng khẩn cấp.
  *   · Không replay nến cũ khi khởi động — chỉ xét tín hiệu ở nến đóng SAU lúc bot chạy.
- *   · Trên sàn có vị thế/lệnh BTCUSDT mà state không biết (vd Turtle cũ) → KHOÁ, báo, không đụng tới.
+ *   · Trên sàn có vị thế/lệnh của mã mà state không biết (vd Turtle cũ) → KHOÁ, báo, không đụng tới.
+ *
+ * Nhiều mã (user 06/10/26: thêm vàng XAUUSDT): mỗi mã một instance, state/journal riêng
+ * (`stateName`), id đề nghị mang tiền tố mã (`owns`). Vàng bỏ nến lúc thị trường thật đóng cửa
+ * (`marketClosed`) và giờ đầu sau khi mở lại luôn hỏi ý.
  */
 
 import fs from "fs";
@@ -154,12 +158,20 @@ export interface FxDreamLiveOptions {
   now?: () => number;
   /** Nến M15 ĐÃ ĐÓNG gần nhất, cũ → mới. Mặc định gọi fapi public. */
   fetchClosed?: (bars: number) => Promise<Candle[]>;
+  /** Tiền tố file state/journal. Mặc định "fxdream" (tên file cũ của BTC). */
+  stateName?: string;
+  /** true nếu nến mở lúc `ms` rơi vào giờ thị trường đóng cửa — nến đó bị bỏ. Mặc định: không bao giờ. */
+  marketClosed?: (ms: number) => boolean;
 }
 
 const M15 = TF_MS["15m"];
 const WINDOW_BARS = 45 * 96 + 600;
 const MARKET_APPROVAL_MS = 15 * 60_000;
 const MAX_DRIFT_R = 0.3;
+/** Giá sửa tay lệch quá mức này so với giá hiện tại thì coi là gõ nhầm (vd thừa/thiếu một chữ số). */
+const MAX_EDIT_DEVIATION = 0.2;
+/** Sau khi thị trường mở lại, tín hiệu trong khoảng này luôn hỏi ý (không tự vào ban đêm). */
+const REOPEN_ASK_MS = 60 * 60_000;
 const PARTIAL_FRACTION = 0.33;
 
 const BRANCH_LABEL: Record<KeyVolumeEntryPlan["branch"], string> = {
@@ -178,8 +190,14 @@ function openSide(dir: Dir): OrderSide {
 function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
+/** BTC ~86.000 → 1 số lẻ; vàng ~4.180 → 2 số lẻ (bước giá 0,01). */
 function fmt(n: number): string {
-  return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const digits = Math.abs(n) >= 10_000 ? 1 : 2;
+  return n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+/** Giá để gõ lại (không phân cách nghìn), làm ví dụ cú pháp sửa. */
+function plain(n: number): string {
+  return String(Number(n.toFixed(Math.abs(n) >= 10_000 ? 1 : 2)));
 }
 function vnTime(ms: number): string {
   return new Date(ms).toLocaleString("vi-VN", {
@@ -262,16 +280,23 @@ export class FxDreamLive {
   blocked: string | null = null;
   lastDataAt = 0;
   private saveFailing = false;
+  /** Tiền tố id đề nghị theo mã ("btc", "xau") — hai mã ra tín hiệu cùng nến không trùng id. */
+  private readonly idPrefix: string;
 
   constructor(opts: FxDreamLiveOptions) {
+    // `??` chứ không trải `...opts` đè lên mặc định: bot truyền `marketClosed: undefined` cho BTC,
+    // trải object sẽ ghi đè mặc định bằng undefined và bot sập lúc khởi động.
     this.o = {
-      params: KEY_VOLUME_CONFIG,
-      now: () => Date.now(),
-      fetchClosed: (bars) => fetchClosedFapi(opts.symbol, bars),
       ...opts,
+      params: opts.params ?? KEY_VOLUME_CONFIG,
+      now: opts.now ?? (() => Date.now()),
+      fetchClosed: opts.fetchClosed ?? ((bars) => fetchClosedFapi(opts.symbol, bars)),
+      stateName: opts.stateName ?? "fxdream",
+      marketClosed: opts.marketClosed ?? (() => false),
     };
-    this.stateFile = path.join(opts.dataDir, "fxdream-state.json");
-    this.journalFile = path.join(opts.dataDir, "fxdream-trades.jsonl");
+    this.idPrefix = opts.symbol.toLowerCase().replace(/usdt$/, "");
+    this.stateFile = path.join(opts.dataDir, `${this.o.stateName}-state.json`);
+    this.journalFile = path.join(opts.dataDir, `${this.o.stateName}-trades.jsonl`);
     this.state = this.load();
   }
 
@@ -333,13 +358,23 @@ export class FxDreamLive {
     return this.state;
   }
 
+  /** Id đề nghị (nút bấm, /yes_<id>…) thuộc mã này không. */
+  owns(id: string): boolean {
+    return id.startsWith(this.idPrefix);
+  }
+
+  /** Nến lúc thị trường đóng cửa bị bỏ hẳn, như dữ liệu FX (backtest scripts/exp-keyvol-gold.ts). */
+  private tradable(candles: Candle[]): Candle[] {
+    return candles.filter((c) => !this.o.marketClosed(c.openTime));
+  }
+
   private canTrade(): boolean {
     return this.o.venue != null && this.o.isTradingReady() && this.blocked == null;
   }
 
   // ── khởi động ──────────────────────────────────────────────────────────
   async start(): Promise<void> {
-    this.candles = await this.o.fetchClosed(WINDOW_BARS);
+    this.candles = this.tradable(await this.o.fetchClosed(WINDOW_BARS));
     this.lastDataAt = this.o.now();
     const last = this.candles.at(-1);
     // KHÔNG replay: tín hiệu chỉ xét từ nến đóng SAU lúc khởi động (bẫy deploy 09/08).
@@ -406,7 +441,7 @@ export class FxDreamLive {
   private async pullCandles(): Promise<void> {
     let fresh: Candle[];
     try {
-      fresh = await this.o.fetchClosed(5);
+      fresh = this.tradable(await this.o.fetchClosed(5));
     } catch (err) {
       console.error("[FX Dream] lấy nến lỗi:", errMsg(err));
       return;
@@ -416,8 +451,8 @@ export class FxDreamLive {
     const added = fresh.filter((c) => c.openTime > lastKnown);
     if (!added.length) return;
     if (added[0].openTime - lastKnown > M15 && lastKnown > 0) {
-      // Lỡ nến (mạng): nạp lại đủ cửa sổ cho engine không bị lủng.
-      this.candles = await this.o.fetchClosed(WINDOW_BARS);
+      // Lỡ nến (mạng) hoặc vừa mở cửa sau cuối tuần: nạp lại đủ cửa sổ cho engine không bị lủng.
+      this.candles = this.tradable(await this.o.fetchClosed(WINDOW_BARS));
     } else {
       this.candles.push(...added);
       if (this.candles.length > WINDOW_BARS) this.candles = this.candles.slice(-WINDOW_BARS);
@@ -465,8 +500,10 @@ export class FxDreamLive {
     const night = isNightVn(closeTime);
     // User 06/10/26: ban đêm chỉ TỰ VÀO khi TP ≥ 1R; dưới 1R (vd 0,21R lúc 01:15) thì hỏi như ban ngày.
     const thinTarget = Math.abs(best.target - best.entry) < risk;
+    // Vàng vừa mở cửa lại (giờ đầu, vd 05:00 sáng thứ Hai VN) — volume bùng lên dễ sinh key giả: luôn hỏi.
+    const justOpened = this.o.marketClosed(bars[L].openTime - REOPEN_ASK_MS);
     const proposal: FxProposal = {
-      id: `${closeTime.toString(36)}${best.plan.branch.length}`,
+      id: `${this.idPrefix}${closeTime.toString(36)}${best.plan.branch.length}`,
       planId: best.plan.id,
       kind: best.kind,
       dir: best.plan.direction,
@@ -478,7 +515,7 @@ export class FxDreamLive {
       partial: Math.abs(best.target - best.entry) > risk ? partialPrice : null,
       createdAt: closeTime,
       expiresAt: best.expiresAt,
-      auto: night && !thinTarget,
+      auto: night && !thinTarget && !justOpened,
       messageId: null,
       status: "pending",
     };
@@ -516,7 +553,10 @@ export class FxDreamLive {
       this.save();
       return;
     }
-    await this.sendAsk(proposal, png, night ? `🌙 Giờ đêm nhưng TP chỉ ${(Math.abs(best.target - best.entry) / risk).toFixed(2)}R (< 1R) — KHÔNG tự vào, hỏi ý bạn.\n` : "");
+    const why = justOpened
+      ? "thị trường vừa mở cửa lại"
+      : `TP chỉ ${(Math.abs(best.target - best.entry) / risk).toFixed(2)}R (< 1R)`;
+    await this.sendAsk(proposal, png, night ? `🌙 Giờ đêm nhưng ${why} — KHÔNG tự vào, hỏi ý bạn.\n` : "");
   }
 
   private render(p: FxProposal): Buffer | null {
@@ -597,7 +637,7 @@ export class FxDreamLive {
       `Mục tiêu ${rr.toFixed(2)}R (${p.edited?.includes("tp") ? "bạn đặt" : "key đối diện"})${p.partial ? " · chốt 33% ở 1R rồi dời SL về giá vào" : " · mục tiêu dưới 1R nên không chốt một phần"}`,
       p.edited?.length
         ? `Bạn đã sửa tay: ${p.edited.map((f) => f.toUpperCase()).join(", ")} (khác đề xuất của engine).`
-        : "Backtest BTC chưa cho thấy lợi thế sau phí — bạn là bộ lọc cuối cùng.",
+        : `Backtest ${this.o.symbol.toUpperCase()} chưa cho thấy lợi thế sau phí — bạn là bộ lọc cuối cùng.`,
     ];
   }
 
@@ -617,7 +657,7 @@ export class FxDreamLive {
   /** Trả true nếu callback thuộc FX Dream (đã xử lý). */
   async handleCallback(cb: TelegramCallback): Promise<boolean> {
     const m = /^fx:(y|n|e):(\w+)$/.exec(cb.data);
-    if (!m) return false;
+    if (!m || !this.owns(m[2])) return false;
     if (m[1] === "e") await this.startEdit(m[2], cb.id);
     else await this.decide(m[2], m[1] === "y", cb.id);
     return true;
@@ -638,11 +678,20 @@ export class FxDreamLive {
       await sendTelegram(this.o.telegram, [
         `✏️ Sửa ${p.dir === "long" ? "LONG" : "SHORT"} — hiện tại: ${p.kind === "market" ? "vào" : "LIMIT"} ${fmt(p.entry)} · SL ${fmt(p.stop)} · TP ${fmt(p.target)}`,
         "Gõ một hoặc nhiều giá, ví dụ:",
-        "sl 79400 tp 78300",
-        "entry 78850",
+        `sl ${plain(p.stop)} tp ${plain(p.target)}`,
+        `entry ${plain(p.entry)}`,
         p.kind === "market" ? "Sửa entry thì lệnh thành LIMIT ở giá đó (sống 4 giờ)." : "",
         "Gõ huỷ để thôi sửa.",
       ].filter(Boolean).join("\n"), undefined);
+    });
+  }
+
+  /** Thôi sửa im lặng — bot gọi khi bạn bấm ✏️ ở đề nghị của MÃ KHÁC, để giá gõ vào không lạc mã. */
+  cancelEdit(): Promise<void> {
+    return this.serial(async () => {
+      if (!this.state.editingId) return;
+      this.state.editingId = null;
+      this.save();
     });
   }
 
@@ -666,7 +715,7 @@ export class FxDreamLive {
       }
       const edit = parseEditText(text);
       if (!edit) {
-        await sendTelegram(this.o.telegram, "Không đọc được giá. Ví dụ: sl 79400 tp 78300 — hoặc gõ huỷ.", undefined);
+        await sendTelegram(this.o.telegram, `Không đọc được giá. Ví dụ: sl ${plain(p.stop)} tp ${plain(p.target)} — hoặc gõ huỷ.`, undefined);
         return true;
       }
       const why = this.applyEdit(p, edit);
@@ -691,6 +740,12 @@ export class FxDreamLive {
     const stop = edit.stop ?? p.stop;
     const target = edit.target ?? p.target;
     const long = p.dir === "long";
+    const ref = this.candles.at(-1)?.close ?? p.entry;
+    for (const [name, value] of [["Entry", edit.entry], ["SL", edit.stop], ["TP", edit.target]] as const) {
+      if (value != null && Math.abs(value - ref) / ref > MAX_EDIT_DEVIATION) {
+        return `${name} ${fmt(value)} lệch ${((Math.abs(value - ref) / ref) * 100).toFixed(0)}% so với giá hiện tại ${fmt(ref)} — gõ nhầm?`;
+      }
+    }
     if (long ? !(stop < entry && entry < target) : !(target < entry && entry < stop)) {
       return long ? "LONG cần SL < entry < TP" : "SHORT cần TP < entry < SL";
     }
