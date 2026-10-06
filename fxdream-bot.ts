@@ -42,6 +42,8 @@ const RISK_USD = (() => {
   return Number.isFinite(n) && n > 0 ? n : 5;
 })();
 const execCfg = loadExecConfig();
+/** Trần đòn bẩy (user 06/10/26). Mỗi lệnh tự chọn đòn bẩy ≤ trần theo khoảng SL; `LEVERAGE` chỉ còn là mức preflight đặt lúc khởi động. */
+const MAX_LEVERAGE = 20;
 const binance = TRADING_ENABLED ? createBinanceFromEnv() : null;
 const trader = binance ? new LiveTrader(binance, execCfg) : null;
 let tradingReady = false;
@@ -54,7 +56,7 @@ const fxs = SYMBOLS.map((symbol) => new FxDreamLive({
   venue: binance,
   telegram,
   riskUsd: RISK_USD,
-  leverage: execCfg.leverage,
+  maxLeverage: MAX_LEVERAGE,
   dataDir: process.env.TRADING_DATA_DIR?.trim() || process.cwd(),
   isTradingReady: () => tradingReady,
   // BTC giữ tên file state/journal cũ để bản deploy trước đọc tiếp được.
@@ -83,7 +85,7 @@ async function healthText(): Promise<string> {
     "🩺 *FX Dream bot*",
     `Code: ${buildLine()}`,
     `Engine: ${escapeMarkdown(engineLine())}`,
-    `Sàn: ${binance ? (TESTNET ? "Binance TESTNET" : "Binance ⚠️ MAINNET") : "không có (alert-only)"} · ${execCfg.marginType} ${execCfg.leverage}x · rủi ro $${RISK_USD}/lệnh (tự vào ban đêm $${RISK_USD / 2})`,
+    `Sàn: ${binance ? (TESTNET ? "Binance TESTNET" : "Binance ⚠️ MAINNET") : "không có (alert-only)"} · ${execCfg.marginType} đòn bẩy tự chọn ≤${MAX_LEVERAGE}x · rủi ro $${RISK_USD}/lệnh (tự vào ban đêm $${RISK_USD / 2})`,
     `Mã: ${symbolsLabel}${SYMBOLS.some(dropsWeekendBars) ? " (vàng bỏ nến cuối tuần lúc thị trường đóng cửa)" : ""}`,
     `Dữ liệu nến: ${fxs.map((f, i) => `${SYMBOLS[i].toUpperCase()} ${f.lastDataAt ? `${Math.round((Date.now() - f.lastDataAt) / 1000)}s trước` : "chưa có"}`).join(" · ")}`,
   ];

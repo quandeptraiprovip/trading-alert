@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { FxDreamLive, FxDreamLiveOptions, isNightVn, parseEditText, parsePrice } from "./fxdream-live";
+import { FxDreamLive, FxDreamLiveOptions, isNightVn, parseEditText, parsePrice, pickLeverage } from "./fxdream-live";
 import { FakeVenue } from "./fxdream-fake-venue";
 import { KEY_VOLUME_CONFIG } from "./key-volume";
 import { buildProposalSvg, renderPng } from "./fxdream-image";
@@ -69,7 +69,7 @@ async function replay(
   venue.cur = candles[idx];
   setup?.(venue, dir);
   const fx = new FxDreamLive({
-    ...extra, venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, leverage: 10,
+    ...extra, venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, maxLeverage: 20,
     dataDir: dir, isTradingReady: () => true, params, now: () => clock,
     fetchClosed: async (n) => candles.slice(Math.max(0, idx + 1 - n), idx + 1),
   });
@@ -247,6 +247,36 @@ async function testEditThenApprove(): Promise<void> {
   assert.equal(opened.target, 97);
 }
 
+/** Đòn bẩy cao nhất mà thanh lý (≈ 1/đòn bẩy − 1%) vẫn cách entry ≥ 1,5× khoảng SL, trần 20x. */
+function testPickLeverage(): void {
+  assert.equal(pickLeverage(0.003, 20), 20, "SL sát → chạm trần");
+  assert.equal(pickLeverage(0.047, 20), 12);
+  assert.equal(pickLeverage(0.1, 20), 6, "SL xa nhất cho phép (10%)");
+  assert.equal(pickLeverage(0.9, 20), 1);
+  for (const sf of [0.001, 0.005, 0.02, 0.05, 0.1]) {
+    const lev = pickLeverage(sf, 20);
+    assert.ok(lev <= 20 && 1 / lev - 0.01 >= 1.5 * sf, `SL ${sf}: thanh lý phải xa hơn SL, được ${lev}x`);
+  }
+}
+
+/** User 06/10/26: sửa SL sát hay xa thì rủi ro vẫn $5 — khối lượng và đòn bẩy tự tính lại. */
+async function testEditKeepsRisk(): Promise<void> {
+  for (const [sl, lev] of [["99.6", 20], ["104", 12]] as const) {
+    let step = 0;
+    const { venue, journal } = await replay(fixture(DAY, TAIL), CONFIRM - 1, async (f, id) => {
+      if (step++ > 0) return;
+      await f.startEdit(id);
+      assert.equal(await f.handleText(`sl ${sl}`), true);
+      await f.decide(id, true);
+    });
+    const opened = journal.find((e) => e.event === "opened");
+    assert.ok(opened, `SL ${sl}: phải vào lệnh`);
+    assert.equal(opened.stop, +sl);
+    assert.ok(opened.riskUsd > 4.9 && opened.riskUsd <= 5, `SL ${sl}: rủi ro vẫn $5, được ${opened.riskUsd}`);
+    assert.equal(venue.leverage, lev, `SL ${sl}: đòn bẩy ${lev}x`);
+  }
+}
+
 /** Không ở chế độ sửa thì tin nhắn chữ không bị FX Dream nuốt. */
 async function testTextIgnoredWhenNotEditing(): Promise<void> {
   let used: boolean | null = null;
@@ -410,6 +440,8 @@ function testImageRenders(): void {
   await testUnansweredProposalExpires();
   testParsePrice();
   await testEditThenApprove();
+  testPickLeverage();
+  await testEditKeepsRisk();
   await testTextIgnoredWhenNotEditing();
   await testRetryAfterVenueError();
   await testRetryDoesNotDoubleOrder();

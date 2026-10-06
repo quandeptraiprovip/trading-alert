@@ -13,6 +13,7 @@ export class FakeVenue implements FxVenue {
   done = new Map<number, any>();
   algos: any[] = [];
   fills: any[] = [];
+  leverage = 10;
   private id = 1;
   getFilters() {
     return { symbol: "TEST", stepSize: 0.001, qtyPrecision: 3, tickSize: 0.01, pricePrecision: 2, minQty: 0.001, minNotional: 5 };
@@ -21,8 +22,9 @@ export class FakeVenue implements FxVenue {
   roundPrice(_s: string, p: number) { return Math.round(p * 100) / 100; }
   async getEquity() { return { walletBalance: 1000, available: 1000 }; }
   async getPosition() {
-    return { symbol: "TEST", positionAmt: this.pos, entryPrice: this.entry, markPrice: this.cur.close, unrealizedProfit: 0, liquidationPrice: 0, leverage: 10 };
+    return { symbol: "TEST", positionAmt: this.pos, entryPrice: this.entry, markPrice: this.cur.close, unrealizedProfit: 0, liquidationPrice: 0, leverage: this.leverage };
   }
+  async setLeverage(_s: string, lev: number) { this.leverage = lev; }
   private fill(side: string, qty: number, price: number, reduce: boolean) {
     const realized = reduce ? (this.pos > 0 ? (price - this.entry) * qty : (this.entry - price) * qty) : 0;
     if (!reduce) this.entry = price;

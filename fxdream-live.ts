@@ -60,6 +60,7 @@ export interface FxVenue {
   roundPrice(symbol: string, price: number): number;
   getEquity(): Promise<{ walletBalance: number; available: number }>;
   getPosition(symbol: string): Promise<PositionRisk>;
+  setLeverage(symbol: string, leverage: number): Promise<void>;
   marketOrder(symbol: string, side: OrderSide, qty: number, clientId?: string): Promise<NewOrderResult>;
   marketClose(symbol: string, side: OrderSide, qty: number, clientId?: string): Promise<NewOrderResult>;
   limitOrder(symbol: string, side: OrderSide, qty: number, price: number, clientId?: string): Promise<NewOrderResult>;
@@ -151,7 +152,8 @@ export interface FxDreamLiveOptions {
   venue: FxVenue | null;
   telegram: TelegramConfig;
   riskUsd: number;
-  leverage: number;
+  /** Trần đòn bẩy; mỗi lệnh tự chọn đòn bẩy ≤ trần này theo khoảng SL — xem `pickLeverage`. */
+  maxLeverage: number;
   dataDir: string;
   isTradingReady: () => boolean;
   params?: KeyVolumeParams;
@@ -173,6 +175,10 @@ const MAX_EDIT_DEVIATION = 0.2;
 /** Sau khi thị trường mở lại, tín hiệu trong khoảng này luôn hỏi ý (không tự vào ban đêm). */
 const REOPEN_ASK_MS = 60 * 60_000;
 const PARTIAL_FRACTION = 0.33;
+/** Giá thanh lý phải cách entry ít nhất gấp này lần khoảng SL, để SL luôn chạm trước thanh lý. */
+const LIQ_BUFFER = 1.5;
+/** Phần ký quỹ duy trì + phí bị trừ khỏi khoảng thanh lý (ISOLATED ≈ 1/đòn bẩy − tỉ lệ này); để rộng cho chắc. */
+const MAINT_MARGIN = 0.01;
 
 const BRANCH_LABEL: Record<KeyVolumeEntryPlan["branch"], string> = {
   "sweep-reclaim": "Quét thanh khoản (không dùng key)",
@@ -205,6 +211,15 @@ function vnTime(ms: number): string {
   });
 }
 /** 00:00–06:00 giờ Việt Nam: tự vào, không hỏi. */
+/**
+ * Đòn bẩy cho một lệnh (user 06/10/26): khối lượng đã do $rủi ro ÷ khoảng SL quyết, nên đòn bẩy
+ * chỉ đổi số tiền bị giữ làm ký quỹ. Chọn mức CAO nhất (ký quỹ nhỏ nhất) mà thanh lý vẫn cách entry
+ * ≥ LIQ_BUFFER × khoảng SL, không vượt `maxLeverage`. `stopFrac` = |entry − SL| / entry.
+ */
+export function pickLeverage(stopFrac: number, maxLeverage: number): number {
+  return Math.max(1, Math.min(Math.floor(maxLeverage), Math.floor(1 / (LIQ_BUFFER * stopFrac + MAINT_MARGIN))));
+}
+
 export function isNightVn(ms: number): boolean {
   const hour = Number(new Date(ms).toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", hour12: false }));
   return hour % 24 < 6;
@@ -632,8 +647,10 @@ export class FxDreamLive {
     const riskUsd = this.riskUsdFor(p);
     const qty = this.o.venue ? this.o.venue.roundQty(this.o.symbol, riskUsd / risk) : riskUsd / risk;
     const rr = Math.abs(p.target - p.entry) / risk;
+    const lev = pickLeverage(risk / p.entry, this.o.maxLeverage);
     return [
       `Rủi ro $${riskUsd}${p.auto ? " (nửa — tự vào ban đêm)" : ""} · khối lượng ~${qty} ${this.o.symbol.replace(/usdt$/i, "").toUpperCase()} · notional ~$${fmt(qty * p.entry)} · SL cách ${((risk / p.entry) * 100).toFixed(2)}%`,
+      `Đòn bẩy ${lev}x · ký quỹ ~$${fmt((qty * p.entry) / lev)} (tự tính lại khi sửa giá, rủi ro giữ $${riskUsd})`,
       `Mục tiêu ${rr.toFixed(2)}R (${p.edited?.includes("tp") ? "bạn đặt" : "key đối diện"})${p.partial ? " · chốt 33% ở 1R rồi dời SL về giá vào" : " · mục tiêu dưới 1R nên không chốt một phần"}`,
       p.edited?.length
         ? `Bạn đã sửa tay: ${p.edited.map((f) => f.toUpperCase()).join(", ")} (khác đề xuất của engine).`
@@ -753,8 +770,8 @@ export class FxDreamLive {
     if (risk / entry > 0.1) return `SL cách entry ${((risk / entry) * 100).toFixed(1)}% — quá 10%`;
     if (this.o.venue) {
       const f = this.o.venue.getFilters(this.o.symbol);
-      const qty = this.o.venue.roundQty(this.o.symbol, this.o.riskUsd / risk);
-      if (qty < f.minQty) return `SL quá xa: khối lượng cho $${this.o.riskUsd} chỉ ${qty} < tối thiểu ${f.minQty}`;
+      const qty = this.o.venue.roundQty(this.o.symbol, this.riskUsdFor(p) / risk);
+      if (qty < f.minQty) return `SL quá xa: khối lượng cho $${this.riskUsdFor(p)} chỉ ${qty} < tối thiểu ${f.minQty}`;
       if (qty * entry < f.minNotional) return `SL quá xa: notional $${fmt(qty * entry)} < tối thiểu $${f.minNotional}`;
     }
     const fields = new Set(p.edited ?? []);
@@ -863,10 +880,13 @@ export class FxDreamLive {
       if (!(qty >= f.minQty)) return fail(`khối lượng ${qty} < tối thiểu ${f.minQty}`);
       if (qty * plannedEntry < f.minNotional) return fail(`notional $${fmt(qty * plannedEntry)} < tối thiểu $${f.minNotional}`);
       const eq = await venue.getEquity();
-      const margin = (qty * plannedEntry) / this.o.leverage;
+      const leverage = pickLeverage(stopDist / plannedEntry, this.o.maxLeverage);
+      const margin = (qty * plannedEntry) / leverage;
       if (margin > eq.available * 0.95) {
-        return fail(`cần ký quỹ $${fmt(margin)} (đòn bẩy ${this.o.leverage}x) > khả dụng $${fmt(eq.available)}`);
+        return fail(`cần ký quỹ $${fmt(margin)} (đòn bẩy ${leverage}x) > khả dụng $${fmt(eq.available)}`);
       }
+      await venue.setLeverage(sym, leverage);
+      const levNote = ` · ${leverage}x, ký quỹ ~$${fmt(margin)}`;
 
       if (p.kind === "limit") {
         const order = await venue.limitOrder(sym, openSide(p.dir), qty, p.entry, `fx${p.id}`);
@@ -877,12 +897,12 @@ export class FxDreamLive {
         };
         this.closeOtherPending(p.id);
         this.save();
-        this.journal({ event: "limit-placed", proposal: p.id, orderId: order.orderId, qty, price: p.entry });
+        this.journal({ event: "limit-placed", proposal: p.id, orderId: order.orderId, qty, price: p.entry, leverage });
         if (order.status === "FILLED") {
           await this.manageWorking();
-          return `✅ LIMIT khớp ngay ${qty} @ ${fmt(order.avgPrice || p.entry)} · SL ${fmt(p.stop)} · TP ${fmt(p.target)}`;
+          return `✅ LIMIT khớp ngay ${qty} @ ${fmt(order.avgPrice || p.entry)} · SL ${fmt(p.stop)} · TP ${fmt(p.target)}${levNote}`;
         }
-        return `✅ Đã đặt LIMIT ${qty} @ ${fmt(p.entry)} — tự huỷ lúc ${vnTime(p.expiresAt)} nếu chưa khớp.`;
+        return `✅ Đã đặt LIMIT ${qty} @ ${fmt(p.entry)}${levNote} — tự huỷ lúc ${vnTime(p.expiresAt)} nếu chưa khớp.`;
       }
 
       const fill = await venue.marketOrder(sym, openSide(p.dir), qty, `fx${p.id}`);
@@ -891,7 +911,7 @@ export class FxDreamLive {
       const avg = fill.avgPrice || price;
       this.closeOtherPending(p.id);
       const protectedMsg = await this.openPosition(p, fill.executedQty, avg);
-      return protectedMsg;
+      return protectedMsg + levNote;
     } catch (err) {
       return fail(`lỗi sàn: ${errMsg(err)}`, true);
     }

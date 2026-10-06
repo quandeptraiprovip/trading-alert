@@ -34,7 +34,7 @@ async function check(symbol: string, days: number): Promise<boolean> {
   let clock = raw[idx].openTime + M15 + 5000;
   venue.cur = raw[idx];
   const fx = new FxDreamLive({
-    symbol, venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, leverage: 10,
+    symbol, venue, telegram: { enabled: false, botToken: "", chatId: "" }, riskUsd: 5, maxLeverage: 20,
     dataDir: dir, isTradingReady: () => true, now: () => clock,
     stateName: symbol === "btcusdt" ? "fxdream" : `fxdream-${symbol}`,
     marketClosed: dropsWeekendBars(symbol) ? goldClosedNy : undefined,
