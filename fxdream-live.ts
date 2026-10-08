@@ -7,7 +7,8 @@
  *      nhánh đỉnh thấp dần). SL/TP/cửa vào lệnh tính bằng `resolveEntryLevels` — đúng hàm backtest.
  *   2. Gửi ẢNH + ba nút ✅/✏️/❌. Bạn bấm ✅ thì mới đặt lệnh. ✏️ cho gõ giá entry/SL/TP mới
  *      (sửa entry của lệnh vào ở giá đóng thì thành LIMIT), bot vẽ lại ảnh rồi hỏi lại.
- *        · Vào ở giá đóng: chỉ trong 15 phút sau khi nến đóng, và giá lệch ≤ 0,3R so với giá dự tính.
+ *        · Vào ở giá đóng: chỉ trong 15 phút sau khi nến đóng, giá chưa vượt SL/TP (user 07/10/26: bỏ trần
+ *          lệch 0,3R). Khối lượng + đòn bẩy tính lại theo khoảng SL từ giá thật, rủi ro vẫn giữ `riskUsd`.
  *        · Lệnh chờ: đồng ý lúc nào cũng được trong thời gian sống của lệnh chờ (16 nến), giá chưa
  *          vượt SL/TP thì đặt LIMIT ở mép.
  *      00:00–06:00 (giờ VN, tính theo lúc nến tín hiệu đóng): TỰ VÀO, không hỏi, rồi báo.
@@ -169,7 +170,6 @@ export interface FxDreamLiveOptions {
 const M15 = TF_MS["15m"];
 const WINDOW_BARS = 45 * 96 + 600;
 const MARKET_APPROVAL_MS = 15 * 60_000;
-const MAX_DRIFT_R = 0.3;
 /** Giá sửa tay lệch quá mức này so với giá hiện tại thì coi là gõ nhầm (vd thừa/thiếu một chữ số). */
 const MAX_EDIT_DEVIATION = 0.2;
 /** Sau khi thị trường mở lại, tín hiệu trong khoảng này luôn hỏi ý (không tự vào ban đêm). */
@@ -587,7 +587,7 @@ export class FxDreamLive {
       { text: "❌ Bỏ qua", data: `fx:n:${p.id}` },
     ];
     const caption = `${prefix}${this.caption(p)}\n\n${p.kind === "market"
-      ? `Bấm trong 15 phút (tới ${vnTime(p.expiresAt)}); giá lệch quá ${MAX_DRIFT_R}R thì huỷ.`
+      ? `Bấm trong 15 phút (tới ${vnTime(p.expiresAt)}); giá đã vượt SL/TP thì huỷ.`
       : `Đồng ý trước ${vnTime(p.expiresAt)} thì đặt LIMIT ở ${fmt(p.entry)}.`}`;
     if (png) {
       p.messageId = await sendTelegramPhoto(this.o.telegram, png, caption, buttons);
@@ -865,15 +865,11 @@ export class FxDreamLive {
         return fail("sàn đang có vị thế không phải của FX Dream");
       }
       const price = venuePos.markPrice;
-      const risk = Math.abs(p.entry - p.stop);
       const long = p.dir === "long";
       if (long ? price <= p.stop || price >= p.target : price >= p.stop || price <= p.target) {
         return fail(`giá ${fmt(price)} đã vượt SL hoặc TP`);
       }
       const plannedEntry = p.kind === "market" ? price : p.entry;
-      if (p.kind === "market" && Math.abs(price - p.entry) > MAX_DRIFT_R * risk) {
-        return fail(`giá ${fmt(price)} lệch ${(Math.abs(price - p.entry) / risk).toFixed(2)}R so với ${fmt(p.entry)} (trần ${MAX_DRIFT_R}R)`);
-      }
       const f = venue.getFilters(sym);
       const stopDist = Math.abs(plannedEntry - venue.roundPrice(sym, p.stop));
       const qty = venue.roundQty(sym, this.riskUsdFor(p) / stopDist);

@@ -259,6 +259,29 @@ function testPickLeverage(): void {
   }
 }
 
+/**
+ * User 07/10/26: lệnh vào ở giá đóng không còn trần lệch 0,3R — giá chưa vượt SL là vào, khối lượng
+ * và đòn bẩy tính theo khoảng SL từ giá thật. Fixture chỉ sinh LIMIT nên đổi đề nghị thành MARKET.
+ */
+async function testMarketDriftEntersUntilStop(): Promise<void> {
+  const asMarket = (stop: number) => async (f: FxDreamLive, id: string) => {
+    const p = f.snapshot().proposals.find((x) => x.id === id)!;
+    // Giá hiện tại 99,15 (đóng nến xác nhận). SHORT dự tính 98,5, SL 99,22 ⇒ giá đã trôi 0,9R về phía SL.
+    Object.assign(p, { kind: "market", entry: 98.5, stop, target: 94, partial: 98.5 - (stop - 98.5) });
+    await f.decide(id, true);
+  };
+  const drift = await replay(fixture(DAY, TAIL), CONFIRM - 1, asMarket(99.22));
+  const opened = drift.journal.find((e) => e.event === "opened");
+  assert.ok(opened, "lệch 0,9R vẫn phải vào lệnh");
+  assert.equal(opened.entry, 99.15, "khớp ở giá thật");
+  assert.ok(opened.riskUsd > 4.9 && opened.riskUsd <= 5, `rủi ro tính từ giá thật vẫn $5, được ${opened.riskUsd}`);
+  assert.equal(drift.venue.leverage, pickLeverage(0.07 / 99.15, 20), "đòn bẩy theo khoảng SL thật");
+
+  const past = await replay(fixture(DAY, TAIL), CONFIRM - 1, asMarket(99.1));
+  assert.equal(past.fx.snapshot().proposals[0].status, "failed", "giá đã qua SL thì không vào");
+  assert.equal(past.venue.fills.length, 0);
+}
+
 /** User 06/10/26: sửa SL sát hay xa thì rủi ro vẫn $5 — khối lượng và đòn bẩy tự tính lại. */
 async function testEditKeepsRisk(): Promise<void> {
   for (const [sl, lev] of [["99.6", 20], ["104", 12]] as const) {
@@ -441,6 +464,7 @@ function testImageRenders(): void {
   testParsePrice();
   await testEditThenApprove();
   testPickLeverage();
+  await testMarketDriftEntersUntilStop();
   await testEditKeepsRisk();
   await testTextIgnoredWhenNotEditing();
   await testRetryAfterVenueError();
