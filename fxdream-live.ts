@@ -35,7 +35,7 @@ import { TF_MS } from "./strategy";
 import type { Candle } from "./strategy";
 import type { NewOrderResult, OrderSide, PositionRisk, SymbolFilters, UserTrade } from "./binance-futures";
 import {
-  KEY_VOLUME_CONFIG,
+  keyVolumeParamsFor,
   KeyVolumeEntryPlan,
   KeyVolumeParams,
   atrSeriesForward,
@@ -303,7 +303,7 @@ export class FxDreamLive {
     // trải object sẽ ghi đè mặc định bằng undefined và bot sập lúc khởi động.
     this.o = {
       ...opts,
-      params: opts.params ?? KEY_VOLUME_CONFIG,
+      params: opts.params ?? keyVolumeParamsFor(opts.symbol),
       now: opts.now ?? (() => Date.now()),
       fetchClosed: opts.fetchClosed ?? ((bars) => fetchClosedFapi(opts.symbol, bars)),
       stateName: opts.stateName ?? "fxdream",

@@ -158,7 +158,7 @@
  *     vẫn đóng trong hộp thì chưa vào.
  *
  * Vì giá vào chỉ biết được ở bước 3, hai cửa cuối cũng chỉ chấm được ở đó: SL
- * không quá `maxStopPct` giá, và dư địa tới mục tiêu >= `minRR`. Nến vào lệnh
+ * từ `minStopPct` tới `maxStopPct` giá, và dư địa tới mục tiêu >= `minRR`. Nến vào lệnh
  * đã đóng trọn nên KHÔNG được chấm SL/TP trên chính nó; 15 phút rủi ro đầu tiên
  * là cây kế tiếp.
  *
@@ -365,6 +365,8 @@ export interface KeyVolumeParams {
   swingPivotLeft: number;
   swingPivotRight: number;
   stopBufferAtr: number;
+  /** SL gần hơn tỉ lệ này của giá vào thì không vào (user 08/10/26: dưới 0,2%). */
+  minStopPct: number;
   maxStopPct: number;
   minRR: number;
   targetMode: KeyVolumeTargetMode;
@@ -492,6 +494,7 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   swingPivotLeft: 2,
   swingPivotRight: 2,
   stopBufferAtr: 0.15,
+  minStopPct: 0.002,
   maxStopPct: 0.03,
   minRR: 3,
   targetMode: "nearest-structure",
@@ -524,6 +527,14 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   doubleLookbackBars: 40,
   sessionHoursUtc: null,
 };
+
+/**
+ * Tham số theo mã. Vàng (XAUUSDT, XAUUSD) tạm CHƯA áp cận dưới SL 0,2% — user
+ * 08/10/26 sẽ xem xét sau, vì ở vàng các lệnh SL hẹp mang R thuần dương.
+ */
+export function keyVolumeParamsFor(symbol: string, base: KeyVolumeParams = KEY_VOLUME_CONFIG): KeyVolumeParams {
+  return /^XAU/i.test(symbol) ? { ...base, minStopPct: 0 } : base;
+}
 
 export interface KeyVolumeLevel {
   id: string;
@@ -2321,7 +2332,7 @@ export interface KeyVolumeEntryCandidate {
 }
 
 /**
- * SL, mục tiêu và hai cửa cuối (rủi ro `maxStopPct`, dư địa `minRR`) của một kế hoạch ở
+ * SL, mục tiêu và hai cửa cuối (rủi ro `minStopPct`–`maxStopPct`, dư địa `minRR`) của một kế hoạch ở
  * một giá vào cụ thể. Backtest và bot live dùng CHUNG hàm này nên hai bên không lệch luật.
  * `entryAtr`: ATR của nến vào ở giá đóng, hoặc của nến đặt lệnh chờ.
  */
@@ -2356,6 +2367,7 @@ export function resolveEntryLevels(
   const risk = Math.abs(entry - stop);
   if (
     !(risk > 0)
+    || risk / entry < params.minStopPct
     || risk / entry > params.maxStopPct
     || (dir === "long" ? stop <= 0 || stop >= entry : stop <= entry)
   ) return { ok: false, reason: "risk" };

@@ -9,7 +9,7 @@
 
 import { Candle, TF_MS } from "./strategy";
 import {
-  KEY_VOLUME_CONFIG,
+  keyVolumeParamsFor,
   atrSeriesForward,
   KeyVolumeDiagnostics,
   KeyVolumeEntryPlan,
@@ -705,7 +705,7 @@ function buildStages(
       riskPct,
       params.maxStopPct * 100,
       "lte",
-      `trần ${num(params.maxStopPct * 100, 1)}%`,
+      `${num(params.minStopPct * 100, 1)}–${num(params.maxStopPct * 100, 1)}%`,
       `SL ở ${fmtPrice(trade.initialSL)}, ngay ngoài ${trap ? "cực trị cú phá" : lowerHighLimit ? `${long ? "đáy" : "đỉnh"} trước` : key ? `mép ${long ? "dưới" : "trên"} hộp` : "râu quét"}, đệm ${num(params.stopBufferAtr, 2)}×ATR.`,
       { kind: "level", startTime: trade.entryTime, endTime: trade.exitTime, priceA: trade.initialSL },
     ),
@@ -858,7 +858,7 @@ function configLine(params: KeyVolumeParams): string {
     `hướng theo vị trí giá so với key`,
     `quét ${params.sweepLookback} nến (${round(params.sweepLookback / 96, 1)}d), không cần key · nhánh key chờ ${params.sweepWaitBars}`,
     `nhánh ${branches || "—"}`,
-    `stop ${params.stopMode} +${params.stopBufferAtr}ATR ≤${round(params.maxStopPct * 100, 1)}%`,
+    `stop ${params.stopMode} +${params.stopBufferAtr}ATR ${round(params.minStopPct * 100, 1)}–${round(params.maxStopPct * 100, 1)}%`,
     `minRR ${params.minRR} · target ${params.targetMode}`
       + (params.partialFraction > 0
         ? ` · chốt ${Math.round(params.partialFraction * 100)}% ở ${params.partialAtR}R rồi SL về entry`
@@ -871,7 +871,7 @@ export function buildKeyVolumeView(
   symbol: string,
   m15: Candle[],
   displayStart: number,
-  params: KeyVolumeParams = KEY_VOLUME_CONFIG,
+  params: KeyVolumeParams = keyVolumeParamsFor(symbol),
 ): KeyVolumeView {
   const result = runKeyVolume(symbol, m15, params);
   const now = m15.at(-1)?.openTime ?? Date.now();

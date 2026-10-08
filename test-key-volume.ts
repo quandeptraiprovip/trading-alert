@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   KEY_VOLUME_CONFIG,
+  KeyVolumeEntryPlan,
   KeyVolumeLevel,
   atrSeriesForward,
   canReenterKey,
@@ -23,6 +24,8 @@ import {
   isKeyVolumeLevelActive,
   medianAround,
   medianPrior,
+  resolveEntryLevels,
+  keyVolumeParamsFor,
   resolveTargetR,
   runKeyVolume,
   sweptAndReclaimed,
@@ -1068,6 +1071,26 @@ function testKeyMaturation(): void {
   assert.equal(matureKeyLevels([...head, ...rally, bounceBar], [lateKnown], P)[0].maturedAt, 30 * m15);
 }
 
+/** User 08/10/26: SL gần hơn 0,2% giá vào thì không vào — cùng cửa rủi ro với trần 3%. */
+function testMinStopPct(): void {
+  const plan = { branch: "sweep-reclaim", direction: "long", key: null, sweepTarget: 110 } as unknown as KeyVolumeEntryPlan;
+  const at = (structuralStop: number) =>
+    resolveEntryLevels({ ...plan, structuralStop }, [], 100, 0, 0, KEY_VOLUME_CONFIG);
+  assert.deepEqual(at(99.85), { ok: false, reason: "risk" }, "SL 0,15% bị loại");
+  assert.equal(at(99.75).ok, true, "SL 0,25% vẫn vào");
+  assert.deepEqual(at(96.5), { ok: false, reason: "risk" }, "trần 3% vẫn giữ");
+
+  // Vàng tạm chưa áp cận dưới; BTC thì có.
+  assert.equal(keyVolumeParamsFor("XAUUSDT").minStopPct, 0);
+  assert.equal(keyVolumeParamsFor("xauusdt").minStopPct, 0);
+  assert.equal(keyVolumeParamsFor("BTCUSDT").minStopPct, 0.002);
+  assert.equal(
+    resolveEntryLevels({ ...plan, structuralStop: 99.85 }, [], 100, 0, 0, keyVolumeParamsFor("XAUUSDT")).ok,
+    true,
+    "vàng: SL 0,15% vẫn vào",
+  );
+}
+
 /**
  * Chạm 7 lần thì bỏ key; nến chạm trong 45 phút kể từ nến mở lần chạm là cùng
  * một lần. Lần thứ 7 vẫn dùng được trọn cửa sổ của nó, hết cửa sổ thì key chết.
@@ -2101,6 +2124,7 @@ testRsiDivergenceAtKey();
 testHasRisingSwings();
 testKeyMaturation();
 testKeyTouchLimit();
+testMinStopPct();
 testDepartureGate();
 testDoubleTopBottom();
 testSessionFilter();
