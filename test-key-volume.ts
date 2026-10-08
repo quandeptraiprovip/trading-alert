@@ -17,6 +17,7 @@ import {
   findSweep,
   hasRisingSwings,
   matureKeyLevels,
+  limitKeyTouches,
   capActiveKeyLevels,
   isWithinSession,
   isKeyVolumeLevelActive,
@@ -834,6 +835,9 @@ const KEY_OVERRIDES = {
   // đỉnh swing. Hai luật này có test riêng; ở đây tắt để đo đúng phần cụm/hộp.
   requireKeyMaturation: false,
   requireSwingConfirmation: false,
+  // Giá fixture đi ngang đè lên key nên chạm quá 7 lần trước nến bóp cò; luật
+  // chạm quá nhiều có test riêng.
+  keyMaxTouches: Infinity,
 };
 
 function testVolumeBranchStillNeedsKey(): void {
@@ -1062,6 +1066,46 @@ function testKeyMaturation(): void {
   // Bật ra TRƯỚC lúc key biết được: key dùng được ngay khi biết, không sớm hơn.
   const lateKnown = { ...level, confirmedAt: 30 * m15, maturedAt: 30 * m15 };
   assert.equal(matureKeyLevels([...head, ...rally, bounceBar], [lateKnown], P)[0].maturedAt, 30 * m15);
+}
+
+/**
+ * Chạm 7 lần thì bỏ key; nến chạm trong 45 phút kể từ nến mở lần chạm là cùng
+ * một lần. Lần thứ 7 vẫn dùng được trọn cửa sổ của nó, hết cửa sổ thì key chết.
+ */
+function testKeyTouchLimit(): void {
+  const m15 = TF_MS["15m"];
+  // Lần 1 = nến 5,6,7 (cùng cửa sổ); 8 mở lần 2; 12,16,20,24 là lần 3–6;
+  // 28 là lần 7 (29 trong cùng cửa sổ); 32 là lần 8 — key đã chết trước đó.
+  const touchAt = new Set([5, 6, 7, 8, 12, 16, 20, 24, 28, 29, 32]);
+  const bars = Array.from({ length: 40 }, (_, i) =>
+    i === 0
+      ? candle(0, 100, 102.1, 99.9, 102, 500, m15)
+      : touchAt.has(i)
+        ? candle(i, 102, 102.1, 99.99, 102, 100, m15)
+        : candle(i, 102, 102.1, 101.9, 102, 100, m15));
+  const level: KeyVolumeLevel = {
+    id: "15m:touch",
+    sourceTf: "15m",
+    price: 100,
+    zoneLow: 100,
+    zoneHigh: 100,
+    eventTime: 0,
+    confirmedAt: m15,
+    maturedAt: m15,
+    expiresAt: Number.MAX_SAFE_INTEGER,
+    volumeRatio: 5,
+  };
+  const P = KEY_VOLUME_CONFIG;
+
+  const [limited] = limitKeyTouches(bars, [level], P);
+  assert.equal(limited.expiresAt, 31 * m15 - 1, "chết khi hết 45 phút của lần chạm thứ 7");
+  assert.equal(isKeyVolumeLevelActive(limited, 29 * m15), true, "lần chạm thứ 7 vẫn dùng được");
+  assert.equal(isKeyVolumeLevelActive(limited, 30 * m15), true);
+  assert.equal(isKeyVolumeLevelActive(limited, 31 * m15), false);
+
+  // Mới có 6 lần chạm thì key còn nguyên hạn — không nhìn trước lần thứ 7.
+  assert.equal(limitKeyTouches(bars.slice(0, 28), [level], P)[0].expiresAt, Number.MAX_SAFE_INTEGER);
+  assert.equal(level.expiresAt, Number.MAX_SAFE_INTEGER, "không sửa key đầu vào");
 }
 
 /**
@@ -2056,6 +2100,7 @@ testRsiSeries();
 testRsiDivergenceAtKey();
 testHasRisingSwings();
 testKeyMaturation();
+testKeyTouchLimit();
 testDepartureGate();
 testDoubleTopBottom();
 testSessionFilter();

@@ -251,6 +251,13 @@ export interface KeyVolumeParams {
    * không chiếm chỗ.
    */
   maxActiveKeys: number;
+  /**
+   * Key bị CHẠM quá nhiều thì bỏ: sau lần chạm thứ `keyMaxTouches` (vẫn dùng
+   * được) key hết hạn. Nến chạm trong `keyTouchWindowMinutes` phút kể từ nến mở
+   * lần chạm vẫn tính là cùng một lần. Đếm từ lúc key sinh ra.
+   */
+  keyMaxTouches: number;
+  keyTouchWindowMinutes: number;
   keyTouchAtr: number;
   /** Cửa sổ trung vị volume cho nến chạm key và nến bóp cò (chỉ nhìn về trước). */
   touchVolumeLookback: number;
@@ -429,6 +436,9 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   // key cũ nhất ra. Ở 180 ngày không giới hạn, BTC có ~84 key chín sống cùng lúc.
   keyMaxAgeDays: 15,
   maxActiveKeys: 4,
+  // User 08/10/26: chạm 7 lần thì bỏ key, mỗi lần chạm gộp trong 45 phút.
+  keyMaxTouches: 7,
+  keyTouchWindowMinutes: 45,
   keyTouchAtr: 0.2,
   touchVolumeLookback: 12,
   touchVolumeSpikeMult: 1,
@@ -1000,6 +1010,44 @@ export function capActiveKeyLevels(levels: KeyVolumeLevel[], maxActive: number):
     alive.push(level);
   }
   return ordered;
+}
+
+/**
+ * Luật CHẠM QUÁ NHIỀU (user 08/10/26): đếm từ nến ngay sau nến sinh key. Nến chạm
+ * key (dung sai `keyTouchAtr`) mở một LẦN CHẠM; mọi nến trong `keyTouchWindowMinutes`
+ * phút kể từ đó thuộc lần ấy. Key sống trọn cửa sổ của lần chạm thứ `keyMaxTouches`
+ * — lần đó vẫn vào lệnh được — rồi hết hạn. Chạm trước `confirmedAt` vẫn tính vì
+ * tới lúc key biết được thì chúng đã là quá khứ; hạn mới chỉ có hiệu lực sau khi
+ * cửa sổ lần chạm cuối đã qua, nên không nhìn trước.
+ */
+export function limitKeyTouches(
+  candles: Candle[],
+  levels: KeyVolumeLevel[],
+  params: Pick<KeyVolumeParams, "keyTouchAtr" | "keyMaxTouches" | "keyTouchWindowMinutes">,
+): KeyVolumeLevel[] {
+  const atr = atrSeriesForward(candles);
+  const indexOf = new Map<number, number>();
+  candles.forEach((candle, i) => indexOf.set(candle.openTime, i));
+  const windowMs = params.keyTouchWindowMinutes * 60_000;
+
+  return levels.map((level) => {
+    const event = indexOf.get(level.eventTime);
+    if (event == null) return level;
+    let touches = 0;
+    let windowEnd = -Infinity;
+    for (let i = event + 1; i < candles.length; i++) {
+      const candle = candles[i];
+      if (candle.openTime > level.expiresAt) break;
+      if (candle.openTime < windowEnd || !(atr[i] > 0)) continue;
+      if (!touchesLevel(candle, level, params.keyTouchAtr * atr[i])) continue;
+      touches++;
+      windowEnd = candle.openTime + windowMs;
+      if (touches >= params.keyMaxTouches) {
+        return { ...level, expiresAt: Math.min(level.expiresAt, windowEnd - 1) };
+      }
+    }
+    return level;
+  });
 }
 
 export function isKeyVolumeLevelActive(level: KeyVolumeLevel, time: number): boolean {
@@ -2698,7 +2746,7 @@ export function runKeyVolume(
       && candle.high >= candle.low,
     )
     .sort((a, b) => a.openTime - b.openTime);
-  const detected = detectKeyVolumeLevels(confirm, params.confirmTf, params);
+  const detected = limitKeyTouches(confirm, detectKeyVolumeLevels(confirm, params.confirmTf, params), params);
   // Key chưa chín không được chạm, không làm mục tiêu, không làm vật cản dư địa.
   const levels = capActiveKeyLevels(
     params.requireKeyMaturation ? matureKeyLevels(confirm, detected, params) : detected,
