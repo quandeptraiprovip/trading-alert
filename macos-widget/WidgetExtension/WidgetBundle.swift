@@ -7,7 +7,7 @@ struct TradingWidget: Widget {
             WidgetRoot(entry: entry)
         }
         .configurationDisplayName("Tình trạng giao dịch")
-        .description("Vốn, vị thế đang mở và đệm tới stop trên Binance + MEXC.")
+        .description("Vốn, vị thế đang mở và đệm tới stop trên Binance.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -18,19 +18,21 @@ struct WidgetRoot: View {
 
     var body: some View {
         content
+            // Nền ngân hà như hero của dashboard — khung tĩnh, WidgetKit không chạy hoạt ảnh lặp.
             .containerBackground(for: .widget) {
-                // Vật liệu do HỆ dựng — chỉ chồng thêm lớp gương mỏng và sắc tint,
-                // phủ gradient đục lên đây là mất luôn kính của Tahoe.
-                ZStack {
-                    Rectangle().fill(.ultraThinMaterial)
-                    LinearGradient(
-                        colors: entry.isStopped
-                            ? [Color(hex: 0xFF6B70).opacity(0.16), Color.black.opacity(0.24)]
-                            : [Color.white.opacity(0.10), Color.white.opacity(0.015)],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                }
+                SpaceBackdrop(mood: AstroMood(entry.state), animated: false, focus: focus)
             }
+            .environment(\.colorScheme, .dark)
+    }
+
+    /// Tinh vân đặt sau chỗ phi hành gia: góc trên phải, hoặc giữa khung khi lỗi/đang đọc.
+    private var focus: UnitPoint {
+        guard case .loaded = entry.state else { return UnitPoint(x: 0.5, y: 0.4) }
+        switch family {
+        case .systemSmall: return UnitPoint(x: 0.82, y: 0.2)
+        case .systemLarge: return UnitPoint(x: 0.85, y: 0.12)
+        default: return UnitPoint(x: 0.55, y: 0.25)
+        }
     }
 
     @ViewBuilder
@@ -40,14 +42,6 @@ struct WidgetRoot: View {
         case .systemLarge: LargeWidgetView(entry: entry)
         default: MediumWidgetView(entry: entry)
         }
-    }
-}
-
-extension FeedEntry {
-    var isStopped: Bool {
-        if case .loaded(let f) = state { return f.health.state == "stopped" }
-        if case .offline = state { return true }
-        return false
     }
 }
 

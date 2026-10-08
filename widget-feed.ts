@@ -5,7 +5,8 @@
  * máy còn chạy không → còn bao nhiêu tiền → đang mở gì → còn cách stop bao xa.
  *
  * KHÔNG import module đặt lệnh. Không ghi gì ngoài widget-equity-history.json
- * (mốc vốn đầu ngày để tính mức đổi trong ngày).
+ * (mốc vốn đầu ngày để tính mức đổi trong ngày) và widget-equity-weekly.json
+ * (nến vốn theo tuần cho biểu đồ biến động).
  *
  * Vị thế lấy từ SÀN (authoritative). State file của bot chỉ dùng để bổ sung
  * mức stop / R / ngày giữ — khớp theo symbol, không cần biết file nào của sàn nào.
@@ -19,11 +20,13 @@ import { promisify } from "util";
 import { createBinanceFromEnv } from "./binance-futures";
 import { createMexcFromEnv, toMexcSymbol } from "./mexc-futures";
 import { getBotUniverse } from "./bot-universe";
+import { atomicWriteFileSync } from "./atomic-file";
 
 const execFileAsync = promisify(execFile);
 
 const DATA_DIR = path.resolve(process.env.TRADING_DATA_DIR?.trim() || process.cwd());
 const HISTORY_FILE = path.join(DATA_DIR, "widget-equity-history.json");
+const WEEKLY_FILE = path.join(DATA_DIR, "widget-equity-weekly.json");
 
 /** State file của bot — mỗi file một sổ. Chỉ đọc để lấy stop / R / thời điểm vào. */
 const STATE_FILES = [
@@ -37,6 +40,16 @@ const BOT_CONTAINER = process.env.WIDGET_BOT_CONTAINER?.trim() || "swing-bot";
 /** Nến chậm nhất trong hệ là 4h; quá 2 nến chưa nhích = trễ nhịp. */
 const STALE_AFTER_MS = Number(process.env.WIDGET_STALE_MS ?? 2 * 4 * 60 * 60 * 1000);
 const MAX_RISK_PCT = Number(process.env.MAX_PORTFOLIO_RISK_PCT ?? 20) / 100;
+/** MEXC tắt mặc định — không giao dịch ở đó nữa. Bật lại: WIDGET_MEXC=1. */
+const MEXC_ENABLED = process.env.WIDGET_MEXC === "1";
+/**
+ * Theo dõi sức khoẻ bot (docker container + nhịp nến trong state file). Tắt mặc định:
+ * máy này không chạy docker/bot, state file ở đây chỉ là bản cũ. Bật lại: WIDGET_BOT_MONITOR=1
+ * (khi chạy widget-server CÙNG máy với bot).
+ */
+const BOT_MONITOR = process.env.WIDGET_BOT_MONITOR === "1";
+/** Số tuần trả về cho biểu đồ. File lưu giữ hết, không cắt. */
+const WEEKS_IN_FEED = 52;
 
 /**
  * Khoá CHỈ ĐỌC riêng cho widget. Không đặt thì rơi về khoá của bot, nên thêm biến
@@ -61,6 +74,7 @@ export interface WidgetPosition {
   stopSource: "exchange" | "state" | null;
   r: number | null;
   pnl: number;
+  /** USD lỗ nếu dính stop, tính từ giá vào; 0 khi stop đã khoá lời. */
   riskUsd: number | null;
   heldDays: number | null;
   stopDistancePct: number | null;
@@ -98,6 +112,18 @@ export interface WidgetFeed {
   /** Dashboard web có đang nghe không — để panel không mở ra một tab chết. */
   dashboardUp: boolean;
   venues: WidgetVenue[];
+  /** Nến vốn theo tuần (cũ → mới), tối đa WEEKS_IN_FEED tuần. */
+  weekly: WeekBar[];
+}
+
+/** Một tuần vốn. `week` = thứ Hai đầu tuần theo giờ VN (YYYY-MM-DD). */
+export interface WeekBar {
+  week: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  updatedMs: number;
 }
 
 // ── State file của bot ──────────────────────────────────────────────────────
@@ -242,6 +268,81 @@ function dayBaseline(equity: number, now: number): number | null {
   return history[today];
 }
 
+// ── Nến vốn theo tuần ───────────────────────────────────────────────────────
+
+/** Thứ Hai của tuần chứa ngày `ymd` (YYYY-MM-DD). */
+function weekOf(ymd: string): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+
+/** Lần đầu chưa có file tuần: dựng từ mốc đầu ngày đã ghi, để biểu đồ không trống. */
+function seedWeeks(): Record<string, WeekBar> {
+  const weeks: Record<string, WeekBar> = {};
+  try {
+    const daily: Record<string, number> = JSON.parse(fs.readFileSync(HISTORY_FILE, "utf8"));
+    for (const day of Object.keys(daily).sort()) {
+      const v = daily[day];
+      if (typeof v !== "number") continue;
+      const w = weekOf(day);
+      const b = weeks[w];
+      weeks[w] = b
+        ? { ...b, high: Math.max(b.high, v), low: Math.min(b.low, v), close: v }
+        : { week: w, open: v, high: v, low: v, close: v, updatedMs: Date.parse(`${day}T00:00:00+07:00`) };
+    }
+  } catch {
+    /* chưa có lịch sử ngày */
+  }
+  return weeks;
+}
+
+/**
+ * Cập nhật nến tuần hiện tại với số vốn vừa đọc, trả về các tuần gần nhất.
+ * Mở = lần đọc đầu tuần, đóng = lần đọc mới nhất. Chỉ ghi file khi sang tuần mới,
+ * khi chạm đỉnh/đáy mới, hoặc 10 phút một lần — server bị hỏi mỗi vài giây.
+ */
+function recordWeek(equity: number, now: number): WeekBar[] {
+  let weeks: Record<string, WeekBar>;
+  try {
+    weeks = JSON.parse(fs.readFileSync(WEEKLY_FILE, "utf8"));
+  } catch {
+    weeks = seedWeeks();
+  }
+
+  const w = weekOf(vnDate(now));
+  const b = weeks[w];
+  let dirty: boolean;
+  if (!b) {
+    weeks[w] = { week: w, open: equity, high: equity, low: equity, close: equity, updatedMs: now };
+    dirty = true;
+  } else {
+    dirty = equity > b.high || equity < b.low || now - b.updatedMs > 10 * 60 * 1000;
+    b.high = Math.max(b.high, equity);
+    b.low = Math.min(b.low, equity);
+    b.close = equity;
+    if (dirty) b.updatedMs = now;
+  }
+  if (dirty) {
+    try {
+      atomicWriteFileSync(WEEKLY_FILE, JSON.stringify(weeks, null, 2));
+    } catch {
+      /* không ghi được thì vẫn trả số trong bộ nhớ */
+    }
+  }
+  return Object.keys(weeks).sort().slice(-WEEKS_IN_FEED).map((k) => weeks[k]);
+}
+
+/** Đọc các tuần đã ghi mà không cập nhật — dùng khi không đọc được vốn. */
+function readWeeks(): WeekBar[] {
+  try {
+    const weeks: Record<string, WeekBar> = JSON.parse(fs.readFileSync(WEEKLY_FILE, "utf8"));
+    return Object.keys(weeks).sort().slice(-WEEKS_IN_FEED).map((k) => weeks[k]);
+  } catch {
+    return [];
+  }
+}
+
 // ── Ghép vị thế sàn với state của bot ───────────────────────────────────────
 
 function enrich(
@@ -281,7 +382,9 @@ function enrich(
   const stopSource: "exchange" | "state" | null =
     exchangeStop !== null ? "exchange" : state?.sl != null ? "state" : null;
   const stopDistancePct = stop !== null && mark > 0 ? Math.abs(mark - stop) / mark : null;
-  const riskUsd = stop !== null ? Math.abs(mark - stop) * Math.abs(size) : null;
+  // Số tiền LỖ nếu dính SL, tính từ giá vào (cùng định nghĩa riskUsd của bot lúc vào lệnh).
+  // Stop đã dời qua giá vào thì dính SL vẫn lời → risk 0, không phải |mark−stop|.
+  const riskUsd = stop !== null ? Math.max(0, (entry - stop) * sign * Math.abs(size)) : null;
 
   return {
     symbol: symbol.replace(/usdt$/i, "").toUpperCase(),
@@ -438,15 +541,20 @@ export async function buildWidgetFeed(): Promise<WidgetFeed> {
   const { bySymbol, lastWrite, lastBar } = readBotState();
 
   const [running, dashboardUp, binance, mexc] = await Promise.all([
-    containerRunning(),
+    BOT_MONITOR ? containerRunning() : Promise.resolve(null),
     dashboardListening(),
     readBinance(bySymbol, now),
-    readMexc(bySymbol, now),
+    MEXC_ENABLED ? readMexc(bySymbol, now) : Promise.resolve(null),
   ]);
 
   let state: HealthState;
   let detail: string;
-  if (running === false) {
+  if (!BOT_MONITOR) {
+    // Không theo dõi bot ở máy này: trạng thái = đọc được sàn hay không.
+    const failed = [binance, mexc].filter((v) => v && !v.ok) as WidgetVenue[];
+    state = failed.length === 0 ? "running" : "stale";
+    detail = failed.length === 0 ? "Đọc trực tiếp từ sàn" : `${failed[0].name}: ${failed[0].error ?? "không đọc được"}`;
+  } else if (running === false) {
     state = "stopped";
     detail = `Container ${BOT_CONTAINER} không chạy`;
   } else if (lastBar !== null && now - lastBar > STALE_AFTER_MS) {
@@ -460,7 +568,7 @@ export async function buildWidgetFeed(): Promise<WidgetFeed> {
     detail = "Bình thường";
   }
 
-  const venues = [binance, mexc];
+  const venues = mexc ? [binance, mexc] : [binance];
   const equities = venues.filter((v) => v.ok && v.equity !== null).map((v) => v.equity as number);
   const totalEquity = equities.length > 0 ? equities.reduce((a, b) => a + b, 0) : null;
 
@@ -471,10 +579,14 @@ export async function buildWidgetFeed(): Promise<WidgetFeed> {
 
   const openRiskUsd = risks.length > 0 ? risks.reduce((a, b) => a + b, 0) : null;
   const baseline = totalEquity !== null ? dayBaseline(totalEquity, now) : null;
+  const weekly = totalEquity !== null ? recordWeek(totalEquity, now) : readWeeks();
 
   return {
     now,
-    health: { state, detail, lastWriteMs: lastWrite, lastBarMs: lastBar, containerRunning: running },
+    health: BOT_MONITOR
+      ? { state, detail, lastWriteMs: lastWrite, lastBarMs: lastBar, containerRunning: running }
+      : // Mốc nến/ghi file của state cũ ở máy này chỉ gây nhiễu ("nến cuối 2 tháng trước").
+        { state, detail, lastWriteMs: null, lastBarMs: null, containerRunning: null },
     totalEquity,
     dayChange: totalEquity !== null && baseline !== null ? totalEquity - baseline : null,
     dayChangePct:
@@ -488,5 +600,6 @@ export async function buildWidgetFeed(): Promise<WidgetFeed> {
     dashboardUp,
     positionCount: positions.length,
     venues,
+    weekly,
   };
 }

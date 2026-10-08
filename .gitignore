@@ -63,3 +63,4 @@ fast-trend-mexc-runtime/
 # macOS widget build output
 macos-widget/TradingWidget.app/
 widget-equity-history.json
+widget-equity-weekly.json

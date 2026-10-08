@@ -53,6 +53,21 @@ struct Feed: Decodable {
     /// Dashboard web có đang nghe không — để panel không mở ra một tab chết.
     let dashboardUp: Bool?
     let venues: [Venue]
+    /// Nến vốn theo tuần, cũ → mới. Optional: server cũ chưa có trường này.
+    let weekly: [WeekBar]?
+}
+
+/// Một tuần vốn. `week` = thứ Hai đầu tuần (giờ VN), dạng YYYY-MM-DD.
+struct WeekBar: Decodable, Identifiable {
+    let week: String
+    let open: Double
+    let high: Double
+    let low: Double
+    let close: Double
+
+    var id: String { week }
+    var change: Double { close - open }
+    var isUp: Bool { close >= open }
 }
 
 /// Trạng thái hiển thị — gộp cả trường hợp không gọi được server (server tắt).

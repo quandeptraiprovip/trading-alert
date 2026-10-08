@@ -11,6 +11,9 @@ struct FeedEntry: TimelineEntry {
 struct FeedProvider: TimelineProvider {
     private let loader = FeedLoader(port: WIDGET_PORT)
     private static let refresh: TimeInterval = 15 * 60
+    /// Mất nguồn thì thử lại sớm — không thì widget kẹt "Chưa chạy widget-server"
+    /// thêm 15 phút sau khi server đã lên.
+    private static let retry: TimeInterval = 60
 
     func placeholder(in context: Context) -> FeedEntry {
         FeedEntry(date: Date(), state: .loading)
@@ -23,7 +26,9 @@ struct FeedProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<FeedEntry>) -> Void) {
         loader.load { state in
             let entry = FeedEntry(date: Date(), state: state)
-            completion(Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(Self.refresh))))
+            var wait = Self.refresh
+            if case .offline = state { wait = Self.retry }
+            completion(Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(wait))))
         }
     }
 }

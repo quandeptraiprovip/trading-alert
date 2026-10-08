@@ -83,7 +83,11 @@ struct PanelView: View {
         VStack(alignment: .leading, spacing: 0) {
             switch model.state {
             case .loading:
-                message("Đang đọc…", T.muted)
+                VStack(spacing: 6) {
+                    Astronaut(mood: .loading).frame(width: 72, height: 72)
+                    Text("Đang đọc…").font(T.sans(11)).foregroundColor(T.muted)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, 20)
             case .offline(let why):
                 offline(why)
             case .loaded(let feed):
@@ -96,8 +100,7 @@ struct PanelView: View {
                             venueBlock(v)
                         }
                     }
-                    .padding(.horizontal, pad)
-                    riskRow(feed)
+                    .padding(.horizontal, pad).padding(.bottom, 14)
                 }
             }
             footer(dashboardUp: dashboardUp)
@@ -156,6 +159,12 @@ struct PanelView: View {
             .padding(.top, 8)
         }
         .padding(.horizontal, pad).padding(.top, 14).padding(.bottom, 15)
+        // Nhân vật đứng cạnh con số vốn, dưới dòng "x phút trước".
+        .overlay(alignment: .bottomTrailing) {
+            Astronaut(mood: AstroMood(.loaded(f)))
+                .frame(width: 64, height: 64)
+                .padding(.trailing, pad - 6).padding(.bottom, 8)
+        }
     }
 
     // MARK: Một sàn
@@ -249,19 +258,6 @@ struct PanelView: View {
     // MARK: Chân
 
     @ViewBuilder
-    private func riskRow(_ f: Feed) -> some View {
-        HStack(spacing: 10) {
-            Text("Risk đang mở").font(T.sans(10)).foregroundColor(T.muted).fixedSize()
-            Gauge(fraction: (f.openRiskPct ?? 0) / max(f.maxRiskPct, 0.0001), color: T.textSoft)
-            Text(f.openRiskPct.map { Fmt.pct($0, places: 1) } ?? "—")
-                .font(T.mono(11, .semibold)).foregroundColor(T.textSoft).fixedSize().numeral()
-            Text("/ \(Fmt.pct(f.maxRiskPct, places: 0))")
-                .font(T.sans(10)).foregroundColor(T.dim).fixedSize()
-        }
-        .padding(.horizontal, pad).padding(.vertical, 14)
-    }
-
-    @ViewBuilder
     private func empty(_ f: Feed) -> some View {
         VStack(spacing: 8) {
             Text("Không có vị thế nào mở").font(T.sans(11, .medium)).foregroundColor(T.textSoft)
@@ -274,19 +270,16 @@ struct PanelView: View {
 
     @ViewBuilder
     private func offline(_ why: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            StatusPill(color: T.red, label: "Không có dữ liệu")
-            Text(why).font(T.sans(11, .medium)).foregroundColor(T.textSoft)
-            Text("Chạy: npm run widget").font(T.mono(10)).foregroundColor(T.muted)
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
+                StatusPill(color: T.red, label: "Không có dữ liệu")
+                Text(why).font(T.sans(11, .medium)).foregroundColor(T.textSoft)
+                Text("Chạy: npm run widget").font(T.mono(10)).foregroundColor(T.muted)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Astronaut(mood: .offline).frame(width: 72, height: 72)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, pad).padding(.top, 16).padding(.bottom, 18)
-    }
-
-    @ViewBuilder
-    private func message(_ s: String, _ c: Color) -> some View {
-        Text(s).font(T.sans(11)).foregroundColor(c)
-            .frame(maxWidth: .infinity).padding(.vertical, 28)
     }
 
     /// nil khi chưa có dữ liệu — lúc đó cứ cho bấm, đừng đoán.

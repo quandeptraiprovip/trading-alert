@@ -40,6 +40,34 @@ extension Color {
     }
 }
 
+/// Bảng màu tối giản — dashboard và widget dùng chung: một nền, ba mức chữ,
+/// xanh/đỏ chỉ cho lãi/lỗ.
+enum Ink {
+    static let bg = Color(hex: 0x0E0F11)
+    static let primary = Color.white.opacity(0.92)
+    static let secondary = Color.white.opacity(0.55)
+    static let tertiary = Color.white.opacity(0.32)
+    static let hair = Color.white.opacity(0.08)
+    static let up = T.green
+    static let down = T.red
+    static let warn = T.amber
+
+    /// Lời xanh, lỗ đỏ, đứng yên xám — 0 không phải là lời.
+    static func signed(_ v: Double) -> Color {
+        abs(v) < 0.005 ? secondary : (v > 0 ? up : down)
+    }
+}
+
+/// Chữ: một họ font hệ thống; số trong cột dùng chữ số đều.
+enum Typo {
+    static func text(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight)
+    }
+    static func num(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight).monospacedDigit()
+    }
+}
+
 /// Số kiểu Việt: dấu phẩy thập phân.
 enum Fmt {
     private static func dec(_ v: Double, _ places: Int) -> String {
