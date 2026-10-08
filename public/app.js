@@ -27,7 +27,30 @@ const KEYVOL_OVERLAY = 8;
 const EVIDENCE_OVERLAY = 16;
 const ALL_OVERLAYS = ORDER_OVERLAY | STRATEGY_OVERLAY | DRAWING_OVERLAY | KEYVOL_OVERLAY | EVIDENCE_OVERLAY;
 // Cùng màu với --green/--red/--blue/--amber và màu nguồn của .readonly-position-tool.
-const AXIS_LEVEL_COLORS = { tp: "#4ee2a1", sl: "#ff6b70", entry: "#65a9ff", turtle: "#f3ba63", fast: "#a98bff" };
+const AXIS_LEVEL_COLORS = { tp: "#089981", sl: "#f23645", entry: "#2962ff", turtle: "#f3ba63", fast: "#a98bff" };
+// Bảng màu nến/volume kiểu TradingView — cùng giá trị với --green/--red trong styles.css.
+const CANDLE_UP = "#089981";
+const CANDLE_DOWN = "#f23645";
+/** Chart chỉ hỗ trợ hai mã này; server vẫn có thể trả rổ bot rộng hơn. */
+const SUPPORTED_SYMBOLS = ["BTCUSDT", "XAUUSDT"];
+const WATCHLIST_REFRESH_MS = 15_000;
+/** Kéo/zoom như TradingView: lăn chuột zoom, kéo trục giá/thời gian để co giãn, kéo chart theo cả hai chiều. */
+const CHART_NAVIGATION = {
+  handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
+  handleScale: {
+    axisPressedMouseMove: { time: true, price: true },
+    axisDoubleClickReset: { time: true, price: true },
+    mouseWheel: true,
+    pinch: true,
+  },
+};
+const CHART_CLOCK_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
 const KEYVOL_TF_LABEL = { "15m": "M15" };
 const KEYVOL_MAX_DRAWN = 240;
 /**
@@ -165,7 +188,7 @@ const FXDREAM_FUNNEL_STAGES = [
 
 /** Năm lớp SVG thật đang xếp chồng trên chart, theo đúng thứ tự z-index trong CSS. */
 const CHART_LAYER_DEFS = [
-  { key: "position", label: "Vị thế đang chọn", hint: "entry · SL · mục tiêu · điểm thoát" },
+  { key: "position", label: "Vị thế đang chọn", hint: "vùng vị thế · chỉ ghi số R" },
   { key: "keys", label: "Vùng key volume", hint: "đường key và nhãn ×volume" },
   { key: "evidence", label: "Soi bằng chứng", hint: "sáng lên khi rê chuột ở bảng phải" },
   { key: "context", label: "Ngữ cảnh Turtle/Fast", hint: "kênh breakout của sổ bot khác" },
@@ -176,15 +199,8 @@ const CHART_LAYER_DEFS = [
 const RSI_PERIOD = 14;
 const MIN_POSITION_WIDTH = 28;
 const COIN_META = {
-  BTC: { name: "Bitcoin", mark: "₿" },
-  ETH: { name: "Ethereum", mark: "Ξ" },
-  SOL: { name: "Solana", mark: "S" },
-  XRP: { name: "XRP", mark: "X" },
-  DOGE: { name: "Dogecoin", mark: "Ð" },
-  ADA: { name: "Cardano", mark: "A" },
-  AVAX: { name: "Avalanche", mark: "A" },
-  DOT: { name: "Polkadot", mark: "●" },
-  XAU: { name: "Gold", mark: "Au" },
+  BTC: { name: "Bitcoin", mark: "₿", markClass: "is-btc" },
+  XAU: { name: "Vàng", mark: "Au", markClass: "is-xau" },
 };
 const FEEDBACK_LABELS = {
   approved: "✓ Đúng phương pháp",
@@ -216,8 +232,28 @@ const dom = {
   sourceDetail: document.querySelector("#source-detail"),
   reloadChart: document.querySelector("#reload-chart"),
   fitChart: document.querySelector("#fit-chart"),
-  historyDays: document.querySelector("#history-days"),
-  marketSymbol: document.querySelector("#market-symbol"),
+  historyButtons: [...document.querySelectorAll("[data-history-days]")],
+  symbolSearchWrap: document.querySelector("#symbol-search-wrap"),
+  symbolButton: document.querySelector("#symbol-button"),
+  symbolButtonMark: document.querySelector("#symbol-button-mark"),
+  symbolButtonLabel: document.querySelector("#symbol-button-label"),
+  symbolMenu: document.querySelector("#symbol-menu"),
+  symbolSearch: document.querySelector("#symbol-search"),
+  symbolOptions: [...document.querySelectorAll(".symbol-option[data-symbol]")],
+  symbolMenuEmpty: document.querySelector("#symbol-menu-empty"),
+  watchlistRows: [...document.querySelectorAll(".watchlist-row[data-symbol]")],
+  sideViewButtons: [...document.querySelectorAll("[data-side-view]")],
+  sidePanels: [...document.querySelectorAll("[data-side-panel]")],
+  chartNavButtons: [...document.querySelectorAll("[data-chart-nav]")],
+  chartRealtime: document.querySelector("#chart-realtime"),
+  chartClock: document.querySelector("#chart-clock"),
+  chartFullscreen: document.querySelector("#chart-fullscreen"),
+  scaleAuto: document.querySelector("#scale-auto"),
+  scaleLog: document.querySelector("#scale-log"),
+  scalePercent: document.querySelector("#scale-percent"),
+  legendMark: document.querySelector("#legend-mark"),
+  legendChange: document.querySelector("#legend-change"),
+  legendOhlc: document.querySelector(".legend-ohlc"),
   symbolMethods: document.querySelector("#symbol-methods"),
   coinAvatar: document.querySelector("#coin-avatar"),
   instrumentType: document.querySelector("#instrument-type"),
@@ -238,7 +274,6 @@ const dom = {
   legendRsi: document.querySelector("#legend-rsi"),
   legendRsiWrap: document.querySelector(".legend-rsi"),
   legendSymbol: document.querySelector("#legend-symbol"),
-  volumeCaption: document.querySelector("#volume-caption"),
   chartLoadingText: document.querySelector("#chart-loading-text"),
   strategyAuditTitle: document.querySelector("#strategy-audit-title"),
   strategyTableCaption: document.querySelector("#strategy-table-caption"),
@@ -295,7 +330,6 @@ const dom = {
   feedbackDelete: document.querySelector("#feedback-delete"),
   feedbackClose: document.querySelector("#feedback-close"),
   feedbackCancel: document.querySelector("#feedback-cancel"),
-  railButtons: [...document.querySelectorAll("[data-scroll-target]")],
   keyvolLayer: document.querySelector("#keyvol-layer"),
   evidenceLayer: document.querySelector("#evidence-layer"),
   keyvolPanel: document.querySelector("#keyvol-section"),
@@ -359,6 +393,7 @@ const state = {
   volumeSeries: null,
   rsiSeries: null,
   candles: [],
+  candleIndexByTime: new Map(),
   volumeByTime: new Map(),
   rsiByTime: new Map(),
   axisPriceLines: new Map(),
@@ -409,6 +444,9 @@ const state = {
   funnelStage: FXDREAM_FUNNEL_STAGES.length - 1,
   chartLayers: { position: true, keys: true, evidence: true, context: true, draw: true, rsi: true },
   layerMenuOpen: false,
+  symbolMenuOpen: false,
+  sideView: "fxdream",
+  tickers: new Map(),
 };
 
 function scheduleOverlayRender(mask = ALL_OVERLAYS) {
@@ -636,14 +674,11 @@ function showToast(message) {
 }
 
 function baseAsset(symbol = state.symbol) {
-  if (symbol === "XAUUSD") return "XAU";
   return symbol.endsWith("USDT") ? symbol.slice(0, -4) : symbol;
 }
 
-function defaultMarketMeta(symbol = state.symbol) {
-  return symbol === "XAUUSD"
-    ? { venue: "OANDA", sourceLabel: "OANDA v20 · XAU_USD · M15", instrumentType: "CFD", volumeUnit: "ticks" }
-    : { venue: "BINANCE", sourceLabel: "Binance Futures · 15m", instrumentType: "PERP", volumeUnit: "USDT" };
+function defaultMarketMeta() {
+  return { venue: "BINANCE", sourceLabel: "Binance Futures · 15m", instrumentType: "PERP", volumeUnit: "USDT" };
 }
 
 function marketVolumeUnit() {
@@ -661,33 +696,44 @@ function methodsForSymbol(symbol = state.symbol) {
   return state.botUniverse.find((item) => item.symbol === symbol)?.strategies || state.activeMethods;
 }
 
+function setSymbolMark(node, meta) {
+  if (!node) return;
+  node.textContent = meta.mark;
+  node.classList.remove("is-btc", "is-xau");
+  if (meta.markClass) node.classList.add(meta.markClass);
+}
+
 function updateInstrumentUi() {
   const base = baseAsset();
   const meta = COIN_META[base] || { name: base, mark: base.slice(0, 1) };
   const methods = methodsForSymbol();
-  const isGold = state.symbol === "XAUUSD";
-  const market = isGold ? defaultMarketMeta(state.symbol) : state.marketMeta;
+  const inBotUniverse = methods.length > 0;
   dom.coinAvatar.textContent = meta.mark;
-  dom.instrumentType.textContent = market.instrumentType;
-  dom.instrumentVenue.textContent = market.venue;
+  setSymbolMark(dom.symbolButtonMark, meta);
+  setSymbolMark(dom.legendMark, meta);
+  dom.symbolButtonLabel.textContent = state.symbol;
+  dom.instrumentType.textContent = state.marketMeta.instrumentType;
+  dom.instrumentVenue.textContent = state.marketMeta.venue;
   dom.instrumentSymbol.textContent = state.symbol;
-  dom.instrumentDescription.textContent = isGold
-    ? "Gold / US Dollar · OANDA CFD midpoint"
-    : `${meta.name} / Tether · USDⓈ-M Futures`;
-  dom.legendSymbol.textContent = `${state.symbol} · 15m`;
+  dom.instrumentDescription.textContent = `${meta.name} / TetherUS · USDⓈ-M Futures`;
+  dom.legendSymbol.textContent = `${meta.name} / TetherUS · 15 · Binance`;
   dom.strategyAuditTitle.textContent = `Lệnh ${methodLabel(methods)} trên ${state.symbol}`;
   dom.strategyTableCaption.textContent = `Tất cả entry ${methodLabel(methods)} được replay trên ${state.symbol}`;
   dom.journalTitle.textContent = `Lệnh mẫu ${state.symbol} đã lưu`;
-  dom.chart.setAttribute("aria-label", `Biểu đồ nến ${state.symbol} và ${isGold ? "tick volume OANDA" : "volume Binance"}`);
-  dom.symbolMethods.textContent = isGold ? "OANDA · ngoài rổ bot" : methodLabel(methods);
-  dom.volume24hLabel.textContent = isGold ? "Tick volume 24h" : "Volume 24h";
-  for (const unit of dom.priceUnits) unit.textContent = isGold ? "USD" : "USDT";
-  dom.volumeCaption.textContent = isGold ? "VOL · OANDA TICKS" : "VOL · QUOTE USDT";
-  dom.strategyAuditNote.innerHTML = isGold
-    ? '<span aria-hidden="true">ⓘ</span> XAUUSD chỉ hiển thị nến midpoint và tick volume từ OANDA. Market này không chạy replay Turtle/Fast và không gửi lệnh.'
-    : '<span aria-hidden="true">ⓘ</span> Đây là lệnh mô phỏng theo đúng rule production trên Binance Futures 4h, không phải lịch sử fill thật của tài khoản. Trên chart, “TP REF” là mốc +2R để đọc vị thế; Turtle/Fast thực tế vẫn thoát bằng midpoint, Chandelier hoặc SL. “Đang mở” dùng giá nến mới nhất để tính MTM R.';
-  dom.marketSymbol.value = state.symbol;
-  document.title = isGold ? "XAUUSD OANDA Playbook" : `${base} Perp Playbook`;
+  dom.chart.setAttribute("aria-label", `Biểu đồ nến ${state.symbol} và volume Binance`);
+  dom.symbolMethods.textContent = methodLabel(methods);
+  dom.strategyAuditNote.innerHTML = inBotUniverse
+    ? '<span aria-hidden="true">ⓘ</span> Đây là lệnh mô phỏng theo đúng rule production trên Binance Futures 4h, không phải lịch sử fill thật của tài khoản. Trên chart, vùng lợi nhuận của Turtle/Fast kéo tới mốc tham chiếu +2R để đọc vị thế; thực tế vẫn thoát bằng midpoint, Chandelier hoặc SL. “Đang mở” dùng giá nến mới nhất để tính MTM R.'
+    : `<span aria-hidden="true">ⓘ</span> ${state.symbol} không thuộc rổ Turtle/Fast nên bảng này để trống; lệnh FX Dream nằm ở bảng bên phải và tab Key Volume.`;
+  for (const option of dom.symbolOptions) {
+    option.setAttribute("aria-current", String(option.dataset.symbol === state.symbol));
+  }
+  for (const row of dom.watchlistRows) {
+    const active = row.dataset.symbol === state.symbol;
+    row.classList.toggle("is-active", active);
+    row.setAttribute("aria-pressed", String(active));
+  }
+  document.title = `${state.symbol} · Market Playbook`;
 }
 
 function syncBotUniverse(rawUniverse) {
@@ -700,18 +746,10 @@ function syncBotUniverse(rawUniverse) {
           ? item.strategies.filter((method) => ["turtle", "fast"].includes(method))
           : [],
       }))
-      .filter((item) => /^[A-Z0-9]+USDT$/.test(item.symbol) || item.symbol === "XAUUSD")
+      .filter((item) => SUPPORTED_SYMBOLS.includes(item.symbol))
     : [];
   if (!universe.length) return;
   state.botUniverse = universe;
-  dom.marketSymbol.replaceChildren(...universe.map((item) => {
-    const option = document.createElement("option");
-    option.value = item.symbol;
-    option.textContent = item.symbol === "XAUUSD"
-      ? "XAUUSD · OANDA"
-      : `${item.symbol} · ${methodLabel(item.strategies)}`;
-    return option;
-  }));
   updateInstrumentUi();
 }
 
@@ -775,36 +813,36 @@ function initChart() {
     width: dom.chart.clientWidth,
     height: dom.chart.clientHeight,
     layout: {
-      background: { type: ColorType.Solid, color: "#090d10" },
-      textColor: "#687472",
-      fontFamily: '"SFMono-Regular", "Roboto Mono", Consolas, monospace',
-      fontSize: 10,
+      background: { type: ColorType.Solid, color: "#131722" },
+      textColor: "#b2b5be",
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif',
+      fontSize: 12,
     },
     grid: {
-      vertLines: { color: "rgba(47, 57, 64, 0.34)", style: LineStyle.Solid },
-      horzLines: { color: "rgba(47, 57, 64, 0.34)", style: LineStyle.Solid },
+      vertLines: { color: "rgba(42, 46, 57, 0.6)", style: LineStyle.Solid },
+      horzLines: { color: "rgba(42, 46, 57, 0.6)", style: LineStyle.Solid },
     },
     crosshair: {
       mode: CrosshairMode.Normal,
-      vertLine: { color: "rgba(145, 158, 155, 0.42)", width: 1, style: LineStyle.Dashed, labelBackgroundColor: "#273038" },
-      horzLine: { color: "rgba(145, 158, 155, 0.42)", width: 1, style: LineStyle.Dashed, labelBackgroundColor: "#273038" },
+      vertLine: { color: "#758696", width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: "#363a45" },
+      horzLine: { color: "#758696", width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: "#363a45" },
     },
     rightPriceScale: {
-      borderColor: "#242b31",
+      borderColor: "#2a2e39",
       scaleMargins: { top: 0.07, bottom: 0.27 },
       entireTextOnly: true,
     },
     timeScale: {
-      borderColor: "#242b31",
+      borderColor: "#2a2e39",
       timeVisible: true,
       secondsVisible: false,
-      rightOffset: 9,
-      barSpacing: 7,
+      rightOffset: 10,
+      barSpacing: 6,
       minBarSpacing: 0.5,
       tickMarkFormatter: formatChartTickMark,
     },
-    handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
-    handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
+    ...CHART_NAVIGATION,
+    kineticScroll: { mouse: false, touch: true },
     localization: {
       locale: "vi-VN",
       priceFormatter: formatPrice,
@@ -813,14 +851,14 @@ function initChart() {
   });
 
   state.candleSeries = state.chart.addCandlestickSeries({
-    upColor: "#38c991",
-    downColor: "#e85e65",
-    borderUpColor: "#38c991",
-    borderDownColor: "#e85e65",
-    wickUpColor: "#38c991",
-    wickDownColor: "#e85e65",
+    upColor: CANDLE_UP,
+    downColor: CANDLE_DOWN,
+    borderUpColor: CANDLE_UP,
+    borderDownColor: CANDLE_DOWN,
+    wickUpColor: CANDLE_UP,
+    wickDownColor: CANDLE_DOWN,
     priceLineVisible: true,
-    priceLineColor: "rgba(238, 242, 241, 0.42)",
+    priceLineStyle: LineStyle.Dotted,
     lastValueVisible: true,
   });
 
@@ -834,7 +872,7 @@ function initChart() {
 
   state.rsiSeries = state.chart.addLineSeries({
     priceScaleId: "rsi",
-    color: "#b48ef0",
+    color: "#7e57c2",
     lineWidth: 1,
     priceFormat: { type: "custom", formatter: (value) => value.toFixed(1), minMove: 0.1 },
     autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
@@ -846,7 +884,7 @@ function initChart() {
   for (const price of [70, 30]) {
     state.rsiSeries.createPriceLine({
       price,
-      color: "rgba(145, 158, 155, 0.38)",
+      color: "rgba(120, 123, 134, 0.6)",
       lineWidth: 1,
       lineStyle: LineStyle.Dashed,
       axisLabelVisible: false,
@@ -864,6 +902,7 @@ function initChart() {
 
   state.chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
     scheduleOverlayRender();
+    updateRealtimeButton();
   });
 
   const resizeObserver = new ResizeObserver(() => {
@@ -874,8 +913,182 @@ function initChart() {
   resizeObserver.observe(dom.chartWrap);
 
   dom.chartWrap.addEventListener("wheel", () => scheduleOverlayRender(), { passive: true });
-  dom.chartWrap.addEventListener("pointerup", () => scheduleOverlayRender());
+  // Kéo dọc chart hoặc kéo trục giá không đổi khoảng thời gian, nên không có sự kiện
+  // nào của thư viện báo — vẽ lại lớp phủ theo chính con trỏ đang giữ chuột.
+  dom.chartWrap.addEventListener("pointermove", (event) => {
+    if (event.buttons) scheduleOverlayRender();
+  });
+  dom.chartWrap.addEventListener("pointerup", () => {
+    scheduleOverlayRender();
+    syncScaleButtons();
+  });
+  dom.chartWrap.addEventListener("dblclick", () => {
+    window.requestAnimationFrame(() => {
+      scheduleOverlayRender();
+      syncScaleButtons();
+    });
+  });
   return true;
+}
+
+function priceAxisWidth() {
+  return state.chart?.priceScale("right").width() || 61;
+}
+
+/* ── Điều hướng chart kiểu TradingView ──────────────────────────────────── */
+
+function zoomChart(factor) {
+  const timeScale = state.chart?.timeScale();
+  const range = timeScale?.getVisibleLogicalRange();
+  if (!range) return;
+  // Neo mép phải như TradingView: nến mới nhất đứng yên, phóng/thu về phía quá khứ.
+  const span = Math.max(10, (range.to - range.from) * factor);
+  timeScale.setVisibleLogicalRange({ from: range.to - span, to: range.to });
+}
+
+function panChart(direction) {
+  const timeScale = state.chart?.timeScale();
+  const range = timeScale?.getVisibleLogicalRange();
+  if (!range) return;
+  const shift = (range.to - range.from) * 0.2 * direction;
+  timeScale.setVisibleLogicalRange({ from: range.from + shift, to: range.to + shift });
+}
+
+function resetChartView() {
+  if (!state.chart) return;
+  state.chart.priceScale("right").applyOptions({ autoScale: true });
+  const from = Math.max(0, state.candles.length - 185);
+  state.chart.timeScale().setVisibleLogicalRange({ from, to: state.candles.length + 8 });
+  syncScaleButtons();
+  scheduleOverlayRender();
+}
+
+function handleChartNav(action) {
+  if (action === "zoom-in") zoomChart(0.8);
+  else if (action === "zoom-out") zoomChart(1.25);
+  else if (action === "left") panChart(-1);
+  else if (action === "right") panChart(1);
+}
+
+function updateRealtimeButton() {
+  const range = state.chart?.timeScale().getVisibleLogicalRange();
+  dom.chartRealtime.hidden = !range || !state.candles.length || range.to >= state.candles.length - 1;
+}
+
+function syncScaleButtons() {
+  if (!state.chart) return;
+  const { autoScale, mode } = state.chart.priceScale("right").options();
+  const { PriceScaleMode } = window.LightweightCharts;
+  const flags = [
+    [dom.scaleAuto, autoScale],
+    [dom.scaleLog, mode === PriceScaleMode.Logarithmic],
+    [dom.scalePercent, mode === PriceScaleMode.Percentage],
+  ];
+  for (const [button, on] of flags) {
+    button.classList.toggle("is-active", on);
+    button.setAttribute("aria-pressed", String(on));
+  }
+}
+
+function togglePriceScaleMode(target) {
+  const { PriceScaleMode } = window.LightweightCharts;
+  const scale = state.chart?.priceScale("right");
+  if (!scale) return;
+  const wanted = target === "log" ? PriceScaleMode.Logarithmic : PriceScaleMode.Percentage;
+  scale.applyOptions({ mode: scale.options().mode === wanted ? PriceScaleMode.Normal : wanted });
+  syncScaleButtons();
+  scheduleOverlayRender();
+}
+
+function toggleAutoScale() {
+  const scale = state.chart?.priceScale("right");
+  if (!scale) return;
+  scale.applyOptions({ autoScale: !scale.options().autoScale });
+  syncScaleButtons();
+  scheduleOverlayRender();
+}
+
+function toggleFullscreen() {
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  else document.documentElement.requestFullscreen?.().catch(() => showToast("Trình duyệt không cho phép toàn màn hình."));
+}
+
+function tickChartClock() {
+  dom.chartClock.textContent = CHART_CLOCK_FORMATTER.format(new Date());
+}
+
+/* ── Chọn mã, danh sách theo dõi, bảng bên phải ──────────────────────────── */
+
+function setSymbolMenuOpen(open) {
+  state.symbolMenuOpen = open;
+  dom.symbolMenu.hidden = !open;
+  dom.symbolButton.setAttribute("aria-expanded", String(open));
+  if (!open) return;
+  dom.symbolSearch.value = "";
+  filterSymbolOptions();
+  dom.symbolSearch.focus();
+}
+
+function filterSymbolOptions() {
+  const query = dom.symbolSearch.value.trim().toLowerCase();
+  let shown = 0;
+  for (const option of dom.symbolOptions) {
+    const match = !query || option.dataset.search.includes(query);
+    option.hidden = !match;
+    if (match) shown += 1;
+  }
+  dom.symbolMenuEmpty.hidden = shown > 0;
+}
+
+function pickSymbol(symbol) {
+  setSymbolMenuOpen(false);
+  changeSymbol(symbol);
+}
+
+function setSideView(view) {
+  if (!dom.sidePanels.some((panel) => panel.dataset.sidePanel === view)) return;
+  state.sideView = view;
+  for (const panel of dom.sidePanels) panel.hidden = panel.dataset.sidePanel !== view;
+  for (const button of dom.sideViewButtons) {
+    const active = button.dataset.sideView === view;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+}
+
+function formatSignedPrice(value) {
+  return `${value >= 0 ? "+" : "−"}${formatPrice(Math.abs(value))}`;
+}
+
+function renderWatchlist() {
+  for (const row of dom.watchlistRows) {
+    const ticker = state.tickers.get(row.dataset.symbol);
+    if (!ticker) continue;
+    const up = ticker.change >= 0;
+    row.querySelector('[data-field="last"]').textContent = formatPrice(ticker.last);
+    for (const field of ["change", "pct"]) {
+      const cell = row.querySelector(`[data-field="${field}"]`);
+      cell.textContent = field === "change"
+        ? formatSignedPrice(ticker.change)
+        : `${up ? "+" : "−"}${Math.abs(ticker.changePct).toFixed(2)}%`;
+      cell.classList.toggle("is-positive", up);
+      cell.classList.toggle("is-negative", !up);
+    }
+  }
+}
+
+async function loadTickers() {
+  try {
+    const response = await fetch("/api/tickers", { headers: { Accept: "application/json" } });
+    if (!response.ok) return;
+    const payload = await response.json();
+    for (const ticker of payload.tickers || []) {
+      if (SUPPORTED_SYMBOLS.includes(ticker.symbol) && Number.isFinite(ticker.last)) state.tickers.set(ticker.symbol, ticker);
+    }
+    renderWatchlist();
+  } catch {
+    // Danh sách theo dõi chỉ là phần phụ: lỗi mạng thì giữ số cũ, lần sau thử lại.
+  }
 }
 
 function normalizeCandles(rawCandles) {
@@ -899,6 +1112,7 @@ function setChartData(rawCandles, source) {
   if (!candles.length) return;
 
   state.candles = candles;
+  state.candleIndexByTime = new Map(candles.map((candle, index) => [Math.floor(candle.t / 1000), index]));
   state.volumeByTime.clear();
   const candleData = candles.map((candle) => ({
     time: Math.floor(candle.t / 1000),
@@ -911,7 +1125,7 @@ function setChartData(rawCandles, source) {
     const point = {
       time: Math.floor(candle.t / 1000),
       value: candle.q,
-      color: candle.c >= candle.o ? "rgba(56, 201, 145, 0.38)" : "rgba(232, 94, 101, 0.38)",
+      color: candle.c >= candle.o ? "rgba(8, 153, 129, 0.5)" : "rgba(242, 54, 69, 0.5)",
     };
     state.volumeByTime.set(point.time, point.value);
     return point;
@@ -952,6 +1166,7 @@ function setChartData(rawCandles, source) {
 
   const from = Math.max(0, candles.length - 185);
   state.chart.timeScale().setVisibleLogicalRange({ from, to: candles.length + 8 });
+  updateRealtimeButton();
   window.requestAnimationFrame(() => window.requestAnimationFrame(() => scheduleOverlayRender()));
 
   if (source === "live") setSourceState("live", state.marketMeta.sourceLabel);
@@ -1154,15 +1369,14 @@ function renderStrategyMarkers() {
   const lastTime = state.candles.at(-1)?.t ?? Infinity;
   const markers = [];
   for (const trade of strategyTradesForChart()) {
+    // Trên chart chỉ đọc số R: điểm vào là mũi tên trơn (màu = Turtle/Fast), điểm thoát ghi R.
     const color = trade.strategy === "turtle" ? "#f3ba63" : "#a98bff";
-    const prefix = trade.strategy === "turtle" ? "T" : "F";
     if (trade.entryTime >= firstTime && trade.entryTime <= lastTime) {
       markers.push({
         time: Math.floor(trade.entryTime / 1000),
         position: trade.dir === "long" ? "belowBar" : "aboveBar",
         color,
         shape: trade.dir === "long" ? "arrowUp" : "arrowDown",
-        text: `${prefix}-${trade.dir === "long" ? "L" : "S"}${trade.unit}`,
       });
     }
     if (trade.exitTime && trade.exitTime >= firstTime && trade.exitTime <= lastTime) {
@@ -1171,7 +1385,7 @@ function renderStrategyMarkers() {
         position: trade.dir === "long" ? "aboveBar" : "belowBar",
         color,
         shape: "circle",
-        text: `${prefix} ${formatR(Number(trade.resultR))}`,
+        text: formatR(Number(trade.resultR)),
       });
     }
   }
@@ -1188,7 +1402,7 @@ function renderStrategyContexts() {
 
   const width = dom.chartWrap.clientWidth;
   const height = dom.chartWrap.clientHeight;
-  const plotRight = Math.max(80, width - 61);
+  const plotRight = Math.max(80, width - priceAxisWidth());
   const plotBottom = height * 0.77;
   layer.setAttribute("viewBox", `0 0 ${width} ${height}`);
 
@@ -1246,7 +1460,7 @@ function renderStrategyContexts() {
 function chartPlotBox() {
   const width = dom.chartWrap.clientWidth;
   const height = dom.chartWrap.clientHeight;
-  return { width, height, right: Math.max(80, width - 61), bottom: height * 0.77 };
+  return { width, height, right: Math.max(80, width - priceAxisWidth()), bottom: height * 0.77 };
 }
 
 /**
@@ -1931,6 +2145,7 @@ function selectedKeyLevel() {
 function selectKeyLevel(keyId) {
   if (state.selectedKeyId === keyId) return;
   state.selectedKeyId = keyId;
+  setSideView("fxdream");
   renderKeyJudgeCard();
   scheduleOverlayRender(KEYVOL_OVERLAY);
 }
@@ -2048,6 +2263,7 @@ function renderKeyJudgeCard() {
 /* ── Thẻ "Vì sao vào lệnh" ───────────────────────────────────────────────── */
 
 function showEvidence(trade) {
+  setSideView("fxdream");
   state.evidencePinned = null;
   state.evidenceTrade = trade;
   state.evidenceHover = null;
@@ -2328,11 +2544,18 @@ function updateLegend(candle, volumeValue, rsiValue) {
   const close = Number(candle.c ?? candle.close);
   const time = Number(candle.t ? Math.floor(candle.t / 1000) : candle.time);
   const volume = Number.isFinite(volumeValue) ? volumeValue : state.volumeByTime.get(time) ?? candle.q;
+  const previous = state.candles[(state.candleIndexByTime.get(time) ?? 0) - 1];
 
   dom.legendOpen.textContent = formatPrice(open);
   dom.legendHigh.textContent = formatPrice(high);
   dom.legendLow.textContent = formatPrice(low);
   dom.legendClose.textContent = formatPrice(close);
+  // Như TradingView: O/H/L/C tô màu theo cây nến, kèm thay đổi so với giá đóng cây trước.
+  dom.legendOhlc.classList.toggle("is-up", close >= open);
+  dom.legendOhlc.classList.toggle("is-down", close < open);
+  dom.legendChange.textContent = previous
+    ? `${formatSignedPrice(close - previous.c)} (${close >= previous.c ? "+" : "−"}${Math.abs(((close - previous.c) / previous.c) * 100).toFixed(2)}%)`
+    : "";
   dom.legendVolume.textContent = `${formatVolume(Number(volume))} ${marketVolumeUnit()}`;
   if (dom.legendRsi) {
     const rsi = Number.isFinite(rsiValue) ? rsiValue : state.rsiByTime.get(time);
@@ -2344,11 +2567,9 @@ async function loadMarketData({ notify = false } = {}) {
   state.marketController?.abort();
   const requestId = ++state.marketRequestId;
   const requestedSymbol = state.symbol;
-  const requestedMarket = defaultMarketMeta(requestedSymbol);
+  const requestedMarket = defaultMarketMeta();
   dom.chartLoading.classList.add("is-visible");
-  dom.chartLoadingText.textContent = requestedSymbol === "XAUUSD"
-    ? "Đang lấy nến XAU_USD từ OANDA…"
-    : "Đang lấy nến Binance Futures…";
+  dom.chartLoadingText.textContent = `Đang lấy nến ${requestedSymbol} từ Binance Futures…`;
   dom.reloadChart.classList.add("is-loading");
   dom.reloadChart.disabled = true;
   setSourceState("loading", requestedMarket.sourceLabel);
@@ -2379,21 +2600,20 @@ async function loadMarketData({ notify = false } = {}) {
     if (notify) showToast(`Đã cập nhật ${payload.candles.length.toLocaleString("vi-VN")} nến ${requestedSymbol}.`);
   } catch (error) {
     if (requestId !== state.marketRequestId) return;
-    const isGold = requestedSymbol === "XAUUSD";
     const message = error?.name === "AbortError" ? "Hết thời gian chờ" : String(error?.message || "API chưa sẵn sàng");
     setSourceState("error", message);
     state.strategyAuditLoaded = true;
     state.strategyTrades = [];
     setKeyVolume(null);
-    dom.turtleConfig.textContent = isGold ? "XAUUSD không thuộc rổ Turtle." : "Chưa tải được cấu hình.";
-    dom.fastConfig.textContent = isGold ? "XAUUSD không thuộc rổ Fast." : "Chưa tải được cấu hình.";
+    dom.turtleConfig.textContent = "Chưa tải được cấu hình.";
+    dom.fastConfig.textContent = "Chưa tải được cấu hình.";
     setStrategyEmpty(
-      isGold ? "Chưa tải được chart vàng OANDA" : "Chưa tải được Strategy Audit",
+      "Chưa tải được Strategy Audit",
       `${message}. Không tự động đổi sang nguồn dữ liệu khác.`,
       false,
     );
     renderStrategyMarkers();
-    if (notify) showToast(isGold ? `Chưa lấy được OANDA: ${message}` : "Chưa lấy được Binance; không đổi nguồn dữ liệu.");
+    if (notify) showToast("Chưa lấy được Binance; không đổi nguồn dữ liệu.");
   } finally {
     window.clearTimeout(timer);
     if (requestId !== state.marketRequestId) return;
@@ -2549,6 +2769,7 @@ function armPositionPlacement(side) {
     return;
   }
   if (state.drawingMode !== "select") setDrawingMode("select");
+  setSideView("plan");
   state.positionPlacement = side;
   state.selectedDrawingId = null;
   state.chart.applyOptions({ handleScroll: false, handleScale: false });
@@ -2562,7 +2783,7 @@ function placePositionOnChart(event) {
   if (!state.positionPlacement || (!keyboardActivation && event.button !== 0)) return;
   const rect = dom.chartWrap.getBoundingClientRect();
   const y = keyboardActivation || event.detail === 0 ? rect.height * 0.38 : event.clientY - rect.top;
-  const plotRight = Math.max(120, rect.width - 61);
+  const plotRight = Math.max(120, rect.width - priceAxisWidth());
   const defaultWidth = Math.min(180, Math.max(84, plotRight * 0.18));
   const clickX = Math.max(0, Math.min(plotRight, keyboardActivation || event.detail === 0 ? plotRight * 0.42 : event.clientX - rect.left));
   let startX = clickX;
@@ -2792,12 +3013,6 @@ function setChartView(view) {
   renderDrawings();
 }
 
-function setActiveRailTarget(target) {
-  for (const button of dom.railButtons) {
-    button.classList.toggle("is-active", button.dataset.scrollTarget === target);
-  }
-}
-
 function setDockPanel(panel) {
   if (!["strategy", "keyvol", "journal", "closed"].includes(panel)) return;
   state.dockPanel = panel;
@@ -2811,45 +3026,47 @@ function setDockPanel(panel) {
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-pressed", String(active));
   }
-  const railTarget = panel === "strategy" ? "strategy-audit"
-    : panel === "keyvol" ? "keyvol-section"
-      : panel === "journal" ? "journal-section" : "chart-section";
-  setActiveRailTarget(railTarget);
   window.requestAnimationFrame(() => scheduleOverlayRender());
 }
 
+/** % giá từ entry tới một mức, có dấu: "+1.85%" / "−0.79%". */
+function formatPriceChangePct(entry, price) {
+  const pct = ((price - entry) / entry) * 100;
+  return `${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(2)}%`;
+}
+
+/**
+ * Vị thế chỉ-đọc trên chart: R kết quả ở điểm thoát; số R kế hoạch (khoảng
+ * entry→TP chia khoảng entry→SL) giữa đường entry; % giá tới TP/SL ở mép hộp.
+ * Không nhãn chữ entry/SL/mục tiêu/hướng — các mức đó nằm trong aria-label.
+ */
 function renderReadOnlyTool(position, index) {
   const selected = position.id === state.selectedOverlayId;
   const sourceLabel = position.source === "saved" ? "MẪU" : position.source === "keyvol" ? "FX DREAM" : position.source.toUpperCase();
   // Turtle/Fast thoát bằng midpoint/Chandelier nên mốc TP chỉ là tham chiếu +2R;
-  // FX Dream thì có mục tiêu cấu trúc thật, phải ghi đúng dư địa của nó.
-  const tpLabel = position.source === "saved" ? "TP" : position.source === "keyvol" ? "MỤC TIÊU" : "TP REF";
-  const tpR = position.source === "saved"
-    ? formatR(position.resultR)
-    : position.source === "keyvol"
-      ? `${Number(position.targetR || 0).toFixed(2)}R`
-      : "+2.00R";
-  // Lệnh FX Dream đang mở: vạch này là giá hiện tại, R tạm tính — không phải điểm thoát.
-  const exitTag = position.open ? "HIỆN TẠI" : "EXIT";
-  const exitR = `${position.open ? "≈ " : ""}${formatR(position.resultR)}`;
+  // FX Dream thì có mục tiêu cấu trúc thật.
+  const tpLabel = position.source === "saved" ? "TP" : position.source === "keyvol" ? "mục tiêu" : "TP tham chiếu";
+  // Lệnh đang mở: R tạm tính theo giá hiện tại, không phải điểm thoát.
+  const resultText = `${position.open ? "≈ " : ""}${formatR(position.resultR)}`;
   const exitLine = Number.isFinite(position.exit)
-    ? `<button class="readonly-price-level readonly-exit-level${position.resultR >= 0 ? " is-win" : " is-loss"}" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="exit" aria-pressed="${selected}" aria-label="${position.label}: ${exitTag} ${formatPrice(position.exit)}, kết quả ${exitR}"></button>`
+    ? `<button class="readonly-price-level readonly-exit-level${position.resultR >= 0 ? " is-win" : " is-loss"}" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="exit" aria-pressed="${selected}" aria-label="${position.label}: ${position.open ? "giá hiện tại" : "thoát"} ${formatPrice(position.exit)}, kết quả ${resultText}"></button>`
     : "";
+  const risk = Math.abs(position.entry - position.sl);
+  const plannedR = risk > 0 && Number.isFinite(position.tp) ? Math.abs(position.tp - position.entry) / risk : null;
+  const tpPct = Number.isFinite(position.tp) && position.entry > 0 ? formatPriceChangePct(position.entry, position.tp) : "";
+  const slPct = Number.isFinite(position.sl) && position.entry > 0 ? formatPriceChangePct(position.entry, position.sl) : "";
   return `
     <div class="readonly-position-tool source-${position.source}${selected ? " is-selected" : ""}" data-overlay-id="${escapeHtml(position.id)}" data-position-index="${index}">
-      <button class="readonly-position-zone readonly-reward-zone" type="button" data-overlay-id="${escapeHtml(position.id)}" aria-pressed="${selected}" aria-label="Chọn ${position.label}, vùng lợi nhuận đến ${tpLabel}">
-        <span>${position.label} · ${tpLabel} ${tpR}</span>
-      </button>
-      <button class="readonly-position-zone readonly-risk-zone" type="button" data-overlay-id="${escapeHtml(position.id)}" aria-pressed="${selected}" aria-label="Chọn ${position.label}, vùng rủi ro đến Stop Loss">
-        <span>${position.label} · SL −1R</span>
-      </button>
+      <button class="readonly-position-zone readonly-reward-zone" type="button" data-overlay-id="${escapeHtml(position.id)}" aria-pressed="${selected}" aria-label="Chọn ${position.label}, vùng lợi nhuận đến ${tpLabel} ${formatPrice(position.tp)} (${tpPct})"></button>
+      <button class="readonly-position-zone readonly-risk-zone" type="button" data-overlay-id="${escapeHtml(position.id)}" aria-pressed="${selected}" aria-label="Chọn ${position.label}, vùng rủi ro đến Stop Loss ${formatPrice(position.sl)} (${slPct})"></button>
       <button class="readonly-price-level readonly-tp-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="tp" aria-pressed="${selected}" aria-label="${position.label}: ${tpLabel} ${formatPrice(position.tp)}"></button>
       <button class="readonly-price-level readonly-entry-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="entry" aria-pressed="${selected}" aria-label="${position.label}: Entry ${formatPrice(position.entry)}, ${sourceLabel}"></button>
       <button class="readonly-price-level readonly-sl-level" type="button" data-overlay-id="${escapeHtml(position.id)}" data-readonly-level="sl" aria-pressed="${selected}" aria-label="${position.label}: Stop Loss ${formatPrice(position.sl)}"></button>
-      <div class="position-start-time readonly-position-start-time" aria-label="${position.label}: bắt đầu ${formatOrderTime(leftEdgeEntryTime(position))}">
-        <time>${formatOrderTime(leftEdgeEntryTime(position))}</time>
-      </div>
       ${exitLine}
+      <span class="readonly-r-tag${position.resultR >= 0 ? " is-win" : " is-loss"}" aria-hidden="true">${escapeHtml(resultText)}</span>
+      ${plannedR == null ? "" : `<span class="readonly-planned-r" aria-hidden="true"><b>${plannedR.toFixed(2)}R</b></span>`}
+      ${tpPct ? `<span class="readonly-pct-tag is-tp" data-pct-level="tp" aria-hidden="true"><b>${tpPct}</b></span>` : ""}
+      ${slPct ? `<span class="readonly-pct-tag is-sl" data-pct-level="sl" aria-hidden="true"><b>${slPct}</b></span>` : ""}
     </div>`;
 }
 
@@ -2864,11 +3081,9 @@ function renderPlanTools() {
     return `
       <div class="position-tool ${plan.side}-tool${selected ? " is-selected" : ""}" data-plan-id="${escapeHtml(plan.id)}" data-position-index="${index}">
         <button class="position-zone reward-zone" type="button" data-action="select-tool" data-plan-id="${escapeHtml(plan.id)}" aria-pressed="${selected}" aria-keyshortcuts="Delete Backspace" aria-label="Chọn ${label} từ vùng lợi nhuận">
-          <span>${label} · TP ${rewardText}</span>
+          <span>${rewardText}</span>
         </button>
-        <button class="position-zone risk-zone" type="button" data-action="select-tool" data-plan-id="${escapeHtml(plan.id)}" aria-pressed="${selected}" aria-keyshortcuts="Delete Backspace" aria-label="Chọn ${label} từ vùng rủi ro">
-          <span>${label} · SL −1R</span>
-        </button>
+        <button class="position-zone risk-zone" type="button" data-action="select-tool" data-plan-id="${escapeHtml(plan.id)}" aria-pressed="${selected}" aria-keyshortcuts="Delete Backspace" aria-label="Chọn ${label} từ vùng rủi ro"></button>
         <button class="price-level tp-level" data-level="tp" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo Take Profit; dùng phím mũi tên để tinh chỉnh"></button>
         <button class="price-level entry-level" data-level="entry" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo toàn bộ vị thế từ Entry; dùng phím mũi tên để tinh chỉnh"></button>
         <button class="price-level sl-level" data-level="sl" data-plan-id="${escapeHtml(plan.id)}" type="button" aria-label="${label}: kéo Stop Loss; dùng phím mũi tên để tinh chỉnh"></button>
@@ -2916,6 +3131,7 @@ function updateSelectionState() {
 function selectPlan(planId) {
   if (!state.plans.some((plan) => plan.id === planId)) return;
   cancelPositionPlacement();
+  setSideView("plan");
   state.selectedPlanId = planId;
   state.selectedOverlayId = null;
   state.selectedDrawingId = null;
@@ -3113,7 +3329,7 @@ function renderOrderLevels() {
   const axisLevels = [];
   const chartHeight = dom.chartWrap.clientHeight * 0.77;
   const chartWidth = dom.chartWrap.clientWidth;
-  const plotRight = Math.max(120, chartWidth - 61);
+  const plotRight = Math.max(120, chartWidth - priceAxisWidth());
   const draftTools = new Map();
   const readOnlyTools = new Map();
   for (const tool of dom.orderLevels.children) {
@@ -3152,7 +3368,7 @@ function renderOrderLevels() {
     tool.hidden = !Object.values(coordinates).some(Number.isFinite) || right <= left;
     if (tool.hidden) continue;
     tool.style.setProperty("--tool-left", `${left}px`);
-    tool.style.setProperty("--tool-right", `${Math.max(61, chartWidth - right)}px`);
+    tool.style.setProperty("--tool-right", `${Math.max(priceAxisWidth(), chartWidth - right)}px`);
     const startTimeTag = tool.querySelector(".position-start-time");
     if (startTimeTag) startTimeTag.hidden = !Number.isFinite(coordinates.entry);
     if (Number.isFinite(coordinates.entry)) tool.style.setProperty("--tool-entry-y", `${coordinates.entry}px`);
@@ -3171,17 +3387,18 @@ function renderOrderLevels() {
       button.hidden = !visible;
       if (visible) button.style.top = `${coordinate}px`;
     }
+    // Lệnh đang kéo vẫn cần thấy giá trên trục, nhưng không gắn chữ TP/SL/ENTRY.
     if (!state.selectedOverlayId && plan.id === state.selectedPlanId) {
       axisLevels.push(
-        { key: `${plan.id}:tp`, price: plan.tp, color: AXIS_LEVEL_COLORS.tp, title: "TP" },
-        { key: `${plan.id}:entry`, price: plan.entry, color: AXIS_LEVEL_COLORS.entry, title: "ENTRY" },
-        { key: `${plan.id}:sl`, price: plan.sl, color: AXIS_LEVEL_COLORS.sl, title: "SL" },
+        { key: `${plan.id}:tp`, price: plan.tp, color: AXIS_LEVEL_COLORS.tp, title: "" },
+        { key: `${plan.id}:entry`, price: plan.entry, color: AXIS_LEVEL_COLORS.entry, title: "" },
+        { key: `${plan.id}:sl`, price: plan.sl, color: AXIS_LEVEL_COLORS.sl, title: "" },
       );
     }
 
     const calculation = calculatePlan(plan);
     const rewardLabel = tool.querySelector(".reward-zone span");
-    if (rewardLabel) rewardLabel.textContent = `${getPlanLabel(plan)} · TP ${calculation.valid ? formatR(calculation.rewardR) : "—"}`;
+    if (rewardLabel) rewardLabel.textContent = calculation.valid ? formatR(calculation.rewardR) : "—";
 
     const positionZone = (selector, first, second) => {
       const zone = tool.querySelector(selector);
@@ -3258,10 +3475,7 @@ function renderOrderLevels() {
     tool.hidden = !hasVisiblePrice || right <= left;
     if (tool.hidden) continue;
     tool.style.setProperty("--readonly-left", `${left}px`);
-    tool.style.setProperty("--readonly-right", `${Math.max(61, chartWidth - right)}px`);
-    const startTimeTag = tool.querySelector(".readonly-position-start-time");
-    if (startTimeTag) startTimeTag.hidden = !Number.isFinite(coordinates.entry);
-    if (Number.isFinite(coordinates.entry)) tool.style.setProperty("--readonly-entry-y", `${coordinates.entry}px`);
+    tool.style.setProperty("--readonly-right", `${Math.max(priceAxisWidth(), chartWidth - right)}px`);
 
     for (const button of tool.querySelectorAll("[data-readonly-level]")) {
       const coordinate = coordinates[button.dataset.readonlyLevel];
@@ -3269,14 +3483,36 @@ function renderOrderLevels() {
       button.hidden = !visible;
       if (visible) button.style.top = `${coordinate}px`;
     }
-    if (position.id === state.selectedOverlayId) {
-      const exitColor = position.resultR >= 0 ? AXIS_LEVEL_COLORS.tp : AXIS_LEVEL_COLORS.sl;
-      axisLevels.push(
-        { key: `${position.id}:tp`, price: position.tp, color: AXIS_LEVEL_COLORS.tp, title: position.source === "saved" ? "TP" : position.source === "keyvol" ? "MỤC TIÊU" : "TP REF" },
-        { key: `${position.id}:entry`, price: position.entry, color: AXIS_LEVEL_COLORS[position.source] || AXIS_LEVEL_COLORS.entry, title: "ENTRY" },
-        { key: `${position.id}:sl`, price: position.sl, color: AXIS_LEVEL_COLORS.sl, title: "SL" },
-        { key: `${position.id}:exit`, price: position.exit, color: exitColor, title: position.open ? "HIỆN TẠI" : "EXIT" },
-      );
+    // Số R đứng ở điểm thoát (lệnh mở: giá hiện tại); chưa có điểm thoát thì đứng ở entry.
+    const rTag = tool.querySelector(".readonly-r-tag");
+    const rTagY = Number.isFinite(coordinates.exit) ? coordinates.exit : coordinates.entry;
+    if (rTag) {
+      rTag.hidden = !Number.isFinite(rTagY) || rTagY < -20 || rTagY > chartHeight + 20;
+      if (!rTag.hidden) rTag.style.top = `${rTagY}px`;
+    }
+    // Số R kế hoạch nằm giữa đường entry — chỗ vùng TP và vùng SL gặp nhau.
+    const plannedTag = tool.querySelector(".readonly-planned-r");
+    if (plannedTag) {
+      plannedTag.hidden = !Number.isFinite(coordinates.entry) || coordinates.entry < -20 || coordinates.entry > chartHeight + 20;
+      if (!plannedTag.hidden) plannedTag.style.top = `${coordinates.entry}px`;
+    }
+    // % TP/SL đứng ngay ngoài mép hộp: mức nằm trên entry thì nhãn ở trên đường, dưới thì ở dưới.
+    for (const pctTag of tool.querySelectorAll("[data-pct-level]")) {
+      const y = coordinates[pctTag.dataset.pctLevel];
+      pctTag.hidden = !Number.isFinite(y) || !Number.isFinite(coordinates.entry) || y < -20 || y > chartHeight + 20;
+      if (pctTag.hidden) continue;
+      pctTag.style.top = `${y}px`;
+      pctTag.classList.toggle("is-above", y < coordinates.entry);
+    }
+    // Hộp hẹp thì nhãn giữa che nhãn kết quả ở mép phải: đẩy nhãn kết quả ra ngay
+    // bên phải nhãn giữa. Bề rộng nhãn giữa không đổi theo zoom nên chỉ đo một lần.
+    if (rTag) {
+      const pillHalf = plannedTag && !plannedTag.hidden
+        ? Number(tool.dataset.pillHalf ||= String(plannedTag.firstElementChild.offsetWidth / 2))
+        : 0;
+      const narrow = pillHalf > 0 && (right - left) / 2 < pillHalf + 70;
+      rTag.style.left = narrow ? `${(left + right) / 2 + pillHalf + 4}px` : "";
+      rTag.style.right = narrow ? "auto" : "";
     }
 
     const positionZone = (selector, first, second) => {
@@ -3356,7 +3592,7 @@ function setDrawingMode(mode) {
 
 function drawingPointFromEvent(event, rect = dom.chartWrap.getBoundingClientRect()) {
   if (!state.chart || !state.candleSeries || !state.candles.length) return null;
-  const x = Math.max(0, Math.min(rect.width - 61, event.clientX - rect.left));
+  const x = Math.max(0, Math.min(rect.width - priceAxisWidth(), event.clientX - rect.left));
   const y = Math.max(4, Math.min(rect.height * 0.77, event.clientY - rect.top));
   const logical = state.chart.timeScale().coordinateToLogical(x);
   const price = state.candleSeries.coordinateToPrice(y);
@@ -3436,15 +3672,12 @@ function renderDrawings() {
   dom.drawingLayer.setAttribute("viewBox", `0 0 ${width} ${height}`);
   const saved = drawingsForChart().map((drawing) => renderDrawingShape(drawing)).join("");
   const preview = state.drawingDraft ? renderDrawingShape(state.drawingDraft, true) : "";
-  dom.drawingLayer.innerHTML = `<rect class="drawing-hit-area" x="0" y="0" width="${Math.max(0, width - 61)}" height="${height * 0.77}" />${saved}${preview}`;
+  dom.drawingLayer.innerHTML = `<rect class="drawing-hit-area" x="0" y="0" width="${Math.max(0, width - priceAxisWidth())}" height="${height * 0.77}" />${saved}${preview}`;
   updateDrawingControls();
 }
 
 function restoreChartNavigation() {
-  state.chart?.applyOptions({
-    handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
-    handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
-  });
+  state.chart?.applyOptions(CHART_NAVIGATION);
   document.body.classList.remove("is-drawing-shape");
 }
 
@@ -3681,7 +3914,7 @@ function movePositionWidthDrag(event) {
   const tool = [...dom.orderLevels.children].find((item) => item.dataset.planId === planId);
   if (!plan || !tool) return;
 
-  const plotRight = Math.max(120, chartRect.width - 61);
+  const plotRight = Math.max(120, chartRect.width - priceAxisWidth());
   const otherX = Number(tool.dataset[edge === "start" ? "rightPx" : "leftPx"]);
   let x = Math.max(0, Math.min(plotRight, event.clientX - chartRect.left));
   x = edge === "start"
@@ -4142,13 +4375,14 @@ function handleOrderToolClick(event) {
 
 function changeSymbol(nextSymbol) {
   const next = String(nextSymbol || "").trim().toUpperCase();
-  if ((!/^[A-Z0-9]+USDT$/.test(next) && next !== "XAUUSD") || next === state.symbol) return;
+  if (!SUPPORTED_SYMBOLS.includes(next) || next === state.symbol) return;
 
   flushDraftPlanPersistence();
   state.marketController?.abort();
   state.symbol = next;
-  state.marketMeta = defaultMarketMeta(next);
+  state.marketMeta = defaultMarketMeta();
   state.candles = [];
+  state.candleIndexByTime = new Map();
   state.volumeByTime.clear();
   state.strategyTrades = [];
   state.strategyAuditLoaded = false;
@@ -4260,20 +4494,12 @@ function bindEvents() {
     plan.auto = false;
     scheduleDraftPlanPersistence();
   });
-  dom.fitChart.addEventListener("click", () => {
-    const from = Math.max(0, state.candles.length - 185);
-    state.chart?.timeScale().setVisibleLogicalRange({ from, to: state.candles.length + 8 });
-    scheduleOverlayRender();
-  });
+  dom.fitChart.addEventListener("click", resetChartView);
   dom.reloadChart.addEventListener("click", () => loadMarketData({ notify: true }));
-  dom.marketSymbol.addEventListener("change", () => changeSymbol(dom.marketSymbol.value));
-  dom.historyDays.addEventListener("change", () => {
-    state.historyDays = Number(dom.historyDays.value) || 120;
-    dom.auditRangeLabel.textContent = `${state.historyDays} ngày`;
-    state.strategyAuditLoaded = false;
-    setStrategyEmpty("Đang replay Turtle và Fast…", `Đang tải ${state.historyDays} ngày nến và tính lại toàn bộ entry.`, true);
-    loadMarketData({ notify: true });
-  });
+  for (const button of dom.historyButtons) {
+    button.addEventListener("click", () => setHistoryDays(Number(button.dataset.historyDays)));
+  }
+  bindTerminalChrome();
   dom.ordersBody.addEventListener("change", handleOrderTableChange);
   dom.ordersBody.addEventListener("click", handleOrderTableClick);
   dom.strategyBody.addEventListener("click", handleStrategyTableClick);
@@ -4372,24 +4598,76 @@ function bindEvents() {
     button.addEventListener("click", () => setStrategyFilter(button.dataset.strategyFilter));
   }
 
-  for (const button of dom.railButtons) {
-    button.addEventListener("click", () => {
-      const target = button.dataset.scrollTarget;
-      if (target === "strategy-audit") setDockPanel("strategy");
-      else if (target === "keyvol-section") setDockPanel("keyvol");
-      else if (target === "journal-section") setDockPanel("journal");
-      else if (target === "chart-section") {
-        setDockPanel("closed");
-        document.querySelector(".planner")?.scrollTo({ top: 0, behavior: "smooth" });
-      }
-      else {
-        setDockPanel("closed");
-        setActiveRailTarget(target);
-        window.requestAnimationFrame(() => document.querySelector(`#${target}`)?.scrollIntoView({ behavior: "smooth", block: "center" }));
-      }
-    });
-  }
   window.addEventListener("pagehide", flushDraftPlanPersistence);
+}
+
+function setHistoryDays(days) {
+  if (!Number.isFinite(days) || days === state.historyDays) return;
+  state.historyDays = days;
+  for (const button of dom.historyButtons) {
+    const active = Number(button.dataset.historyDays) === days;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  dom.auditRangeLabel.textContent = `${state.historyDays} ngày`;
+  state.strategyAuditLoaded = false;
+  setStrategyEmpty("Đang replay Turtle và Fast…", `Đang tải ${state.historyDays} ngày nến và tính lại toàn bộ entry.`, true);
+  loadMarketData({ notify: true });
+}
+
+/** Thanh trên, thanh dưới chart, danh sách theo dõi và dải nút bảng phải. */
+function bindTerminalChrome() {
+  dom.symbolButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setSymbolMenuOpen(!state.symbolMenuOpen);
+  });
+  dom.symbolSearch.addEventListener("input", filterSymbolOptions);
+  dom.symbolSearch.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    const first = dom.symbolOptions.find((option) => !option.hidden);
+    if (first) pickSymbol(first.dataset.symbol);
+  });
+  for (const option of dom.symbolOptions) {
+    option.addEventListener("click", () => pickSymbol(option.dataset.symbol));
+  }
+  document.addEventListener("click", (event) => {
+    if (state.symbolMenuOpen && !dom.symbolSearchWrap.contains(event.target)) setSymbolMenuOpen(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.symbolMenuOpen) {
+      setSymbolMenuOpen(false);
+      dom.symbolButton.focus();
+    }
+    // Alt+R: đặt lại chart như TradingView. Bỏ qua khi đang gõ trong ô nhập.
+    if (event.altKey && event.code === "KeyR" && !event.target.closest?.("input, textarea, select")) {
+      event.preventDefault();
+      resetChartView();
+    }
+  });
+
+  for (const row of dom.watchlistRows) {
+    row.addEventListener("click", () => changeSymbol(row.dataset.symbol));
+  }
+  for (const button of dom.sideViewButtons) {
+    button.addEventListener("click", () => setSideView(button.dataset.sideView));
+  }
+
+  for (const button of dom.chartNavButtons) {
+    button.addEventListener("click", () => handleChartNav(button.dataset.chartNav));
+  }
+  dom.chartRealtime.addEventListener("click", () => {
+    state.chart?.timeScale().scrollToRealTime();
+    scheduleOverlayRender();
+  });
+  dom.scaleAuto.addEventListener("click", toggleAutoScale);
+  dom.scaleLog.addEventListener("click", () => togglePriceScaleMode("log"));
+  dom.scalePercent.addEventListener("click", () => togglePriceScaleMode("percent"));
+  dom.chartFullscreen.addEventListener("click", toggleFullscreen);
+
+  tickChartClock();
+  window.setInterval(tickChartClock, 1000);
+  loadTickers();
+  window.setInterval(loadTickers, WATCHLIST_REFRESH_MS);
 }
 
 function bootstrap() {
@@ -4408,6 +4686,7 @@ function bootstrap() {
   updatePositionPlacementControls();
   syncPlanInputs();
   if (!initChart()) return;
+  syncScaleButtons();
   setSourceState("demo", "Chờ Binance Futures");
   setChartData(generatePreviewCandles(), "demo");
   loadMarketData();

@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --canvas: #080b0e;
+      --surface: #0d1115;
+      --surface-soft: #151b20;
+      --border: #242b31;
+      --border-strong: #303940;
+      --text: #eef2f1;
+      --text-soft: #adb8b5;
+      --muted: #6f7b79;
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --mono: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+      --sans: Inter, ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--sans); font-size: 13px; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); } a:hover { color: #8dc1ff; }
+
+    .sheet { width: 900px; height: 660px; display: flex; flex-direction: column; background: var(--canvas); padding: 20px 22px; gap: 14px; }
+    .head { display: flex; align-items: baseline; gap: 12px; }
+    .head h1 { margin: 0; font: 650 17px var(--sans); letter-spacing: -0.01em; }
+    .head p { margin: 0; color: var(--muted); font: 400 11px var(--sans); }
+    .head .src { margin-left: auto; color: var(--muted); font: 500 10px var(--mono); }
+
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+    .row { display: grid; grid-template-columns: 132px 1fr; gap: 12px; align-items: center; padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+    .swatch { position: relative; width: 110px; height: 44px; border-radius: 4px; background: #090d10; overflow: hidden; }
+    .row b { display: block; color: var(--text); font: 600 11.5px var(--sans); }
+    .row span { display: block; margin-top: 2px; color: var(--text-soft); font: 400 10.5px/1.45 var(--sans); }
+    .row em { display: block; margin-top: 3px; color: var(--muted); font: 400 9.5px var(--mono); font-style: normal; }
+
+    /* các ký hiệu — dùng đúng CSS của lớp vẽ trên chart */
+    .wick { position: absolute; width: 1px; }
+    .body-rect { position: absolute; border-radius: 1px; }
+    .up-c { background: var(--green); }
+    .dn-c { background: var(--red); }
+    .keyline { position: absolute; left: 0; width: 110px; height: 0; border-top: 1px dashed var(--amber); }
+    .keyline .tag { position: absolute; right: 2px; top: -7px; padding: 1px 4px; border-radius: 3px; background: rgba(243,186,99,0.16); color: var(--amber); font: 600 8px var(--mono); }
+    .sweptline { position: absolute; left: 0; width: 110px; height: 0; border-top: 1px dashed rgba(255,107,112,0.8); }
+    .obbox { position: absolute; border: 1px dashed rgba(243,186,99,0.85); background: rgba(243,186,99,0.09); border-radius: 2px; }
+    .zone-win { position: absolute; background: rgba(78,226,161,0.12); border-left: 1px solid rgba(78,226,161,0.3); }
+    .zone-risk { position: absolute; background: rgba(255,107,112,0.13); border-left: 1px solid rgba(255,107,112,0.3); }
+    .lvl { position: absolute; height: 0; }
+    .lvl.entry { border-top: 1px solid var(--blue); }
+    .lvl.sl { border-top: 1px dashed var(--red); }
+    .lvl.tp { border-top: 1px dashed var(--green); }
+    .stepmark { position: absolute; height: 7px; border-top: 1px solid rgba(101,169,255,0.55); border-left: 1px solid rgba(101,169,255,0.55); border-right: 1px solid rgba(101,169,255,0.55); border-radius: 3px 3px 0 0; }
+    .stepmark .num { position: absolute; left: 50%; top: -16px; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; background: rgba(101,169,255,0.18); border: 1px solid rgba(101,169,255,0.5); color: var(--blue); font: 700 8.5px var(--sans); display: grid; place-items: center; }
+    .hotbox { position: absolute; border: 1px solid var(--blue); border-radius: 3px; box-shadow: 0 0 0 1px rgba(101,169,255,0.2), 0 0 14px rgba(101,169,255,0.3); }
+    .pbadge { position: absolute; padding: 1px 4px; border-radius: 3px; font: 600 8.5px var(--mono); }
+    .pbadge.entry { background: var(--blue); color: #06141f; }
+    .pbadge.sl { background: var(--red); color: #260609; }
+    .pbadge.tp { background: var(--green); color: #04241a; }
+    .vbar { position: absolute; bottom: 4px; border-radius: 1px 1px 0 0; }
+    .vup { background: rgba(78,226,161,0.34); }
+    .vdn { background: rgba(255,107,112,0.32); }
+    .vspike { background: rgba(243,186,99,0.75); }
+    .dim-demo { position: absolute; inset: 0; }
+    .dim-demo .faded { opacity: 0.2; }
+
+    .foot { margin-top: auto; display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+    .foot i { flex: none; width: 14px; color: var(--amber); font-style: normal; font-size: 11px; }
+    .foot p { margin: 0; color: var(--text-soft); font: 400 10.5px/1.55 var(--sans); }
+    .foot b { color: var(--text); font-weight: 600; }
+  </style>
+</helmet>
+
+<div class="sheet">
+
+  <div class="head">
+    <h1>Ký hiệu trên chart</h1>
+    <p>Mỗi nét vẽ tra ngược được về đúng một điều kiện trong bảng “Vì sao vào lệnh”.</p>
+    <span class="src">key-volume.ts · chart-keyvolume.ts</span>
+  </div>
+
+  <div class="cols">
+
+    <div class="row">
+      <div class="swatch">
+        <div class="keyline" style="top: 22px"><span class="tag">KEY A ×4,6</span></div>
+        <div class="wick dn-c" style="left: 18px; top: 8px; height: 26px"></div>
+        <div class="body-rect dn-c" style="left: 14px; top: 14px; width: 8px; height: 14px"></div>
+        <div class="wick up-c" style="left: 40px; top: 12px; height: 22px"></div>
+        <div class="body-rect up-c" style="left: 36px; top: 18px; width: 8px; height: 10px"></div>
+      </div>
+      <div>
+        <b>Đường key</b>
+        <span>Nét đứt cam ở giá MỞ của nến volume đột biến. Đậm = key của lệnh đang soi, nhạt = key khác còn hiệu lực.</span>
+        <em>volume ≥ ×4 trung vị 12 nến quanh nó</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="sweptline" style="top: 13px"></div>
+        <div class="wick dn-c" style="left: 54px; top: 6px; height: 30px"></div>
+        <div class="body-rect dn-c" style="left: 50px; top: 16px; width: 8px; height: 12px"></div>
+        <div class="wick up-c" style="left: 30px; top: 16px; height: 18px"></div>
+        <div class="body-rect up-c" style="left: 26px; top: 20px; width: 8px; height: 10px"></div>
+      </div>
+      <div>
+        <b>Đỉnh / đáy bị quét</b>
+        <span>Nét đứt đỏ ở cực trị 480 nến. Râu thủng qua rồi giá ĐÓNG lại dưới mức — nhánh săn thanh khoản chỉ cần bấy nhiêu.</span>
+        <em>sweepLookback 480 · nổi bật 96 nến</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="obbox" style="left: 8px; top: 16px; width: 94px; height: 14px"></div>
+        <div class="wick up-c" style="left: 30px; top: 8px; height: 28px"></div>
+        <div class="body-rect up-c" style="left: 26px; top: 14px; width: 8px; height: 18px"></div>
+        <div class="wick dn-c" style="left: 52px; top: 12px; height: 22px"></div>
+        <div class="body-rect dn-c" style="left: 48px; top: 17px; width: 8px; height: 12px"></div>
+      </div>
+      <div>
+        <b>Hộp order block</b>
+        <span>Chỉ tính THÂN nến, bỏ râu. Một hộp giữ cả hai đầu: vào ở mép thuận chiều, SL ngay ngoài mép kia.</span>
+        <em>obLow – obHigh · đệm SL 0,15×ATR</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="obbox" style="left: 4px; top: 24px; width: 30px; height: 12px"></div>
+        <div class="stepmark" style="left: 38px; top: 16px; width: 24px"><span class="num">1</span></div>
+        <div class="stepmark" style="left: 66px; top: 16px; width: 12px"><span class="num">2</span></div>
+        <div class="stepmark" style="left: 82px; top: 16px; width: 12px"><span class="num">3</span></div>
+      </div>
+      <div>
+        <b>Ba bước vào lệnh</b>
+        <span>① 3 nến đóng ngoài hộp · ② một nến chạm lại hộp · ③ nến đúng màu đóng ra ngoài — vào ở giá đóng cây đó.</span>
+        <em>obDepartBars 3 · boxWaitBars 192</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="zone-win" style="left: 24px; top: 6px; width: 80px; height: 16px"></div>
+        <div class="zone-risk" style="left: 24px; top: 22px; width: 80px; height: 12px"></div>
+        <div class="lvl tp" style="left: 24px; top: 6px; width: 80px"></div>
+        <div class="lvl entry" style="left: 24px; top: 22px; width: 80px"></div>
+        <div class="lvl sl" style="left: 24px; top: 34px; width: 80px"></div>
+      </div>
+      <div>
+        <b>Vùng lời / vùng lỗ</b>
+        <span>Kéo từ nến vào tới nến thoát. Xanh lên tới mục tiêu cấu trúc, đỏ xuống tới SL — nhìn là biết ngay tỉ lệ.</span>
+        <em>minRR 3 · maxStopPct 3%</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="pbadge tp" style="right: 3px; top: 5px">108.620</div>
+        <div class="pbadge entry" style="right: 3px; top: 18px">107.585</div>
+        <div class="pbadge sl" style="right: 3px; top: 31px">107.345</div>
+        <div class="lvl tp" style="left: 0; top: 9px; width: 52px"></div>
+        <div class="lvl entry" style="left: 0; top: 22px; width: 52px"></div>
+        <div class="lvl sl" style="left: 0; top: 35px; width: 52px"></div>
+      </div>
+      <div>
+        <b>Nhãn trên trục giá</b>
+        <span>Ba con số quan trọng nhất luôn hiện ở trục phải, kể cả khi đường vẽ bị nến che.</span>
+        <em>vào · SL · TP</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="dim-demo">
+          <div class="keyline faded" style="top: 10px"></div>
+          <div class="obbox faded" style="left: 6px; top: 26px; width: 40px; height: 10px"></div>
+          <div class="wick up-c faded" style="left: 20px; top: 14px; height: 22px"></div>
+          <div class="body-rect up-c faded" style="left: 16px; top: 20px; width: 8px; height: 12px"></div>
+          <div class="wick dn-c" style="left: 66px; top: 8px; height: 30px"></div>
+          <div class="body-rect dn-c" style="left: 62px; top: 14px; width: 8px; height: 18px"></div>
+          <div class="hotbox" style="left: 56px; top: 4px; width: 22px; height: 38px"></div>
+        </div>
+      </div>
+      <div>
+        <b>Vùng đang soi</b>
+        <span>Rê chuột vào một điều kiện ở bảng phải: chart mờ hết mọi lớp và chỉ sáng đúng cây nến / đường / hộp mà điều kiện đó nói tới.</span>
+        <em>bấm để ghim, bấm lần nữa để nhả</em>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="swatch">
+        <div class="vbar vdn" style="left: 12px; width: 8px; height: 14px"></div>
+        <div class="vbar vup" style="left: 24px; width: 8px; height: 20px"></div>
+        <div class="vbar vspike" style="left: 36px; width: 8px; height: 34px"></div>
+        <div class="vbar vdn" style="left: 48px; width: 8px; height: 12px"></div>
+        <div class="vbar vup" style="left: 60px; width: 8px; height: 16px"></div>
+        <div class="vbar vup" style="left: 72px; width: 8px; height: 22px"></div>
+        <div class="vbar vdn" style="left: 84px; width: 8px; height: 11px"></div>
+      </div>
+      <div>
+        <b>Cột volume</b>
+        <span>Cây sinh ra key được tô cam — đó là dấu hiệu gốc của cả phương pháp, không để nó lẫn vào dải volume thường.</span>
+        <em>thanh trượt “vol ≥ ×N” lọc ngay trên chart</em>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <i>ⓘ</i>
+    <p>
+      Nhánh <b>săn thanh khoản</b> không vẽ đường key nào — nó không dùng key ở bất kỳ khâu nào.
+      Thấy một lệnh không có nét cam nghĩa là lệnh đó <b>không nói gì về FX Dream</b>, chỉ nói về cú quét.
+      Bảng bên phải ghi thẳng điều đó thành một dòng thay vì để trống.
+    </p>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":900,"height":660}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

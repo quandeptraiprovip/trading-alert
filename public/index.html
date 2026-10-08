@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#080b0e" />
+    <meta name="theme-color" content="#131722" />
     <meta
       name="description"
-      content="Không gian lập kế hoạch lệnh crypto và vàng với Entry, Stop Loss, Take Profit và nhật ký theo R."
+      content="Biểu đồ BTCUSDT và XAUUSDT kiểu TradingView với lớp FX Dream, Key Volume, Turtle/Fast và nhật ký theo R."
     />
     <title>Market Playbook</title>
     <link rel="preconnect" href="https://unpkg.com" />
@@ -20,222 +20,131 @@
   <body>
     <a class="skip-link" href="#chart-section">Đến biểu đồ</a>
     <div class="app-shell">
-      <nav class="rail" aria-label="Điều hướng chính">
-        <a class="brand-mark" href="#chart-section" aria-label="Market Playbook">
-          <svg viewBox="0 0 28 28" aria-hidden="true">
-            <path d="M14 2.5 24 8.2v11.6L14 25.5 4 19.8V8.2L14 2.5Z" />
-            <path d="m10.3 9.1 7.8 9.8m-.2-9.8-7.8 9.8" />
-          </svg>
-        </a>
-
-        <div class="rail-links">
-          <button class="rail-button is-active" type="button" data-scroll-target="chart-section" aria-label="Biểu đồ">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 7V5m6 14v-7m5 7V8" /></svg>
-            <span class="rail-tooltip">Biểu đồ</span>
+      <header class="tv-topbar" aria-label="Thanh công cụ trên">
+        <div class="symbol-search" id="symbol-search-wrap">
+          <button class="symbol-button" id="symbol-button" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="symbol-menu">
+            <span class="symbol-mark" id="symbol-button-mark" aria-hidden="true">₿</span>
+            <span id="symbol-button-label">BTCUSDT</span>
+            <svg class="tv-caret" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4" /></svg>
           </button>
-          <button class="rail-button" type="button" data-scroll-target="strategy-audit" aria-label="Kiểm tra lệnh Turtle và Fast">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 11h6l-1 9 9-12h-6z" /></svg>
-            <span class="rail-tooltip">Turtle / Fast</span>
-          </button>
-          <button class="rail-button" type="button" data-scroll-target="keyvol-section" aria-label="Key Volume">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16h18M6 16V9m4 7V6m4 10v-4m4 4v-8" /></svg>
-            <span class="rail-tooltip">Key Volume</span>
-          </button>
-          <button class="rail-button" type="button" data-scroll-target="journal-section" aria-label="Nhật ký lệnh">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6m-6 4h6m-6 4h4" /></svg>
-            <span class="rail-tooltip">Nhật ký</span>
-          </button>
-          <button class="rail-button" type="button" data-scroll-target="method-card" aria-label="Phân tích phương pháp">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7M3 19h18" /></svg>
-            <span class="rail-tooltip">Phương pháp</span>
-          </button>
+          <div class="symbol-menu" id="symbol-menu" role="dialog" aria-label="Chọn mã" hidden>
+            <label class="symbol-menu-search" for="symbol-search">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 4a5 5 0 1 1 0 10A5 5 0 0 1 9 4zm7 12-3.4-3.4" /></svg>
+              <input id="symbol-search" type="search" placeholder="Tìm mã" autocomplete="off" spellcheck="false" />
+            </label>
+            <div class="symbol-menu-head" aria-hidden="true"><span>Mã</span><span>Mô tả</span><span>Sàn</span></div>
+            <div class="symbol-menu-list" id="symbol-menu-list">
+              <button class="symbol-option" type="button" data-symbol="BTCUSDT" data-search="btcusdt bitcoin btc">
+                <span class="symbol-option-code"><span class="symbol-mark is-btc" aria-hidden="true">₿</span>BTCUSDT</span>
+                <span class="symbol-option-desc">Bitcoin / TetherUS<span class="tv-tag">perp</span></span>
+                <span class="symbol-option-venue">Binance</span>
+              </button>
+              <button class="symbol-option" type="button" data-symbol="XAUUSDT" data-search="xauusdt xau gold vàng vang">
+                <span class="symbol-option-code"><span class="symbol-mark is-xau" aria-hidden="true">Au</span>XAUUSDT</span>
+                <span class="symbol-option-desc">Vàng / TetherUS<span class="tv-tag">perp</span></span>
+                <span class="symbol-option-venue">Binance</span>
+              </button>
+            </div>
+            <p class="symbol-menu-empty" id="symbol-menu-empty" hidden>Không có mã khớp.</p>
+            <p class="symbol-menu-foot">Chart chỉ hỗ trợ hai mã: BTCUSDT và XAUUSDT (Binance Futures).</p>
+          </div>
         </div>
 
-        <div class="rail-foot" aria-label="Chỉ báo trạng thái">
-          <span class="rail-status-dot" aria-hidden="true"></span>
-          <span class="sr-only">Ứng dụng đang hoạt động</span>
+        <span class="tv-sep" aria-hidden="true"></span>
+        <div class="tv-group" role="group" aria-label="Khung thời gian">
+          <button class="timeframe-button is-active" type="button" aria-pressed="true">15m</button>
         </div>
-      </nav>
 
-      <main class="workspace">
-        <header class="market-header">
-          <div class="instrument">
-            <div class="coin-avatar" id="coin-avatar" aria-hidden="true">₿</div>
-            <div>
-              <div class="instrument-title-row">
-                <h1 id="instrument-symbol">BTCUSDT</h1>
-                <span class="perp-badge" id="instrument-type">PERP</span>
-                <span class="venue-badge" id="instrument-venue">BINANCE</span>
-              </div>
-              <p id="instrument-description">Bitcoin / Tether · USDⓈ-M Futures</p>
-            </div>
-          </div>
+        <span class="tv-sep" aria-hidden="true"></span>
+        <div class="layer-menu" id="layer-menu">
+          <button class="tv-text-button layer-menu-button" id="layer-menu-button" type="button" aria-expanded="false" aria-controls="layer-menu-list">
+            <span class="fx-mark" aria-hidden="true">ƒx</span>
+            Chỉ báo &amp; lớp <b id="layer-menu-count">5/5</b>
+          </button>
+          <div class="layer-menu-list" id="layer-menu-list" role="group" aria-label="Bật tắt các lớp vẽ trên biểu đồ" hidden></div>
+        </div>
 
-          <dl class="market-tape" aria-label="Thông tin thị trường 24 giờ">
-            <div class="price-block">
-              <dt>Giá gần nhất</dt>
-              <dd id="last-price">—</dd>
-            </div>
-            <div>
-              <dt>24h</dt>
-              <dd id="change-24h">—</dd>
-            </div>
-            <div>
-              <dt>24h High</dt>
-              <dd id="high-24h">—</dd>
-            </div>
-            <div>
-              <dt>24h Low</dt>
-              <dd id="low-24h">—</dd>
-            </div>
-            <div>
-              <dt id="volume-24h-label">Volume 24h</dt>
-              <dd id="volume-24h">—</dd>
-            </div>
-          </dl>
+        <span class="tv-sep" aria-hidden="true"></span>
+        <div class="chart-view-switch" role="group" aria-label="Lọc lệnh hiển thị trên biểu đồ">
+          <button class="chart-view-button" type="button" data-chart-view="all" aria-pressed="false">Tất cả lệnh</button>
+          <button class="chart-view-button" type="button" data-chart-view="selected" aria-pressed="false">1 lệnh</button>
+          <button class="chart-view-button is-active" type="button" data-chart-view="clean" aria-pressed="true">Chart trống</button>
+        </div>
+        <span class="sr-only" id="chart-view-summary" aria-live="polite">Không hiện lệnh · sẵn sàng thêm mẫu</span>
 
-          <div class="source-state" id="source-state" data-state="loading">
-            <span class="source-dot" aria-hidden="true"></span>
-            <div>
-              <strong id="source-label">Đang đồng bộ</strong>
-              <span id="source-detail">Binance Futures</span>
-            </div>
-          </div>
-        </header>
+        <span class="tv-grow"></span>
 
-        <section class="toolbar" aria-label="Điều khiển biểu đồ">
-          <label class="symbol-picker" for="market-symbol">
-            <span>Thị trường</span>
-            <select id="market-symbol" name="symbol" aria-describedby="symbol-methods">
-              <option value="BTCUSDT" selected>BTCUSDT</option>
-              <option value="ETHUSDT">ETHUSDT</option>
-              <option value="SOLUSDT">SOLUSDT</option>
-              <option value="XRPUSDT">XRPUSDT</option>
-              <option value="DOGEUSDT">DOGEUSDT</option>
-              <option value="ADAUSDT">ADAUSDT</option>
-              <option value="AVAXUSDT">AVAXUSDT</option>
-              <option value="DOTUSDT">DOTUSDT</option>
-              <option value="XAUUSD">XAUUSD · OANDA</option>
-            </select>
-            <small id="symbol-methods">Turtle + Fast</small>
-          </label>
-          <div class="toolbar-group timeframe-group" aria-label="Khung thời gian">
-            <span class="toolbar-label">Khung</span>
-            <button class="timeframe-button is-active" type="button" aria-pressed="true">15m</button>
-          </div>
-          <label class="history-range" for="history-days">
-            <span>Lịch sử</span>
-            <select id="history-days" name="history-days">
-              <option value="60">60 ngày</option>
-              <option value="120" selected>120 ngày</option>
-              <option value="250">250 ngày</option>
-              <option value="400">400 ngày</option>
-            </select>
-          </label>
-          <div class="toolbar-actions">
-            <button class="quiet-button" id="fit-chart" type="button">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M7 17H3v-4m10 4h4v-4" /></svg>
-              Vừa màn hình
-            </button>
-            <button class="icon-button" id="reload-chart" type="button" aria-label="Tải lại dữ liệu">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 6.5V3m0 0H13m3.5 0-2.1 2.1A6 6 0 1 0 16 12" /></svg>
-            </button>
-          </div>
-        </section>
+        <div class="source-state" id="source-state" data-state="loading">
+          <span class="source-dot" aria-hidden="true"></span>
+          <span class="source-text">
+            <strong id="source-label">Đang đồng bộ</strong>
+            <span id="source-detail">Binance Futures</span>
+          </span>
+        </div>
+        <span class="tv-sep" aria-hidden="true"></span>
+        <button class="tv-icon-button" id="chart-fullscreen" type="button" aria-label="Toàn màn hình" title="Toàn màn hình">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 7.5v-4h4m5 0h4v4m0 5v4h-4m-5 0h-4v-4" /></svg>
+        </button>
+      </header>
 
-        <div class="content-grid">
-          <section class="fxdream-rail" id="fxdream-rail" aria-labelledby="fxdream-rail-title">
-            <header class="fxdream-rail-head">
-              <div class="fxdream-rail-title">
-                <h2 id="fxdream-rail-title">Lệnh FX Dream</h2>
-                <span id="fxdream-count">— lệnh</span>
-              </div>
-              <p>Nhấp một lệnh để chart và bảng bằng chứng bên phải chỉ nói về đúng lệnh đó.</p>
-              <fieldset class="fxdream-filters">
-                <legend class="sr-only">Lọc lệnh FX Dream theo nhánh</legend>
-                <button class="fxdream-filter is-active" type="button" data-fxdream-filter="all" aria-pressed="true">Tất cả</button>
-                <button class="fxdream-filter" type="button" data-fxdream-filter="key" aria-pressed="false">Có dùng key</button>
-                <button class="fxdream-filter" type="button" data-fxdream-filter="sweep" aria-pressed="false">Nhánh quét</button>
-              </fieldset>
-            </header>
-            <div class="fxdream-card-list" id="fxdream-card-list" role="list"></div>
-            <p class="fxdream-rail-empty" id="fxdream-rail-empty" role="status">
-              <span class="loading-mark" aria-hidden="true"></span>
-              Đang replay Key Volume…
-            </p>
-            <footer class="fxdream-rail-note">
-              Số liệu là replay của một mô hình <b>chưa chứng minh được edge</b> — đọc như bản ghi quyết định, không phải thành tích.
-            </footer>
-          </section>
-          <div class="chart-column">
-            <figure class="chart-card" id="chart-section">
-              <figcaption class="chart-caption">
-                <div class="ohlcv-strip" aria-live="polite">
-                  <strong id="legend-symbol">BTCUSDT · 15m</strong>
-                  <span>O <b id="legend-open">—</b></span>
-                  <span>H <b id="legend-high">—</b></span>
-                  <span>L <b id="legend-low">—</b></span>
-                  <span>C <b id="legend-close">—</b></span>
-                  <span class="legend-volume">VOL <b id="legend-volume">—</b></span>
-                  <span class="legend-rsi">RSI <b id="legend-rsi">—</b></span>
+      <div class="tv-body">
+        <nav class="drawing-tools" aria-label="Công cụ vẽ trên biểu đồ">
+          <button class="drawing-tool is-active" type="button" data-drawing-mode="select" aria-pressed="true" aria-label="Chọn hình vẽ">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 3 10 7-5 1.5L8.5 16z" /></svg>
+            <span>Chọn</span>
+          </button>
+          <span class="drawing-tool-divider" aria-hidden="true"></span>
+          <button class="drawing-tool position-placement-tool long-position-tool" id="add-long-plan" type="button" aria-pressed="false" aria-label="Công cụ Long Position: nhấp lên chart để đặt lệnh">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 3.5h13v6h-13zM3.5 11.5h13v5h-13z" /><path d="m7.5 7.5 2.5-2.5 2.5 2.5" /></svg>
+            <span>Long Position</span>
+          </button>
+          <button class="drawing-tool position-placement-tool short-position-tool" id="add-short-plan" type="button" aria-pressed="false" aria-label="Công cụ Short Position: nhấp lên chart để đặt lệnh">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 3.5h13v5h-13zM3.5 10.5h13v6h-13z" /><path d="m7.5 12.5 2.5 2.5 2.5-2.5" /></svg>
+            <span>Short Position</span>
+          </button>
+          <span class="drawing-tool-divider" aria-hidden="true"></span>
+          <button class="drawing-tool" type="button" data-drawing-mode="rectangle" aria-pressed="false" aria-label="Vẽ vùng phản ứng và entry tiềm năng">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10" rx="1" /></svg>
+            <span>Vùng phản ứng</span>
+          </button>
+          <button class="drawing-tool" type="button" data-drawing-mode="line" aria-pressed="false" aria-label="Vẽ đường phân tích">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 15.5 11-11M3 14h3v3H3zM14 3h3v3h-3z" /></svg>
+            <span>Đường phân tích</span>
+          </button>
+          <span class="drawing-tool-divider" aria-hidden="true"></span>
+          <button class="drawing-tool drawing-delete" id="delete-drawing" type="button" disabled aria-label="Xóa hình đang chọn">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6v10h8V6M4 6h12M8 6V4h4v2m-4 3v4m4-4v4" /></svg>
+            <span>Xóa hình</span>
+          </button>
+          <span class="drawing-save-state" id="drawing-count">0 hình · lưu local</span>
+        </nav>
+
+        <div class="chart-column">
+          <figure class="chart-card" id="chart-section">
+            <div class="chart-wrap" id="chart-wrap">
+              <div id="price-chart" aria-label="Biểu đồ nến thị trường và volume"></div>
+              <button class="position-placement-layer" id="position-placement-layer" type="button" aria-label="Nhấp để đặt Entry" hidden></button>
+
+              <div class="chart-legend">
+                <div class="legend-main" aria-live="polite">
+                  <span class="symbol-mark legend-mark" id="legend-mark" aria-hidden="true">₿</span>
+                  <strong id="legend-symbol">Bitcoin / TetherUS · 15 · Binance</strong>
+                  <span class="legend-ohlc">
+                    <span>O<b id="legend-open">—</b></span>
+                    <span>H<b id="legend-high">—</b></span>
+                    <span>L<b id="legend-low">—</b></span>
+                    <span>C<b id="legend-close">—</b></span>
+                    <b class="legend-change" id="legend-change"></b>
+                  </span>
                 </div>
-                <div class="chart-view-controls">
-                  <div class="chart-view-switch" role="group" aria-label="Lọc lệnh hiển thị trên biểu đồ">
-                    <button class="chart-view-button" type="button" data-chart-view="all" aria-pressed="false">Tất cả</button>
-                    <button class="chart-view-button" type="button" data-chart-view="selected" aria-pressed="false">1 lệnh</button>
-                    <button class="chart-view-button is-active" type="button" data-chart-view="clean" aria-pressed="true">Chart trống</button>
-                  </div>
-                  <div class="layer-menu" id="layer-menu">
-                    <button class="layer-menu-button" id="layer-menu-button" type="button" aria-expanded="false" aria-controls="layer-menu-list">
-                      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 3 7 4-7 4-7-4z" /><path d="m3 11 7 4 7-4" /></svg>
-                      Lớp <b id="layer-menu-count">5/5</b>
-                    </button>
-                    <div class="layer-menu-list" id="layer-menu-list" role="group" aria-label="Bật tắt các lớp vẽ trên biểu đồ" hidden></div>
-                  </div>
-                  <span class="chart-view-summary" id="chart-view-summary" aria-live="polite">Không hiện lệnh · sẵn sàng thêm mẫu</span>
-                </div>
-                <span class="timezone-label">UTC+7</span>
-              </figcaption>
-              <div class="chart-wrap" id="chart-wrap">
-                <div id="price-chart" aria-label="Biểu đồ nến thị trường và volume"></div>
-                <button class="position-placement-layer" id="position-placement-layer" type="button" aria-label="Nhấp để đặt Entry" hidden></button>
-                <div class="drawing-tools" role="group" aria-label="Công cụ vẽ trên biểu đồ">
-                  <button class="drawing-tool is-active" type="button" data-drawing-mode="select" aria-pressed="true" aria-label="Chọn hình vẽ">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 3 10 7-5 1.5L8.5 16z" /></svg>
-                    <span>Chọn</span>
-                  </button>
-                  <span class="drawing-tool-divider" aria-hidden="true"></span>
-                  <button class="drawing-tool position-placement-tool long-position-tool" id="add-long-plan" type="button" aria-pressed="false" aria-label="Công cụ Long Position: nhấp lên chart để đặt lệnh">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12M6 6l4-3 4 3" /></svg>
-                    <span>Long Position</span>
-                  </button>
-                  <button class="drawing-tool position-placement-tool short-position-tool" id="add-short-plan" type="button" aria-pressed="false" aria-label="Công cụ Short Position: nhấp lên chart để đặt lệnh">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12M6 14l4 3 4-3" /></svg>
-                    <span>Short Position</span>
-                  </button>
-                  <span class="drawing-tool-divider" aria-hidden="true"></span>
-                  <button class="drawing-tool" type="button" data-drawing-mode="rectangle" aria-pressed="false" aria-label="Vẽ vùng phản ứng và entry tiềm năng">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10" rx="1" /></svg>
-                    <span>Vùng phản ứng</span>
-                  </button>
-                  <button class="drawing-tool" type="button" data-drawing-mode="line" aria-pressed="false" aria-label="Vẽ đường phân tích">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m3 15 14-10" /></svg>
-                    <span>Đường phân tích</span>
-                  </button>
-                  <button class="drawing-tool drawing-delete" id="delete-drawing" type="button" disabled aria-label="Xóa hình đang chọn">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6v10h8V6M4 6h12M8 6V4h4v2m-4 3v4m4-4v4" /></svg>
-                    <span>Xóa hình</span>
-                  </button>
-                  <span class="drawing-save-state" id="drawing-count">0 hình · lưu local</span>
-                </div>
-                <div class="keyvol-tools" id="keyvol-tools" role="group" aria-label="Lớp Key Volume trên chart">
+                <div class="legend-row legend-volume">Vol <b id="legend-volume">—</b></div>
+                <div class="legend-row legend-rsi">RSI 14 <b id="legend-rsi">—</b></div>
+                <div class="legend-row keyvol-tools" id="keyvol-tools" role="group" aria-label="Lớp Key Volume trên chart">
                   <button class="keyvol-power is-active" id="keyvol-power" type="button" aria-pressed="true">
                     <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 14h14M6 14V8m4 6V4m4 10v-3" /></svg>
                     <span>Key Volume</span>
                   </button>
-                  <span class="keyvol-divider" aria-hidden="true"></span>
                   <button class="keyvol-tf is-active" type="button" data-keyvol-tf="15m" aria-pressed="true">M15</button>
-                  <span class="keyvol-divider" aria-hidden="true"></span>
                   <label class="keyvol-range" for="keyvol-min-ratio">
                     <span>vol ≥ ×<output id="keyvol-min-ratio-out">3</output></span>
                     <input id="keyvol-min-ratio" type="range" min="2" max="12" step="0.5" value="3" />
@@ -245,44 +154,85 @@
                     <span>chưa bị đóng xuyên</span>
                   </label>
                   <span class="keyvol-count" id="keyvol-count">— key</span>
-                  <span class="keyvol-divider" aria-hidden="true"></span>
                   <span class="keyvol-count keyvol-judged" id="keyvol-judged">0 đã chấm</span>
                 </div>
-                <div class="position-placement-hint" id="position-placement-hint" role="status" aria-live="polite" hidden>
-                  <strong id="position-placement-title">Long Position</strong>
-                  <span>Nhấp lên chart để đặt Entry</span>
-                  <kbd>Esc</kbd>
-                </div>
-                <div class="volume-caption" id="volume-caption" aria-hidden="true">VOL · QUOTE USDT</div>
-                <svg class="keyvol-layer" id="keyvol-layer" aria-hidden="true"></svg>
-                <svg class="strategy-context-layer" id="strategy-context-layer" aria-hidden="true"></svg>
-                <svg class="evidence-layer" id="evidence-layer" aria-hidden="true"></svg>
-                <svg class="drawing-layer" id="drawing-layer" aria-label="Các vùng phản ứng và đường phân tích đã vẽ trên biểu đồ"></svg>
-                <div class="order-levels" id="order-levels" aria-label="Các vị thế LONG và SHORT đang được lập kế hoạch"></div>
-                <div class="chart-loading" id="chart-loading" role="status">
-                  <span class="loading-mark" aria-hidden="true"></span>
-                  <span id="chart-loading-text">Đang lấy nến Binance Futures…</span>
-                </div>
               </div>
-            </figure>
 
-            <div class="bottom-dock is-collapsed" id="bottom-dock" data-panel="closed">
-              <div class="dock-tabs" role="group" aria-label="Bảng dữ liệu dưới biểu đồ">
-                <button class="dock-tab" id="dock-strategy-tab" type="button" data-dock-panel="strategy" aria-pressed="false" aria-controls="strategy-audit">
-                  <span class="dock-dot turtle-fast-dot" aria-hidden="true"></span>Lệnh bot
+              <div class="position-placement-hint" id="position-placement-hint" role="status" aria-live="polite" hidden>
+                <strong id="position-placement-title">Long Position</strong>
+                <span>Nhấp lên chart để đặt Entry</span>
+                <kbd>Esc</kbd>
+              </div>
+              <svg class="keyvol-layer" id="keyvol-layer" aria-hidden="true"></svg>
+              <svg class="strategy-context-layer" id="strategy-context-layer" aria-hidden="true"></svg>
+              <svg class="evidence-layer" id="evidence-layer" aria-hidden="true"></svg>
+              <svg class="drawing-layer" id="drawing-layer" aria-label="Các vùng phản ứng và đường phân tích đã vẽ trên biểu đồ"></svg>
+              <div class="order-levels" id="order-levels" aria-label="Các vị thế LONG và SHORT đang được lập kế hoạch"></div>
+
+              <div class="chart-nav" role="toolbar" aria-label="Phóng to, thu nhỏ và cuộn biểu đồ">
+                <button type="button" data-chart-nav="zoom-out" aria-label="Thu nhỏ" title="Thu nhỏ">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10" /></svg>
                 </button>
-                <button class="dock-tab" id="dock-keyvol-tab" type="button" data-dock-panel="keyvol" aria-pressed="false" aria-controls="keyvol-section">
-                  <span class="dock-dot keyvol-dot" aria-hidden="true"></span>Key Volume
+                <button type="button" data-chart-nav="zoom-in" aria-label="Phóng to" title="Phóng to">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10M10 5v10" /></svg>
                 </button>
-                <button class="dock-tab" id="dock-journal-tab" type="button" data-dock-panel="journal" aria-pressed="false" aria-controls="journal-section">
-                  <span class="dock-dot saved-dot" aria-hidden="true"></span>Lệnh mẫu
+                <button type="button" data-chart-nav="left" aria-label="Cuộn sang trái" title="Cuộn sang trái">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5" /></svg>
                 </button>
-                <span class="dock-spacer"></span>
-                <span class="dock-hint">Chọn một lệnh trong bảng để xem riêng trên chart</span>
-                <button class="dock-collapse" type="button" data-dock-panel="closed" aria-label="Thu gọn bảng dữ liệu">
-                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4" /></svg>
+                <button type="button" data-chart-nav="right" aria-label="Cuộn sang phải" title="Cuộn sang phải">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
+                </button>
+                <button type="button" id="fit-chart" aria-label="Đặt lại biểu đồ (Alt+R)" title="Đặt lại biểu đồ (Alt+R)">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 9.5a5.5 5.5 0 1 1 1.6 4.4M4.5 14v-4.5H9" /></svg>
                 </button>
               </div>
+              <button class="chart-realtime" id="chart-realtime" type="button" aria-label="Cuộn tới nến mới nhất" title="Cuộn tới nến mới nhất" hidden>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 5 5-5 5M11 5l5 5-5 5" /></svg>
+              </button>
+
+              <div class="chart-loading" id="chart-loading" role="status">
+                <span class="loading-mark" aria-hidden="true"></span>
+                <span id="chart-loading-text">Đang lấy nến Binance Futures…</span>
+              </div>
+            </div>
+
+            <div class="chart-statusbar" role="toolbar" aria-label="Khoảng lịch sử và thang giá">
+              <div class="tv-group" role="group" aria-label="Lịch sử nến">
+                <button class="range-button" type="button" data-history-days="60" aria-pressed="false">60 ngày</button>
+                <button class="range-button is-active" type="button" data-history-days="120" aria-pressed="true">120 ngày</button>
+                <button class="range-button" type="button" data-history-days="250" aria-pressed="false">250 ngày</button>
+                <button class="range-button" type="button" data-history-days="400" aria-pressed="false">400 ngày</button>
+              </div>
+              <span class="tv-sep" aria-hidden="true"></span>
+              <button class="tv-icon-button is-small" id="reload-chart" type="button" aria-label="Tải lại dữ liệu" title="Tải lại dữ liệu">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 6.5V3m0 0H13m3.5 0-2.1 2.1A6 6 0 1 0 16 12" /></svg>
+              </button>
+              <span class="tv-grow"></span>
+              <span class="chart-clock"><time id="chart-clock">--:--:--</time> (UTC+7)</span>
+              <span class="tv-sep" aria-hidden="true"></span>
+              <button class="scale-button" id="scale-percent" type="button" aria-pressed="false" title="Thang phần trăm">%</button>
+              <button class="scale-button" id="scale-log" type="button" aria-pressed="false" title="Thang logarit">log</button>
+              <button class="scale-button is-active" id="scale-auto" type="button" aria-pressed="true" title="Tự co giãn trục giá">auto</button>
+            </div>
+          </figure>
+
+          <div class="bottom-dock is-collapsed" id="bottom-dock" data-panel="closed">
+            <div class="dock-tabs" role="group" aria-label="Bảng dữ liệu dưới biểu đồ">
+              <button class="dock-tab" id="dock-strategy-tab" type="button" data-dock-panel="strategy" aria-pressed="false" aria-controls="strategy-audit">
+                <span class="dock-dot turtle-fast-dot" aria-hidden="true"></span>Lệnh bot
+              </button>
+              <button class="dock-tab" id="dock-keyvol-tab" type="button" data-dock-panel="keyvol" aria-pressed="false" aria-controls="keyvol-section">
+                <span class="dock-dot keyvol-dot" aria-hidden="true"></span>Key Volume
+              </button>
+              <button class="dock-tab" id="dock-journal-tab" type="button" data-dock-panel="journal" aria-pressed="false" aria-controls="journal-section">
+                <span class="dock-dot saved-dot" aria-hidden="true"></span>Lệnh mẫu
+              </button>
+              <span class="dock-spacer"></span>
+              <span class="dock-hint">Chọn một lệnh trong bảng để xem riêng trên chart</span>
+              <button class="dock-collapse" type="button" data-dock-panel="closed" aria-label="Thu gọn bảng dữ liệu">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4" /></svg>
+              </button>
+            </div>
 
               <div class="dock-content">
             <section class="strategy-audit-panel" id="strategy-audit" aria-labelledby="strategy-audit-title" aria-describedby="strategy-audit-note" hidden>
@@ -452,21 +402,57 @@
               </div>
             </section>
               </div>
-            </div>
           </div>
+        </div>
 
-          <aside class="planner" aria-labelledby="planner-title">
-            <header class="planner-header">
-              <div>
-                <span class="section-eyebrow">RISK PLANNER</span>
-                <h2 id="planner-title">Lập kế hoạch lệnh</h2>
+        <aside class="tv-sidebar" aria-label="Bảng bên phải">
+          <div class="side-content">
+            <section class="watchlist" aria-labelledby="watchlist-title">
+              <header class="side-head">
+                <h2 id="watchlist-title">Danh sách theo dõi</h2>
+              </header>
+              <div class="watchlist-cols" aria-hidden="true"><span>Mã</span><span>Giá</span><span>Đổi 24h</span><span>%</span></div>
+              <div class="watchlist-rows" id="watchlist">
+                <button class="watchlist-row" type="button" data-symbol="BTCUSDT" aria-pressed="true">
+                  <span class="watchlist-code"><span class="symbol-mark is-btc" aria-hidden="true">₿</span>BTCUSDT</span>
+                  <span data-field="last">—</span>
+                  <span data-field="change">—</span>
+                  <span data-field="pct">—</span>
+                </button>
+                <button class="watchlist-row" type="button" data-symbol="XAUUSDT" aria-pressed="false">
+                  <span class="watchlist-code"><span class="symbol-mark is-xau" aria-hidden="true">Au</span>XAUUSDT</span>
+                  <span data-field="last">—</span>
+                  <span data-field="change">—</span>
+                  <span data-field="pct">—</span>
+                </button>
               </div>
-              <span class="local-save-badge">
-                <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5 8V6a4 4 0 0 1 8 0v2m1 0H4v7h10z" /></svg>
-                Local + JSON
-              </span>
-            </header>
+            </section>
 
+            <section class="side-view side-fxdream" data-side-panel="fxdream" aria-label="Lệnh FX Dream và bằng chứng">
+          <section class="fxdream-rail" id="fxdream-rail" aria-labelledby="fxdream-rail-title">
+            <header class="fxdream-rail-head">
+              <div class="fxdream-rail-title">
+                <h2 id="fxdream-rail-title">Lệnh FX Dream</h2>
+                <span id="fxdream-count">— lệnh</span>
+              </div>
+              <p>Nhấp một lệnh để chart và phiếu bằng chứng bên dưới chỉ nói về đúng lệnh đó.</p>
+              <fieldset class="fxdream-filters">
+                <legend class="sr-only">Lọc lệnh FX Dream theo nhánh</legend>
+                <button class="fxdream-filter is-active" type="button" data-fxdream-filter="all" aria-pressed="true">Tất cả</button>
+                <button class="fxdream-filter" type="button" data-fxdream-filter="key" aria-pressed="false">Có dùng key</button>
+                <button class="fxdream-filter" type="button" data-fxdream-filter="sweep" aria-pressed="false">Nhánh quét</button>
+              </fieldset>
+            </header>
+            <div class="fxdream-card-list" id="fxdream-card-list" role="list"></div>
+            <p class="fxdream-rail-empty" id="fxdream-rail-empty" role="status">
+              <span class="loading-mark" aria-hidden="true"></span>
+              Đang replay Key Volume…
+            </p>
+            <footer class="fxdream-rail-note">
+              Số liệu là replay của một mô hình <b>chưa chứng minh được edge</b> — đọc như bản ghi quyết định, không phải thành tích.
+            </footer>
+          </section>
+              <div class="side-evidence">
             <section class="keyjudge-card is-empty" id="keyjudge-card" aria-labelledby="keyjudge-title" aria-live="polite">
               <header class="evidence-head">
                 <div>
@@ -517,7 +503,60 @@
                 <p class="evidence-hint">Rê chuột một dòng để chart chỉ sáng đúng dấu hiệu đó · bấm để ghim lại.</p>
               </div>
             </section>
+              </div>
+            </section>
 
+            <section class="side-view side-detail" data-side-panel="detail" aria-label="Chi tiết mã" hidden>
+              <div class="instrument">
+                <div class="coin-avatar" id="coin-avatar" aria-hidden="true">₿</div>
+                <div>
+                  <div class="instrument-title-row">
+                    <h1 id="instrument-symbol">BTCUSDT</h1>
+                    <span class="perp-badge" id="instrument-type">PERP</span>
+                    <span class="venue-badge" id="instrument-venue">BINANCE</span>
+                  </div>
+                  <p id="instrument-description">Bitcoin / TetherUS · USDⓈ-M Futures</p>
+                </div>
+              </div>
+              <dl class="market-tape" aria-label="Thông tin thị trường 24 giờ">
+                <div class="price-block">
+                  <dt>Giá gần nhất</dt>
+                  <dd id="last-price">—</dd>
+                </div>
+                <div>
+                  <dt>24h</dt>
+                  <dd id="change-24h">—</dd>
+                </div>
+                <div>
+                  <dt>Cao 24h</dt>
+                  <dd id="high-24h">—</dd>
+                </div>
+                <div>
+                  <dt>Thấp 24h</dt>
+                  <dd id="low-24h">—</dd>
+                </div>
+                <div>
+                  <dt id="volume-24h-label">Volume 24h</dt>
+                  <dd id="volume-24h">—</dd>
+                </div>
+                <div>
+                  <dt>Rổ bot</dt>
+                  <dd id="symbol-methods">Turtle + Fast</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="side-view planner" data-side-panel="plan" aria-labelledby="planner-title" hidden>
+            <header class="planner-header">
+              <div>
+                <span class="section-eyebrow">RISK PLANNER</span>
+                <h2 id="planner-title">Lập kế hoạch lệnh</h2>
+              </div>
+              <span class="local-save-badge">
+                <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5 8V6a4 4 0 0 1 8 0v2m1 0H4v7h10z" /></svg>
+                Local + JSON
+              </span>
+            </header>
             <section class="draft-positions" aria-labelledby="draft-positions-title">
               <header>
                 <h3 id="draft-positions-title">Vị thế trên chart</h3>
@@ -622,9 +661,22 @@
             <p class="planner-footnote">
               Đây là công cụ lập kế hoạch, không gửi lệnh lên Binance. Mỗi SL được chuẩn hóa thành <strong>−1R</strong> để so sánh các setup công bằng.
             </p>
-          </aside>
-        </div>
-      </main>
+            </section>
+          </div>
+
+          <nav class="side-strip" aria-label="Chuyển bảng bên phải">
+            <button class="side-strip-button is-active" type="button" data-side-view="fxdream" aria-pressed="true" aria-label="Lệnh FX Dream và bằng chứng" title="Lệnh FX Dream và bằng chứng">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 7h2.5m2.5 0H10m2.5 0H15m2.5 0h.01M4 17v-5m4 5V9m4 8v-3m4 3v-6" /></svg>
+            </button>
+            <button class="side-strip-button" type="button" data-side-view="detail" aria-pressed="false" aria-label="Chi tiết mã" title="Chi tiết mã">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm0 6v5m0-7.5v.01" /></svg>
+            </button>
+            <button class="side-strip-button" type="button" data-side-view="plan" aria-pressed="false" aria-label="Lập kế hoạch lệnh" title="Lập kế hoạch lệnh">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h12v13H4zM7 7.5h6m-6 3h6m-6 3h4" /></svg>
+            </button>
+          </nav>
+        </aside>
+      </div>
     </div>
 
     <dialog class="feedback-dialog" id="feedback-dialog" aria-labelledby="feedback-title">

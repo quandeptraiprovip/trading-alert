@@ -1,0 +1,16 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Workspace kiểm tra FX Dream", "is_interactive": true },
+    { "file": "Signals.dc.html", "x": 1560, "y": 0, "w": 900, "h": 660, "title": "Ký hiệu trên chart" }
+  ],
+  "annotations": [
+    {
+      "id": "how-to-use",
+      "x": 1560,
+      "y": 712,
+      "w": 900,
+      "text": "Bấm thử trên artboard bên trái:\n· mũi tên ◀ ▶ hoặc dải vạch trên thanh công cụ để nhảy giữa 3 lệnh\n· rê chuột vào một điều kiện ở bảng phải → chart mờ hết và chỉ sáng đúng dấu hiệu đó\n· các chip Key / Order block / Ba bước / SL-TP / Volume để bật tắt từng lớp\n· thanh trượt vol ≥ ×N lọc key ngay trên chart\n· tab dưới chart: Lệnh đã vào | Setup chết ở cửa nào"
+    }
+  ],
+  "launch": { "view": "focused", "file": "Main.dc.html" }
+}

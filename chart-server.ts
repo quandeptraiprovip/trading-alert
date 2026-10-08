@@ -8,12 +8,33 @@
 import http from "http";
 import fs from "fs";
 import path from "path";
+import axios from "axios";
 import { buildChartPayload } from "./chart-payload";
 import { getBotUniverse } from "./bot-universe";
 import { loadPlaybookDocument, savePlaybookDocument } from "./playbook-store";
 
 const PORT = parseInt(process.argv[2] ?? "3847", 10);
 const PUBLIC = path.join(__dirname, "public");
+/** Chart chỉ hỗ trợ hai mã này — danh sách theo dõi lấy giá 24h của đúng hai mã. */
+const WATCHLIST = ["BTCUSDT", "XAUUSDT"];
+
+async function fetchWatchlistTickers(): Promise<object[]> {
+  return Promise.all(WATCHLIST.map(async (symbol) => {
+    const { data } = await axios.get("https://fapi.binance.com/fapi/v1/ticker/24hr", {
+      params: { symbol },
+      timeout: 10_000,
+    });
+    return {
+      symbol,
+      last: Number(data.lastPrice),
+      change: Number(data.priceChange),
+      changePct: Number(data.priceChangePercent),
+      high: Number(data.highPrice),
+      low: Number(data.lowPrice),
+      quoteVolume: Number(data.quoteVolume),
+    };
+  }));
+}
 
 function sendJson(res: http.ServerResponse, status: number, body: object): void {
   res.writeHead(status, {
@@ -82,6 +103,15 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && req.url === "/api/symbols") {
     const universe = getBotUniverse();
     sendJson(res, 200, { symbols: universe.all, ...universe });
+    return;
+  }
+  if (req.method === "GET" && req.url === "/api/tickers") {
+    try {
+      sendJson(res, 200, { tickers: await fetchWatchlistTickers() });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      sendJson(res, 502, { error: message });
+    }
     return;
   }
   if (req.url?.startsWith("/api/playbook")) {

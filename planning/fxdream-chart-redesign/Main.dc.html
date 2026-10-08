@@ -1,0 +1,1169 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --canvas: #080b0e;
+      --surface: #0d1115;
+      --surface-raised: #12171c;
+      --surface-soft: #151b20;
+      --border: #242b31;
+      --border-strong: #303940;
+      --text: #eef2f1;
+      --text-soft: #adb8b5;
+      --muted: #6f7b79;
+      --green: #4ee2a1;
+      --red: #ff6b70;
+      --blue: #65a9ff;
+      --amber: #f3ba63;
+      --mono: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+      --sans: Inter, ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--sans); font-size: 13px; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); }
+    a:hover { color: #8dc1ff; }
+    button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+
+    .app { width: 1440px; height: 900px; display: flex; flex-direction: column; background: var(--canvas); overflow: hidden; }
+
+    /* ── header ─────────────────────────────────────────── */
+    .hdr { height: 46px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .coin { width: 26px; height: 26px; border-radius: 50%; background: #2a2015; color: var(--amber); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+    .sym { display: flex; align-items: center; gap: 7px; }
+    .sym h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+    .badge { padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border-strong); color: var(--muted); font: 600 9px var(--sans); letter-spacing: 0.05em; }
+    .tape { display: flex; align-items: center; gap: 20px; margin-left: 10px; }
+    .tape div { display: flex; flex-direction: column; gap: 1px; }
+    .tape dt { color: var(--muted); font: 500 9px var(--sans); letter-spacing: 0.05em; text-transform: uppercase; }
+    .tape dd { margin: 0; color: var(--text-soft); font: 550 12px var(--mono); }
+    .tape .up { color: var(--green); }
+    .mode { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 4px 9px; border: 1px solid rgba(101,169,255,0.34); border-radius: 5px; background: rgba(101,169,255,0.09); }
+    .mode b { color: var(--blue); font: 650 10px var(--sans); letter-spacing: 0.04em; }
+    .mode span { color: var(--muted); font: 400 10px var(--sans); }
+
+    /* ── toolbar ────────────────────────────────────────── */
+    .toolbar { height: 38px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .tb-sel { display: flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 5px; color: var(--text-soft); font: 550 11px var(--sans); }
+    .tb-sel small { color: var(--muted); font: 400 10px var(--mono); }
+    .tb-div { width: 1px; height: 18px; background: var(--border); }
+    .tf { padding: 3px 9px; border-radius: 4px; color: var(--text); background: rgba(101,169,255,0.12); border: 1px solid rgba(101,169,255,0.35); font: 600 11px var(--sans); }
+    .tb-lbl { color: var(--muted); font: 500 10px var(--sans); letter-spacing: 0.04em; }
+
+    .scrub { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .stepbtn { width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 5px; color: var(--text-soft); display: grid; place-items: center; }
+    .stepbtn:hover { color: var(--text); background: var(--surface-soft); border-color: var(--border-strong); }
+    .stepbtn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .scrub-track { position: relative; width: 248px; height: 24px; border: 1px solid var(--border); border-radius: 5px; background: #080c0f; }
+    .scrub-tick { position: absolute; top: 3px; width: 3px; height: 16px; border-radius: 2px; }
+    .scrub-tick.long { background: rgba(78,226,161,0.5); }
+    .scrub-tick.short { background: rgba(255,107,112,0.5); }
+    .scrub-tick.on { box-shadow: 0 0 0 2px rgba(101,169,255,0.35); }
+    .scrub-tick.on.long { background: var(--green); }
+    .scrub-tick.on.short { background: var(--red); }
+    .scrub-count { color: var(--text-soft); font: 550 11px var(--mono); min-width: 74px; }
+    .kbd { padding: 1px 4px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--muted); font: 500 9px var(--mono); }
+
+    /* ── body ───────────────────────────────────────────── */
+    .body { flex: 1; min-height: 0; display: flex; }
+    .tools { width: 44px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 8px; border-right: 1px solid var(--border); background: var(--surface); }
+    .tool { width: 30px; height: 30px; border-radius: 5px; color: var(--muted); display: grid; place-items: center; }
+    .tool svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .tool:hover { color: var(--text); background: var(--surface-soft); }
+    .tool.on { color: var(--blue); background: rgba(101,169,255,0.12); }
+    .tool-gap { width: 22px; height: 1px; background: var(--border); margin: 5px 0; }
+
+    .chartcol { width: 992px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--border); min-width: 0; }
+
+    /* ── chart legend strip ─────────────────────────────── */
+    .legend { height: 30px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid rgba(36,43,49,0.7); background: #0b0f12; }
+    .legend strong { color: var(--text-soft); font: 600 10px var(--sans); letter-spacing: 0.02em; }
+    .ohlc { display: flex; align-items: center; gap: 10px; color: var(--muted); font: 500 9.5px var(--mono); }
+    .ohlc b { color: #b7c0be; font-weight: 550; }
+    .ohlc .vol b { color: var(--blue); }
+    .legend .tz { margin-left: auto; color: var(--muted); font: 500 9px var(--mono); }
+
+    /* ── plot ───────────────────────────────────────────── */
+    .plotwrap { position: relative; width: 992px; height: 590px; flex: none; background: #090d10; overflow: hidden; }
+    .plot, .volpane { position: absolute; left: 0; width: 926px; }
+    .plot { top: 0; height: 468px; }
+    .volpane { top: 472px; height: 96px; border-top: 1px solid rgba(36,43,49,0.55); }
+    .grid-h { position: absolute; left: 0; width: 926px; height: 1px; background: rgba(36,43,49,0.42); }
+    .grid-v { position: absolute; top: 0; width: 1px; height: 100%; background: rgba(36,43,49,0.3); }
+
+    .wick { position: absolute; width: 1px; }
+    .body-rect { position: absolute; border-radius: 1px; }
+    .up-c { background: var(--green); }
+    .dn-c { background: var(--red); }
+    .vbar { position: absolute; bottom: 0; border-radius: 1px 1px 0 0; }
+    .vup { background: rgba(78,226,161,0.34); }
+    .vdn { background: rgba(255,107,112,0.32); }
+    .vspike { background: rgba(243,186,99,0.7); }
+    .vol-cap { position: absolute; left: 8px; top: 6px; color: var(--muted); font: 500 8.5px var(--mono); letter-spacing: 0.08em; }
+
+    .ov { position: absolute; transition: opacity .12s ease; }
+    .plot.dim .ov { opacity: 0.18; }
+    .plot.dim .ov.hot { opacity: 1; }
+
+    .ov-key { height: 0; border-top: 1px dashed var(--amber); }
+    .ov-key .tag { position: absolute; right: 0; top: -8px; padding: 1px 5px; border-radius: 3px; background: rgba(243,186,99,0.16); color: var(--amber); font: 600 9px var(--mono); white-space: nowrap; }
+    .ov-key.faint { border-top-color: rgba(243,186,99,0.4); }
+    .ov-key.faint .tag { background: rgba(243,186,99,0.08); color: rgba(243,186,99,0.65); }
+    .ov-swept { height: 0; border-top: 1px dashed rgba(255,107,112,0.75); }
+    .ov-swept .tag { position: absolute; right: 0; top: -8px; padding: 1px 5px; border-radius: 3px; background: rgba(255,107,112,0.14); color: var(--red); font: 600 9px var(--mono); white-space: nowrap; }
+
+    .ov-ob { border: 1px dashed rgba(243,186,99,0.85); background: rgba(243,186,99,0.09); border-radius: 2px; }
+    .ov-ob .tag { position: absolute; left: 4px; top: -15px; padding: 1px 5px; border-radius: 3px; background: rgba(243,186,99,0.18); color: var(--amber); font: 600 9px var(--mono); }
+
+    .ov-zone-win { background: rgba(78,226,161,0.10); border-left: 1px solid rgba(78,226,161,0.3); border-right: 1px solid rgba(78,226,161,0.3); }
+    .ov-zone-risk { background: rgba(255,107,112,0.11); border-left: 1px solid rgba(255,107,112,0.3); border-right: 1px solid rgba(255,107,112,0.3); }
+    .ov-lvl { height: 0; }
+    .ov-lvl.entry { border-top: 1px solid var(--blue); }
+    .ov-lvl.sl { border-top: 1px dashed var(--red); }
+    .ov-lvl.tp { border-top: 1px dashed var(--green); }
+    .ov-lvl .tag { position: absolute; top: -8px; padding: 1px 5px; border-radius: 3px; font: 600 9px var(--mono); white-space: nowrap; }
+    .ov-lvl.entry .tag { background: rgba(101,169,255,0.18); color: var(--blue); }
+    .ov-lvl.sl .tag { background: rgba(255,107,112,0.16); color: var(--red); }
+    .ov-lvl.tp .tag { background: rgba(78,226,161,0.16); color: var(--green); }
+
+    .ov-step { border-top: 1px solid rgba(101,169,255,0.55); border-left: 1px solid rgba(101,169,255,0.55); border-right: 1px solid rgba(101,169,255,0.55); border-radius: 3px 3px 0 0; height: 7px; }
+    .ov-step .num { position: absolute; left: 50%; top: -18px; transform: translateX(-50%); width: 15px; height: 15px; border-radius: 50%; background: rgba(101,169,255,0.18); border: 1px solid rgba(101,169,255,0.5); color: var(--blue); font: 700 9px var(--sans); display: grid; place-items: center; }
+    .ov-step.down { border-top: 0; border-bottom: 1px solid rgba(101,169,255,0.55); border-radius: 0 0 3px 3px; }
+    .ov-step.down .num { top: auto; bottom: -18px; }
+
+    .ov-mark { width: 0; height: 0; }
+    .ov-mark i { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--blue); background: #090d10; }
+    .ov-mark.exit i { border-color: var(--muted); }
+    .ov-mark span { position: absolute; left: 9px; top: -8px; padding: 1px 5px; border-radius: 3px; background: rgba(101,169,255,0.16); color: var(--blue); font: 600 9px var(--mono); white-space: nowrap; }
+    .ov-mark.exit span { background: rgba(111,123,121,0.2); color: var(--text-soft); left: auto; right: 9px; }
+
+    .hotbox { position: absolute; z-index: 9; border: 1px solid var(--blue); border-radius: 3px; box-shadow: 0 0 0 1px rgba(101,169,255,0.2), 0 0 18px rgba(101,169,255,0.25); pointer-events: none; }
+    .hotbox.flat { border-width: 0; border-top: 1px solid var(--blue); border-radius: 0; box-shadow: 0 0 12px rgba(101,169,255,0.4); }
+    .hotlbl { position: absolute; z-index: 10; padding: 2px 6px; border-radius: 3px; background: var(--blue); color: #06141f; font: 700 9.5px var(--sans); white-space: nowrap; pointer-events: none; }
+
+    .paxis { position: absolute; left: 926px; top: 0; width: 66px; height: 568px; border-left: 1px solid var(--border); background: #0b0f12; }
+    .ptick { position: absolute; right: 6px; transform: translateY(-50%); color: var(--muted); font: 500 9.5px var(--mono); }
+    .pbadge { position: absolute; right: 3px; transform: translateY(-50%); padding: 1px 4px; border-radius: 3px; font: 600 9.5px var(--mono); }
+    .pbadge.entry { background: var(--blue); color: #06141f; }
+    .pbadge.sl { background: var(--red); color: #260609; }
+    .pbadge.tp { background: var(--green); color: #04241a; }
+    .pbadge.key { background: rgba(243,186,99,0.22); color: var(--amber); border: 1px solid rgba(243,186,99,0.5); }
+    .taxis { position: absolute; left: 0; top: 568px; width: 926px; height: 22px; border-top: 1px solid var(--border); background: #0b0f12; }
+    .ttick { position: absolute; top: 5px; transform: translateX(-50%); color: var(--muted); font: 500 9px var(--mono); }
+
+    .chips { position: absolute; z-index: 12; left: 10px; top: 8px; display: flex; align-items: center; gap: 4px; padding: 4px 6px; border: 1px solid rgba(48,57,64,0.86); border-radius: 6px; background: rgba(13,17,21,0.94); box-shadow: 0 6px 18px rgba(0,0,0,0.26); }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border-radius: 4px; border: 1px solid transparent; color: var(--muted); font: 600 9.5px var(--sans); letter-spacing: 0.02em; }
+    .chip i { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+    .chip:hover { color: var(--text); background: rgba(101,169,255,0.08); }
+    .chip.on { color: var(--text); background: rgba(101,169,255,0.10); border-color: rgba(101,169,255,0.3); }
+    .chip.off i { opacity: 0.25; }
+    .chip-div { width: 1px; height: 14px; background: var(--border); }
+    .ratio { display: flex; align-items: center; gap: 6px; color: var(--muted); font: 600 9.5px var(--sans); }
+    .ratio input { width: 66px; accent-color: var(--amber); }
+    .ratio b { color: var(--amber); font-family: var(--mono); }
+
+    /* ═══ PHẦN DỮ LIỆU — hướng “phiếu đọc” ═══════════════════
+       Chữ to hơn, mono chỉ dành cho SỐ, mỗi điều kiện là một câu,
+       và mọi ngưỡng đều có thước để thấy vượt qua bao xa.         */
+
+    .dock { height: 196px; flex: none; display: flex; flex-direction: column; border-top: 1px solid var(--border); background: var(--surface); }
+    .dock-tabs { height: 34px; flex: none; display: flex; align-items: center; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--border); }
+    .dtab { padding: 5px 11px; border-radius: 4px; color: var(--muted); font: 600 11.5px var(--sans); }
+    .dtab:hover { color: var(--text-soft); }
+    .dtab.on { color: var(--text); background: var(--surface-soft); }
+    .dock-note { margin-left: auto; color: var(--muted); font: 400 10.5px var(--sans); }
+    .dock-body { flex: 1; min-height: 0; overflow: auto; }
+
+    table.trades { width: 100%; border-collapse: collapse; }
+    table.trades th { position: sticky; top: 0; z-index: 2; text-align: left; padding: 7px 12px; background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted); font: 500 9.5px var(--sans); letter-spacing: 0.09em; text-transform: uppercase; }
+    table.trades td { padding: 9px 12px; border-bottom: 1px solid rgba(36,43,49,0.6); color: var(--text-soft); font: 400 12px var(--sans); white-space: nowrap; }
+    table.trades tr { cursor: pointer; }
+    table.trades tr:hover td { background: rgba(101,169,255,0.05); }
+    table.trades tr.on td { background: rgba(101,169,255,0.09); }
+    table.trades tr.on td:first-child { box-shadow: inset 2px 0 0 var(--blue); }
+    td.num { font: 500 12px var(--mono); color: var(--text); }
+    .side { font: 700 11px var(--sans); letter-spacing: 0.04em; }
+    .side.long { color: var(--green); }
+    .side.short { color: var(--red); }
+    .bchip { padding: 2px 7px; border-radius: 3px; font: 600 9.5px var(--sans); letter-spacing: 0.03em; }
+    .bchip.key { background: rgba(243,186,99,0.14); color: var(--amber); }
+    .bchip.sweep { background: rgba(101,169,255,0.14); color: var(--blue); }
+    .cue { display: inline-flex; align-items: baseline; gap: 8px; }
+    .cue em { font-style: normal; font: 500 11.5px var(--mono); color: var(--text); }
+    .rcell { font: 650 14px var(--mono); }
+    .rcell.win { color: var(--green); }
+    .rcell.loss { color: var(--red); }
+    .segs { display: inline-flex; gap: 3px; }
+    .segs i { width: 22px; height: 5px; border-radius: 2px; }
+    .segs i.p { background: rgba(78,226,161,0.75); }
+    .segs i.f { background: var(--red); }
+    .exit-cell { display: inline-flex; align-items: center; gap: 7px; }
+    .exit-cell i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+    .exit-cell i.win { background: var(--green); }
+    .exit-cell i.loss { background: var(--red); }
+
+    .funnel { display: flex; gap: 30px; padding: 14px 16px; }
+    .fcol { flex: 1; min-width: 0; }
+    .fcol h4 { margin: 0 0 10px; color: var(--text-soft); font: 650 10.5px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; }
+    .frow { display: grid; grid-template-columns: 176px 1fr 92px; align-items: center; gap: 10px; padding: 3px 0; }
+    .frow span { color: var(--text-soft); font: 400 11.5px var(--sans); }
+    .fbar { height: 9px; border-radius: 2px; background: var(--surface-soft); overflow: hidden; }
+    .fbar i { display: block; height: 100%; border-radius: 2px; }
+    .fbar i.key { background: rgba(243,186,99,0.6); }
+    .fbar i.sweep { background: rgba(101,169,255,0.55); }
+    .fnum { display: flex; align-items: baseline; gap: 7px; justify-content: flex-end; }
+    .fnum b { color: var(--text); font: 600 12px var(--mono); }
+    .fnum em { font-style: normal; font: 500 10.5px var(--mono); color: var(--muted); }
+    .frow.worst span { color: var(--text); font-weight: 500; }
+    .frow.worst .fnum em { color: var(--red); }
+
+    /* ── phiếu đọc ──────────────────────────────────────── */
+    .insp { width: 404px; flex: none; display: flex; flex-direction: column; background: var(--surface); min-height: 0; }
+
+    .insp-head { flex: none; padding: 14px 16px 13px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 11px; }
+    .insp-eyebrow { display: flex; align-items: center; gap: 8px; }
+    .insp-eyebrow h2 { margin: 0; color: var(--muted); font: 600 9.5px var(--sans); letter-spacing: 0.12em; text-transform: uppercase; }
+    .insp-eyebrow .when { margin-left: auto; color: var(--muted); font: 500 10px var(--mono); }
+
+    .verdict { display: flex; align-items: flex-start; gap: 10px; }
+    .verdict-side { flex: none; margin-top: 2px; padding: 3px 8px; border-radius: 4px; font: 700 11px var(--sans); letter-spacing: 0.05em; }
+    .verdict-side.long { background: rgba(78,226,161,0.14); color: var(--green); }
+    .verdict-side.short { background: rgba(255,107,112,0.13); color: var(--red); }
+    .verdict p { margin: 0; color: var(--text); font: 400 14.5px/1.5 var(--sans); letter-spacing: -0.005em; text-wrap: pretty; }
+    .verdict-r { flex: none; font: 650 17px var(--mono); letter-spacing: -0.02em; }
+    .verdict-r.win { color: var(--green); }
+    .verdict-r.loss { color: var(--red); }
+
+    .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+    .chain span { padding: 2px 7px; border-radius: 3px; background: var(--surface-soft); color: var(--text-soft); font: 500 10px var(--sans); }
+    .chain span.k { background: rgba(243,186,99,0.13); color: var(--amber); }
+    .chain span.last { background: rgba(101,169,255,0.15); color: var(--blue); font-weight: 600; }
+
+    .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 0; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .facts div { background: var(--surface-raised); padding: 8px 10px; }
+    .facts dt { color: var(--muted); font: 500 9px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; }
+    .facts dd { margin: 3px 0 0; color: var(--text); font: 600 14px var(--mono); letter-spacing: -0.01em; }
+
+    .insp-body { flex: 1; min-height: 0; overflow: auto; padding: 2px 16px 18px; }
+
+    .stage { padding-top: 14px; }
+    .stage-head { display: flex; align-items: center; gap: 8px; padding-bottom: 7px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .stage-n { flex: none; width: 17px; height: 17px; border-radius: 50%; background: var(--surface-soft); color: var(--text-soft); font: 700 9.5px var(--sans); display: grid; place-items: center; }
+    .stage-head h3 { margin: 0; color: var(--text); font: 650 10.5px var(--sans); letter-spacing: 0.1em; text-transform: uppercase; }
+    .stage-head em { margin-left: auto; font-style: normal; font: 600 10px var(--mono); color: var(--muted); }
+    .stage-head em.all { color: var(--green); }
+    .stage-head em.bad { color: var(--red); }
+
+    .ev { display: block; width: 100%; text-align: left; padding: 8px 9px 9px; margin-bottom: 2px; border: 1px solid transparent; border-radius: 6px; background: transparent; }
+    .ev:hover { background: var(--surface-soft); }
+    .ev.on { border-color: rgba(101,169,255,0.45); background: rgba(101,169,255,0.08); }
+    .ev.clickable { cursor: crosshair; }
+
+    .ev-top { display: flex; align-items: baseline; gap: 8px; }
+    .ev-top b { color: var(--text); font: 600 12.5px var(--sans); letter-spacing: -0.005em; }
+    .ev-val { margin-left: auto; flex: none; font: 600 14px var(--mono); letter-spacing: -0.02em; color: var(--green); }
+    .ev.fail .ev-val { color: var(--red); }
+    .ev-tick { margin-left: auto; flex: none; align-self: center; width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center; font: 700 9px var(--sans); background: rgba(78,226,161,0.16); color: var(--green); }
+    .ev.fail .ev-tick { background: rgba(255,107,112,0.16); color: var(--red); }
+    .ev.info .ev-tick { background: var(--surface-soft); color: var(--muted); }
+
+    .meter { position: relative; display: block; height: 6px; margin: 8px 0 17px; border-radius: 3px; background: var(--surface-soft); }
+    .meter i { position: absolute; }
+    .meter i.bad-zone { top: 0; height: 6px; background: rgba(255,107,112,0.14); border-radius: 3px; }
+    .meter i.fill { left: 0; top: 0; height: 6px; border-radius: 3px; background: var(--green); }
+    .ev.fail .meter i.fill { background: var(--red); }
+    .meter i.gate { top: -3px; width: 2px; height: 12px; border-radius: 1px; background: var(--text-soft); }
+    .meter i.gate-lbl { top: 12px; transform: translateX(-50%); color: var(--muted); font: 500 9px var(--mono); font-style: normal; white-space: nowrap; }
+
+    .ev-say { display: block; color: var(--text-soft); font: 400 11.5px/1.55 var(--sans); text-wrap: pretty; }
+
+    .insp-foot { flex: none; padding: 9px 16px; border-top: 1px solid var(--border); color: var(--muted); font: 400 10.5px var(--sans); }
+    .insp-foot kbd { padding: 1px 5px; border: 1px solid var(--border-strong); border-radius: 3px; font: 500 9.5px var(--mono); }
+  </style>
+</helmet>
+
+<div class="app">
+
+  <header class="hdr">
+    <div class="coin">₿</div>
+    <div class="sym">
+      <h1>BTCUSDT</h1>
+      <span class="badge">PERP</span>
+      <span class="badge">BINANCE</span>
+    </div>
+    <dl class="tape">
+      <div><dt>Giá</dt><dd>{{last}}</dd></div>
+      <div><dt>24h</dt><dd class="up">+1,42%</dd></div>
+      <div><dt>High</dt><dd>108.820</dd></div>
+      <div><dt>Low</dt><dd>106.325</dd></div>
+      <div><dt>Vol 24h</dt><dd>2,14B</dd></div>
+    </dl>
+    <div class="mode">
+      <b>KIỂM TRA FX DREAM</b>
+      <span>replay key-volume.ts · chỉ đọc</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <span class="tb-sel">BTCUSDT <small>USDⓈ-M</small></span>
+    <span class="tb-div"></span>
+    <span class="tb-lbl">KHUNG</span>
+    <span class="tf">M15</span>
+    <span class="tb-div"></span>
+    <span class="tb-sel">120 ngày</span>
+    <div class="scrub">
+      <span class="tb-lbl">LỆNH</span>
+      <button class="stepbtn" onClick="{{prev}}" aria-label="Lệnh trước">
+        <svg viewBox="0 0 20 20"><path d="m12 5-5 5 5 5" /></svg>
+      </button>
+      <div class="scrub-track">
+        <sc-for list="{{scrubTicks}}" as="sk" hint-placeholder-count="3">
+          <button class="{{sk.cls}}" style="left: {{sk.x}}px" onClick="{{sk.pick}}" aria-label="{{sk.label}}"></button>
+        </sc-for>
+      </div>
+      <button class="stepbtn" onClick="{{next}}" aria-label="Lệnh sau">
+        <svg viewBox="0 0 20 20"><path d="m8 5 5 5-5 5" /></svg>
+      </button>
+      <span class="scrub-count">{{counter}}</span>
+      <span class="kbd">← →</span>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <nav class="tools">
+      <button class="tool on" aria-label="Chọn">
+        <svg viewBox="0 0 20 20"><path d="m5 3 10 7-5 1.5L8.5 16z" /></svg>
+      </button>
+      <button class="tool" aria-label="Đường ngang">
+        <svg viewBox="0 0 20 20"><path d="M3 10h14" /><circle cx="10" cy="10" r="2" /></svg>
+      </button>
+      <button class="tool" aria-label="Vùng chữ nhật">
+        <svg viewBox="0 0 20 20"><rect x="3.5" y="5" width="13" height="10" rx="1" /></svg>
+      </button>
+      <button class="tool" aria-label="Đường xu hướng">
+        <svg viewBox="0 0 20 20"><path d="m3 15 14-10" /></svg>
+      </button>
+      <span class="tool-gap"></span>
+      <button class="tool" aria-label="Long position">
+        <svg viewBox="0 0 20 20"><path d="M4 10h12M10 4v12M6 6l4-3 4 3" /></svg>
+      </button>
+      <button class="tool" aria-label="Short position">
+        <svg viewBox="0 0 20 20"><path d="M4 10h12M10 4v12M6 14l4 3 4-3" /></svg>
+      </button>
+      <span class="tool-gap"></span>
+      <button class="tool" aria-label="Đo">
+        <svg viewBox="0 0 20 20"><path d="M3 12 12 3l5 5-9 9z" /><path d="M7 8l2 2M10 5l2 2" /></svg>
+      </button>
+      <button class="tool" aria-label="Xoá">
+        <svg viewBox="0 0 20 20"><path d="M6 6v10h8V6M4 6h12M8 6V4h4v2" /></svg>
+      </button>
+    </nav>
+
+    <div class="chartcol">
+
+      <div class="legend">
+        <strong>BTCUSDT · 15m · Binance</strong>
+        <div class="ohlc">
+          <span>O <b>{{bar.o}}</b></span>
+          <span>H <b>{{bar.h}}</b></span>
+          <span>L <b>{{bar.l}}</b></span>
+          <span>C <b>{{bar.c}}</b></span>
+          <span class="vol">VOL <b>{{bar.v}}</b></span>
+        </div>
+        <span class="tz">UTC+7</span>
+      </div>
+
+      <div class="plotwrap">
+
+        <div class="chips">
+          <button class="{{ch.key}}" onClick="{{toggleKey}}"><i style="background: #f3ba63"></i>Key</button>
+          <button class="{{ch.ob}}" onClick="{{toggleOb}}"><i style="background: rgba(243,186,99,0.5)"></i>Order block</button>
+          <button class="{{ch.steps}}" onClick="{{toggleSteps}}"><i style="background: #65a9ff"></i>Ba bước</button>
+          <button class="{{ch.risk}}" onClick="{{toggleRisk}}"><i style="background: #ff6b70"></i>SL / TP</button>
+          <button class="{{ch.vol}}" onClick="{{toggleVol}}"><i style="background: rgba(101,169,255,0.45)"></i>Volume</button>
+          <span class="chip-div"></span>
+          <label class="ratio">vol ≥ ×<b>{{minRatio}}</b>
+            <input id="kv-ratio" type="range" min="2" max="8" step="0.5" value="{{ratioVal}}" onChange="{{setRatio}}" />
+          </label>
+        </div>
+
+        <div class="{{plotCls}}">
+          <sc-for list="{{gridH}}" as="g" hint-placeholder-count="6">
+            <div class="grid-h" style="top: {{g.v}}px"></div>
+          </sc-for>
+          <sc-for list="{{gridV}}" as="g" hint-placeholder-count="6">
+            <div class="grid-v" style="left: {{g.v}}px"></div>
+          </sc-for>
+
+          <sc-for list="{{zones}}" as="z" hint-placeholder-count="2">
+            <div class="{{z.cls}}" style="left: {{z.x}}px; top: {{z.y}}px; width: {{z.w}}px; height: {{z.h}}px"></div>
+          </sc-for>
+
+          <sc-for list="{{obs}}" as="o" hint-placeholder-count="1">
+            <div class="{{o.cls}}" style="left: {{o.x}}px; top: {{o.y}}px; width: {{o.w}}px; height: {{o.h}}px">
+              <span class="tag">{{o.label}}</span>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{bars}}" as="b" hint-placeholder-count="40">
+            <div class="{{b.wcls}}" style="left: {{b.wx}}px; top: {{b.wy}}px; height: {{b.wh}}px"></div>
+          </sc-for>
+          <sc-for list="{{bars}}" as="b" hint-placeholder-count="40">
+            <div class="{{b.bcls}}" style="left: {{b.bx}}px; top: {{b.by}}px; width: 9px; height: {{b.bh}}px"></div>
+          </sc-for>
+
+          <sc-for list="{{keyLines}}" as="k" hint-placeholder-count="2">
+            <div class="{{k.cls}}" style="left: 0; top: {{k.y}}px; width: 926px">
+              <span class="tag">{{k.label}}</span>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{levels}}" as="l" hint-placeholder-count="3">
+            <div class="{{l.cls}}" style="left: {{l.x}}px; top: {{l.y}}px; width: {{l.w}}px">
+              <span class="tag" style="left: {{l.tx}}px">{{l.label}}</span>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+            <div class="{{s.cls}}" style="left: {{s.x}}px; top: {{s.y}}px; width: {{s.w}}px">
+              <span class="num">{{s.n}}</span>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{marks}}" as="m" hint-placeholder-count="2">
+            <div class="{{m.cls}}" style="left: {{m.x}}px; top: {{m.y}}px">
+              <i></i><span>{{m.label}}</span>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{hot}}" as="h" hint-placeholder-count="1">
+            <div class="{{h.cls}}" style="left: {{h.x}}px; top: {{h.y}}px; width: {{h.w}}px; height: {{h.h}}px"></div>
+          </sc-for>
+          <sc-for list="{{hotLabel}}" as="h" hint-placeholder-count="1">
+            <div class="hotlbl" style="left: {{h.x}}px; top: {{h.y}}px">{{h.text}}</div>
+          </sc-for>
+        </div>
+
+        <div class="volpane">
+          <span class="vol-cap">VOL · QUOTE USDT</span>
+          <sc-for list="{{vols}}" as="v" hint-placeholder-count="40">
+            <div class="{{v.cls}}" style="left: {{v.x}}px; width: 9px; height: {{v.h}}px"></div>
+          </sc-for>
+        </div>
+
+        <div class="paxis">
+          <sc-for list="{{pticks}}" as="p" hint-placeholder-count="6">
+            <span class="ptick" style="top: {{p.y}}px">{{p.label}}</span>
+          </sc-for>
+          <sc-for list="{{pbadges}}" as="p" hint-placeholder-count="3">
+            <span class="{{p.cls}}" style="top: {{p.y}}px">{{p.label}}</span>
+          </sc-for>
+        </div>
+
+        <div class="taxis">
+          <sc-for list="{{tticks}}" as="t" hint-placeholder-count="6">
+            <span class="ttick" style="left: {{t.x}}px">{{t.label}}</span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="dock">
+        <div class="dock-tabs">
+          <button class="{{tabTrades}}" onClick="{{showTrades}}">Ba lệnh đã vào</button>
+          <button class="{{tabFunnel}}" onClick="{{showFunnel}}">Setup chết ở cửa nào</button>
+          <span class="dock-note">{{dockNote}}</span>
+        </div>
+        <div class="dock-body">
+          <sc-for list="{{tradeTable}}" as="tt" hint-placeholder-count="1">
+            <table class="trades">
+              <thead>
+                <tr>
+                  <th>Thời gian</th><th>Lệnh</th><th>Dấu hiệu vào</th>
+                  <th>Vào → SL</th><th>Vì sao thoát</th><th>Giữ</th>
+                  <th>Bốn chặng</th><th>Kết quả</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{tt.rows}}" as="r" hint-placeholder-count="3">
+                  <tr class="{{r.cls}}" onClick="{{r.pick}}">
+                    <td class="num">{{r.time}}</td>
+                    <td><span class="{{r.sideCls}}">{{r.side}}</span></td>
+                    <td>
+                      <span class="cue">
+                        <span class="{{r.branchCls}}">{{r.branch}}</span>
+                        <em>{{r.cue}}</em>
+                      </span>
+                    </td>
+                    <td class="num">{{r.entry}} → {{r.sl}}</td>
+                    <td>
+                      <span class="exit-cell"><i class="{{r.exitDot}}"></i>{{r.exit}}</span>
+                    </td>
+                    <td class="num">{{r.hold}}</td>
+                    <td>
+                      <span class="segs">
+                        <sc-for list="{{r.segs}}" as="sg" hint-placeholder-count="4">
+                          <i class="{{sg.cls}}" title="{{sg.title}}"></i>
+                        </sc-for>
+                      </span>
+                    </td>
+                    <td class="{{r.rCls}}">{{r.r}}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </sc-for>
+
+          <sc-for list="{{funnelView}}" as="fv" hint-placeholder-count="1">
+            <div class="funnel">
+              <sc-for list="{{fv.cols}}" as="col" hint-placeholder-count="2">
+                <div class="fcol">
+                  <h4>{{col.title}}</h4>
+                  <sc-for list="{{col.rows}}" as="fr" hint-placeholder-count="7">
+                    <div class="{{fr.cls}}">
+                      <span>{{fr.label}}</span>
+                      <span class="fbar"><i class="{{fr.barCls}}" style="width: {{fr.pct}}%"></i></span>
+                      <span class="fnum"><b>{{fr.n}}</b><em>{{fr.drop}}</em></span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <aside class="insp">
+      <div class="insp-head">
+        <div class="insp-eyebrow">
+          <h2>Vì sao vào lệnh</h2>
+          <span class="when">{{t.when}}</span>
+        </div>
+
+        <div class="verdict">
+          <span class="{{t.sideCls}}">{{t.side}}</span>
+          <p>{{t.verdict}}</p>
+          <span class="{{t.rCls}}">{{t.r}}</span>
+        </div>
+
+        <div class="chain">
+          <sc-for list="{{t.chain}}" as="cn" hint-placeholder-count="6">
+            <span class="{{cn.cls}}">{{cn.text}}</span>
+          </sc-for>
+        </div>
+
+        <dl class="facts">
+          <div><dt>Rủi ro</dt><dd>{{t.riskPct}}</dd></div>
+          <div><dt>Dư địa</dt><dd>{{t.rr}}</dd></div>
+          <div><dt>Giữ lệnh</dt><dd>{{t.hold}}</dd></div>
+        </dl>
+      </div>
+
+      <div class="insp-body">
+        <sc-for list="{{stages}}" as="st" hint-placeholder-count="4">
+          <div class="stage">
+            <div class="stage-head">
+              <span class="stage-n">{{st.n}}</span>
+              <h3>{{st.title}}</h3>
+              <em class="{{st.scoreCls}}">{{st.score}}</em>
+            </div>
+            <sc-for list="{{st.items}}" as="it" hint-placeholder-count="4">
+              <button class="{{it.cls}}" onClick="{{it.pick}}" onMouseEnter="{{it.hover}}">
+                <span class="ev-top">
+                  <b>{{it.label}}</b>
+                  <sc-for list="{{it.valueBox}}" as="vb" hint-placeholder-count="1">
+                    <span class="ev-val">{{vb.v}}</span>
+                  </sc-for>
+                  <sc-for list="{{it.tickBox}}" as="tb" hint-placeholder-count="1">
+                    <span class="ev-tick">{{tb.v}}</span>
+                  </sc-for>
+                </span>
+                <sc-for list="{{it.meterBox}}" as="mb" hint-placeholder-count="1">
+                  <span class="meter">
+                    <i class="bad-zone" style="left: {{mb.zoneLeft}}%; width: {{mb.zoneWidth}}%"></i>
+                    <i class="fill" style="width: {{mb.fill}}%"></i>
+                    <i class="gate" style="left: {{mb.gate}}%"></i>
+                    <i class="gate-lbl" style="left: {{mb.gate}}%">{{mb.gateLabel}}</i>
+                  </span>
+                </sc-for>
+                <span class="ev-say">{{it.say}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+
+      <div class="insp-foot">
+        Rê chuột một dòng để chart chỉ sáng đúng dấu hiệu đó · <kbd>bấm</kbd> để ghim lại
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+// 220 nến M15 mẫu — dựng sẵn cấu trúc Key Volume, đã tự kiểm tra từng luật.
+const C=[[108200,108238,108148,108200,1594],[108200,108329,108046,108163,1405],[108163,108281,107996,108124,1292],[108124,108238,108027,108102,1076],[108102,108200,107996,108070,1438],[108070,108158,107956,108032,783],[108032,108134,107951,107995,965],[107995,108070,107914,107984,1347],[107984,108075,107860,108029,1721],[108029,108147,107833,107936,1564],[107936,108059,107822,107946,1119],[107946,108039,107833,107983,1213],[107983,108119,107829,107899,1324],[107899,108008,107785,107934,1147],[107934,108076,107690,107807,1642],[107807,107873,107604,107685,1292],[107685,107833,107619,107741,1408],[107741,107891,107656,107810,1415],[107810,107894,107752,107795,1081],[107795,107944,107503,107610,1649],[107610,107721,107478,107660,1646],[107660,107717,107565,107656,1337],[107656,107764,107528,107641,765],[107641,107719,107418,107537,1701],[107537,107639,107439,107516,1497],[107516,107604,107396,107538,864],[107538,107621,107394,107485,1427],[107485,107563,107376,107437,1621],[107437,107535,107348,107420,1326],[107420,107452,107188,107250,5290],[107250,107313,107158,107250,1257],[107250,107479,107103,107382,1287],[107382,107479,107317,107410,1119],[107410,107716,107317,107565,1454],[107565,107647,107459,107580,1125],[107580,108030,107452,107861,2143],[107861,107952,107768,107875,1621],[107875,108194,107736,108052,1918],[108052,108151,107997,108050,643],[108050,108238,107915,108176,1692],[108176,108388,108045,108276,1276],[108276,108564,108163,108449,1968],[108449,108604,108383,108516,1548],[108516,108697,108374,108620,1845],[108620,108664,108446,108480,4830],[108480,108529,108398,108480,1277],[108480,108549,108291,108381,1751],[108381,108475,108211,108329,1743],[108329,108410,108212,108284,1512],[108284,108436,108002,108118,1886],[108118,108204,108032,108092,797],[108092,108200,107751,107893,1424],[107893,108000,107774,107831,1533],[107831,107919,107605,107721,1841],[107721,107928,107643,107803,1525],[107803,107875,107486,107637,1469],[107637,107774,107459,107556,1382],[107556,107655,107397,107470,1783],[107470,107492,107388,107466,1265],[107466,107506,107392,107400,1035],[107400,107418,107344,107372,920],[107372,107580,107330,107548,2185],[107548,107604,107520,107582,1150],[107582,107648,107556,107626,1035],[107626,107660,107572,107604,920],[107604,107676,107580,107652,920],[107652,107668,107560,107578,805],[107578,107596,107498,107520,1035],[107520,107540,107462,107504,1150],[107504,107518,107440,107452,920],[107452,107470,107412,107458,1035],[107458,107500,107436,107462,920],[107462,107604,107450,107585,1840],[107585,107646,107498,107600,1598],[107600,107812,107486,107694,1628],[107694,107754,107604,107704,1140],[107704,107948,107575,107829,1067],[107829,107919,107731,107876,1295],[107876,108083,107788,107983,1057],[107983,108073,107894,107939,1214],[107939,108186,107851,108075,1572],[108075,108412,107976,108258,2062],[108258,108402,108177,108282,827],[108282,108423,108200,108323,1581],[108323,108446,108269,108307,1058],[108307,108624,108171,108503,1192],[108503,108596,108375,108472,936],[108472,108724,108361,108593,1857],[108593,108727,108459,108650,810],[108650,108703,108560,108650,979],[108650,108739,108372,108465,1488],[108465,108574,108204,108328,1798],[108328,108448,108109,108212,1259],[108212,108306,107956,108046,1498],[108046,108131,107902,107993,1545],[107993,108116,107537,107684,2351],[107684,107758,107486,107558,1654],[107558,107665,107326,107434,1128],[107434,107510,107165,107294,1565],[107294,107400,107054,107150,1850],[107150,107192,107044,107060,5865],[107060,107152,106966,107060,827],[107060,107190,106851,106984,1683],[106984,107132,106734,106861,1352],[106861,107007,106768,106945,1803],[106945,107105,106675,106755,1186],[106755,106847,106572,106639,1453],[106639,106725,106519,106592,1497],[106592,106754,106539,106673,1107],[106673,106790,106516,106580,1813],[106580,106676,106441,106500,1751],[106500,106601,106435,106500,1399],[106500,106746,106439,106601,1055],[106601,106797,106525,106717,1591],[106717,106929,106606,106846,1852],[106846,106965,106765,106854,1141],[106854,107043,106777,106961,1127],[106961,107300,106808,107181,1362],[107181,107269,107083,107183,1454],[107183,107595,107024,107424,1693],[107424,107639,107363,107527,1562],[107527,107672,107423,107558,1368],[107558,107619,107486,107559,870],[107559,107806,107410,107676,1638],[107676,108060,107510,107947,2238],[107947,108154,107820,108046,1864],[108046,108153,107935,108039,798],[108039,108277,107894,108139,1810],[108139,108400,108065,108282,1982],[108282,108501,108196,108389,1111],[108389,108600,108326,108483,1053],[108483,108745,108386,108600,1386],[108600,108820,108362,108380,2760],[108380,108402,108268,108290,1380],[108290,108320,108186,108210,1150],[108210,108286,108192,108250,1035],[108250,108304,108226,108288,920],[108288,108336,108262,108318,920],[108318,108372,108290,108344,1035],[108344,108396,108322,108372,1035],[108372,108412,108336,108356,920],[108356,108388,108330,108368,920],[108368,108392,108236,108250,1955],[108250,108344,108141,108250,1410],[108250,108409,108130,108332,983],[108332,108435,108160,108284,1649],[108284,108454,108226,108338,1173],[108338,108642,108188,108553,2096],[108553,108656,108438,108518,1620],[108518,108725,108399,108636,1907],[108636,108736,108460,108590,1165],[108590,108726,108527,108660,1220],[108660,108699,108592,108660,1584],[108660,108732,108495,108554,1858],[108554,108660,108436,108488,1395],[108488,108629,108271,108384,1461],[108384,108488,108099,108189,1647],[108189,108301,108050,108155,1005],[108155,108267,107897,108001,1854],[108001,108132,107866,107948,1195],[107948,108072,107688,107775,1346],[107775,107865,107552,107626,2015],[107626,107755,107552,107681,920],[107681,107800,107243,107417,1487],[107417,107465,107255,107350,1424],[107350,107448,107179,107271,1045],[107271,107354,107083,107180,896],[107180,107258,107099,107208,1467],[107208,107300,107022,107084,1867],[107084,107224,106796,106893,1454],[106893,106976,106738,106809,1546],[106809,106924,106643,106747,1054],[106747,106868,106476,106574,1529],[106574,106681,106423,106492,867],[106492,106627,106325,106400,1789],[106400,106438,106352,106480,5060],[106480,106569,106448,106480,1313],[106480,106612,106357,106496,1210],[106496,106633,106384,106575,1054],[106575,106671,106449,106543,1032],[106543,106656,106476,106574,1596],[106574,106744,106465,106669,1191],[106669,106782,106455,106592,1216],[106592,106885,106464,106733,1760],[106733,106845,106640,106705,1560],[106705,106906,106638,106809,1053],[106809,106920,106604,106708,1856],[106708,106873,106577,106757,1131],[106757,106886,106697,106814,884],[106814,106991,106732,106860,1303],[106860,107094,106772,107003,1732],[107003,107119,106869,106973,1673],[106973,107043,106820,106932,864],[106932,107200,106794,107054,1337],[107054,107109,106934,107039,1383],[107039,107146,106911,107080,1572],[107080,107186,107068,107100,1265],[107100,107128,107052,107064,1035],[107064,107176,107056,107162,1150],[107162,107196,107020,107036,2070],[107036,107056,106988,107004,1150],[107004,107030,106952,106976,1035],[106976,107012,106944,107000,1035],[107000,107038,106982,107024,920],[107024,107048,107000,107040,920],[107040,107072,107022,107058,1035],[107058,107080,107030,107046,920],[107046,107068,107026,107062,1035],[107062,107070,106988,107000,1725],[107000,107026,106962,106988,1035],[106988,107044,106974,107022,1035],[107022,107141,106920,107022,830],[107022,107075,106892,106981,892],[106981,107177,106911,107048,1648],[107048,107127,106831,106948,1634],[106948,107029,106869,106922,1492],[106922,107075,106853,106971,1543],[106971,107055,106847,106955,1484],[106955,107030,106839,106910,1034],[106910,106963,106821,106900,1339]];
+
+const PLOT_W = 926, PRICE_H = 468, VOL_H = 96, NVIS = 72;
+const SLOT = PLOT_W / NVIS;
+const KEYS = [
+  { i: 29, p: 107420, r: 4.6, name: "A" },
+  { i: 44, p: 108620, r: 4.2, name: "B" },
+  { i: 100, p: 107150, r: 5.1, name: "C" },
+  { i: 175, p: 106400, r: 4.4, name: "D" },
+];
+const SPIKES = [29, 44, 100, 175];
+const START_MS = Date.UTC(2026, 8, 8, 17, 0);
+
+function fmt(p) { return Math.round(p).toLocaleString("de-DE"); }
+function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+function clock(i) {
+  const d = new Date(START_MS + i * 15 * 60000 + 7 * 3600000);
+  return pad2(d.getUTCDate()) + "/" + pad2(d.getUTCMonth() + 1) + " " + pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes());
+}
+function hhmm(i) {
+  const d = new Date(START_MS + i * 15 * 60000 + 7 * 3600000);
+  return pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes());
+}
+function holdLabel(bars) {
+  const m = bars * 15;
+  return m >= 60 ? Math.floor(m / 60) + "g" + (m % 60 ? pad2(m % 60) : "") : m + " phút";
+}
+
+/* Mỗi điều kiện chỉ có MỘT trong hai dạng:
+   · "so" — có số đo và có ngưỡng → số to + thước có vạch ngưỡng
+   · "co" — chỉ có / không        → dấu tick + một câu
+   Câu mô tả viết bằng tiếng thường, không nhắc tên tham số.      */
+const TRADES = [
+  {
+    id: "t1", dir: "long", branchLabel: "KEY + ĐẢO CHIỀU",
+    entryIdx: 72, exitIdx: 85, entry: 107585, sl: 107345, tp: 108620,
+    exitPrice: 108620, exitLabel: "Chạm mục tiêu", r: "+4,18R", win: true,
+    key: 107420, obLow: 107372, obHigh: 107466,
+    clusterFrom: 59, departFrom: 62, departTo: 64, retouch: 68,
+    riskPct: "0,22%", rr: "4,31R", cue: "key 107.420 ×4,6",
+    verdict: "Giá quay về key 107.420, đảo chiều ngay tại đó, rồi bật ra khỏi hộp order block.",
+    chain: ["Key ×4,6", "Rời rồi quay về", "Nến đảo chiều", "Hộp", "Rời 3 nến", "Quay lại", "Bật ra"],
+    stages: [
+      { n: "1", title: "Dấu hiệu", items: [
+        { kind: "so", label: "Volume sinh key", val: "×4,6", actual: 4.6, gate: 4, dirn: "gte", gateLabel: "≥ ×4",
+          say: "Cây nến này có volume gấp 4,6 lần trung vị 12 nến quanh nó — đủ mạnh để coi là một key.",
+          geom: { kind: "level", p: 107420 } },
+        { kind: "so", label: "Đã rời key rồi mới quay về", val: "5,9 ATR", actual: 5.9, gate: 1, dirn: "gte", gateLabel: "≥ 1 ATR",
+          say: "Trước lúc chạm, giá từng đi xa key 5,9 ATR. Đi ngang đè lên key thì không tính là quay về.",
+          geom: { kind: "bars", i1: 45, i2: 58 } },
+        { kind: "co", label: "Hướng lệnh", st: "pass",
+          say: "Nến chạm đóng TRÊN key → key đang làm đỡ → đánh LONG.",
+          geom: { kind: "level", p: 107420 } },
+        { kind: "co", label: "Key còn hiệu lực", st: "pass",
+          say: "Key mới 0,39 ngày tuổi và chưa cây nào đóng xuyên qua nó.",
+          geom: { kind: "level", p: 107420 } },
+        { kind: "co", label: "Cụm nến đảo chiều", st: "pass",
+          say: "Thân nến xanh nhấn chìm thân 2 nến liền trước — chính cụm này dựng ra cái hộp.",
+          geom: { kind: "bars", i1: 59, i2: 61 } },
+        { kind: "so", label: "Volume cây đảo chiều", val: "×1,9", actual: 1.9, gate: 1.2, dirn: "gte", gateLabel: "≥ ×1,2",
+          say: "Chỉ cần nhỉnh hơn vài cây quanh nó, không đòi đột biến như lúc sinh key.",
+          geom: { kind: "bars", i1: 59, i2: 61 } },
+        { kind: "co", label: "Đảo chiều xảy ra ngay tại key", st: "pass",
+          say: "Đường key 107.420 chạy xuyên thân hộp 107.372 – 107.466, không nằm lệch một bên.",
+          geom: { kind: "zone", p1: 107372, p2: 107466, i1: 59, i2: 61 } },
+      ] },
+      { n: "2", title: "Hộp và ba bước", items: [
+        { kind: "co", label: "Hộp order block", st: "pass",
+          say: "107.372 – 107.466, chỉ tính thân nến. Vào ở mép trên, SL đặt ngay ngoài mép dưới.",
+          geom: { kind: "zone", p1: 107372, p2: 107466, i1: 59, i2: 85 } },
+        { kind: "so", label: "Bước 1 · rời hộp", val: "3 nến", actual: 3, gate: 3, dirn: "gte", gateLabel: "cần 3",
+          say: "Ba nến liên tiếp đóng cửa trên mép hộp. Râu thò lại vào hộp vẫn được.",
+          geom: { kind: "bars", i1: 62, i2: 64 } },
+        { kind: "co", label: "Bước 2 · quay lại hộp", st: "pass",
+          say: "Bốn nến sau đó giá chạm lại hộp, còn trong hạn canh 2 ngày.",
+          geom: { kind: "bars", i1: 68, i2: 68 } },
+        { kind: "co", label: "Bước 3 · nến bật ra", st: "pass",
+          say: "Nến xanh còn dính hộp và đóng ở 107.585, ra ngoài hộp → vào ngay tại giá đóng đó.",
+          geom: { kind: "bars", i1: 72, i2: 72 } },
+      ] },
+      { n: "3", title: "Hai cửa cuối", items: [
+        { kind: "so", label: "Rủi ro mỗi lệnh", val: "0,22%", actual: 0.22, gate: 3, dirn: "lte", gateLabel: "trần 3%",
+          say: "SL ở 107.345, ngay ngoài mép dưới hộp. Còn rất xa trần rủi ro.",
+          geom: { kind: "level", p: 107345 } },
+        { kind: "so", label: "Dư địa tới mục tiêu", val: "4,31R", actual: 4.31, gate: 3, dirn: "gte", gateLabel: "≥ 3R",
+          say: "Mục tiêu là key đối diện gần nhất, 108.620. Không có key đối diện thì bỏ setup.",
+          geom: { kind: "level", p: 108620 } },
+      ] },
+      { n: "4", title: "Kết thúc", items: [
+        { kind: "co", label: "Chạm mục tiêu", st: "pass",
+          say: "Giá tới 108.620 sau 13 nến (3g15) rồi quay đầu ngay tại key đối diện.",
+          geom: { kind: "bars", i1: 72, i2: 85 } },
+      ] },
+    ],
+  },
+  {
+    id: "t2", dir: "short", branchLabel: "SĂN THANH KHOẢN",
+    entryIdx: 142, exitIdx: 147, entry: 108250, sl: 108627, tp: 106435,
+    exitPrice: 108627, exitLabel: "Chạm SL", r: "−1,04R", win: false,
+    key: null, obLow: 108380, obHigh: 108600,
+    clusterFrom: 132, departFrom: 133, departTo: 135, retouch: 139,
+    swept: 108745,
+    riskPct: "0,35%", rr: "4,81R", cue: "quét đỉnh 108.745",
+    verdict: "Một nến thủng đỉnh 5 ngày rồi đóng lại trong biên — râu ăn hết stop rồi trả giá về.",
+    chain: ["Quét đỉnh", "Đóng lại trong biên", "Hộp", "Rời 3 nến", "Quay lại", "Bật ra"],
+    stages: [
+      { n: "1", title: "Dấu hiệu", items: [
+        { kind: "co", label: "Đỉnh bị quét", st: "pass",
+          say: "108.745 là đỉnh cao nhất của 480 nến gần nhất — chỗ đọng stop của người khác.",
+          geom: { kind: "level", p: 108745 } },
+        { kind: "so", label: "Đỉnh đó nổi bật cỡ nào", val: "142 nến", actual: 142, gate: 96, dirn: "gte", gateLabel: "≥ 96",
+          say: "Phải lùi 142 nến mới có cây vượt qua mức này — không phải mút của một đoạn đang trôi.",
+          geom: { kind: "bars", i1: 88, i2: 88 } },
+        { kind: "co", label: "Thủng rồi đóng lại trong biên", st: "pass",
+          say: "Râu lên tới 108.820 nhưng đóng ở 108.380, dưới hẳn đỉnh bị quét.",
+          geom: { kind: "bars", i1: 132, i2: 132 } },
+        { kind: "co", label: "Nhánh này không dùng key", st: "info",
+          say: "Không key, không volume, không mô hình nến. Lệnh này không nói gì về FX Dream — nó chỉ nói về cú quét.",
+          geom: null },
+        { kind: "so", label: "Volume cây bóp cò", val: "×1,7", actual: 1.7, gate: 1, dirn: "gte", gateLabel: "không bắt buộc",
+          say: "Ghi lại để tham khảo; nhánh quét không đặt ngưỡng volume nào.",
+          geom: { kind: "bars", i1: 132, i2: 132 } },
+      ] },
+      { n: "2", title: "Hộp và ba bước", items: [
+        { kind: "co", label: "Hộp = thân cây nến quét", st: "pass",
+          say: "108.380 – 108.600. Vào ở mép dưới, SL đặt ngay ngoài mép trên.",
+          geom: { kind: "zone", p1: 108380, p2: 108600, i1: 132, i2: 147 } },
+        { kind: "so", label: "Bước 1 · rời hộp", val: "3 nến", actual: 3, gate: 3, dirn: "gte", gateLabel: "cần 3",
+          say: "Ba nến liên tiếp đóng cửa dưới mép hộp.",
+          geom: { kind: "bars", i1: 133, i2: 135 } },
+        { kind: "co", label: "Bước 2 · quay lại hộp", st: "pass",
+          say: "Bảy nến sau đó giá chạm lại mép dưới hộp.",
+          geom: { kind: "bars", i1: 139, i2: 139 } },
+        { kind: "co", label: "Bước 3 · nến bật ra", st: "pass",
+          say: "Nến đỏ còn dính hộp và đóng ở 108.250, dưới mép hộp → vào tại giá đóng.",
+          geom: { kind: "bars", i1: 142, i2: 142 } },
+      ] },
+      { n: "3", title: "Hai cửa cuối", items: [
+        { kind: "so", label: "Rủi ro mỗi lệnh", val: "0,35%", actual: 0.35, gate: 3, dirn: "lte", gateLabel: "trần 3%",
+          say: "SL ở 108.627, ngay ngoài mép trên hộp.",
+          geom: { kind: "level", p: 108627 } },
+        { kind: "so", label: "Dư địa tới mục tiêu", val: "4,81R", actual: 4.81, gate: 3, dirn: "gte", gateLabel: "≥ 3R",
+          say: "Quét thanh khoản bên này thì chạy sang cụm bên kia — đáy 106.435 của chính cửa sổ đó.",
+          geom: { kind: "level", p: 106435 } },
+      ] },
+      { n: "4", title: "Kết thúc", items: [
+        { kind: "co", label: "Chạm SL", st: "fail",
+          say: "Giá quay lại quét tiếp lên trên, chạm 108.627 sau 5 nến. Cùng một nến chạm cả SL lẫn mục tiêu thì luôn tính SL trước.",
+          geom: { kind: "bars", i1: 142, i2: 147 } },
+      ] },
+    ],
+  },
+  {
+    id: "t3", dir: "short", branchLabel: "KEY + ĐẢO CHIỀU",
+    entryIdx: 208, exitIdx: 210, entry: 107000, sl: 107189, tp: 106400,
+    exitPrice: 107022, exitLabel: "Giá không chạy", r: "−0,18R", win: false,
+    key: 107150, obLow: 107064, obHigh: 107162,
+    clusterFrom: 197, departFrom: 200, departTo: 202, retouch: 205,
+    riskPct: "0,18%", rr: "3,17R", cue: "key 107.150 ×5,1",
+    verdict: "Đủ cả bảy dấu hiệu và hai cửa cuối — nhưng vào xong giá đứng im, nên luật cắt sớm nổ.",
+    chain: ["Key ×5,1", "Rời rồi quay về", "Nến đảo chiều", "Hộp", "Rời 3 nến", "Quay lại", "Bật ra"],
+    stages: [
+      { n: "1", title: "Dấu hiệu", items: [
+        { kind: "so", label: "Volume sinh key", val: "×5,1", actual: 5.1, gate: 4, dirn: "gte", gateLabel: "≥ ×4",
+          say: "Cây nến này có volume gấp 5,1 lần trung vị 12 nến quanh nó.",
+          geom: { kind: "level", p: 107150 } },
+        { kind: "so", label: "Đã rời key rồi mới quay về", val: "4,2 ATR", actual: 4.2, gate: 1, dirn: "gte", gateLabel: "≥ 1 ATR",
+          say: "Giá rơi xuống cách key 4,2 ATR rồi mới bò lên chạm lại.",
+          geom: { kind: "bars", i1: 176, i2: 196 } },
+        { kind: "co", label: "Hướng lệnh", st: "pass",
+          say: "Nến chạm đóng DƯỚI key → key đang làm cản → đánh SHORT.",
+          geom: { kind: "level", p: 107150 } },
+        { kind: "co", label: "Key còn hiệu lực", st: "pass",
+          say: "Key 1,09 ngày tuổi và chưa cây nào đóng xuyên qua nó.",
+          geom: { kind: "level", p: 107150 } },
+        { kind: "co", label: "Cụm nến đảo chiều", st: "pass",
+          say: "Thân nến đỏ nhấn chìm thân 2 nến liền trước.",
+          geom: { kind: "bars", i1: 197, i2: 199 } },
+        { kind: "so", label: "Volume cây đảo chiều", val: "×1,8", actual: 1.8, gate: 1.2, dirn: "gte", gateLabel: "≥ ×1,2",
+          say: "Nhỉnh hơn các nến liền trước, đúng mức nguồn đòi.",
+          geom: { kind: "bars", i1: 197, i2: 199 } },
+        { kind: "co", label: "Đảo chiều xảy ra ngay tại key", st: "pass",
+          say: "Đường key 107.150 chạy xuyên thân hộp 107.064 – 107.162.",
+          geom: { kind: "zone", p1: 107064, p2: 107162, i1: 197, i2: 199 } },
+      ] },
+      { n: "2", title: "Hộp và ba bước", items: [
+        { kind: "co", label: "Hộp order block", st: "pass",
+          say: "107.064 – 107.162, chỉ tính thân nến. Vào ở mép dưới, SL ngay ngoài mép trên.",
+          geom: { kind: "zone", p1: 107064, p2: 107162, i1: 197, i2: 210 } },
+        { kind: "so", label: "Bước 1 · rời hộp", val: "3 nến", actual: 3, gate: 3, dirn: "gte", gateLabel: "cần 3",
+          say: "Ba nến liên tiếp đóng cửa dưới mép hộp.",
+          geom: { kind: "bars", i1: 200, i2: 202 } },
+        { kind: "co", label: "Bước 2 · quay lại hộp", st: "pass",
+          say: "Sáu nến sau đó giá chạm lại mép dưới hộp.",
+          geom: { kind: "bars", i1: 205, i2: 205 } },
+        { kind: "co", label: "Bước 3 · nến bật ra", st: "pass",
+          say: "Nến đỏ còn dính hộp và đóng ở 107.000 → vào tại giá đóng.",
+          geom: { kind: "bars", i1: 208, i2: 208 } },
+      ] },
+      { n: "3", title: "Hai cửa cuối", items: [
+        { kind: "so", label: "Rủi ro mỗi lệnh", val: "0,18%", actual: 0.18, gate: 3, dirn: "lte", gateLabel: "trần 3%",
+          say: "SL ở 107.189 — hộp mỏng nên rủi ro nhỏ, đổi lại SL nằm sát giá.",
+          geom: { kind: "level", p: 107189 } },
+        { kind: "so", label: "Dư địa tới mục tiêu", val: "3,17R", actual: 3.17, gate: 3, dirn: "gte", gateLabel: "≥ 3R",
+          say: "Vừa đủ qua cửa. Mục tiêu là key đối diện 106.400.",
+          geom: { kind: "level", p: 106400 } },
+      ] },
+      { n: "4", title: "Kết thúc", items: [
+        { kind: "so", label: "Vào xong giá có chạy không", val: "0,20R", actual: 0.2, gate: 0.5, dirn: "gte", gateLabel: "cần 0,5R",
+          say: "Sau 2 nến giá mới đi được 38 điểm. Không chạy thì bỏ ngay — cắt ở giá đóng 107.022.",
+          geom: { kind: "bars", i1: 208, i2: 210 } },
+      ] },
+    ],
+  },
+];
+
+const FUNNEL = [
+  { title: "Nhánh key + đảo chiều", cls: "key", rows: [
+    { label: "Key sinh ra (vol ≥ ×4)", n: 4, drop: "" },
+    { label: "Nến chạm vào key", n: 12, drop: "" },
+    { label: "Đã từng rời key", n: 7, drop: "−5" },
+    { label: "Có cụm đảo chiều", n: 5, drop: "−2" },
+    { label: "Đảo chiều ngay tại key", n: 2, drop: "−3", worst: true },
+    { label: "Rời hộp đủ 3 nến", n: 2, drop: "" },
+    { label: "Quay lại rồi bật ra", n: 2, drop: "" },
+    { label: "Qua hai cửa cuối", n: 2, drop: "" },
+  ] },
+  { title: "Nhánh săn thanh khoản", cls: "sweep", rows: [
+    { label: "Nến quét cực trị 5 ngày", n: 9, drop: "" },
+    { label: "Mức bị quét đủ nổi bật", n: 4, drop: "−5", worst: true },
+    { label: "Đóng lại trong biên", n: 3, drop: "−1" },
+    { label: "Rời hộp đủ 3 nến", n: 2, drop: "−1" },
+    { label: "Quay lại rồi bật ra", n: 1, drop: "−1" },
+    { label: "Qua hai cửa cuối", n: 1, drop: "" },
+  ] },
+];
+
+function itemOk(it) {
+  if (it.kind === "so") return it.dirn === "gte" ? it.actual >= it.gate : it.actual <= it.gate;
+  return it.st === "pass";
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { ti: 0, focus: null, tab: "trades", minRatio: 4, layers: { key: true, ob: true, steps: true, risk: true, vol: true } };
+  }
+
+  pickTrade(i) { this.setState({ ti: i, focus: null }); }
+  step(d) { const n = TRADES.length; this.setState({ ti: (this.state.ti + d + n) % n, focus: null }); }
+  toggle(name) {
+    const layers = Object.assign({}, this.state.layers);
+    layers[name] = !layers[name];
+    this.setState({ layers: layers });
+  }
+  focusItem(key) { this.setState({ focus: this.state.focus === key ? null : key }); }
+
+  renderVals() {
+    const st = this.state;
+    const t = TRADES[st.ti];
+    const to = Math.min(C.length - 1, t.exitIdx + 12);
+    const from = Math.max(0, to - NVIS + 1);
+
+    let lo = Infinity, hi = -Infinity;
+    for (let i = from; i <= to; i++) { lo = Math.min(lo, C[i][2]); hi = Math.max(hi, C[i][1]); }
+    lo = Math.min(lo, t.sl, t.obLow);
+    hi = Math.max(hi, t.sl, t.obHigh);
+    const pad = (hi - lo) * 0.07;
+    lo -= pad; hi += pad;
+    const y = (p) => ((hi - p) / (hi - lo)) * PRICE_H;
+    const yc = (p) => Math.max(0, Math.min(PRICE_H, y(p)));
+    const x = (i) => (i - from + 0.5) * SLOT;
+
+    let maxV = 0;
+    for (let i = from; i <= to; i++) maxV = Math.max(maxV, C[i][4]);
+    const bars = [], vols = [];
+    for (let i = from; i <= to; i++) {
+      const o = C[i][0], h = C[i][1], l = C[i][2], c = C[i][3], v = C[i][4];
+      const up = c >= o;
+      const cx = x(i);
+      const top = y(Math.max(o, c));
+      bars.push({
+        wx: Math.round(cx), wy: y(h), wh: Math.max(1, y(l) - y(h)),
+        bx: Math.round(cx - 4.5), by: top, bh: Math.max(1, y(Math.min(o, c)) - top),
+        wcls: up ? "wick up-c" : "wick dn-c",
+        bcls: up ? "body-rect up-c" : "body-rect dn-c",
+      });
+      const isSpike = SPIKES.indexOf(i) >= 0;
+      const vh = st.layers.vol ? Math.max(1, (v / maxV) * (VOL_H - 12)) : 0;
+      vols.push({ x: Math.round(cx - 4.5), h: vh, cls: "vbar " + (isSpike ? "vspike" : up ? "vup" : "vdn") });
+    }
+
+    const gridH = [], pticks = [];
+    const stepP = (hi - lo) / 5;
+    for (let k = 0; k <= 5; k++) {
+      const p = lo + stepP * k;
+      gridH.push({ v: Math.round(y(p)) });
+      pticks.push({ y: Math.round(y(p)), label: fmt(p) });
+    }
+    const gridV = [], tticks = [];
+    for (let k = 0; k <= 5; k++) {
+      const i = from + Math.round(((to - from) / 5) * k);
+      gridV.push({ v: Math.round(x(i)) });
+      tticks.push({ x: Math.round(x(i)), label: hhmm(i) });
+    }
+
+    const focus = st.focus;
+    const allItems = [];
+    for (const stg of t.stages) for (const it of stg.items) allItems.push(it);
+    let focusGeom = null, focusText = "";
+    for (let k = 0; k < allItems.length; k++) {
+      if ("ev" + k === focus) { focusGeom = allItems[k].geom; focusText = allItems[k].label; }
+    }
+    const fLevel = focusGeom && focusGeom.kind === "level" ? focusGeom.p : null;
+    const fZone = focusGeom && focusGeom.kind === "zone" ? focusGeom : null;
+    const fBars = focusGeom && focusGeom.kind === "bars" ? focusGeom : null;
+    const hotLvl = (p) => (fLevel === p ? " hot" : "");
+    const hotZone = (a, b) => (fZone && fZone.p1 === a && fZone.p2 === b ? " hot" : "");
+    const hotBars = (a, b) => (fBars && fBars.i1 === a && fBars.i2 === b ? " hot" : "");
+
+    const keyLines = [];
+    if (st.layers.key) {
+      for (const k of KEYS) {
+        if (k.i > to || k.r < st.minRatio) continue;
+        const py = y(k.p);
+        if (py < -4 || py > PRICE_H + 4) continue;
+        const isOwn = t.key === k.p;
+        keyLines.push({
+          y: Math.round(py),
+          cls: "ov ov-key" + (isOwn ? "" : " faint") + hotLvl(k.p),
+          label: "KEY " + k.name + " ×" + String(k.r).replace(".", ",") + " · " + fmt(k.p),
+        });
+      }
+    }
+    if (t.swept && st.layers.key) {
+      keyLines.push({ y: Math.round(y(t.swept)), cls: "ov ov-swept" + hotLvl(t.swept), label: "ĐỈNH BỊ QUÉT " + fmt(t.swept) });
+    }
+
+    const obs = [];
+    if (st.layers.ob) {
+      const x1 = x(t.clusterFrom) - SLOT / 2;
+      const x2 = x(Math.min(to, t.exitIdx)) + SLOT / 2;
+      obs.push({
+        x: Math.round(x1), y: Math.round(y(t.obHigh)),
+        w: Math.round(x2 - x1), h: Math.max(3, Math.round(y(t.obLow) - y(t.obHigh))),
+        cls: "ov ov-ob" + hotZone(t.obLow, t.obHigh), label: "ORDER BLOCK " + fmt(t.obLow) + "–" + fmt(t.obHigh),
+      });
+    }
+
+    const zones = [], levels = [], marks = [], pbadges = [];
+    const ex1 = x(t.entryIdx), ex2 = x(Math.min(to, t.exitIdx));
+    if (st.layers.risk) {
+      const yE = y(t.entry), yS = y(t.sl);
+      const yTraw = y(t.tp);
+      const tpOut = yTraw < 0 || yTraw > PRICE_H;
+      const yT = yc(t.tp);
+      const tpArrow = t.dir === "long" ? " ↑" : " ↓";
+      const tpLabel = "TP " + fmt(t.tp) + " · " + t.rr + (tpOut ? tpArrow + " ngoài khung" : "");
+      zones.push({ cls: "ov ov-zone-win" + hotLvl(t.tp), x: Math.round(ex1), y: Math.round(Math.min(yE, yT)), w: Math.round(ex2 - ex1), h: Math.round(Math.abs(yT - yE)) });
+      zones.push({ cls: "ov ov-zone-risk" + hotLvl(t.sl), x: Math.round(ex1), y: Math.round(Math.min(yE, yS)), w: Math.round(ex2 - ex1), h: Math.round(Math.abs(yS - yE)) });
+      levels.push({ cls: "ov ov-lvl sl" + hotLvl(t.sl), x: Math.round(ex1), w: Math.round(ex2 - ex1), y: Math.round(yS), tx: 4, label: "SL " + fmt(t.sl) });
+      levels.push({ cls: "ov ov-lvl tp" + hotLvl(t.tp), x: Math.round(ex1), w: Math.round(ex2 - ex1), y: Math.round(yT), tx: 4, label: tpLabel });
+      levels.push({ cls: "ov ov-lvl entry", x: Math.round(ex1), w: Math.round(ex2 - ex1), y: Math.round(yE), tx: 4, label: "VÀO " + fmt(t.entry) });
+      pbadges.push({ cls: "pbadge entry", y: Math.round(yE), label: fmt(t.entry) });
+      pbadges.push({ cls: "pbadge sl", y: Math.round(yS), label: fmt(t.sl) });
+      pbadges.push({ cls: "pbadge tp", y: Math.round(yT), label: fmt(t.tp) });
+      marks.push({ cls: "ov ov-mark", x: Math.round(ex1), y: Math.round(yE), label: "" });
+      marks.push({ cls: "ov ov-mark exit", x: Math.round(ex2), y: Math.round(y(t.exitPrice)), label: t.exitLabel });
+    }
+    if (st.layers.key && t.key) pbadges.push({ cls: "pbadge key", y: Math.round(y(t.key)), label: fmt(t.key) });
+
+    const steps = [];
+    if (st.layers.steps) {
+      const down = t.dir === "long";
+      const band = (i1, i2) => {
+        const a = x(i1) - SLOT / 2 + 1, b = x(i2) + SLOT / 2 - 1;
+        let edge = down ? -Infinity : Infinity;
+        for (let i = i1; i <= i2; i++) edge = down ? Math.max(edge, C[i][1]) : Math.min(edge, C[i][2]);
+        return { x: Math.round(a), w: Math.round(b - a), y: Math.round(down ? y(edge) - 12 : y(edge) + 6) };
+      };
+      const cls = "ov ov-step" + (down ? "" : " down");
+      const s1 = band(t.departFrom, t.departTo);
+      steps.push({ cls: cls + hotBars(t.departFrom, t.departTo), x: s1.x, w: s1.w, y: s1.y, n: "1" });
+      const s2 = band(t.retouch, t.retouch);
+      steps.push({ cls: cls + hotBars(t.retouch, t.retouch), x: s2.x, w: s2.w, y: s2.y, n: "2" });
+      const s3 = band(t.entryIdx, t.entryIdx);
+      steps.push({ cls: cls + hotBars(t.entryIdx, t.entryIdx), x: s3.x, w: s3.w, y: s3.y, n: "3" });
+    }
+
+    const hot = [], hotLabel = [];
+    if (focusGeom) {
+      const g = focusGeom;
+      if (g.kind === "level") {
+        const raw = y(g.p);
+        const gy = Math.round(yc(g.p));
+        const off = raw < 0 || raw > PRICE_H;
+        hot.push({ cls: "hotbox flat", x: 0, y: gy, w: PLOT_W, h: 0 });
+        hotLabel.push({ x: 12, y: Math.max(2, Math.min(PRICE_H - 18, gy - 16)), text: focusText + (off ? " · nằm ngoài khung nhìn" : "") });
+      } else if (g.kind === "zone") {
+        const a = x(Math.max(from, g.i1)) - SLOT / 2, b = x(Math.min(to, g.i2)) + SLOT / 2;
+        const yt = Math.round(y(g.p2)), yb = Math.round(y(g.p1));
+        hot.push({ cls: "hotbox", x: Math.round(a), y: yt, w: Math.round(b - a), h: Math.max(4, yb - yt) });
+        hotLabel.push({ x: Math.round(a), y: Math.max(2, yt - 18), text: focusText });
+      } else if (g.kind === "bars") {
+        const i1 = Math.max(from, g.i1), i2 = Math.min(to, g.i2);
+        const a = x(i1) - SLOT / 2, b = x(i2) + SLOT / 2;
+        let top = Infinity, bot = -Infinity;
+        for (let i = i1; i <= i2; i++) { top = Math.min(top, y(C[i][1])); bot = Math.max(bot, y(C[i][2])); }
+        hot.push({ cls: "hotbox", x: Math.round(a), y: Math.round(top - 6), w: Math.round(b - a), h: Math.round(bot - top + 12) });
+        hotLabel.push({ x: Math.round(Math.min(a, PLOT_W - 230)), y: Math.max(2, Math.round(top - 24)), text: focusText });
+      }
+    }
+
+    const self = this;
+    let idx = 0;
+    const stages = t.stages.map(function (stg) {
+      let pass = 0, total = 0, anyFail = false;
+      const items = stg.items.map(function (it) {
+        const key = "ev" + idx; idx += 1;
+        const info = it.kind === "co" && it.st === "info";
+        const ok = itemOk(it);
+        if (!info) { total += 1; if (ok) pass += 1; else anyFail = true; }
+        const state = info ? "info" : ok ? "pass" : "fail";
+        const meterBox = [];
+        if (it.kind === "so") {
+          // Vạch ngưỡng luôn ở 45% để quét dọc một cột là so được ngay;
+          // dải đỏ là vùng KHÔNG ĐẠT — bên trái vạch với "≥", bên phải với "trần".
+          meterBox.push({
+            fill: Math.max(3, Math.min(100, Math.round((it.actual / it.gate) * 45))),
+            gate: 45,
+            zoneLeft: it.dirn === "gte" ? 0 : 45,
+            zoneWidth: it.dirn === "gte" ? 45 : 55,
+            gateLabel: it.gateLabel,
+          });
+        }
+        return {
+          label: it.label,
+          say: it.say,
+          valueBox: it.kind === "so" ? [{ v: it.val }] : [],
+          tickBox: it.kind === "so" ? [] : [{ v: state === "pass" ? "✓" : state === "fail" ? "✗" : "·" }],
+          meterBox: meterBox,
+          cls: "ev " + state + " " + (it.geom ? "clickable " : "") + (focus === key ? "on" : ""),
+          pick: it.geom ? function () { self.focusItem(key); } : function () { self.setState({ focus: null }); },
+          hover: it.geom ? function () { self.setState({ focus: key }); } : function () {},
+        };
+      });
+      return {
+        n: stg.n, title: stg.title,
+        score: pass + "/" + total,
+        scoreCls: anyFail ? "bad" : "all",
+        items: items,
+      };
+    });
+
+    const scrubTicks = TRADES.map(function (tr, i) {
+      return {
+        x: Math.round((tr.entryIdx / (C.length - 1)) * 236) + 4,
+        cls: "scrub-tick " + tr.dir + (i === st.ti ? " on" : ""),
+        label: "Lệnh " + (i + 1),
+        pick: function () { self.pickTrade(i); },
+      };
+    });
+
+    const rows = TRADES.map(function (tr, i) {
+      const segs = tr.stages.map(function (stg) {
+        let bad = false;
+        for (const it of stg.items) {
+          if (it.kind === "co" && it.st === "info") continue;
+          if (!itemOk(it)) bad = true;
+        }
+        return { cls: bad ? "f" : "p", title: stg.title };
+      });
+      return {
+        cls: i === st.ti ? "on" : "",
+        pick: function () { self.pickTrade(i); },
+        time: clock(tr.entryIdx),
+        side: tr.dir === "long" ? "LONG" : "SHORT",
+        sideCls: "side " + tr.dir,
+        branch: tr.branchLabel,
+        branchCls: "bchip " + (tr.key ? "key" : "sweep"),
+        cue: tr.cue,
+        entry: fmt(tr.entry), sl: fmt(tr.sl),
+        exit: tr.exitLabel,
+        exitDot: tr.win ? "win" : "loss",
+        hold: holdLabel(tr.exitIdx - tr.entryIdx),
+        segs: segs,
+        r: tr.r,
+        rCls: "rcell " + (tr.win ? "win" : "loss"),
+      };
+    });
+
+    const fmax = 12;
+    const funnelCols = FUNNEL.map(function (col) {
+      return {
+        title: col.title,
+        rows: col.rows.map(function (r) {
+          return {
+            label: r.label, n: r.n, drop: r.drop,
+            pct: Math.round((r.n / fmax) * 100),
+            barCls: col.cls,
+            cls: "frow" + (r.worst ? " worst" : ""),
+          };
+        }),
+      };
+    });
+
+    const chip = (on) => "chip " + (on ? "on" : "off");
+    const bar = C[t.entryIdx];
+    const chain = t.chain.map(function (c, i) {
+      return { text: c, cls: i === t.chain.length - 1 ? "last" : (i === 0 && t.key ? "k" : "") };
+    });
+
+    return {
+      last: fmt(C[C.length - 1][3]),
+      bar: { o: fmt(bar[0]), h: fmt(bar[1]), l: fmt(bar[2]), c: fmt(bar[3]), v: bar[4].toLocaleString("de-DE") },
+      bars: bars, vols: vols, gridH: gridH, gridV: gridV,
+      keyLines: keyLines, obs: obs, zones: zones, levels: levels, steps: steps, marks: marks,
+      hot: hot, hotLabel: hotLabel,
+      pticks: pticks, tticks: tticks, pbadges: pbadges,
+      plotCls: "plot" + (focusGeom ? " dim" : ""),
+      minRatio: String(st.minRatio).replace(".", ","),
+      ratioVal: st.minRatio,
+      setRatio: function (e) { self.setState({ minRatio: Number(e.target.value) }); },
+      ch: { key: chip(st.layers.key), ob: chip(st.layers.ob), steps: chip(st.layers.steps), risk: chip(st.layers.risk), vol: chip(st.layers.vol) },
+      toggleKey: function () { self.toggle("key"); },
+      toggleOb: function () { self.toggle("ob"); },
+      toggleSteps: function () { self.toggle("steps"); },
+      toggleRisk: function () { self.toggle("risk"); },
+      toggleVol: function () { self.toggle("vol"); },
+      prev: function () { self.step(-1); },
+      next: function () { self.step(1); },
+      scrubTicks: scrubTicks,
+      counter: "Lệnh " + (st.ti + 1) + " / " + TRADES.length,
+      t: {
+        side: t.dir === "long" ? "LONG" : "SHORT",
+        sideCls: "verdict-side " + t.dir,
+        r: t.r, rCls: "verdict-r " + (t.win ? "win" : "loss"),
+        verdict: t.verdict, chain: chain,
+        riskPct: t.riskPct, rr: t.rr,
+        hold: holdLabel(t.exitIdx - t.entryIdx),
+        when: clock(t.entryIdx) + " · M15",
+      },
+      stages: stages,
+      tabTrades: "dtab " + (st.tab === "trades" ? "on" : ""),
+      tabFunnel: "dtab " + (st.tab === "funnel" ? "on" : ""),
+      showTrades: function () { self.setState({ tab: "trades" }); },
+      showFunnel: function () { self.setState({ tab: "funnel" }); },
+      tradeTable: st.tab === "trades" ? [{ rows: rows }] : [],
+      funnelView: st.tab === "funnel" ? [{ cols: funnelCols }] : [],
+      dockNote: st.tab === "trades" ? "Bấm một dòng để chart nhảy tới đúng lệnh đó" : "Dữ liệu mẫu · 220 nến M15",
+    };
+  }
+}
+</script>
+</body>
+</html>
