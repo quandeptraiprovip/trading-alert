@@ -25,7 +25,7 @@ import {
   isKeyVolumeLevelActive,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { TF_MS, aggregate } from "../strategy";
+import { TF_MS, aggregate } from "../types";
 
 const SYMBOL = "btcusdt";
 const MATCH_ATR = 0.3;

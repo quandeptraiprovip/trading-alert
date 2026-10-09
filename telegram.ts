@@ -10,8 +10,7 @@ import * as dns from "dns";
 // Force IPv4 — IPv6 bị block bởi Telegram API trên nhiều môi trường
 dns.setDefaultResultOrder("ipv4first");
 const httpsAgent = new https.Agent({ family: 4, keepAlive: true, keepAliveMsecs: 30_000 });
-import { CONFIG, TF_MS } from "./strategy";
-import type { Candle, EntrySignal, PendingSetup } from "./strategy";
+
 
 export type TelegramConfig = {
   botToken: string;
@@ -236,155 +235,11 @@ export async function answerTelegramCallback(cfg: TelegramConfig, callbackId: st
   }
 }
 
-export function buildStartupMessage(symbols: string[]): string {
-  return [
-    `🤖 *Swing Bot* đã chạy`,
-    ``,
-    `📈 *${symbols.map(formatSymbol).join(", ")}* Perpetual (Binance Futures)`,
-    `⏱ Entry *${CONFIG.entryTf}* · Bias *${CONFIG.htfBiasTf}* / Vùng *${CONFIG.htfZoneTf}*`,
-    ``,
-    `*Luồng alert:*`,
-    `1️⃣ *ARM* — giá tap vùng FRESH, chờ BOS 15m`,
-    `2️⃣ *MỞ LỆNH* — xác nhận BOS + volume/delta`,
-    `3️⃣ *RA LỆNH* — chạm SL / TP / trail / hết hạn giữ`,
-    ``,
-    `_Thời gian: ${formatTimeVn(Date.now())}_`,
-  ].join("\n");
-}
-
-export function buildArmMessage(setup: PendingSetup, candle: Candle, symbol: string): string {
-  const dir = setup.direction === "long" ? "🟡 *CHỜ LONG*" : "🟠 *CHỜ SHORT*";
-  const z = setup.zone;
-  const zoneLabel = z.type === "demand" ? "Demand" : "Supply";
-  return [
-    `${dir}  *${formatSymbol(symbol)}* Perp`,
-    ``,
-    `📍 *Bước 1 — ARM* (tap vùng)`,
-    `${zoneLabel} FRESH $${fmtPrice(z.low)}-${fmtPrice(z.high)} (mitig ${z.mitigations})`,
-    `Giá đóng: $${fmtPrice(candle.close)}`,
-    ``,
-    `⏳ Chờ *BOS 15m* + volume/delta cùng hướng để vào lệnh.`,
-    `Huỷ nếu thủng vùng / bias đảo / quá ${CONFIG.setupExpiryBars} nến.`,
-    `🕐 ${formatTimeVn(candle.openTime)}`,
-  ].join("\n");
-}
-
-export function buildEntryMessage(sig: EntrySignal, candle: Candle, symbol: string): string {
-  const dir = sig.direction === "long" ? "🟢 *MỞ LONG*" : "🔴 *MỞ SHORT*";
-  const slPct = (Math.abs(sig.entry - sig.initialSL) / sig.entry) * 100;
-  const tpPct = (Math.abs(sig.initialTarget - sig.entry) / sig.entry) * 100;
-  const qv = candle.quoteVolume ?? 0;
-  const volLine = qv > 0 ? `📊 Vol nến: $${(qv / 1e6).toFixed(1)}M USDT` : "";
-  const lines = [
-    `${dir}  *${formatSymbol(symbol)}* Perp`,
-    ``,
-    `✅ *Bước 2 — MỞ LỆNH* (confirm)`,
-    `🎯 Entry : $${fmtPrice(sig.entry)}`,
-    `🛑 SL    : $${fmtPrice(sig.initialSL)}  (${slPct.toFixed(2)}%)`,
-    `🎯 TP    : $${fmtPrice(sig.initialTarget)}  (${tpPct.toFixed(2)}%, ~${sig.rr.toFixed(1)}R)`,
-  ];
-  if (volLine) lines.push(volLine);
-  const qIcon = sig.quality === "MẠNH" ? "🟩" : sig.quality === "KHÁ" ? "🟨" : "🟧";
-  lines.push(`${qIcon} Chất lượng: *${sig.quality}* (displ ${sig.zone.displAtr.toFixed(1)} ATR) → size đề xuất *${sig.sizeMult}×*`);
-  lines.push(``, `📐 ${sig.reason}`, `🕐 ${formatTimeVn(candle.openTime)}`, ``);
-  lines.push(
-    `_Quản lý: ${CONFIG.breakevenEnabled ? `dời SL về hoà vốn @ +${CONFIG.breakevenAtR}R, ` : ""}trail swing 1h sau +${CONFIG.trailStartR}R._`
-  );
-  return lines.join("\n");
-}
-
-/**
- * Báo lệnh được PHÁT HIỆN từ chart lúc khởi động (vào lệnh trong khi bot offline).
- * Khác buildEntryMessage: dùng LivePosition (đã warmup, không còn EntrySignal/nến gốc) và
- * nêu rõ SL có thể đã trail so với SL gốc.
- */
-export function buildOfflineEntryMessage(
-  pos: {
-    dir: "long" | "short";
-    entryTime: number;
-    entry: number;
-    initialSL: number;
-    sl: number;
-    target: number;
-    zoneDesc: string;
-    sizeMult?: number;
-    quality?: string;
-  },
-  symbol: string
-): string {
-  const dir = pos.dir === "long" ? "🟢 *LONG*" : "🔴 *SHORT*";
-  const risk = Math.abs(pos.entry - pos.initialSL);
-  const slPct = (risk / pos.entry) * 100;
-  const tpPct = (Math.abs(pos.target - pos.entry) / pos.entry) * 100;
-  const rr = risk > 0 ? Math.abs(pos.target - pos.entry) / risk : 0;
-  const trailed = pos.sl !== pos.initialSL;
-  const lines = [
-    `${dir}  *${formatSymbol(symbol)}* Perp`,
-    ``,
-    `📌 *PHÁT HIỆN lệnh đang mở* (vào lúc bot offline)`,
-    `🎯 Entry : $${fmtPrice(pos.entry)}`,
-    trailed
-      ? `🛑 SL    : $${fmtPrice(pos.sl)}  (gốc $${fmtPrice(pos.initialSL)}, ${slPct.toFixed(2)}%)`
-      : `🛑 SL    : $${fmtPrice(pos.initialSL)}  (${slPct.toFixed(2)}%)`,
-    `🎯 TP    : $${fmtPrice(pos.target)}  (${tpPct.toFixed(2)}%, ~${rr.toFixed(1)}R)`,
-  ];
-  if (pos.quality && pos.sizeMult != null) {
-    const qIcon = pos.quality === "MẠNH" ? "🟩" : pos.quality === "KHÁ" ? "🟨" : "🟧";
-    lines.push(`${qIcon} Chất lượng: *${pos.quality}* → size đề xuất *${pos.sizeMult}×*`);
-  }
-  lines.push(``, `📐 ${pos.zoneDesc}`, `🕐 Vào lệnh: ${formatTimeVn(pos.entryTime)}`);
-  return lines.join("\n");
-}
-
-export type ExitReason = "sl" | "trail" | "time" | "target";
-
-export function buildExitMessage(params: {
-  dir: "long" | "short";
-  entryPrice: number;
-  initialSL: number;
-  exitPrice: number;
-  exitReason: ExitReason;
-  grossR: number;
-  holdBars: number;
-  exitTime: number;
-  symbol: string;
-}): string {
-  const { dir, entryPrice, initialSL, exitPrice, exitReason, grossR, holdBars, exitTime, symbol } = params;
-  const win = grossR > 0;
-  const head =
-    dir === "long"
-      ? win
-        ? "💰 *RA LONG* (lãi)"
-        : "📤 *RA LONG*"
-      : win
-        ? "💰 *RA SHORT* (lãi)"
-        : "📤 *RA SHORT*";
-  const reasonVi: Record<ExitReason, string> = {
-    sl: "Cắt SL",
-    trail: "Trail SL",
-    target: "Chạm TP",
-    time: "Hết hạn giữ",
-  };
-  const holdDays = ((holdBars * TF_MS[CONFIG.entryTf]) / TF_MS["1d"]).toFixed(1);
-  const rStr = `${grossR >= 0 ? "+" : ""}${grossR.toFixed(2)}R`;
-  return [
-    `${head}  *${formatSymbol(symbol)}* Perp`,
-    ``,
-    `📤 *Bước 3 — RA LỆNH*`,
-    `Vào: $${fmtPrice(entryPrice)} → Ra: $${fmtPrice(exitPrice)}`,
-    `SL ban đầu: $${fmtPrice(initialSL)}`,
-    `Lý do: *${reasonVi[exitReason]}* (${exitReason})`,
-    `Kết quả: *${rStr}* (gross, trước phí)`,
-    `Giữ: ~${holdDays} ngày (${holdBars} nến ${CONFIG.entryTf})`,
-    `🕐 ${formatTimeVn(exitTime)}`,
-  ].join("\n");
-}
-
 export function buildTestMessage(): string {
   return [
-    `✅ *Test Telegram* — BTC Swing Alert`,
+    `✅ *Test Telegram* — FX Dream & Bot Chart`,
     ``,
-    `Kênh hoạt động. Bot gửi ARM → mở lệnh → ra lệnh (SL/TP/trail) khi nến ${CONFIG.entryTf} đóng.`,
+    `Kênh hoạt động bình thường. Bot kết nối thành công tới Telegram.`,
     `🕐 ${formatTimeVn(Date.now())}`,
   ].join("\n");
 }

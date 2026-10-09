@@ -12,7 +12,7 @@
  * Run: ./node_modules/.bin/ts-node scripts/exp-keyvol-funnel.ts [days] [symbols]
  */
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
-import { TF_MS, aggregate } from "../strategy";
+import { TF_MS, aggregate } from "../types";
 import { KEY_VOLUME_CONFIG, KeyVolumeParams, runKeyVolume } from "../key-volume";
 
 const DEFAULT_SYMBOLS = ["btcusdt", "solusdt", "xrpusdt", "dogeusdt"];

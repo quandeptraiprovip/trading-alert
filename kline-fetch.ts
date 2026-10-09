@@ -8,7 +8,7 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
-import { Candle, TF_MS } from "./strategy";
+import { Candle, TF_MS } from "./types";
 
 export type KlineVenue = "futures" | "spot";
 type KlineSource = { venue: KlineVenue; url: string; maxLimit: number };

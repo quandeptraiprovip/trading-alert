@@ -26,7 +26,7 @@ import {
   runKeyVolume,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { CONFIG, Candle, TF_MS, aggregate } from "../strategy";
+import { CONFIG, Candle, TF_MS, aggregate } from "../types";
 
 type Variant = {
   name: string;

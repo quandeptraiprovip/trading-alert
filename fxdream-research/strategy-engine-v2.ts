@@ -12,7 +12,7 @@
  * - không có cấu trúc đối diện đủ dư địa thì bỏ lệnh.
  */
 
-import { Candle, TF_MS, aggregate, findSwings, Swing } from "../strategy";
+import { Candle, TF_MS, aggregate, findSwings, Swing } from "../types";
 
 export type FXDreamDirection = "long" | "short";
 

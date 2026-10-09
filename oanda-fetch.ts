@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import https from "https";
 import path from "path";
-import { Candle } from "./strategy";
+import { Candle } from "./types";
 
 const M15_MS = 15 * 60_000;
 const MAX_PAGE = 5_000;

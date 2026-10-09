@@ -6,7 +6,7 @@
  */
 import { KEY_VOLUME_CONFIG, runKeyVolume } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, TF_MS } from "../strategy";
+import { Candle, TF_MS } from "../types";
 
 const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "adausdt"];
 const WAITS = [48, 96, 192, 288, 384, 576, 960, 10 ** 7];

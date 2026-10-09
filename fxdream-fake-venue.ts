@@ -3,7 +3,7 @@
  * Dùng chung cho test-fxdream-live.ts và scripts/check-fxdream-replay.ts. Không gọi mạng.
  */
 import type { FxVenue } from "./fxdream-live";
-import type { Candle } from "./strategy";
+import type { Candle } from "./types";
 
 export class FakeVenue implements FxVenue {
   cur!: Candle;

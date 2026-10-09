@@ -20,25 +20,18 @@ services:
     build: .
     image: swing-alert-bot
     container_name: swing-bot
-    # User 04/10/26: chỉ FX Dream trên Binance, hỏi ý trước khi vào (fxdream-bot.ts).
-    # 06/10/26: BTCUSDT + vàng XAUUSDT (FXDREAM_SYMBOLS để đổi).
-    # Bot cũ (SMC/Turtle/Fast/MEXC) vẫn build trong image: đổi lại `node bot.js` để quay về.
+    # FX Dream trên Binance (fxdream-bot.ts).
+    # BTCUSDT + vàng XAUUSDT (FXDREAM_SYMBOLS để đổi).
     command: node fxdream-bot.js
     env_file: .env.local
     environment:
       TZ: Asia/Ho_Chi_Minh
       TRADING_DATA_DIR: /app/trading-runtime
-      FAST_TREND_DATA_DIR: /app/fast-trend-mexc-runtime
     dns:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      # Mount directory để SMC/Turtle có thể temp+fsync+rename atomic.
       - ./trading-runtime:/app/trading-runtime
-      - ./fast-trend-state.json:/app/fast-trend-state.json
-      - ./fast-trend-trades.jsonl:/app/fast-trend-trades.jsonl
-      # Mount the directory, not each file: Fast persists with atomic temp+rename.
-      - ./fast-trend-mexc-runtime:/app/fast-trend-mexc-runtime
     restart: unless-stopped
 
   swing-chart:
@@ -49,14 +42,7 @@ services:
     command: node chart.js
     environment:
       TZ: Asia/Ho_Chi_Minh
-      # Defense in depth: chart không import bot; các cờ này còn khóa trading
-      # nếu entrypoint của image bị thay đổi nhầm trong tương lai.
       TRADING_ENABLED: "false"
-      TURTLE_ENABLED: "false"
-      TURTLE_TRADING_ENABLED: "false"
-      MEXC_TRADING_ENABLED: "false"
-      FAST_TREND_ENABLED: "false"
-      FAST_TREND_TRADING_ENABLED: "false"
       # Chart XAUUSD read-only. Docker Compose đọc các giá trị này từ shell hoặc file .env.
       OANDA_ENV: "${OANDA_ENV:-practice}"
       OANDA_ACCOUNT_ID: "${OANDA_ACCOUNT_ID:-}"

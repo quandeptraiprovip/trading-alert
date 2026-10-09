@@ -16,11 +16,10 @@ RUN set -eu; \
     BUILD_TIME="$(date -u +%Y-%m-%dT%H:%MZ)"; \
     echo "BUILD_ID=$BUILD_ID BUILD_TIME=$BUILD_TIME"; \
     npx esbuild fxdream-bot.ts     --bundle --platform=node --target=node20 --format=cjs --external:@resvg/resvg-js --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/fxdream-bot.js; \
-    npx esbuild btc-alert-bot.ts   --bundle --platform=node --target=node20 --format=cjs --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/bot.js; \
     npx esbuild chart-server.ts     --bundle --platform=node --target=node20 --format=cjs --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/chart.js; \
     npx esbuild dashboard-server.ts --bundle --platform=node --target=node20 --format=cjs --define:__BUILD_ID__="\"$BUILD_ID\"" --define:__BUILD_TIME__="\"$BUILD_TIME\"" --outfile=dist/dashboard.js
 
-# ---- Runtime: chỉ node + 2 file JS + public (không node_modules) ----
+# ---- Runtime: chỉ node + các file JS + public (không node_modules) ----
 FROM node:20-alpine
 # font-dejavu: chữ tiếng Việt có dấu trong ảnh đề nghị vào lệnh của FX Dream.
 RUN apk add --no-cache tzdata font-dejavu
@@ -36,5 +35,5 @@ COPY --from=builder /src/public/ ./public/
 # Chart server 3847 · dashboard giao dịch 3848 (bot không cần cổng nào).
 EXPOSE 3847 3848
 
-# Mặc định chạy bot alert; chart override bằng `command: node chart.js`.
-CMD ["node", "bot.js"]
+# Mặc định chạy FX Dream bot; chart override bằng `command: node chart.js`.
+CMD ["node", "fxdream-bot.js"]

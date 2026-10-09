@@ -24,7 +24,7 @@
  */
 import fs from "fs";
 import path from "path";
-import { Candle } from "../strategy";
+import { Candle } from "../types";
 import { KEY_VOLUME_CONFIG as P } from "../key-volume";
 import { loadH1 } from "../fx/fx-data";
 

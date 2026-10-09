@@ -31,8 +31,8 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 import { atomicWriteFileSync } from "./atomic-file";
-import { TF_MS, findSwings } from "./strategy";
-import type { Candle } from "./strategy";
+import { TF_MS, findSwings } from "./types";
+import type { Candle } from "./types";
 import type { NewOrderResult, OrderSide, PositionRisk, SymbolFilters, UserTrade } from "./binance-futures";
 import {
   keyVolumeParamsFor,

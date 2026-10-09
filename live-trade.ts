@@ -10,7 +10,7 @@
  *   - preflight(): kiểm tra kết nối/khoá/chế độ vị thế trước khi cho phép giao dịch.
  */
 import { BinanceFutures, OrderSide, PositionRisk } from "./binance-futures";
-import { CONFIG } from "./strategy";
+import { CONFIG } from "./types";
 import { ExitFillAudit, computeExitFillAudit } from "./exit-fill-audit";
 
 export interface ExecConfig {

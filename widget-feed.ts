@@ -18,7 +18,6 @@ import { execFile } from "child_process";
 import net from "net";
 import { promisify } from "util";
 import { createBinanceFromEnv } from "./binance-futures";
-import { createMexcFromEnv, toMexcSymbol } from "./mexc-futures";
 import { getBotUniverse } from "./bot-universe";
 import { atomicWriteFileSync } from "./atomic-file";
 
@@ -540,79 +539,18 @@ async function readBinance(state: Map<string, StateEntry>, now: number): Promise
   return venue;
 }
 
-async function readMexc(state: Map<string, StateEntry>, now: number): Promise<WidgetVenue> {
-  const venue: WidgetVenue = { id: "mexc", name: "MEXC", equity: null, ok: false, error: null, positions: [] };
-  const api = createMexcFromEnv(READ_ONLY_KEYS.mexc);
-  if (!api) {
-    venue.error = "Chưa có API key";
-    return venue;
-  }
-
-  try {
-    await api.syncTime();
-    venue.equity = (await api.getEquity()).equity;
-    venue.ok = true;
-  } catch (err) {
-    venue.error = err instanceof Error ? err.message : String(err);
-    return venue;
-  }
-
-  let open: Awaited<ReturnType<typeof api.getOpenPositions>>;
-  try {
-    open = await api.getOpenPositions();
-  } catch (err) {
-    venue.error = err instanceof Error ? err.message : String(err);
-    return venue;
-  }
-  if (open.length === 0) return venue;
-
-  // contractSize để quy hợp đồng về khối lượng cơ sở (risk = |mark−stop| × vol × contractSize).
-  const symbols = open.map((p) => p.symbol.replace("_", "").toLowerCase());
-  const sizeOf = new Map<string, number>();
-  try {
-    await api.loadContracts(symbols);
-    for (const s of symbols) sizeOf.set(s, (api as any).contracts?.get(toMexcSymbol(s))?.contractSize ?? 1);
-  } catch {
-    /* thiếu contractSize → coi như 1, riskUsd có thể sai thang */
-  }
-
-  for (const p of open) {
-    const symbol = p.symbol.replace("_", "").toLowerCase();
-    const dir = p.positionType === 1 ? "long" : "short";
-    let mark = p.holdAvgPrice;
-    try {
-      mark = (await api.getTicker(symbol)).fairPrice || p.holdAvgPrice;
-    } catch {
-      /* không lấy được mark thì dùng giá vào — R sẽ là 0 chứ không sai dấu */
-    }
-    let stop: number | null = null;
-    try {
-      const orders = await api.getOpenStopOrders(symbol);
-      const live = orders.filter((o) => o.isFinished === 0 && o.stopLossPrice > 0);
-      if (live.length > 0) stop = live[0].stopLossPrice;
-    } catch {
-      /* không đọc được lệnh chờ → rơi về state của bot */
-    }
-    const size = p.holdVol * (sizeOf.get(symbol) ?? 1);
-    venue.positions.push(
-      enrich(symbol, dir, p.holdAvgPrice, mark, size, p.unRealizedPnl, state.get(symbol), stop, now)
-    );
-  }
-  return venue;
-}
-
 // ── Ghép lại ────────────────────────────────────────────────────────────────
 
 export async function buildWidgetFeed(): Promise<WidgetFeed> {
   const now = Date.now();
   const { bySymbol, lastWrite, lastBar } = readBotState();
 
-  const [running, dashboardUp, binance, mexc] = await Promise.all([
+  const [running, dashboardUp, binance] = await Promise.all([
     BOT_MONITOR ? containerRunning() : Promise.resolve(null),
     dashboardListening(),
     readBinance(bySymbol, now),
-    MEXC_ENABLED ? readMexc(bySymbol, now) : Promise.resolve(null),
   ]);
+  const mexc: WidgetVenue | null = null;
 
   let state: HealthState;
   let detail: string;

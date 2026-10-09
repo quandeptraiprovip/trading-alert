@@ -19,7 +19,7 @@ import { FakeVenue } from "../fxdream-fake-venue";
 import { KEY_VOLUME_CONFIG, runKeyVolume } from "../key-volume";
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
 import { dropsWeekendBars, goldClosedNy } from "../market-hours";
-import { TF_MS } from "../strategy";
+import { TF_MS } from "../types";
 
 const M15 = TF_MS["15m"];
 const WINDOW_BARS = 45 * 96 + 600; // = WINDOW_BARS của fxdream-live.ts

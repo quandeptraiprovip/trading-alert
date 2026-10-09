@@ -16,7 +16,7 @@ import {
 } from "../key-volume";
 import { applyLeverageCap } from "../key-volume-backtest";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { CONFIG, Candle, TF_MS, aggregate } from "../strategy";
+import { CONFIG, Candle, TF_MS, aggregate } from "../types";
 
 const WARMUP_DAYS = 120;
 

@@ -11,7 +11,7 @@
  */
 import { KEY_VOLUME_CONFIG, KeyVolumeParams, runKeyVolume } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { TF_MS } from "../strategy";
+import { TF_MS } from "../types";
 
 const DEFAULT_SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "adausdt"];
 const WARMUP_BARS = 480 + 96 + 200;

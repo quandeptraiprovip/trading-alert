@@ -12,7 +12,7 @@ import { FxDreamLive, FxDreamLiveOptions, isNightVn, parseEditText, parsePrice, 
 import { FakeVenue } from "./fxdream-fake-venue";
 import { KEY_VOLUME_CONFIG } from "./key-volume";
 import { buildProposalSvg, renderPng } from "./fxdream-image";
-import { Candle, TF_MS } from "./strategy";
+import { Candle, TF_MS } from "./types";
 
 type Bar = { open: number; high: number; low: number; close: number; volume?: number };
 const M15 = TF_MS["15m"];

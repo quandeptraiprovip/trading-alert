@@ -173,7 +173,7 @@
  * Binance kline không có volume-at-price thật, và việc chấm "key đẹp" trên kênh
  * vẫn là discretionary — model này không phải bản sao 100% của phương pháp tay.
  */
-import { Candle, CONFIG, TF_MS, findSwings, Swing } from "./strategy";
+import { Candle, CONFIG, TF_MS, findSwings, Swing } from "./types";
 
 export type KeyVolumeDirection = "long" | "short";
 export type KeyVolumeSourceTf = "15m" | "1h" | "4h";

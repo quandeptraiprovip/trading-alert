@@ -18,7 +18,7 @@ import {
   runKeyVolume,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, CONFIG, TF_MS } from "../strategy";
+import { Candle, CONFIG, TF_MS } from "../types";
 
 const WARMUP_DAYS = 30;
 

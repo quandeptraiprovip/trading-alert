@@ -23,7 +23,7 @@
  */
 import fs from "fs";
 import path from "path";
-import { TF_MS } from "../strategy";
+import { TF_MS } from "../types";
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
 
 const SYMBOLS = ["btcusdt", "solusdt", "xrpusdt", "dogeusdt"];

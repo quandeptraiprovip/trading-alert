@@ -20,7 +20,7 @@ import {
   reversalOrderBlock,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, TF_MS } from "../strategy";
+import { Candle, TF_MS } from "../types";
 
 const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "adausdt"];
 const P = KEY_VOLUME_CONFIG;

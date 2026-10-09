@@ -1,15 +1,12 @@
-# BTC Swing Alert Bot + Backtest
+# FX Dream & Bot Chart (Binance Futures & TradingView Web UI)
 
-> **Production:** SMC đang tắt (`SMC_ENABLED=false`) do độ nhạy tham số/overfit cao. Mã SMC được giữ
-> để backtest; bot live chỉ drain vị thế SMC cũ nếu có và không mở lệnh SMC mới. Turtle vẫn hoạt động.
+> 📌 **Lưu ý cấu trúc nhánh:** Nhánh này (`strategy-donchian-trend`) được tinh gọn để **chỉ giữ lại duy nhất phương pháp FX Dream (Key Volume) và Bot Chart**.
+> Toàn bộ các phương pháp khác (Turtle / Donchian Trend, Fast Trend / MEXC, SMC đa khung, Smallcap, Absorption) đã được lưu trữ đầy đủ tại nhánh **`strategy-all-methods`**.
 
-Bot báo tín hiệu **swing** (giữ lệnh 1-2 ngày+) cho **rổ Perpetual** trên Binance
-(**BTC + SOL + XRP + DOGE**, chỉnh tại `CONFIG.symbols`), theo phong cách
-**SMC / price-action đa khung**, kèm **backtest** để kiểm chứng lợi nhuận.
-
-> Bot live theo dõi **đồng thời nhiều symbol** (mỗi coin một state độc lập: vùng/bias/vị thế/cooldown
-> riêng), nên có thể mở tối đa N lệnh cùng lúc (N = số symbol). Gõ **`/status`** trên Telegram để xem
-> bot đang giữ/chờ lệnh nào.
+Hệ thống bao gồm:
+1. **Bot FX Dream (`fxdream-bot.ts`)**: Bot Telegram chạy chiến lược Key Volume trên **BTCUSDT** và **XAUUSDT** (Binance Futures). Gửi ảnh biểu đồ kèm nút xác nhận ✅/❌ trước khi vào lệnh.
+2. **Bot Chart (`chart-server.ts`)**: Giao diện Web biểu đồ M15 TradingView-style tại cổng `3847`, hiển thị các mốc Key Volume, bằng chứng vào lệnh, tín hiệu SFP/reclaim và playbook trading.
+3. **Widget & Dashboard (`widget-server.ts`, `dashboard-server.ts`)**: Theo dõi tài khoản Binance, equity weekly, trạng thái bot và vị thế lệnh live.
 
 ## Chiến lược (file `strategy.ts`)
 
@@ -585,18 +582,19 @@ Hiển thị: **tài khoản** (equity, unrealized PnL, khả dụng, exposure, 
 
 ## File
 
-- `strategy.ts` — logic chiến lược dùng chung (`CONFIG`, `SetupTracker`, HTF zones)
-- `backtest.ts` — engine backtest + báo cáo
-- `btc-alert-bot.ts` — bot live đa-symbol (alert vào/ra lệnh + lệnh `/status`); gap replay + khôi phục vị thế
-- `live-state.ts` — persist vị thế qua restart (`bot-state.json`) + nhật ký lệnh (`trades-live.jsonl`)
-- `binance-futures.ts` — client REST ký HMAC cho Binance USDⓈ-M Futures (đặt/huỷ lệnh, số dư, vị thế)
-- `live-trade.ts` — lớp thực thi: sizing theo risk, đặt SL/TP trên sàn, trail, đối soát (dùng khi `TRADING_ENABLED`)
-- `mexc-futures.ts` — REST/signing/metadata/order/position/native-stop cho MEXC USDT-M Futures
-- `mexc-fast-execution.ts` — sizing theo contract, basis gate, idempotency và recovery cho Fast/MEXC
-- `fast-trend-execution.ts` — boundary thực thi riêng của Fast Trend
-- `dashboard-server.ts` — dashboard web theo dõi giao dịch (port 3848, chỉ đọc)
-- `scripts/baseline-gate.sh` — so NET 250d BTC với baseline trước khi merge thay đổi strategy
-- `scripts/confirm-quality-gate.ts`, `scripts/pullback-zone-gate.ts` — sweep filter CONFIRM / pullback
-- `scripts/exit-sweep.ts`, `scripts/maxhold-validate.ts` — sweep tham số EXIT/target + validate maxHold (OOS)
-- `scripts/symbol-correlation.ts` — corr return ngày giữa symbol + đề xuất rổ NET dương
-- `scripts/portfolio-basket.ts` — breadth thật (corr P&L) + backtest rổ như portfolio (Sharpe/maxDD)
+- `fxdream-bot.ts` — Bot Telegram giao dịch FX Dream trên Binance Futures (BTCUSDT, XAUUSDT)
+- `fxdream-live.ts` — Core engine thực thi, quản lý vị thế, trailing stop, gửi đề xuất vào lệnh
+- `key-volume.ts` — Thuật toán phát hiện Key Volume M15, Sweep/Reclaim và tín hiệu đảo chiều
+- `key-volume-backtest.ts` — Backtest kiểm định phương pháp Key Volume trên dữ liệu lịch sử
+- `chart-server.ts` — Web server biểu đồ TradingView-style (port 3847)
+- `chart-keyvolume.ts` — Dựng các mức Key Volume và bằng chứng setup cho giao diện Web
+- `chart-payload.ts` — Chuẩn bị payload nến M15 và playbook cho chart UI
+- `playbook-store.ts` — Lưu trữ và quản lý tài liệu playbook chú thích biểu đồ
+- `public/` — Toàn bộ frontend biểu đồ (TradingView Lightweight Charts, UI tương tác)
+- `types.ts` — Định nghĩa kiểu dữ liệu nến, TF_MS, tính toán swing và cấu hình chi phí chung
+- `kline-fetch.ts` — Quản lý tải nến và caching từ Binance Futures & Spot
+- `binance-futures.ts` — Client REST API có chữ ký HMAC cho Binance Futures
+- `live-trade.ts` — Module đặt lệnh sàn, kiểm tra đòn bẩy, SL/TP và quản lý rủi ro
+- `dashboard-server.ts` — Web dashboard theo dõi tài khoản, số dư và trạng thái vị thế (port 3848)
+- `widget-server.ts` & `widget-feed.ts` — Server cấp dữ liệu cho Widget macOS
+- `macos-widget/` — Source Swift cho Widget macOS hiển thị trạng thái bot và equity Binance

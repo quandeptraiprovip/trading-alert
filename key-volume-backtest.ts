@@ -10,7 +10,6 @@
  *   ./node_modules/.bin/ts-node key-volume-backtest.ts [days] [riskPct] [symbols]
  */
 import "./load-env";
-import { runBacktest as runSmcBacktest } from "./backtest";
 import {
   KEY_VOLUME_CONFIG,
   KeyVolumeDiagnostics,
@@ -18,14 +17,7 @@ import {
   runKeyVolume,
 } from "./key-volume";
 import { fetchKlinesPaged } from "./kline-fetch";
-import { Candle, CONFIG, TF_MS, aggregate } from "./strategy";
-import {
-  T,
-  Trade as TurtleTrade,
-  TurtleParams,
-  buildBtcGateLongs,
-  runTurtle,
-} from "./turtle";
+import { Candle, CONFIG, TF_MS, aggregate } from "./types";
 
 type ComparableTrade = {
   symbol: string;
@@ -312,61 +304,20 @@ async function main(): Promise<void> {
     ),
   );
   const periodStart = periodEnd - days * TF_MS["1d"];
-  const fourHourBySymbol = new Map<string, Candle[]>();
-  for (const [symbol, base] of baseBySymbol) {
-    fourHourBySymbol.set(
-      symbol,
-      closedOnly(aggregate(base, "4h", "5m"), "4h", periodEnd),
-    );
-  }
-
-  let btc4h = fourHourBySymbol.get("btcusdt");
-  if (!btc4h) {
-    const needed = Math.ceil((days + WARMUP_DAYS) * TF_MS["1d"] / TF_MS["4h"]) + 10;
-    btc4h = closedOnly(
-      await fetchKlinesPaged("btcusdt", "4h", needed),
-      "4h",
-      periodEnd,
-    );
-  }
-  const turtleGate = buildBtcGateLongs(btc4h, T.btcGateFast, T.btcGateSlow);
 
   const keyVolumeTrades: KeyVolumeTrade[] = [];
-  const smcTrades: ComparableTrade[] = [];
-  const turtleTrades: TurtleTrade[] = [];
-  const fastTrades: TurtleTrade[] = [];
   const diagnostics: KeyVolumeDiagnostics[] = [];
-  const fastParams: TurtleParams = {
-    ...T,
-    entryDays: 10,
-    shortEntryDays: 0,
-    longEntrySource: "high",
-    longExitMode: "chandelier",
-    shortEntrySource: "low",
-    shortExitMode: "chandelier",
-    initialStopObLookback: 0,
-    gate: turtleGate,
-  };
-  const turtleParams: TurtleParams = { ...T, gate: turtleGate };
 
   for (const [symbol, base] of baseBySymbol) {
     const m15 = closedOnly(aggregate(base, "15m", "5m"), "15m", periodEnd);
-    // Key Volume chạy trọn trên M15 — engine không còn nhận nến 5m.
+    // Key Volume chạy trọn trên M15.
     const keyVolume = runKeyVolume(symbol, m15, keyVolumeConfig);
     keyVolumeTrades.push(...keyVolume.trades);
     diagnostics.push(keyVolume.diagnostics);
-
-    smcTrades.push(...runSmcBacktest(symbol, m15));
-    const h4 = fourHourBySymbol.get(symbol)!;
-    turtleTrades.push(...runTurtle(symbol, h4, turtleParams));
-    fastTrades.push(...runTurtle(symbol, h4, fastParams));
   }
 
   const rawMethods: Array<[string, ComparableTrade[]]> = [
     ["KeyVol OHLCV", keyVolumeTrades],
-    ["SMC", smcTrades],
-    ["Turtle", turtleTrades],
-    ["Fast Trend", fastTrades],
   ];
   const methods: Array<[string, ComparableTrade[]]> = rawMethods.map(
     ([name, trades]) => [

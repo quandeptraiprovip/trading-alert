@@ -6,7 +6,7 @@
  * bot gửi chữ thay ảnh — ảnh là để dễ đọc, không bao giờ được chặn việc hỏi ý.
  */
 
-import type { Candle } from "./strategy";
+import type { Candle } from "./types";
 
 export interface ProposalMark {
   time: number;

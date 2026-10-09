@@ -20,7 +20,7 @@ import fs from "fs";
 import path from "path";
 import "./load-env";
 import { fetchKlinesPaged } from "./kline-fetch";
-import { findSwings, TF_MS } from "./strategy";
+import { findSwings, TF_MS } from "./types";
 import { loadTelegramConfig, sendTelegram, formatSymbol, fmtPrice, formatTimeVn } from "./telegram";
 import {
   FXDREAM_V2_CONFIG,

@@ -26,7 +26,7 @@ import {
   runKeyVolume,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, CONFIG, TF_MS, aggregate } from "../strategy";
+import { Candle, CONFIG, TF_MS, aggregate } from "../types";
 
 const SYMBOL = "btcusdt";
 /** Cửa sổ khớp thời gian giữa tín hiệu code và mốc user vẽ: ±48 nến 5m = ±4 giờ. */

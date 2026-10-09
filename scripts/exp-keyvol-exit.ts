@@ -29,7 +29,7 @@
  */
 import { KEY_VOLUME_CONFIG, KeyVolumeTrade, atrSeriesForward, runKeyVolume } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, Swing, TF_MS, aggregate, findSwings } from "../strategy";
+import { Candle, Swing, TF_MS, aggregate, findSwings } from "../types";
 
 const DEFAULT_SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "adausdt"];
 const WARMUP_BARS = 480 + 96 + 200;

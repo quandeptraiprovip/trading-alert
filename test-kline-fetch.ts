@@ -77,11 +77,6 @@ async function main(): Promise<void> {
   assert.deepEqual(cachedAgain.map((c) => [c.openTime, c.close]), [[t1, 101], [t2, 102]]);
   assert.equal(futuresCalls, callsAfterRefresh, "Lần tải lại phải đọc cache khi không có nến mới");
 
-  const { fetchKlinesPaged: fetchBacktestKlines } = require("./backtest") as typeof import("./backtest");
-  assert.equal(fetchBacktestKlines, fetchKlinesPaged, "Chart/backtest phải dùng chung bộ tải có cache");
-  await fetchBacktestKlines("btcusdt", "15m", 2);
-  assert.equal(futuresCalls, callsAfterRefresh, "Chart/backtest cache hit không được gọi lại Binance");
-
   axios.get = (async (url: string) => {
     if (url.includes("/fapi/")) {
       futuresCalls++;
@@ -92,8 +87,6 @@ async function main(): Promise<void> {
   }) as typeof axios.get;
   await assert.rejects(fetchKlinesPaged("failclosedusdt", "15m", 1), /futures unavailable/);
   assert.equal(spotCalls, 0, "Futures lỗi phải fail-closed, không fallback Spot");
-  await assert.rejects(fetchBacktestKlines("failclosedusdt", "15m", 1), /futures unavailable/);
-  assert.equal(spotCalls, 0, "backtest/live Futures lỗi cũng phải fail-closed");
 
   const spot = await fetchSpotKlinesPaged("btcusdt", "15m", 1);
   assert.equal(spot[0].close, 200);

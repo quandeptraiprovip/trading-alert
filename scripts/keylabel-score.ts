@@ -19,7 +19,7 @@
  */
 import fs from "fs";
 import path from "path";
-import { Candle, TF_MS } from "../strategy";
+import { Candle, TF_MS } from "../types";
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
 import { atrSeries } from "../turtle";
 import { detectKeyVolumeLevels, KEY_VOLUME_CONFIG, KeyVolumeSourceTf } from "../key-volume";

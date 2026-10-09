@@ -18,7 +18,7 @@ import {
   isKeyVolumeLevelActive,
 } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { TF_MS } from "../strategy";
+import { TF_MS } from "../types";
 
 const MULTS = [2, 3, 4, 5, 6, 8, 10, 12, 16];
 const PLACEBO_POINTS = 500;

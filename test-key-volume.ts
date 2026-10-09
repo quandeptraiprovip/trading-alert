@@ -31,7 +31,7 @@ import {
   sweptAndReclaimed,
 } from "./key-volume";
 import { applyLeverageCap } from "./key-volume-backtest";
-import { Candle, TF_MS } from "./strategy";
+import { Candle, TF_MS } from "./types";
 
 function candle(
   index: number,

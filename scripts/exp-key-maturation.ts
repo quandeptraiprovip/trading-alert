@@ -25,7 +25,7 @@
  *
  * Run: ./node_modules/.bin/ts-node scripts/exp-key-maturation.ts [days]
  */
-import { Candle, TF_MS } from "../strategy";
+import { Candle, TF_MS } from "../types";
 import { T, atrSeries, buildBtcGateLongs } from "../turtle";
 import { detectKeyVolumeLevels, KEY_VOLUME_CONFIG, KeyVolumeLevel } from "../key-volume";
 import { AdmitFn, Book, ExtParams, runBooks, UnitTrade } from "./portfolio-engine";

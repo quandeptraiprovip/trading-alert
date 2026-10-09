@@ -28,7 +28,7 @@ import fs from "fs";
 import path from "path";
 import { KEY_VOLUME_CONFIG as P } from "../key-volume";
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, TF_MS, aggregate } from "../strategy";
+import { Candle, TF_MS, aggregate } from "../types";
 
 const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "adausdt", "avaxusdt", "dotusdt"];
 const FWD = 12;            // nến đo phản ứng sau cú chạm (12 nến M15 = 3 giờ)

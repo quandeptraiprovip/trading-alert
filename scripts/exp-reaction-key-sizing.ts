@@ -15,7 +15,7 @@
  *
  * Run: ./node_modules/.bin/ts-node scripts/exp-reaction-key-sizing.ts [days]
  */
-import { Candle, TF_MS } from "../strategy";
+import { Candle, TF_MS } from "../types";
 import { T, atrSeries, buildBtcGateLongs } from "../turtle";
 import { detectKeyVolumeLevels, KEY_VOLUME_CONFIG } from "../key-volume";
 import { AdmitFn, Book, ExtParams, PortfolioResult, runBooks } from "./portfolio-engine";

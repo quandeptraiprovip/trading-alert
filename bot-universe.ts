@@ -1,12 +1,6 @@
-export const DEFAULT_TURTLE_SYMBOLS = [
+export const DEFAULT_FXDREAM_SYMBOLS = [
   "btcusdt",
-  "ethusdt",
-  "solusdt",
-  "xrpusdt",
-  "dogeusdt",
-  "adausdt",
-  "avaxusdt",
-  "dotusdt",
+  "xauusdt",
 ] as const;
 
 function parseSymbols(value: string): string[] {
@@ -18,7 +12,6 @@ export function getBotUniverse(env: NodeJS.ProcessEnv = process.env): {
   fast: string[];
   all: string[];
 } {
-  const turtle = parseSymbols(env.TURTLE_SYMBOLS ?? DEFAULT_TURTLE_SYMBOLS.join(","));
-  const fast = parseSymbols(env.FAST_TREND_SYMBOLS ?? turtle.join(","));
-  return { turtle, fast, all: [...new Set([...turtle, ...fast])] };
+  const fxdream = parseSymbols(env.FXDREAM_SYMBOLS ?? DEFAULT_FXDREAM_SYMBOLS.join(","));
+  return { turtle: [], fast: [], all: fxdream };
 }

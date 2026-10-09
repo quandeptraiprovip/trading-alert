@@ -7,7 +7,7 @@
  *   3. dựng bằng chứng từng-điều-kiện cho mỗi lệnh đã vào.
  */
 
-import { Candle, TF_MS } from "./strategy";
+import { Candle, TF_MS } from "./types";
 import {
   keyVolumeParamsFor,
   atrSeriesForward,

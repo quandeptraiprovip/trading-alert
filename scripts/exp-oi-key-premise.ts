@@ -18,7 +18,7 @@
  *   ./node_modules/.bin/ts-node scripts/exp-oi-key-premise.ts gate1
  */
 import { fetchKlinesPaged } from "../kline-fetch";
-import { Candle, TF_MS, aggregate } from "../strategy";
+import { Candle, TF_MS, aggregate } from "../types";
 import { MetricRow, daysBetween, loadMetricsDays, rowAt } from "./oi-metrics";
 
 const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "adausdt", "avaxusdt", "dotusdt"];

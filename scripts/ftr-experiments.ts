@@ -9,7 +9,7 @@
  * Fetch MỘT LẦN/symbol, chạy lại runBacktest theo từng cấu hình. Chỉ in NET, không đổi default.
  * Run: npx ts-node scripts/ftr-experiments.ts [soNgay] [symbols]
  */
-import { Candle, CONFIG, TF_MS } from "../strategy";
+import { Candle, CONFIG, TF_MS } from "../types";
 import { fetchKlinesPaged, runBacktest, Trade } from "../backtest";
 
 type Cfg = {

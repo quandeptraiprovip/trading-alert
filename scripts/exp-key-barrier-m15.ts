@@ -24,7 +24,7 @@
  * Chạy: ./node_modules/.bin/ts-node scripts/exp-key-barrier-m15.ts [days] [symbols]
  */
 import { KEY_VOLUME_CONFIG as P } from "../key-volume";
-import { Candle, TF_MS } from "../strategy";
+import { Candle, TF_MS } from "../types";
 import { Kind, PASS_BY_MARKET, Rung, atr14, loadM15, medianOf, usableFrom } from "./exp-key-premise-m15";
 
 const SYMBOLS = ["btcusdt", "ethusdt", "solusdt", "xrpusdt", "dogeusdt", "adausdt", "avaxusdt", "dotusdt"];

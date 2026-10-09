@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { buildFXDreamTelegramCard } from "./fxdream-alert";
-import { Candle, TF_MS } from "./strategy";
+import { Candle, TF_MS } from "./types";
 import {
   FXDREAM_V2_CONFIG,
   KeyLevel,
