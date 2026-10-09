@@ -510,11 +510,11 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   // 192 nến M15 = HAI ngày canh hộp rồi bỏ.
   boxWaitBars: 2 * 96,
   finalTargetR: 5,
-  // User 03/10/26: chạy được 1R thì chốt 0,33 khối lượng, dời SL về entry, phần
-  // còn lại gồng tới mục tiêu.
-  partialAtR: 1,
-  partialFraction: 0.33,
-  trailMode: "none",
+  // FX Dream chuẩn: chạy được 2R thì chốt 0,5 khối lượng, dời SL về entry,
+  // phần còn lại trail theo Swing M15 tới mục tiêu.
+  partialAtR: 2,
+  partialFraction: 0.5,
+  trailMode: "swing",
   // 4 nến M15 = 1 giờ, đúng cửa sổ cũ khi còn đếm bằng 12 nến M5.
   cooldownBars: 4,
   allowKeyReentry: true,
@@ -2476,7 +2476,7 @@ function simulatePlans(
           reason = "entry-invalid";
         }
 
-        if (exitPrice == null && params.trailMode === "swing") {
+        if (exitPrice == null && params.trailMode === "swing" && (params.partialFraction === 0 || position.partialIndex != null)) {
           for (const swing of swingsConfirmedAt.get(i) ?? []) {
             if (swing.index <= position.entryIndex) continue;
             const favorableSwing = direction === "long"
@@ -2487,12 +2487,10 @@ function simulatePlans(
               ? swing.price - params.stopBufferAtr * atr[i]
               : swing.price + params.stopBufferAtr * atr[i];
             const valid = direction === "long"
-              ? candidate > position.entry && candidate < candle.close
-              : candidate < position.entry && candidate > candle.close;
+              ? candidate > position.stop && candidate < candle.close
+              : candidate < position.stop && candidate > candle.close;
             if (!valid) continue;
-            position.stop = direction === "long"
-              ? Math.max(position.stop, candidate)
-              : Math.min(position.stop, candidate);
+            position.stop = candidate;
           }
         }
       }

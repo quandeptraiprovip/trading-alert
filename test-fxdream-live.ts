@@ -100,8 +100,8 @@ const NIGHT = 9.5 * 3600_000;
 
 const TAIL: Bar[] = [
   { open: 99.15, high: 99.35, low: 99.1, close: 99.2 }, // hồi chạm mép 99,3 → khớp
-  { open: 99.2, high: 99.25, low: 98.1, close: 98.3 }, // chạm +1R → chốt 33%
-  { open: 98.3, high: 99.4, low: 98.2, close: 99.35 }, // quay lên chạm SL đã dời về giá vào
+  { open: 99.2, high: 99.25, low: 97.0, close: 97.3 }, // chạm +2R (97,17) → chốt 50%
+  { open: 97.3, high: 99.4, low: 97.2, close: 99.35 }, // quay lên chạm SL đã dời về giá vào
   BELOW,
 ];
 
@@ -124,8 +124,29 @@ async function testApproveFillPartialBreakeven(): Promise<void> {
   assert.ok(opened.riskUsd > 4.5 && opened.riskUsd < 5.1, `lệnh bạn duyệt: rủi ro đủ $5, được ${opened.riskUsd}`);
   const closed = journal.find((e) => e.event === "closed");
   assert.ok(closed, "vị thế phải đóng");
-  assert.equal(closed.reason, "SL về giá vào sau khi chốt 33%");
-  assert.ok(closed.grossR > 0.3 && closed.grossR < 0.36, `chốt 33% ở 1R rồi hoà phần còn lại ≈ +0,33R, được ${closed.grossR}`);
+  assert.equal(closed.reason, "SL về giá vào sau khi chốt 50%");
+  assert.ok(closed.grossR > 0.95 && closed.grossR < 1.05, `chốt 50% ở 2R rồi hoà phần còn lại ≈ +1,0R, được ${closed.grossR}`);
+  assert.equal(venue.pos, 0);
+  assert.equal(fx.snapshot().position, null);
+}
+
+async function testLiveSwingTrailingStop(): Promise<void> {
+  const tail: Bar[] = [
+    { open: 99.15, high: 99.35, low: 99.1, close: 99.2 }, // khớp LIMIT 99.3
+    { open: 99.2, high: 97.5, low: 97.0, close: 97.3 }, // chạm 2R -> chốt 50%
+    { open: 97.3, high: 97.6, low: 97.1, close: 97.2 },
+    { open: 97.2, high: 98.0, low: 97.1, close: 97.5 }, // đỉnh swing 98.0 (> 97.6 và > 97.5)
+    { open: 97.5, high: 97.7, low: 97.2, close: 97.3 }, // nến phải 1
+    { open: 97.3, high: 97.5, low: 97.0, close: 97.1 }, // nến phải 2 -> xác nhận đỉnh -> dời SL về ~98.08
+    { open: 97.1, high: 98.5, low: 97.0, close: 98.4 }, // chạm trailing stop
+    BELOW,
+  ];
+  const candles = fixture(DAY, tail);
+  const { fx, venue, journal } = await replay(candles, CONFIRM - 1, (f, id) => f.decide(id, true));
+  const closed = journal.find((e) => e.event === "closed");
+  assert.ok(closed, "vị thế phải đóng ở trailing stop");
+  assert.equal(closed.reason, "Trailing SL sau khi chốt 50%");
+  assert.ok(closed.grossR > 1.3, `ăn 50% ở 2R và runner thoát ở ~98.08 (> entry 99.3) -> grossR = ${closed.grossR} > 1.3R`);
   assert.equal(venue.pos, 0);
   assert.equal(fx.snapshot().position, null);
 }
@@ -219,32 +240,32 @@ function testParsePrice(): void {
   assert.equal(parseEditText("ok"), null);
 }
 
-/** ✏️ Sửa SL/TP rồi ✅: lệnh vào đúng giá đã sửa, chốt 33% tính lại theo R mới. */
+/** ✏️ Sửa SL/TP rồi ✅: lệnh vào đúng giá đã sửa, chốt 50% tính lại theo R mới. */
 async function testEditThenApprove(): Promise<void> {
   let step = 0;
   const { fx, journal } = await replay(fixture(DAY, TAIL), CONFIRM - 1, async (f, id) => {
     if (step++ > 0) return;
     await f.startEdit(id);
-    assert.equal(await f.handleText("sl 99.1 tp 97"), true);
+    assert.equal(await f.handleText("sl 99.1 tp 96"), true);
     const bad = f.snapshot().proposals.find((x) => x.id === id)!;
     assert.equal(bad.stop, f.snapshot().proposals[0].stop, "SL dưới entry của lệnh SHORT bị từ chối, giữ nguyên");
     assert.equal(bad.edited, undefined);
     // Gõ nhầm (thiếu chữ số): TP 9,7 vẫn đúng thứ tự TP < entry của SHORT nhưng lệch >20% giá → từ chối.
     assert.equal(await f.handleText("tp 9.7"), true);
     assert.equal(f.snapshot().proposals[0].edited, undefined, "giá lệch >20% so với giá hiện tại bị từ chối");
-    assert.equal(await f.handleText("sl 100,5 tp 97"), true);
+    assert.equal(await f.handleText("sl 100,5 tp 96"), true);
     await f.decide(id, true);
   });
   const p = fx.snapshot().proposals[0];
   assert.equal(p.stop, 100.5);
-  assert.equal(p.target, 97);
+  assert.equal(p.target, 96);
   assert.deepEqual(p.edited, ["sl", "tp"]);
-  assert.ok(Math.abs(p.partial! - 98.1) < 1e-9, "1R tính lại từ SL mới: 99,3 − 1,2");
+  assert.ok(Math.abs(p.partial! - 96.9) < 1e-9, "2R tính lại từ SL mới: 99,3 − 2 * 1,2");
   assert.equal(fx.snapshot().editingId, null);
   const opened = journal.find((e) => e.event === "opened");
   assert.ok(opened, "duyệt sau khi sửa phải vào lệnh");
   assert.equal(opened.stop, 100.5);
-  assert.equal(opened.target, 97);
+  assert.equal(opened.target, 96);
 }
 
 /** Đòn bẩy cao nhất mà thanh lý (≈ 1/đòn bẩy − 1%) vẫn cách entry ≥ 1,5× khoảng SL, trần 20x. */
@@ -455,6 +476,7 @@ function testImageRenders(): void {
 
 (async () => {
   await testApproveFillPartialBreakeven();
+  await testLiveSwingTrailingStop();
   await testRejectPlacesNothing();
   await testNightAutoEnters();
   await testNightThinTargetAsks();

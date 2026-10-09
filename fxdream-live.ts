@@ -31,7 +31,7 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 import { atomicWriteFileSync } from "./atomic-file";
-import { TF_MS } from "./strategy";
+import { TF_MS, findSwings } from "./strategy";
 import type { Candle } from "./strategy";
 import type { NewOrderResult, OrderSide, PositionRisk, SymbolFilters, UserTrade } from "./binance-futures";
 import {
@@ -490,6 +490,36 @@ export class FxDreamLive {
     const closeTime = bars[L].openTime + M15;
     const atr = atrSeriesForward(bars);
 
+    // Trailing stop theo Swing M15 cho runner sau khi đã chốt một phần
+    if (this.state.position?.partialDone && params.trailMode === "swing") {
+      const pos = this.state.position;
+      const swings = findSwings(bars, params.swingPivotLeft, params.swingPivotRight);
+      const long = pos.dir === "long";
+      for (const s of swings) {
+        if (s.confirmIndex < L - 2) continue;
+        const favorable = long
+          ? s.type === "low" && s.price > pos.slNow && s.price < bars[L].close
+          : s.type === "high" && s.price < pos.slNow && s.price > bars[L].close;
+        if (!favorable) continue;
+        const candidate = long
+          ? s.price - params.stopBufferAtr * atr[L]
+          : s.price + params.stopBufferAtr * atr[L];
+        const valid = long
+          ? candidate > pos.slNow && candidate < bars[L].close
+          : candidate < pos.slNow && candidate > bars[L].close;
+        if (valid) {
+          const moved = await this.moveStop(candidate);
+          if (moved) {
+            await sendTelegram(
+              this.o.telegram,
+              `🛡 Trailing SL phần còn lại theo Swing M15 (${fmt(s.price)}) → SL mới ${fmt(candidate)}.`,
+              undefined,
+            );
+          }
+        }
+      }
+    }
+
     type Signal = { plan: KeyVolumeEntryPlan; kind: Kind; entry: number; stop: number; target: number; expiresAt: number };
     const signals: Signal[] = [];
     for (const c of run.candidates) {
@@ -511,7 +541,8 @@ export class FxDreamLive {
     // Nhiều tín hiệu một lúc: lấy điểm cao nhất, đúng cách engine chọn.
     const best = signals.sort((a, b) => b.plan.score - a.plan.score)[0];
     const risk = Math.abs(best.entry - best.stop);
-    const partialPrice = best.plan.direction === "long" ? best.entry + risk : best.entry - risk;
+    const partialAtR = params.partialAtR ?? 2;
+    const partialPrice = best.plan.direction === "long" ? best.entry + partialAtR * risk : best.entry - partialAtR * risk;
     const night = isNightVn(closeTime);
     // User 06/10/26: ban đêm chỉ TỰ VÀO khi TP ≥ 1R; dưới 1R (vd 0,21R lúc 01:15) thì hỏi như ban ngày.
     const thinTarget = Math.abs(best.target - best.entry) < risk;
@@ -527,7 +558,7 @@ export class FxDreamLive {
       entry: best.entry,
       stop: best.stop,
       target: best.target,
-      partial: Math.abs(best.target - best.entry) > risk ? partialPrice : null,
+      partial: Math.abs(best.target - best.entry) > partialAtR * risk ? partialPrice : null,
       createdAt: closeTime,
       expiresAt: best.expiresAt,
       auto: night && !thinTarget && !justOpened,
@@ -648,10 +679,12 @@ export class FxDreamLive {
     const qty = this.o.venue ? this.o.venue.roundQty(this.o.symbol, riskUsd / risk) : riskUsd / risk;
     const rr = Math.abs(p.target - p.entry) / risk;
     const lev = pickLeverage(risk / p.entry, this.o.maxLeverage);
+    const partialPct = Math.round((this.o.params.partialFraction ?? 0.5) * 100);
+    const partialR = this.o.params.partialAtR ?? 2;
     return [
       `Rủi ro $${riskUsd}${p.auto ? " (nửa — tự vào ban đêm)" : ""} · khối lượng ~${qty} ${this.o.symbol.replace(/usdt$/i, "").toUpperCase()} · notional ~$${fmt(qty * p.entry)} · SL cách ${((risk / p.entry) * 100).toFixed(2)}%`,
       `Đòn bẩy ${lev}x · ký quỹ ~$${fmt((qty * p.entry) / lev)} (tự tính lại khi sửa giá, rủi ro giữ $${riskUsd})`,
-      `Mục tiêu ${rr.toFixed(2)}R (${p.edited?.includes("tp") ? "bạn đặt" : "key đối diện"})${p.partial ? " · chốt 33% ở 1R rồi dời SL về giá vào" : " · mục tiêu dưới 1R nên không chốt một phần"}`,
+      `Mục tiêu ${rr.toFixed(2)}R (${p.edited?.includes("tp") ? "bạn đặt" : "key đối diện"})${p.partial ? ` · chốt ${partialPct}% ở ${partialR}R rồi dời SL về giá vào` : ` · mục tiêu dưới ${partialR}R nên không chốt một phần`}`,
       p.edited?.length
         ? `Bạn đã sửa tay: ${p.edited.map((f) => f.toUpperCase()).join(", ")} (khác đề xuất của engine).`
         : `Backtest ${this.o.symbol.toUpperCase()} chưa cho thấy lợi thế sau phí — bạn là bộ lọc cuối cùng.`,
@@ -788,7 +821,8 @@ export class FxDreamLive {
     p.entry = entry;
     p.stop = stop;
     p.target = target;
-    p.partial = Math.abs(target - entry) > risk ? (long ? entry + risk : entry - risk) : null;
+    const partialAtR = this.o.params.partialAtR ?? 2;
+    p.partial = Math.abs(target - entry) > partialAtR * risk ? (long ? entry + partialAtR * risk : entry - partialAtR * risk) : null;
     p.edited = [...fields];
     return null;
   }
@@ -943,18 +977,20 @@ export class FxDreamLive {
     const f = venue.getFilters(sym);
     let partialQty = 0;
     let partialNote = "";
+    const fraction = this.o.params.partialFraction ?? 0.5;
+    const partialPct = Math.round(fraction * 100);
     if (p.partial != null) {
-      partialQty = venue.roundQty(sym, qty * PARTIAL_FRACTION);
+      partialQty = venue.roundQty(sym, qty * fraction);
       if (partialQty >= f.minQty && partialQty < qty) {
         try {
           await this.retry(() => venue.takeProfitMarketReduce(sym, closeSide(p.dir), p.partial!, partialQty));
         } catch (err) {
           partialQty = 0;
-          partialNote = ` · ⚠️ chốt 33% chưa đặt được (${errMsg(err)})`;
+          partialNote = ` · ⚠️ chốt ${partialPct}% chưa đặt được (${errMsg(err)})`;
         }
       } else {
         partialQty = 0;
-        partialNote = " · khối lượng quá nhỏ để chốt 33%";
+        partialNote = ` · khối lượng quá nhỏ để chốt ${partialPct}%`;
       }
     }
     const riskUsd = qty * Math.abs(entry - p.stop);
@@ -1036,14 +1072,16 @@ export class FxDreamLive {
       await this.finishPosition();
       return;
     }
-    // Chốt 33% đã khớp (khối lượng giảm) → dời SL về giá vào.
+    // Chốt một phần đã khớp (khối lượng giảm) → dời SL về giá vào.
     if (!pos.partialDone && pos.partialQty > 0 && amt <= pos.qty - pos.partialQty * 0.99) {
       pos.partialDone = true;
       this.save();
       const moved = await this.moveStop(pos.entry);
+      const partialPct = Math.round((this.o.params.partialFraction ?? 0.5) * 100);
+      const partialR = this.o.params.partialAtR ?? 2;
       await sendTelegram(
         this.o.telegram,
-        `💰 Đã chốt 33% ở ${fmt(pos.partial!)} (+1R). ${moved ? `SL phần còn lại dời về giá vào ${fmt(pos.entry)}.` : "⚠️ Dời SL lỗi — kiểm tra sàn!"}`,
+        `💰 Đã chốt ${partialPct}% ở ${fmt(pos.partial!)} (+${partialR}R). ${moved ? `SL phần còn lại dời về giá vào ${fmt(pos.entry)}.` : "⚠️ Dời SL lỗi — kiểm tra sàn!"}`,
         undefined,
       );
       return;
@@ -1122,8 +1160,10 @@ export class FxDreamLive {
       : Math.abs(exitPrice - pos.target) < Math.abs(exitPrice - pos.slNow)
         ? "chạm TP"
         : pos.partialDone && pos.slNow === pos.entry
-          ? "SL về giá vào sau khi chốt 33%"
-          : "chạm SL";
+          ? `SL về giá vào sau khi chốt ${Math.round((this.o.params.partialFraction ?? 0.5) * 100)}%`
+          : pos.partialDone
+            ? `Trailing SL sau khi chốt ${Math.round((this.o.params.partialFraction ?? 0.5) * 100)}%`
+            : "chạm SL";
     this.state.position = null;
     this.save();
     this.journal({ event: "closed", proposal: pos.proposalId, pnl, fee, grossR, exitPrice, reason, note });
@@ -1199,7 +1239,8 @@ export class FxDreamLive {
     lines.push(`Nến cuối đã xét: ${st.lastBarTime ? vnTime(st.lastBarTime) : "—"}`);
     if (st.position) {
       const p = st.position;
-      lines.push(`Vị thế: ${p.dir.toUpperCase()} ${p.qty} @ ${fmt(p.entry)} · SL ${fmt(p.slNow)} · TP ${fmt(p.target)}${p.partialDone ? " · đã chốt 33%" : ""}`);
+      const partialPct = Math.round((this.o.params.partialFraction ?? 0.5) * 100);
+      lines.push(`Vị thế: ${p.dir.toUpperCase()} ${p.qty} @ ${fmt(p.entry)} · SL ${fmt(p.slNow)} · TP ${fmt(p.target)}${p.partialDone ? ` · đã chốt ${partialPct}%` : ""}`);
     } else if (st.working) {
       lines.push(`Lệnh chờ: ${st.working.dir.toUpperCase()} ${st.working.qty} @ ${fmt(st.working.edge)} · hết hạn ${vnTime(st.working.expiresAt)}`);
     } else {

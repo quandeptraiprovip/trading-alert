@@ -753,11 +753,14 @@ function buildStages(
       span,
     ));
   } else if (trade.exitReason === "positive-stop") {
+    const isBe = Math.abs(trade.exitPrice - trade.entryPrice) < 1e-6;
     ending.push(makeCo(
-      trade.partialTaken ? "Quay về giá vào sau khi chốt" : "Stop dương",
+      trade.partialTaken ? (isBe ? "Quay về giá vào sau khi chốt" : "Trailing stop theo Swing M15 sau khi chốt") : "Stop dương",
       "pass",
       trade.partialTaken
-        ? `Phần còn lại ${100 - partialPct}% bị chạm SL ở giá vào ${fmtPrice(trade.exitPrice)} sau ${held} — hoà vốn phần đó, giữ lãi phần đã chốt.`
+        ? (isBe
+          ? `Phần còn lại ${100 - partialPct}% bị chạm SL ở giá vào ${fmtPrice(trade.exitPrice)} sau ${held} — hoà vốn phần đó, giữ lãi phần đã chốt.`
+          : `Phần còn lại ${100 - partialPct}% thoát trailing stop theo Swing M15 ở ${fmtPrice(trade.exitPrice)} sau ${held} — khoá thêm lãi.`)
         : `Stop đã dời lên vùng dương rồi mới bị chạm, ở ${fmtPrice(trade.exitPrice)} sau ${held}.`,
       span,
     ));

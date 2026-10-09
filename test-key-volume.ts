@@ -152,10 +152,10 @@ function testSourceBackedDefaults(): void {
 
   assert.equal(KEY_VOLUME_CONFIG.targetMode, "nearest-structure");
   assert.equal(KEY_VOLUME_CONFIG.requireStructuralTarget, true);
-  // User 03/10/26: chạy được 1R thì chốt 0,33 khối lượng và dời SL về entry.
-  assert.equal(KEY_VOLUME_CONFIG.partialAtR, 1);
-  assert.equal(KEY_VOLUME_CONFIG.partialFraction, 0.33);
-  assert.equal(KEY_VOLUME_CONFIG.trailMode, "none");
+  // FX Dream chuẩn: chạy được 2R thì chốt 0,5 khối lượng, dời SL về entry, trail swing M15
+  assert.equal(KEY_VOLUME_CONFIG.partialAtR, 2);
+  assert.equal(KEY_VOLUME_CONFIG.partialFraction, 0.5);
+  assert.equal(KEY_VOLUME_CONFIG.trailMode, "swing");
   // Cửa sổ dưới đếm bằng nến M15 nhưng phải giữ đúng độ dài THỜI GIAN cũ.
   assert.equal(KEY_VOLUME_CONFIG.cooldownBars * 15, 60, "vẫn là 1 giờ");
   assert.equal(KEY_VOLUME_CONFIG.allowKeyReentry, true);
@@ -655,18 +655,18 @@ function partialFixture(after: M15Bar[]): Candle[] {
  */
 function testPartialAtOneRMovesStopToEntry(): void {
   const back = runKeyVolume("synthetic", partialFixture([
-    { open: 100.45, high: 102.5, low: 100.4, close: 102.3, volume: 100 },
-    { open: 102.3, high: 102.4, low: 100.3, close: 100.4, volume: 100 },
+    { open: 100.45, high: 104.0, low: 100.4, close: 103.8, volume: 100 },
+    { open: 103.8, high: 103.9, low: 100.3, close: 100.4, volume: 100 },
     BAND,
   ]), SWEEP_OVERRIDES);
   const trade = back.trades.find((item) => item.dir === "long");
   assert.ok(trade);
   assert.ok(Math.abs(trade.entryPrice - SWEEP_ENTRY_PRICE) < 1e-9);
-  assert.ok(trade.entryPrice + (trade.entryPrice - trade.initialSL) <= 102.5, "nến đầu chạm được 1R");
+  assert.ok(trade.entryPrice + 2 * (trade.entryPrice - trade.initialSL) <= 104.0, "nến đầu chạm được 2R");
   assert.equal(trade.partialTaken, true);
   assert.equal(trade.exitReason, "positive-stop", "phần còn lại thoát ở SL đã dời");
   assert.equal(trade.exitPrice, trade.entryPrice, "SL dời về ĐÚNG giá vào");
-  assert.ok(Math.abs(trade.grossR - 0.33) < 1e-9, "0,33 × 1R + 0,67 × 0R");
+  assert.ok(Math.abs(trade.grossR - 1.0) < 1e-9, "0,5 × 2R + 0,5 × 0R = 1.0R");
 
   const straight = runKeyVolume("synthetic", partialFixture([
     { open: 100.45, high: 106.5, low: 100.4, close: 106.2, volume: 100 },
@@ -675,9 +675,9 @@ function testPartialAtOneRMovesStopToEntry(): void {
   const winner = straight.trades.find((item) => item.dir === "long");
   assert.ok(winner);
   assert.equal(winner.exitReason, "target");
-  assert.equal(winner.partialTaken, true, "chạm mục tiêu cùng nến vẫn phải chốt phần 1R trước");
+  assert.equal(winner.partialTaken, true, "chạm mục tiêu cùng nến vẫn phải chốt phần 2R trước");
   const targetR = (winner.target - winner.entryPrice) / (winner.entryPrice - winner.initialSL);
-  assert.ok(Math.abs(winner.grossR - (0.33 + 0.67 * targetR)) < 1e-9);
+  assert.ok(Math.abs(winner.grossR - (0.5 * 2.0 + 0.5 * targetR)) < 1e-9);
 
   const off = runKeyVolume("synthetic", partialFixture([
     { open: 100.45, high: 102.5, low: 100.4, close: 102.3, volume: 100 },
@@ -686,6 +686,30 @@ function testPartialAtOneRMovesStopToEntry(): void {
   ]), { ...SWEEP_OVERRIDES, partialFraction: 0 });
   assert.equal(off.trades.length, 0, "tắt chốt một phần: SL vẫn ở chỗ cũ, giá về entry không thoát");
   assert.equal(off.openTrade?.partialTaken, false, "partialFraction 0 là tắt");
+}
+
+/**
+ * Sau khi chốt một phần ở 2R và dời SL về entry, runner được bảo vệ bằng
+ * trailing stop theo swing M15 — khi đáy swing mới hình thành trên entry,
+ * SL nâng lên theo swing để khoá thêm lãi thay vì để giá rơi về hoà vốn.
+ */
+function testSwingTrailingStopAfterPartial(): void {
+  const back = runKeyVolume("synthetic", partialFixture([
+    { open: 100.45, high: 104.0, low: 100.45, close: 103.8, volume: 100 }, // chạm 2R -> chốt 50%
+    { open: 103.8, high: 104.5, low: 103.2, close: 104.2, volume: 100 },
+    { open: 104.2, high: 104.4, low: 102.8, close: 103.0, volume: 100 },
+    { open: 103.0, high: 103.2, low: 102.0, close: 102.8, volume: 100 }, // đáy swing 102.0 (thấp hơn 102.8 và 103.2)
+    { open: 102.8, high: 103.5, low: 102.5, close: 103.4, volume: 100 }, // nến phải 1 (102.5 > 102.0)
+    { open: 103.4, high: 104.0, low: 102.7, close: 103.8, volume: 100 }, // nến phải 2 (102.7 > 102.0) -> xác nhận đáy
+    { open: 103.8, high: 103.9, low: 101.5, close: 101.6, volume: 100 }, // rơi xuống cắt trailing stop
+    BAND,
+  ]), SWEEP_OVERRIDES);
+  const trade = back.trades.find((item) => item.dir === "long");
+  assert.ok(trade);
+  assert.equal(trade.partialTaken, true);
+  assert.equal(trade.exitReason, "positive-stop");
+  assert.ok(trade.exitPrice > trade.entryPrice, `thoát ở trailing stop ${trade.exitPrice} > entry ${trade.entryPrice}`);
+  assert.ok(trade.grossR > 1.2, `grossR = ${trade.grossR} > 1.2R`);
 }
 
 /**
@@ -2139,6 +2163,7 @@ testAmbiguousSweepIsSkipped();
 testSweepOrderBlockLimitEntry();
 testSweepOrderBlockNeedsRetestBelowWick();
 testPartialAtOneRMovesStopToEntry();
+testSwingTrailingStopAfterPartial();
 testOpenPositionIsReported();
 testVolumeBranchStillNeedsKey();
 testKeyTouchNeedsARealReturn();
