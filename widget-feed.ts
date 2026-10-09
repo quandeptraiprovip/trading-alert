@@ -29,12 +29,27 @@ const HISTORY_FILE = path.join(DATA_DIR, "widget-equity-history.json");
 const WEEKLY_FILE = path.join(DATA_DIR, "widget-equity-weekly.json");
 
 /** State file của bot — mỗi file một sổ. Chỉ đọc để lấy stop / R / thời điểm vào. */
-const STATE_FILES = [
-  "bot-state.json",
-  "turtle-state.json",
-  "fast-trend-state.json",
-  "fast-trend-mexc-state.json",
-];
+function getStateFiles(): string[] {
+  const base = [
+    "bot-state.json",
+    "turtle-state.json",
+    "fast-trend-state.json",
+    "fast-trend-mexc-state.json",
+    "fxdream-state.json",
+    "fxdream-xauusdt-state.json",
+  ];
+  try {
+    const files = fs.readdirSync(DATA_DIR);
+    for (const f of files) {
+      if (f.startsWith("fxdream-") && f.endsWith("-state.json") && f !== "fxdream-alert-state.json" && !base.includes(f)) {
+        base.push(f);
+      }
+    }
+  } catch {
+    /* không đọc được thư mục thì dùng danh sách base */
+  }
+  return base;
+}
 
 const BOT_CONTAINER = process.env.WIDGET_BOT_CONTAINER?.trim() || "swing-bot";
 /** Nến chậm nhất trong hệ là 4h; quá 2 nến chưa nhích = trễ nhịp. */
@@ -142,14 +157,14 @@ interface StateEntry {
 
 /**
  * Đọc mọi state file, trả về map symbol → vị thế bot ghi nhận.
- * Hai schema cùng tồn tại: `pos` (turtle/fast, nhiều unit) và `livePos` (SMC, một unit).
+ * Hỗ trợ: `pos` (turtle/fast), `livePos` (SMC), và `position` (FX Dream).
  */
 function readBotState(): { bySymbol: Map<string, StateEntry>; lastWrite: number | null; lastBar: number | null } {
   const bySymbol = new Map<string, StateEntry>();
   let lastWrite: number | null = null;
   let lastBar: number | null = null;
 
-  for (const name of STATE_FILES) {
+  for (const name of getStateFiles()) {
     const file = path.join(DATA_DIR, name);
     let raw: string;
     try {
@@ -160,15 +175,44 @@ function readBotState(): { bySymbol: Map<string, StateEntry>; lastWrite: number 
       continue; // file chưa tồn tại — sổ đó chưa chạy bao giờ
     }
 
-    let rows: any[];
+    let parsed: any;
     try {
-      rows = JSON.parse(raw);
+      parsed = JSON.parse(raw);
     } catch {
       continue; // đang ghi dở — bỏ qua vòng này
     }
-    if (!Array.isArray(rows)) continue;
 
-    for (const row of rows) {
+    // Schema 1: FX Dream object { lastBarTime, position: { dir, entry, stop, slNow, openedAt, ... } }
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      if (typeof parsed.lastBarTime === "number" && (lastBar === null || parsed.lastBarTime > lastBar)) {
+        lastBar = parsed.lastBarTime;
+      }
+      const pos = parsed.position;
+      if (pos && (pos.dir === "long" || pos.dir === "short") && typeof pos.entry === "number") {
+        let sym = "";
+        if (name === "fxdream-state.json") sym = "btcusdt";
+        else {
+          const m = name.match(/^fxdream-(.+)-state\.json$/);
+          if (m) sym = m[1].toLowerCase();
+        }
+        if (sym) {
+          const sl = typeof pos.slNow === "number" ? pos.slNow : typeof pos.stop === "number" ? pos.stop : null;
+          const initialSL = typeof pos.stop === "number" ? pos.stop : sl ?? pos.entry;
+          const units: StateUnit[] = [{
+            entry: pos.entry,
+            initialSL,
+            entryTime: Number(pos.openedAt) || 0,
+          }];
+          bySymbol.set(sym, { dir: pos.dir, units, sl });
+        }
+      }
+      continue;
+    }
+
+    // Schema 2: Array of rows (turtle, fast-trend, SMC bot)
+    if (!Array.isArray(parsed)) continue;
+
+    for (const row of parsed) {
       const symbol = String(row?.symbol ?? "").toLowerCase();
       if (!symbol) continue;
 
@@ -448,10 +492,10 @@ async function readBinance(state: Map<string, StateEntry>, now: number): Promise
     return venue;
   }
 
-  for (const symbol of getBotUniverse().all) {
-    try {
-      const p = await api.getPosition(symbol);
-      if (Math.abs(p.positionAmt) === 0) continue;
+  try {
+    const openPositions = await api.getAllPositions();
+    for (const p of openPositions) {
+      const symbol = p.symbol.toLowerCase();
       const dir = p.positionAmt > 0 ? "long" : "short";
       venue.positions.push(
         enrich(
@@ -466,8 +510,31 @@ async function readBinance(state: Map<string, StateEntry>, now: number): Promise
           now
         )
       );
-    } catch {
-      /* lỗi một symbol không được làm hỏng cả sàn */
+    }
+  } catch (err) {
+    /* fallback nếu getAllPositions lỗi */
+    const checkSymbols = [...new Set([...getBotUniverse().all, "btcusdt", "xauusdt", ...state.keys()])];
+    for (const symbol of checkSymbols) {
+      try {
+        const p = await api.getPosition(symbol);
+        if (Math.abs(p.positionAmt) === 0) continue;
+        const dir = p.positionAmt > 0 ? "long" : "short";
+        venue.positions.push(
+          enrich(
+            symbol,
+            dir,
+            p.entryPrice,
+            p.markPrice,
+            p.positionAmt,
+            p.unrealizedProfit,
+            state.get(symbol),
+            await binanceStop(api, symbol, dir),
+            now
+          )
+        );
+      } catch {
+        /* lỗi một symbol không được làm hỏng cả sàn */
+      }
     }
   }
   return venue;

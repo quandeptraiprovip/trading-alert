@@ -54,30 +54,165 @@ type StateSymbol = {
     qty?: number;
     riskUsd?: number;
   } | null;
+  working?: {
+    orderId: number;
+    dir: "long" | "short";
+    qty: number;
+    edge: number;
+    stop: number;
+    target: number;
+    expiresAt: number;
+  } | null;
 };
 
-function readState(): StateSymbol[] {
+function getStateFiles(): string[] {
+  const base = [
+    "bot-state.json",
+    "turtle-state.json",
+    "fxdream-state.json",
+    "fxdream-xauusdt-state.json",
+  ];
   try {
-    return JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
+    const files = fs.readdirSync(DATA_DIR);
+    for (const f of files) {
+      if (f.startsWith("fxdream-") && f.endsWith("-state.json") && f !== "fxdream-alert-state.json" && !base.includes(f)) {
+        base.push(f);
+      }
+    }
   } catch {
-    return [];
+    /* ignore */
   }
+  return base;
 }
 
-function readJournal(limit = 50): any[] {
-  try {
-    const lines = fs.readFileSync(JOURNAL_FILE, "utf8").trim().split("\n").filter(Boolean);
-    return lines.map((l) => JSON.parse(l));
-  } catch {
-    return [];
+function readState(): StateSymbol[] {
+  const map = new Map<string, StateSymbol>();
+
+  // 1. Đọc bot-state.json và turtle-state.json (dạng array)
+  for (const name of ["bot-state.json", "turtle-state.json"]) {
+    const file = path.join(DATA_DIR, name);
+    try {
+      const arr = JSON.parse(fs.readFileSync(file, "utf8"));
+      if (Array.isArray(arr)) {
+        for (const item of arr) {
+          const sym = String(item?.symbol ?? "").toLowerCase();
+          if (sym && !map.has(sym)) {
+            map.set(sym, {
+              symbol: sym,
+              lastOpenTime: item.lastOpenTime ?? 0,
+              cooldownUntilTime: item.cooldownUntilTime ?? 0,
+              livePos: item.livePos ?? null,
+            });
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
   }
+
+  // 2. Đọc fxdream*-state.json
+  const stateFiles = getStateFiles().filter((f) => f.startsWith("fxdream-") && f !== "fxdream-alert-state.json");
+  for (const name of stateFiles) {
+    const file = path.join(DATA_DIR, name);
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
+      let sym = "";
+      if (name === "fxdream-state.json") sym = "btcusdt";
+      else {
+        const m = name.match(/^fxdream-(.+)-state\.json$/);
+        if (m) sym = m[1].toLowerCase();
+      }
+      if (!sym || sym === "alert") continue;
+
+      const pos = parsed?.position;
+      const wrk = parsed?.working;
+      const livePos = pos && (pos.dir === "long" || pos.dir === "short") && typeof pos.entry === "number" ? {
+        dir: pos.dir,
+        entryTime: Number(pos.openedAt) || 0,
+        entry: pos.entry,
+        initialSL: typeof pos.stop === "number" ? pos.stop : (pos.slNow ?? pos.entry),
+        sl: typeof pos.slNow === "number" ? pos.slNow : (pos.stop ?? pos.entry),
+        target: typeof pos.target === "number" ? pos.target : pos.entry,
+        quality: pos.branch,
+        qty: typeof pos.qty === "number" ? pos.qty : undefined,
+        riskUsd: typeof pos.riskUsd === "number" ? pos.riskUsd : undefined,
+      } : null;
+
+      const working = wrk && typeof wrk.orderId === "number" ? {
+        orderId: wrk.orderId,
+        dir: wrk.dir,
+        qty: wrk.qty,
+        edge: wrk.edge,
+        stop: wrk.stop,
+        target: wrk.target,
+        expiresAt: wrk.expiresAt,
+      } : null;
+
+      map.set(sym, {
+        symbol: sym,
+        lastOpenTime: livePos ? livePos.entryTime : 0,
+        cooldownUntilTime: 0,
+        livePos,
+        working,
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return Array.from(map.values());
+}
+
+function getJournalFiles(): string[] {
+  const base = [
+    "trades-live.jsonl",
+    "fxdream-trades.jsonl",
+    "fxdream-xauusdt-trades.jsonl",
+  ];
+  try {
+    const files = fs.readdirSync(DATA_DIR);
+    for (const f of files) {
+      if (f.startsWith("fxdream-") && f.endsWith("-trades.jsonl") && !base.includes(f)) {
+        base.push(f);
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return base;
+}
+
+function readJournal(limit = 100): any[] {
+  const all: any[] = [];
+  for (const name of getJournalFiles()) {
+    const file = path.join(DATA_DIR, name);
+    try {
+      const lines = fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean);
+      for (const l of lines) {
+        try {
+          all.push(JSON.parse(l));
+        } catch {
+          /* ignore bad line */
+        }
+      }
+    } catch {
+      /* ignore missing file */
+    }
+  }
+  return all.sort((a, b) => (a.time ?? 0) - (b.time ?? 0));
 }
 
 /** Thống kê đầy đủ từ journal: win%, tổng/PF/avg R, best/worst, max DD, theo lý do/symbol/hướng, streak. */
 function journalStats(journal: any[]) {
-  // CHỈ tính lệnh VÀO THẬT (real === true). Bỏ qua paper (alert-only) & bản ghi cũ chưa gắn cờ.
+  // Lệnh đã đóng: event là 'exit' (SMC) hoặc 'closed' (FX Dream)
   const exits = journal
-    .filter((r) => r.event === "exit" && r.real === true && typeof r.grossR === "number")
+    .map((r) => ({
+      ...r,
+      time: r.time ?? r.at ?? 0,
+      symbol: (r.symbol ?? (r.proposal ? r.proposal.split("-")[0] : "?")).toUpperCase(),
+    }))
+    .filter((r) => (r.event === "exit" || r.event === "closed") && typeof r.grossR === "number")
     .sort((a, b) => a.time - b.time);
 
   const wins = exits.filter((r) => r.grossR > 0);
@@ -182,34 +317,68 @@ async function buildPayload() {
       }
       const bal = await binance.getEquity();
       let exposure = 0;
-      for (const s of state) {
-        try {
-          const p = await binance.getPosition(s.symbol);
-          if (Math.abs(p.positionAmt) > 0) {
-            positions[s.symbol.toUpperCase()] = p;
-            exposure += Math.abs(p.positionAmt) * p.markPrice;
-          }
-        } catch {
-          /* bỏ qua từng symbol lỗi */
-        }
-        try {
-          for (const o of await binance.getOpenOrders(s.symbol)) {
-            orders.push({
-              symbol: o.symbol,
-              type: o.type,
-              side: o.side,
-              stopPrice: parseFloat(o.stopPrice ?? "0"),
-              price: parseFloat(o.price ?? "0"),
-              origQty: parseFloat(o.origQty ?? "0"),
-              closePosition: o.closePosition === true || o.closePosition === "true",
-              reduceOnly: o.reduceOnly === true || o.reduceOnly === "true",
-              time: o.time,
+
+      // 1. Vị thế thật trên Binance (getAllPositions lấy một lần toàn bộ tài khoản)
+      try {
+        const allPos = await binance.getAllPositions();
+        for (const p of allPos) {
+          positions[p.symbol.toUpperCase()] = p;
+          exposure += Math.abs(p.positionAmt) * p.markPrice;
+          const sLower = p.symbol.toLowerCase();
+          if (!state.some((s) => s.symbol.toLowerCase() === sLower)) {
+            state.push({
+              symbol: sLower,
+              lastOpenTime: 0,
+              cooldownUntilTime: 0,
+              livePos: null,
             });
           }
-        } catch {
-          /* bỏ qua từng symbol lỗi */
+        }
+      } catch {
+        /* fallback nếu getAllPositions lỗi: quét từng symbol trong state */
+        for (const s of state) {
+          try {
+            const p = await binance.getPosition(s.symbol);
+            if (Math.abs(p.positionAmt) > 0) {
+              positions[s.symbol.toUpperCase()] = p;
+              exposure += Math.abs(p.positionAmt) * p.markPrice;
+            }
+          } catch {}
         }
       }
+
+      // 2. Lệnh chờ trên sàn (cả limit lẫn algo STOP_MARKET)
+      try {
+        for (const o of await binance.getOpenOrders()) {
+          orders.push({
+            symbol: o.symbol,
+            type: o.type,
+            side: o.side,
+            stopPrice: parseFloat(o.stopPrice ?? "0"),
+            price: parseFloat(o.price ?? "0"),
+            origQty: parseFloat(o.origQty ?? "0"),
+            closePosition: o.closePosition === true || o.closePosition === "true",
+            reduceOnly: o.reduceOnly === true || o.reduceOnly === "true",
+            time: o.time,
+          });
+        }
+      } catch {}
+      try {
+        for (const o of await binance.getOpenAlgoOrders()) {
+          orders.push({
+            symbol: o.symbol,
+            type: o.orderType ?? o.type ?? "STOP_MARKET",
+            side: o.side,
+            stopPrice: parseFloat(o.triggerPrice ?? o.stopPrice ?? "0"),
+            price: parseFloat(o.price ?? "0"),
+            origQty: parseFloat(o.quantity ?? o.origQty ?? "0"),
+            closePosition: o.closePosition === true || o.closePosition === "true",
+            reduceOnly: o.reduceOnly === true || o.reduceOnly === "true",
+            time: o.createTime ?? o.time ?? Date.now(),
+          });
+        }
+      } catch {}
+
       account = {
         equity: bal.walletBalance,
         available: bal.available,
@@ -231,7 +400,7 @@ async function buildPayload() {
 
   // Tổng risk các vị thế ĐANG mở (theo state bot) so với trần
   const openRiskPct = state.reduce(
-    (s, x) => s + (x.livePos ? execCfg.riskPct * (x.livePos.sizeMult ?? 1) : 0),
+    (s, x) => s + (x.livePos ? (x.livePos.riskUsd && account.equity ? x.livePos.riskUsd / account.equity : execCfg.riskPct * (x.livePos.sizeMult ?? 1)) : 0),
     0
   );
 
@@ -251,7 +420,7 @@ async function buildPayload() {
     openRiskPct,
     symbols: state.map((s) => ({ ...s, exchange: positions[s.symbol.toUpperCase()] ?? null })),
     stats,
-    journal: journal.filter((j) => j.real === true).slice(-30).reverse(), // chỉ lệnh vào thật
+    journal: journal.slice(-40).reverse(), // danh sách nhật ký gần nhất
   };
 }
 
@@ -444,6 +613,22 @@ async function tick(){
         +'<div class="meta">'+(p.qty!=null?'Qty '+p.qty+' · ':'')+'giữ '+dur(d.now-p.entryTime)+' · mở '+tvn(p.entryTime)+'</div>'
         +(ex?'':'<div class="meta" style="color:var(--yel)">⚠ chưa khớp vị thế thật trên sàn</div>')+'</div>';
     }
+    if(s.exchange && Math.abs(s.exchange.positionAmt) > 0){
+      const ex=s.exchange;
+      const dir=ex.positionAmt>0?'long':'short';
+      const cls=dir==='long'?'long':'short';
+      const notional=Math.abs(ex.positionAmt)*ex.markPrice;
+      return '<div class="pos '+cls+'"><div class="row"><span class="sym">'+tag+' <span class="'+(dir==='long'?'lng':'shr')+'">'+dir.toUpperCase()+'</span><span class="pill">trên sàn</span></span>'
+        +'<span class="'+rcls(ex.unrealizedProfit)+'">'+sgn(ex.unrealizedProfit)+'$</span></div>'
+        +'<div class="meta">Entry '+fmt(ex.entryPrice)+' · Mark '+fmt(ex.markPrice)+(ex.liquidationPrice?' · Liq '+fmt(ex.liquidationPrice):'')+'</div>'
+        +'<div class="meta">Notional '+usd(notional)+' · Qty '+fmt(Math.abs(ex.positionAmt),4)+'</div></div>';
+    }
+    if(s.working){
+      const w=s.working;
+      return '<div class="pos" style="border-left:3px solid var(--blu)"><div class="row"><span class="sym">'+tag+' <span class="pill" style="color:var(--blu)">LIMIT '+w.dir.toUpperCase()+'</span></span>'
+        +'<span class="muted">đang chờ khớp</span></div>'
+        +'<div class="meta">Giá đặt '+fmt(w.edge)+' · SL '+fmt(w.stop)+' · TP '+fmt(w.target)+' · Qty '+w.qty+'</div></div>';
+    }
     const cd=s.cooldownUntilTime>d.now?' · cooldown tới '+tvn(s.cooldownUntilTime):'';
     return '<div class="flat"><span class="sym">'+tag+'</span> — flat'+cd+'</div>';
   }).join('');
@@ -467,9 +652,9 @@ async function tick(){
   // ── Nhật ký ──
   document.getElementById('journal').innerHTML='<table><tr><th>Thời gian</th><th>Sự kiện</th><th>Symbol</th><th>Hướng</th><th>Giá</th><th>R</th><th>Giữ</th><th>Lý do</th></tr>'
     +d.journal.map(j=>'<tr><td>'+tvn(j.time)+'</td><td>'+j.event+'</td><td>'+(j.symbol||'').toUpperCase().replace('USDT','/USDT')+'</td><td class="'+(j.dir==='long'?'lng':'shr')+'">'+(j.dir||'')+'</td>'
-      +'<td>'+fmt(j.event==='exit'?j.exitPrice:j.entry)+'</td>'
+      +'<td>'+fmt((j.event==='exit'||j.event==='closed')?j.exitPrice:j.entry)+'</td>'
       +'<td class="'+(j.grossR>=0?'pos-r':'neg-r')+'">'+(j.grossR!=null?sgn(j.grossR,2,'R'):'—')+'</td>'
-      +'<td>'+(j.holdBars!=null?fmt(j.holdBars/96,1)+'d':'—')+'</td>'
+      +'<td>'+(j.holdBars!=null?fmt(j.holdBars/96,1)+'d':(j.openedAt&&j.time?fmt((j.time-j.openedAt)/86400000,1)+'d':'—'))+'</td>'
       +'<td>'+(RICON[j.reason]||j.reason||'')+'</td></tr>').join('')+'</table>';
 }
 tick(); setInterval(tick,5000);

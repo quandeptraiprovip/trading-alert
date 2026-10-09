@@ -217,6 +217,22 @@ export class BinanceFutures {
     };
   }
 
+  /** Lấy TẤT CẢ các vị thế đang mở trên sàn (positionAmt != 0). Một lần gọi cho toàn bộ tài khoản. */
+  async getAllPositions(): Promise<PositionRisk[]> {
+    const arr = await this.signed<any[]>("GET", "/fapi/v2/positionRisk");
+    return arr
+      .filter((p) => Math.abs(parseFloat(p.positionAmt)) > 0)
+      .map((p) => ({
+        symbol: p.symbol,
+        positionAmt: parseFloat(p.positionAmt),
+        entryPrice: parseFloat(p.entryPrice),
+        markPrice: parseFloat(p.markPrice ?? "0"),
+        unrealizedProfit: parseFloat(p.unRealizedProfit ?? p.unrealizedProfit ?? "0"),
+        liquidationPrice: parseFloat(p.liquidationPrice ?? "0"),
+        leverage: parseFloat(p.leverage ?? "0"),
+      }));
+  }
+
   // ── Cấu hình symbol ────────────────────────────────────────────────────────
   async setLeverage(symbol: string, leverage: number): Promise<void> {
     await this.signed("POST", "/fapi/v1/leverage", { symbol: symbol.toUpperCase(), leverage });
@@ -400,12 +416,14 @@ export class BinanceFutures {
     await this.signed("DELETE", "/fapi/v1/algoOpenOrders", { symbol: symbol.toUpperCase() });
   }
 
-  async getOpenOrders(symbol: string): Promise<any[]> {
-    return this.signed<any[]>("GET", "/fapi/v1/openOrders", { symbol: symbol.toUpperCase() });
+  async getOpenOrders(symbol?: string): Promise<any[]> {
+    const params = symbol ? { symbol: symbol.toUpperCase() } : {};
+    return this.signed<any[]>("GET", "/fapi/v1/openOrders", params);
   }
 
-  async getOpenAlgoOrders(symbol: string): Promise<any[]> {
-    return this.signed<any[]>("GET", "/fapi/v1/openAlgoOrders", { symbol: symbol.toUpperCase() });
+  async getOpenAlgoOrders(symbol?: string): Promise<any[]> {
+    const params = symbol ? { symbol: symbol.toUpperCase() } : {};
+    return this.signed<any[]>("GET", "/fapi/v1/openAlgoOrders", params);
   }
 }
 

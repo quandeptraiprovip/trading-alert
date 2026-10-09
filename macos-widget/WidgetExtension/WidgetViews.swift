@@ -131,12 +131,13 @@ struct SmallWidgetView: View {
             case .loaded(let f):
                 VStack(alignment: .leading, spacing: 0) {
                     StatusLine(feed: f)
-                    Spacer(minLength: 8)
+                    Spacer(minLength: 6)
                     Label("Tổng vốn")
-                    Equity(feed: f, size: 26).padding(.top, 4)
-                    Spacer(minLength: 8)
-                    // Mỗi lúc chỉ một lệnh: hiện thẳng lệnh đó, không đếm.
-                    if let p = f.flatPositions.first?.1 {
+                    Equity(feed: f, size: 24).padding(.top, 3)
+                    Spacer(minLength: 6)
+                    if f.flatPositions.isEmpty {
+                        Text("Không có lệnh").font(Typo.text(10)).foregroundColor(Ink.tertiary)
+                    } else if f.flatPositions.count == 1, let p = f.flatPositions.first?.1 {
                         HStack(alignment: .firstTextBaseline, spacing: 5) {
                             Text(p.symbol).font(Typo.text(11, .semibold)).foregroundColor(Ink.primary)
                             Text(p.isLong ? "Long" : "Short")
@@ -146,7 +147,22 @@ struct SmallWidgetView: View {
                                 .font(Typo.num(11, .medium)).foregroundColor(Ink.signed(p.pnl))
                         }
                     } else {
-                        Text("Không có lệnh").font(Typo.text(10)).foregroundColor(Ink.tertiary)
+                        VStack(alignment: .leading, spacing: 3) {
+                            ForEach(Array(f.flatPositions.prefix(2)), id: \.1.id) { _, p in
+                                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                    Text(p.symbol).font(Typo.text(10, .semibold)).foregroundColor(Ink.primary)
+                                    Text(p.isLong ? "L" : "S")
+                                        .font(Typo.text(9, .bold)).foregroundColor(p.isLong ? Ink.up : Ink.down)
+                                    Spacer(minLength: 2)
+                                    Text(Fmt.money(p.pnl, sign: true))
+                                        .font(Typo.num(10, .medium)).foregroundColor(Ink.signed(p.pnl))
+                                }
+                            }
+                            if f.flatPositions.count > 2 {
+                                Text("+\(f.flatPositions.count - 2) lệnh khác")
+                                    .font(Typo.text(8)).foregroundColor(Ink.tertiary)
+                            }
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -177,12 +193,14 @@ struct MediumWidgetView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .overlay(alignment: .topTrailing) { CornerAstronaut(feed: f, size: 64) }
 
-                    Rectangle().fill(Ink.hair).frame(width: 0.5).padding(.horizontal, 16)
+                    Rectangle().fill(Ink.hair).frame(width: 0.5).padding(.horizontal, 12)
 
                     VStack(alignment: .leading, spacing: 0) {
                         Label("Lệnh đang mở")
                         Spacer(minLength: 6)
-                        if let p = f.flatPositions.first?.1 {
+                        if f.flatPositions.isEmpty {
+                            Text("Không có lệnh").font(Typo.text(12)).foregroundColor(Ink.secondary)
+                        } else if f.flatPositions.count == 1, let p = f.flatPositions.first?.1 {
                             HStack(alignment: .firstTextBaseline, spacing: 6) {
                                 Text(p.symbol).font(Typo.text(13, .semibold)).foregroundColor(Ink.primary)
                                 Text(p.isLong ? "Long" : "Short")
@@ -195,10 +213,35 @@ struct MediumWidgetView: View {
                                 .font(Typo.num(10)).foregroundColor(p.stop == nil ? Ink.down : Ink.tertiary)
                                 .padding(.top, 3)
                         } else {
-                            Text("Không có lệnh").font(Typo.text(12)).foregroundColor(Ink.secondary)
+                            VStack(alignment: .leading, spacing: 6) {
+                                ForEach(Array(f.flatPositions.prefix(3)), id: \.1.id) { _, p in
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                            Text(p.symbol).font(Typo.text(11, .semibold)).foregroundColor(Ink.primary)
+                                            Text(p.isLong ? "L" : "S")
+                                                .font(Typo.text(9, .semibold)).foregroundColor(p.isLong ? Ink.up : Ink.down)
+                                            Spacer(minLength: 2)
+                                            Text(Fmt.money(p.pnl, sign: true))
+                                                .font(Typo.num(11, .medium)).foregroundColor(Ink.signed(p.pnl))
+                                        }
+                                        HStack(spacing: 4) {
+                                            if let r = p.r {
+                                                Text(Fmt.r(r)).font(Typo.num(9)).foregroundColor(Ink.tertiary)
+                                            }
+                                            if let d = p.stopDistancePct {
+                                                Text("SL \(Fmt.pct(d))").font(Typo.num(9)).foregroundColor(d < 0.015 ? Ink.warn : Ink.tertiary)
+                                            }
+                                        }
+                                    }
+                                }
+                                if f.flatPositions.count > 3 {
+                                    Text("+\(f.flatPositions.count - 3) lệnh khác")
+                                        .font(Typo.text(9)).foregroundColor(Ink.tertiary)
+                                }
+                            }
                         }
                     }
-                    .frame(width: 100, alignment: .leading)
+                    .frame(width: 116, alignment: .leading)
                     .frame(maxHeight: .infinity, alignment: .topLeading)
                 }
             }
