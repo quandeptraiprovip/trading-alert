@@ -714,7 +714,19 @@ body.is-drawing-shape * {
   font: 700 8px/1 var(--mono);
   letter-spacing: 0.03em;
   white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms ease;
 }
+
+.position-tool:hover .position-zone span,
+.position-tool.is-hovered .position-zone span,
+.position-tool.is-selected .position-zone span,
+.position-tool:focus-within .position-zone span {
+  opacity: 1;
+  visibility: visible;
+}
+
 
 .price-level {
   --level-color: var(--text-soft);
@@ -893,6 +905,19 @@ body.is-drawing-shape * {
   --readonly-opacity: 1;
   z-index: 4;
 }
+
+.readonly-position-tool:hover,
+.readonly-position-tool.is-hovered {
+  z-index: 5;
+}
+
+.readonly-position-tool:hover .readonly-position-zone,
+.readonly-position-tool.is-hovered .readonly-position-zone,
+.readonly-position-tool:hover .readonly-price-level,
+.readonly-position-tool.is-hovered .readonly-price-level {
+  opacity: 1;
+}
+
 
 .readonly-position-zone {
   position: absolute;
@@ -4442,6 +4467,9 @@ body.is-width-dragging * {
   font-weight: 600;
   white-space: nowrap;
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms ease;
 }
 
 .readonly-r-tag.is-win {
@@ -4461,8 +4489,10 @@ body.is-width-dragging * {
   display: flex;
   justify-content: center;
   transform: translateY(-50%);
-  opacity: var(--readonly-opacity);
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms ease;
 }
 
 .readonly-planned-r b {
@@ -4487,8 +4517,10 @@ body.is-width-dragging * {
   display: flex;
   justify-content: center;
   padding: 2px 0;
-  opacity: var(--readonly-opacity);
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms ease;
 }
 
 .readonly-pct-tag b {
@@ -4515,8 +4547,27 @@ body.is-width-dragging * {
 }
 
 .readonly-planned-r[hidden],
-.readonly-pct-tag[hidden] {
-  display: none;
+.readonly-pct-tag[hidden],
+.readonly-r-tag[hidden] {
+  display: none !important;
+}
+
+/* Chỉ hiện % và số R khi đưa chuột vào lệnh trên chart */
+.readonly-position-tool:hover .readonly-r-tag,
+.readonly-position-tool:hover .readonly-planned-r,
+.readonly-position-tool:hover .readonly-pct-tag,
+.readonly-position-tool:has(.readonly-position-zone:hover, .readonly-price-level:hover) .readonly-r-tag,
+.readonly-position-tool:has(.readonly-position-zone:hover, .readonly-price-level:hover) .readonly-planned-r,
+.readonly-position-tool:has(.readonly-position-zone:hover, .readonly-price-level:hover) .readonly-pct-tag,
+.readonly-position-tool.is-hovered .readonly-r-tag,
+.readonly-position-tool.is-hovered .readonly-planned-r,
+.readonly-position-tool.is-hovered .readonly-pct-tag,
+.readonly-position-tool:focus-within .readonly-r-tag,
+.readonly-position-tool:focus-within .readonly-planned-r,
+.readonly-position-tool:focus-within .readonly-pct-tag {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .position-zone span {

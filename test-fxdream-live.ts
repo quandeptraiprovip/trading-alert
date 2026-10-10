@@ -27,6 +27,8 @@ function fixture(base: number, tail: Bar[]): Candle[] {
   for (let i = 0; i < 700; i++) {
     bars.push(i === 100 ? { open: 100.0, high: 100.1, low: 99.0, close: 99.2, volume: 2000 } : BELOW);
   }
+  // Đáy cấu trúc lớn trong cửa sổ quét làm mục tiêu cho lệnh SHORT
+  bars[500] = { open: 99.3, high: 99.5, low: 90.0, close: 99.4 };
   bars.push(
     { open: 99.4, high: 99.9, low: 99.35, close: 99.85 },
     { open: 99.85, high: 100.3, low: 99.8, close: 99.95 },
@@ -178,7 +180,7 @@ async function testNightThinTargetAsks(): Promise<void> {
   const { fx, journal } = await replay(fixture(NIGHT, TAIL), CONFIRM - 1, async (f, id) => {
     asked++;
     await f.decide(id, true);
-  }, undefined, { ...PARAMS, finalTargetR: 0.5 });
+  }, undefined, { ...PARAMS, finalTargetR: 0.5, targetMode: "capped-r" });
   const p = fx.snapshot().proposals[0];
   assert.ok(Math.abs(p.target - p.entry) < Math.abs(p.entry - p.stop), "fixture phải có TP < 1R");
   assert.equal(p.auto, false, "TP < 1R ban đêm không được tự vào");

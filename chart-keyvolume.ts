@@ -485,6 +485,18 @@ function buildStages(
         `${long ? "Đáy" : "Đỉnh"} ${tipPrice == null ? "" : `${fmtPrice(tipPrice)} `}${long ? "cao" : "thấp"} hơn ${top} trước ${fmtPrice(plan.structuralStop)} — cấu trúc đã ${long ? "đi lên" : "đi xuống"}. Pivot ${params.lowerHighPivotBars} nến mỗi bên, xác nhận khi nến bên phải đóng.`,
         barsZone(m15, priorIndex, triggerIndex),
       ));
+      const unit = atr[triggerIndex] > 0 ? atr[triggerIndex] : 0;
+      const distAtr = unit > 0 ? Math.abs(trade.entryPrice - key.price) / unit : 0;
+      signals.push(makeSo(
+        "Khoảng cách tới key",
+        `${num(distAtr, 1)} ATR`,
+        distAtr,
+        params.lowerHighMaxKeyAtr,
+        "lte",
+        `≤ ${num(params.lowerHighMaxKeyAtr, 1)} ATR`,
+        `Giá vào ${fmtPrice(trade.entryPrice)} cách key ${fmtPrice(key.price)} ${num(distAtr, 1)} ATR (trần ${num(params.lowerHighMaxKeyAtr, 1)} ATR). Giá chạy quá xa key thì coi như phản ứng đã kết thúc.`,
+        keyLine,
+      ));
     }
 
     if (trap && plan) {
@@ -713,12 +725,14 @@ function buildStages(
       "Dư địa tới mục tiêu",
       `${num(targetR)}R`,
       targetR,
-      lowerHighLimit ? 0 : params.minRR,
+      lowerHighLimit ? Math.min(1.0, params.minRR) : params.minRR,
       "gte",
-      lowerHighLimit ? "không đòi tối thiểu" : `≥ ${num(params.minRR, 1)}R`,
-      key
-        ? `Mục tiêu là key đối diện gần nhất, ${fmtPrice(trade.target)}. Không có key đối diện thì bỏ setup.`
-        : `Quét thanh khoản bên này thì chạy sang cụm bên kia — ${fmtPrice(trade.target)}.`,
+      lowerHighLimit ? "≥ 1,0R (an toàn phí)" : `≥ ${num(params.minRR, 1)}R`,
+      lowerHighLimit
+        ? `Mục tiêu là cụm thanh khoản / cấu trúc ${long ? "đỉnh" : "đáy"} đối diện (5 ngày), ${fmtPrice(trade.target)}.`
+        : key
+          ? `Mục tiêu là key đối diện gần nhất, ${fmtPrice(trade.target)}. Không có key đối diện thì bỏ setup.`
+          : `Quét thanh khoản bên này thì chạy sang cụm bên kia — ${fmtPrice(trade.target)}.`,
       { kind: "level", startTime: trade.entryTime, endTime: trade.exitTime, priceA: trade.target },
     ),
   ];

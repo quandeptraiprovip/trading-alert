@@ -232,6 +232,13 @@ export interface KeyVolumeParams {
   volumeLookback: number;
   volumeSpikeMult: number;
   /**
+   * Bộ lọc nến đối kháng (opposing volume spike): trong `opposingLookbackBars` nến
+   * sau nến key, nếu có nến ngược chiều với volume >= `opposingVolumeRatio` × volume key
+   * thì huỷ bỏ key (phân phối / bẫy giá). Đặt 0 để tắt.
+   */
+  opposingLookbackBars?: number;
+  opposingVolumeRatio?: number;
+  /**
    * Key chỉ có hiệu lực sau chu trình RỜI -> CHẠM LẠI -> BẬT RA (xem đầu file).
    * Rời >= `keyMatureAwayAtr` ATR, bật (giá đóng) >= `keyMatureBounceAtr` ATR
    * trong `keyMatureBars` nến kể từ nến chạm. "Chạm" dùng cùng dung sai
@@ -312,6 +319,12 @@ export interface KeyVolumeParams {
   enableLowerHighBranch: boolean;
   lowerHighPivotBars: number;
   lowerHighTouchBars: number;
+  /**
+   * Đề xuất 1 (user 10/10/26): khoảng cách tối đa (tính theo ATR M15) từ điểm vào
+   * hoặc đỉnh/đáy swing tới Key. Nếu giá đã chạy quá xa Key (> lowerHighMaxKeyAtr),
+   * coi như phản ứng tại Key đã kết thúc, không mở chuỗi hoặc không nhận đỉnh/đáy đó.
+   */
+  lowerHighMaxKeyAtr: number;
   /**
    * Cửa sổ M15 của NHÁNH 1, dùng cho cả hai đầu: đỉnh/đáy bị quét, và cụm
    * thanh khoản đối diện làm mục tiêu. 480 nến = NĂM ngày.
@@ -423,6 +436,9 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   // 0,10 — dày 122 lần, 2.247 key sống cùng lúc, và 93% điểm (thời gian, giá)
   // TUỲ Ý cũng "có key ở gần". ×4 kéo về 2,28 key/ngày và sàn nhiễu 59,2%.
   volumeSpikeMult: 4,
+  // Đề xuất 1 (user 10/10/26): nến đối kháng có volume >= 75% trong 4 nến sau thì huỷ key.
+  opposingLookbackBars: 4,
+  opposingVolumeRatio: 0.75,
   // Luật "chín" của user: rời 1 ATR -> chạm lại -> đóng bật 1 ATR trong 6 nến,
   // đúng bộ số đã đo ở scripts/exp-key-reaction.ts.
   requireKeyMaturation: true,
@@ -475,6 +491,7 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   enableLowerHighBranch: true,
   lowerHighPivotBars: 1,
   lowerHighTouchBars: 4,
+  lowerHighMaxKeyAtr: 2.5,
   // 5 ngày M15 = 480 nến; mức bị quét phải sạch 1 ngày (96 nến) về phía trước.
   sweepLookback: 480,
   sweepProminenceBars: 96,
@@ -920,6 +937,25 @@ export function detectKeyVolumeLevels(
       && Math.abs(swing.price - price) <= params.keyReactionAtr * atr[event],
     ).length;
     if (historicalReactions < params.minKeyReactions) continue;
+
+    // Đề xuất 1: nến đối kháng (opposing volume spike) xuất hiện ngay sau nến key
+    if (params.opposingLookbackBars && params.opposingLookbackBars > 0) {
+      const opposingRatio = params.opposingVolumeRatio ?? 0.75;
+      const keyIsBull = candles[event].close >= candles[event].open;
+      const keyVol = quoteVolume(candles[event]);
+      let hasOpposingSpike = false;
+      const checkEnd = Math.min(candles.length, event + 1 + params.opposingLookbackBars);
+      for (let j = event + 1; j < checkEnd; j++) {
+        const isOpposingCandle = keyIsBull
+          ? candles[j].close < candles[j].open
+          : candles[j].close > candles[j].open;
+        if (isOpposingCandle && quoteVolume(candles[j]) >= opposingRatio * keyVol) {
+          hasOpposingSpike = true;
+          break;
+        }
+      }
+      if (hasOpposingSpike) continue;
+    }
 
     const confirmedAt = candles[event + half].openTime + tfMs;
     levels.push({
@@ -1960,9 +1996,15 @@ function buildEntryPlans(
             // Lệnh chờ phải nằm đúng phía key (SHORT dưới key — key làm cản; LONG trên),
             // và là LIMIT thật: SHORT treo TRÊN giá lúc đặt, LONG treo DƯỚI. Mép đã bị
             // giá vượt qua thì lệnh chờ thành lệnh thị trường — bỏ.
+            // Đề xuất 1: mép OB và đỉnh/đáy swing không được cách xa key quá lowerHighMaxKeyAtr.
+            const maxKeyDist = params.lowerHighMaxKeyAtr * atr15[i];
+            const distOk = block != null
+              && Math.abs(edge - key.price) <= maxKeyDist
+              && Math.abs(extreme - key.price) <= maxKeyDist;
             const sideOk = block != null
               && (direction === "short" ? edge < key.price : edge > key.price)
-              && (direction === "short" ? edge > trigger.close : edge < trigger.close);
+              && (direction === "short" ? edge > trigger.close : edge < trigger.close)
+              && distOk;
             // Kế hoạch ở nến CUỐI vẫn được sinh (`readyIndex` = ngay sau dữ liệu): backtest
             // không bao giờ chạm tới nó, còn bot live cần đúng nó để đặt lệnh chờ.
             if (block && sideOk && !emitted.has(direction)) {
@@ -1988,7 +2030,9 @@ function buildEntryPlans(
                   obEntryEdge: edge,
                   structuralStop: chain.price,
                   patternStop: chain.price,
-                  sweepTarget: null,
+                  sweepTarget: direction === "long"
+                    ? rangeMax(confirm, Math.max(0, i - params.sweepLookback), i, "high")
+                    : rangeMin(confirm, Math.max(0, i - params.sweepLookback), i, "low"),
                   sweepBreakTime: null,
                   priorExtremeTime: confirm[chain.index].openTime,
                   triggerVolumeRatio,
@@ -1997,7 +2041,10 @@ function buildEntryPlans(
                 diagnostics.lowerHighPlans++;
               }
             }
-            chains[direction] = { price: extreme, index: pivot };
+            // Đề xuất 2: Phản ứng tại key chỉ tạo duy nhất 1 nhịp xác nhận (Pivot 1 -> Pivot 2).
+            // Tiêu thụ chuỗi để không nối tiếp sang Pivot 3, 4, 5... khi giá đã đi xa.
+            // Để có lệnh mới, giá phải quay lại chạm Key.
+            chains[direction] = undefined;
           } else {
             let touched = false;
             for (let j = Math.max(0, pivot - params.lowerHighTouchBars); j <= pivot && !touched; j++) {
@@ -2182,13 +2229,24 @@ function planTarget(
   levels: KeyVolumeLevel[],
   time: number,
   entry: number,
+  risk?: number,
 ): number | null {
-  const price = plan.branch === "sweep-reclaim"
-    ? plan.sweepTarget
-    : nearestOpposingTarget(levels, time, plan.direction, entry);
-  if (price == null) return null;
-  const ahead = plan.direction === "long" ? price > entry : price < entry;
-  return ahead ? price : null;
+  const dir = plan.direction;
+  const isAhead = (p: number) => (dir === "long" ? p > entry : p < entry);
+
+  if (plan.branch === "sweep-reclaim") {
+    const p = plan.sweepTarget;
+    if (p == null) return null;
+    return isAhead(p) ? p : null;
+  }
+
+  // Giải pháp 2 (user 10/10/26): nhánh 4 nhắm cụm thanh khoản đối diện (đáy/đỉnh cấu trúc 5 ngày)
+  // thay vì bị kẹp vào key M15 vụn gần entry.
+  if (plan.branch === "key-lower-high" && plan.sweepTarget != null && isAhead(plan.sweepTarget)) {
+    return plan.sweepTarget;
+  }
+
+  return nearestOpposingTarget(levels, time, plan.direction, entry);
 }
 
 export function resolveTargetR(
@@ -2371,10 +2429,10 @@ export function resolveEntryLevels(
     || risk / entry > params.maxStopPct
     || (dir === "long" ? stop <= 0 || stop >= entry : stop <= entry)
   ) return { ok: false, reason: "risk" };
-  const opposing = planTarget(plan, levels, time, entry);
+  const opposing = planTarget(plan, levels, time, entry, risk);
   const opposingR = opposing == null ? Infinity : Math.abs(opposing - entry) / risk;
-  // User 04/10/26: nhánh 4 không đòi dư địa tối thiểu — vẫn nhắm key đối diện.
-  const minRR = plan.branch === "key-lower-high" ? 0 : params.minRR;
+  // Giải pháp 2 (user 10/10/26): nhánh 4 nhắm cụm thanh khoản đối diện, sàn an toàn phí 1R (hoặc theo params.minRR nếu được cấu hình nhỏ hơn).
+  const minRR = plan.branch === "key-lower-high" ? Math.min(1.0, params.minRR) : params.minRR;
   if ((opposing == null && params.requireStructuralTarget) || opposingR < minRR) return { ok: false, reason: "room" };
   const targetR = resolveTargetR(opposing == null ? null : opposingR, params);
   return { ok: true, stop, target: dir === "long" ? entry + targetR * risk : entry - targetR * risk, risk };

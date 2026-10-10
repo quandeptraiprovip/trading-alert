@@ -4462,6 +4462,16 @@ function bindEvents() {
   dom.positionPlacementLayer.addEventListener("keydown", placePositionOnChart);
   dom.draftOrderList.addEventListener("click", handleDraftListClick);
   dom.orderLevels.addEventListener("click", handleOrderToolClick);
+  dom.orderLevels.addEventListener("pointerover", (event) => {
+    const tool = event.target.closest(".readonly-position-tool, .position-tool");
+    if (tool) tool.classList.add("is-hovered");
+  });
+  dom.orderLevels.addEventListener("pointerout", (event) => {
+    const tool = event.target.closest(".readonly-position-tool, .position-tool");
+    if (tool && (!event.relatedTarget || !tool.contains(event.relatedTarget))) {
+      tool.classList.remove("is-hovered");
+    }
+  });
   dom.orderLevels.addEventListener("pointerdown", beginLevelDrag);
   dom.orderLevels.addEventListener("pointerdown", beginPositionWidthDrag);
   dom.orderLevels.addEventListener("keydown", adjustLevelWithKeyboard);

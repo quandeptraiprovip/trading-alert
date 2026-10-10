@@ -2124,6 +2124,31 @@ function testLowerHighNeedsARealLimit(): void {
   assert.equal(result.diagnostics.lowerHighPlans, 0, "nến xác nhận đóng 99,35 trên mép 99,3");
 }
 
+/** Đề xuất 1: Đỉnh/đáy swing hoặc mép OB quá xa key (> lowerHighMaxKeyAtr) thì không vào lệnh. */
+function testLowerHighMaxKeyAtrDistanceLimit(): void {
+  const bars = buildLowerHighFixture(99.15);
+  // Với cấu hình mặc định (2.5 ATR), khoảng cách 0.7 giá hợp lệ -> sinh kế hoạch.
+  const normal = runKeyVolume("synthetic", bars, LOWER_HIGH_OVERRIDES);
+  assert.equal(normal.diagnostics.lowerHighPlans, 1);
+
+  // Khi siết khoảng cách tối đa rất nhỏ (0.1 ATR ~ 0.07 giá), khoảng cách 0.7 giá bị loại.
+  const tight = runKeyVolume("synthetic", bars, { ...LOWER_HIGH_OVERRIDES, lowerHighMaxKeyAtr: 0.1 });
+  assert.equal(tight.diagnostics.lowerHighPlans, 0, "quá xa key (> 0.1 ATR) thì không sinh kế hoạch");
+}
+
+/** Đề xuất 2: Chỉ nhận duy nhất 1 lần xác nhận (Pivot 1 -> Pivot 2), không daisy-chain sang Pivot 3, 4. */
+function testLowerHighSingleConfirmationNoDaisyChain(): void {
+  const bars = buildLowerHighFixture(99.15);
+  // Thêm một đỉnh thứ 3 (Pivot 3) thấp hơn nữa:
+  pushM15(bars, { open: 98.5, high: 98.8, low: 98.4, close: 98.7, volume: 100 }); // OB nến xanh thứ 2
+  pushM15(bars, { open: 98.7, high: 98.75, low: 98.0, close: 98.1, volume: 100 }); // xác nhận đỉnh 3 (98.8 < 99.75)
+  pushM15(bars, { open: 98.1, high: 98.2, low: 98.0, close: 98.15, volume: 100 });
+
+  const result = runKeyVolume("synthetic", bars, LOWER_HIGH_OVERRIDES);
+  // Chỉ có 1 kế hoạch duy nhất ở Pivot 2, Pivot 3 không được nối dây:
+  assert.equal(result.diagnostics.lowerHighPlans, 1, "chỉ 1 kế hoạch duy nhất, không nối chuỗi vô hạn sang Pivot 3");
+}
+
 function testKeyTrapMirrorsToLong(): void {
   const bars = buildTrapFixture([TRAP_ABOVE, TRAP_PEAK, TRAP_ABOVE, TRAP_ABOVE], TRAP_BACK)
     .map((bar) => ({ ...bar, open: 200 - bar.open, high: 200 - bar.low, low: 200 - bar.high, close: 200 - bar.close }));
@@ -2136,6 +2161,49 @@ function testKeyTrapMirrorsToLong(): void {
   assert.ok(trade);
   assert.equal(trade.entryPrice, 100.5);
   assert.ok(trade.initialSL < 99.0);
+}
+/** Đề xuất 1: nến đối kháng có volume >= 75% trong 4 nến sau nến key thì huỷ key. */
+function testOpposingVolumeSpikeCancelsKey(): void {
+  const m15 = TF_MS["15m"];
+  const params = {
+    ...KEY_VOLUME_CONFIG,
+    volumeLookback: 12,
+    volumeSpikeMult: 2,
+    opposingLookbackBars: 4,
+    opposingVolumeRatio: 0.75,
+  };
+  const baseBars: Candle[] = [
+    candle(0, 100, 101, 99, 100, 100, m15),
+    candle(1, 100, 101, 99, 100, 100, m15),
+    candle(2, 100, 101, 99, 100, 100, m15),
+    candle(3, 100, 101, 99, 100, 100, m15),
+    candle(4, 100, 101, 99, 100, 100, m15),
+    candle(5, 100, 101, 99, 100, 100, m15),
+    // Nến sự kiện (6): nến xanh tăng mạnh (100 -> 105), vol 1000
+    candle(6, 100, 106, 99, 105, 1000, m15),
+    candle(7, 105, 107, 104, 106, 200, m15),
+    candle(8, 106, 108, 105, 107, 200, m15),
+    candle(9, 107, 108, 105, 106, 200, m15),
+    candle(10, 106, 107, 101, 102, 200, m15), // nến đỏ nhưng vol nhỏ (200 < 750)
+    candle(11, 102, 103, 101, 102, 100, m15),
+    candle(12, 102, 103, 101, 102, 100, m15),
+  ];
+
+  // TH1: Volume nến đỏ sau key chỉ là 200 (< 75% của 1000) -> Key ĐƯỢC GIỮ.
+  const levelsNormal = detectKeyVolumeLevels(baseBars, "15m", params);
+  assert.equal(levelsNormal.length, 1);
+  assert.equal(levelsNormal[0].eventTime, baseBars[6].openTime);
+
+  // TH2: Tại nến 10 (trong vòng 4 nến), xuất hiện nến đỏ (bear) với volume 800 (>= 75% của 1000)
+  // -> Key BỊ HUỶ.
+  const barsWithOpposing = [...baseBars];
+  barsWithOpposing[10] = candle(10, 106, 107, 101, 102, 800, m15);
+  const levelsRejected = detectKeyVolumeLevels(barsWithOpposing, "15m", params);
+  assert.equal(levelsRejected.length, 0, "Key phải bị huỷ khi có nến đỏ volume >= 75% xuất hiện sau đó");
+
+  // TH3: Nếu tắt bộ lọc (opposingLookbackBars = 0) -> Key được giữ lại.
+  const levelsWithFilterOff = detectKeyVolumeLevels(barsWithOpposing, "15m", { ...params, opposingLookbackBars: 0 });
+  assert.equal(levelsWithFilterOff.length, 1, "Khi tắt bộ lọc opposingLookbackBars=0 thì key được giữ");
 }
 
 testMedians();
@@ -2195,4 +2263,7 @@ testKeyTrapMirrorsToLong();
 testActiveKeyCapPushesOutOldest();
 testLowerHighAfterKeyReaction();
 testLowerHighNeedsARealLimit();
+testLowerHighMaxKeyAtrDistanceLimit();
+testLowerHighSingleConfirmationNoDaisyChain();
+testOpposingVolumeSpikeCancelsKey();
 console.log("Key Volume tests: OK");
