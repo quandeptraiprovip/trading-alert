@@ -11,7 +11,7 @@
  *
  * Chạy: npx ts-node scripts/exp-keyvol-gold.ts
  */
-import { KEY_VOLUME_CONFIG, KeyVolumeTrade, runKeyVolume } from "../key-volume";
+import { KEY_VOLUME_CONFIG, KeyVolumeTrade, runKeyVolume, keyVolumeParamsFor } from "../key-volume";
 import { fetchFuturesKlinesPaged } from "../kline-fetch";
 import { goldClosedNy } from "../market-hours";
 
@@ -51,7 +51,7 @@ function line(label: string, ts: KeyVolumeTrade[]): string {
 async function runOne(symbol: string, dropClosed = false): Promise<KeyVolumeTrade[]> {
   const raw = await fetchFuturesKlinesPaged(symbol, "15m", BARS);
   const c = raw.filter((k) => k.openTime >= XAU_LISTED - 8 * 86_400_000 && !(dropClosed && goldClosedNy(k.openTime)));
-  const res = runKeyVolume(symbol, c, KEY_VOLUME_CONFIG);
+  const res = runKeyVolume(symbol, c, keyVolumeParamsFor(symbol));
   console.log(`${symbol.toUpperCase()}: ${c.length} nến M15 từ ${new Date(c[0].openTime).toISOString().slice(0, 10)}`
     + ` · key chín ${res.diagnostics.keysMatured}${res.openTrade ? " · còn 1 lệnh mở (không tính)" : ""}`);
   return res.trades.filter((t) => t.entryTime >= XAU_LISTED + 7 * 86_400_000);

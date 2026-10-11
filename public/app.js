@@ -385,6 +385,13 @@ const dom = {
   evidenceRisk: document.querySelector("#evidence-risk"),
   evidenceRoom: document.querySelector("#evidence-room"),
   evidenceHold: document.querySelector("#evidence-hold"),
+  fxdreamNavTabs: [...document.querySelectorAll("[data-fxdream-tab]")],
+  fxdreamTabTradesBadge: document.querySelector("#fxdream-tab-trades-badge"),
+  fxdreamTabEvidenceDot: document.querySelector("#fxdream-tab-evidence-dot"),
+  fxdreamTabKeyjudgeBadge: document.querySelector("#fxdream-tab-keyjudge-badge"),
+  evidenceBackBtn: document.querySelector("#evidence-back-btn"),
+  keyjudgeBackBtn: document.querySelector("#keyjudge-back-btn"),
+  evidenceRulerSlot: document.querySelector("#evidence-ruler-slot"),
 };
 
 const state = {
@@ -446,6 +453,7 @@ const state = {
   layerMenuOpen: false,
   symbolMenuOpen: false,
   sideView: "fxdream",
+  fxdreamSubView: "trades",
   tickers: new Map(),
 };
 
@@ -1053,6 +1061,33 @@ function setSideView(view) {
     const active = button.dataset.sideView === view;
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-pressed", String(active));
+  }
+}
+
+function setFxdreamSubView(view) {
+  state.fxdreamSubView = view;
+  const sideFxdream = document.querySelector(".side-fxdream");
+  if (sideFxdream) {
+    sideFxdream.dataset.fxdreamView = view;
+  }
+  for (const tab of dom.fxdreamNavTabs) {
+    const active = tab.dataset.fxdreamTab === view;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+  }
+  updateFxdreamSubViewBadges();
+}
+
+function updateFxdreamSubViewBadges() {
+  if (dom.fxdreamTabTradesBadge) {
+    const count = state.keyVolume ? visibleFxdreamEntries().length : 0;
+    dom.fxdreamTabTradesBadge.textContent = String(count);
+  }
+  if (dom.fxdreamTabEvidenceDot) {
+    dom.fxdreamTabEvidenceDot.hidden = !state.evidenceTrade;
+  }
+  if (dom.fxdreamTabKeyjudgeBadge) {
+    dom.fxdreamTabKeyjudgeBadge.textContent = String(state.keyVerdicts.length);
   }
 }
 
@@ -1983,13 +2018,17 @@ function renderFxdreamCard(entry) {
           ${entry.dir === "long" ? "LONG" : "SHORT"}
         </span>
         <span class="fxdream-branch">${escapeHtml(meta.tag)}</span>
+        ${entry.status === "open" ? '<b class="fxdream-open">● ĐANG MỞ</b>' : ""}
         <span class="fxdream-r ${win ? "is-win" : "is-loss"}">${escapeHtml(formatR(Number(entry.resultR)))}</span>
       </span>
-      <span class="fxdream-when">${entry.status === "open" ? '<b class="fxdream-open">● ĐANG MỞ</b> · ' : ""}${escapeHtml(formatOrderTime(entry.entryTime))} · ${escapeHtml(fxdreamHoldLabel(entry))}</span>
-      ${fxdreamRulerSvg(entry)}
-      <span class="fxdream-key">${escapeHtml(fxdreamKeyLine(entry))}</span>
-      <span class="fxdream-exit ${win ? "is-win" : "is-loss"}">${escapeHtml(entry.exitReasonLabel)}</span>
-      <span class="fxdream-dots"><span class="evidence-segs">${segs}</span><em>${failedStage ? `hỏng ở ${escapeHtml(failedStage.title.toLowerCase())}` : "đủ bốn chặng"}</em></span>
+      <span class="fxdream-card-row">
+        <span class="fxdream-when">${escapeHtml(formatOrderTime(entry.entryTime))} · ${escapeHtml(fxdreamHoldLabel(entry))}</span>
+        <span class="fxdream-dots"><span class="evidence-segs">${segs}</span><em>${failedStage ? escapeHtml(failedStage.title.toLowerCase()) : "đủ 4 chặng"}</em></span>
+      </span>
+      <span class="fxdream-card-foot">
+        <span class="fxdream-exit ${win ? "is-win" : "is-loss"}">${escapeHtml(entry.exitReasonLabel)}</span>
+        <span class="fxdream-key-hint">${escapeHtml(fxdreamKeyLine(entry))}</span>
+      </span>
     </button>`;
 }
 
@@ -2001,6 +2040,7 @@ function renderFxdreamRail() {
     dom.fxdreamCount.textContent = kv ? `${entries.length} lệnh · ${kv.days} ngày` : "— lệnh";
   }
   dom.fxdreamCardList.innerHTML = entries.map(renderFxdreamCard).join("");
+  updateFxdreamSubViewBadges();
   if (entries.length) {
     dom.fxdreamRailEmpty.hidden = true;
     return;
@@ -2084,6 +2124,7 @@ function focusKeyVolumeEntry(entry) {
     side: entry.dir,
     branchTag: meta.tag,
     usesKey: meta.usesKey,
+    rawEntry: entry,
     // Lệnh đang mở: thẻ bằng chứng ghi "đang mở", R tạm tính nằm ở chặng Kết thúc.
     resultR: entry.status === "open" ? null : Number(entry.resultR),
     riskPct: risk > 0 ? (risk / Number(entry.entryPrice)) * 100 : null,
@@ -2146,6 +2187,7 @@ function selectKeyLevel(keyId) {
   if (state.selectedKeyId === keyId) return;
   state.selectedKeyId = keyId;
   setSideView("fxdream");
+  setFxdreamSubView("keyjudge");
   renderKeyJudgeCard();
   scheduleOverlayRender(KEYVOL_OVERLAY);
 }
@@ -2228,6 +2270,7 @@ function showKeyJudgeProgress() {
 function renderKeyJudgeCard() {
   if (!dom.keyjudgeCard) return;
   showKeyJudgeProgress();
+  updateFxdreamSubViewBadges();
   const level = selectedKeyLevel();
   dom.keyjudgeCard.classList.toggle("is-empty", !level);
   dom.keyjudgeEmpty.hidden = !!level;
@@ -2264,11 +2307,13 @@ function renderKeyJudgeCard() {
 
 function showEvidence(trade) {
   setSideView("fxdream");
+  setFxdreamSubView("evidence");
   state.evidencePinned = null;
   state.evidenceTrade = trade;
   state.evidenceHover = null;
   renderEvidenceCard();
   renderKeyVolumeTable();
+  updateFxdreamSubViewBadges();
   scheduleOverlayRender(KEYVOL_OVERLAY | EVIDENCE_OVERLAY);
 }
 
@@ -2276,6 +2321,8 @@ function clearEvidence() {
   state.evidenceTrade = null;
   state.evidenceHover = null;
   renderEvidenceCard();
+  updateFxdreamSubViewBadges();
+  setFxdreamSubView("trades");
   scheduleOverlayRender(KEYVOL_OVERLAY | EVIDENCE_OVERLAY);
 }
 
@@ -2340,9 +2387,22 @@ function renderEvidenceCard() {
     if (dom.evidenceIdentity) dom.evidenceIdentity.hidden = true;
     if (dom.evidenceMetrics) dom.evidenceMetrics.hidden = true;
     if (dom.evidenceChain) dom.evidenceChain.hidden = true;
+    if (dom.evidenceRulerSlot) {
+      dom.evidenceRulerSlot.innerHTML = "";
+      dom.evidenceRulerSlot.hidden = true;
+    }
     return;
   }
   renderEvidenceIdentity(trade);
+  if (dom.evidenceRulerSlot) {
+    if (trade?.rawEntry) {
+      dom.evidenceRulerSlot.innerHTML = fxdreamRulerSvg(trade.rawEntry);
+      dom.evidenceRulerSlot.hidden = false;
+    } else {
+      dom.evidenceRulerSlot.innerHTML = "";
+      dom.evidenceRulerSlot.hidden = true;
+    }
+  }
 
   // Không có chặng (lệnh Turtle/Fast) thì dồn hết vào một chặng không tên —
   // một đường vẽ duy nhất, không rẽ nhánh trong template.
@@ -4608,6 +4668,16 @@ function bindEvents() {
     button.addEventListener("click", () => setStrategyFilter(button.dataset.strategyFilter));
   }
 
+  for (const tab of dom.fxdreamNavTabs) {
+    tab.addEventListener("click", () => setFxdreamSubView(tab.dataset.fxdreamTab));
+  }
+  if (dom.evidenceBackBtn) {
+    dom.evidenceBackBtn.addEventListener("click", () => setFxdreamSubView("trades"));
+  }
+  if (dom.keyjudgeBackBtn) {
+    dom.keyjudgeBackBtn.addEventListener("click", () => setFxdreamSubView("trades"));
+  }
+
   window.addEventListener("pagehide", flushDraftPlanPersistence);
 }
 
@@ -4691,6 +4761,7 @@ function bootstrap() {
   bindEvents();
   renderLayerMenu();
   renderFxdreamRail();
+  setFxdreamSubView(state.fxdreamSubView);
   loadOrders();
   updateChartViewControls();
   updatePositionPlacementControls();

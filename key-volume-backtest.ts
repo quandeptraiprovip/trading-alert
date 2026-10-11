@@ -15,6 +15,7 @@ import {
   KeyVolumeDiagnostics,
   KeyVolumeTrade,
   runKeyVolume,
+  keyVolumeParamsFor,
 } from "./key-volume";
 import { fetchKlinesPaged } from "./kline-fetch";
 import { Candle, CONFIG, TF_MS, aggregate } from "./types";
@@ -311,7 +312,7 @@ async function main(): Promise<void> {
   for (const [symbol, base] of baseBySymbol) {
     const m15 = closedOnly(aggregate(base, "15m", "5m"), "15m", periodEnd);
     // Key Volume chạy trọn trên M15.
-    const keyVolume = runKeyVolume(symbol, m15, keyVolumeConfig);
+    const keyVolume = runKeyVolume(symbol, m15, keyVolumeParamsFor(symbol, keyVolumeConfig));
     keyVolumeTrades.push(...keyVolume.trades);
     diagnostics.push(keyVolume.diagnostics);
   }

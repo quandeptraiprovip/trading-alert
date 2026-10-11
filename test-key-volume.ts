@@ -1108,6 +1108,10 @@ function testMinStopPct(): void {
   assert.equal(keyVolumeParamsFor("XAUUSDT").minStopPct, 0);
   assert.equal(keyVolumeParamsFor("xauusdt").minStopPct, 0);
   assert.equal(keyVolumeParamsFor("BTCUSDT").minStopPct, 0.002);
+  assert.equal(keyVolumeParamsFor("XAUUSDT").sweepVolumeSpikeMult, 2.5);
+  assert.equal(keyVolumeParamsFor("XAUUSDT").sweepRetestVolumeMult, 1.5);
+  assert.equal(keyVolumeParamsFor("BTCUSDT").sweepVolumeSpikeMult, 0);
+  assert.equal(keyVolumeParamsFor("BTCUSDT").sweepRetestVolumeMult, 0);
   assert.equal(
     resolveEntryLevels({ ...plan, structuralStop: 99.85 }, [], 100, 0, 0, keyVolumeParamsFor("XAUUSDT")).ok,
     true,
@@ -1648,6 +1652,10 @@ function testSlowSweepReturn(): void {
   assert.equal(plan.obLow, 99.4);
   assert.equal(plan.obHigh, 99.8);
   assert.equal(plan.sweepTarget, 101.0, "TP là đỉnh của cùng cửa sổ cho ra mức bị quét");
+
+  // Khi đòi volume spike (sweepVolumeSpikeMult = 3), nến volume ngang nền sẽ bị loại:
+  const lowVolResult = runKeyVolume("synthetic", run, { ...SWEEP_OVERRIDES, sweepVolumeSpikeMult: 3 });
+  assert.equal(lowVolResult.plans.filter((p) => p.branch === "sweep-reclaim").length, 0, "volume thấp bị loại khi đòi spike");
 
   // Một nến đóng lại vào trong rồi giá thủng tiếp là cú quét MỚI, không nối dài cú cũ:
   // nến đóng lại kết thúc đoạn nằm ngoài.

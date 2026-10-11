@@ -3477,6 +3477,41 @@ body.is-width-dragging * {
   font-style: normal;
 }
 
+.fxdream-card-row,
+.fxdream-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  min-width: 0;
+}
+
+.fxdream-card-row .fxdream-when,
+.fxdream-card-row .fxdream-dots {
+  margin-top: 0;
+}
+
+.fxdream-card-foot {
+  font-size: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 4px;
+}
+
+.fxdream-card-foot .fxdream-exit {
+  margin-top: 0;
+}
+
+.fxdream-key-hint {
+  color: var(--muted);
+  font: 500 10px/1.2 var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  flex: 1 1 auto;
+}
+
 .fxdream-rail-empty {
   display: flex;
   align-items: center;
@@ -4679,23 +4714,161 @@ body.is-width-dragging * {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
+  min-height: 0;
 }
 
-.fxdream-rail {
+.fxdream-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.fxdream-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--text-soft);
+  font: 600 11.5px/1 var(--sans);
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms ease;
+  border: 1px solid transparent;
+}
+
+.fxdream-nav-tab:hover {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.fxdream-nav-tab.is-active {
+  color: #f0f3fa;
+  background: rgba(41, 98, 255, 0.14);
+  border-color: rgba(41, 98, 255, 0.35);
+}
+
+.fxdream-tab-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font: 600 10px/1.2 var(--mono);
+}
+
+.fxdream-nav-tab.is-active .fxdream-tab-badge {
+  background: rgba(41, 98, 255, 0.25);
+  color: #82b1ff;
+}
+
+.fxdream-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.evidence-head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.evidence-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font: 600 11px var(--sans);
+  cursor: pointer;
+  transition: all 120ms ease;
+  flex: none;
+}
+
+.evidence-back-btn:hover {
+  background: rgba(41, 98, 255, 0.16);
+  border-color: var(--blue);
+  color: #82b1ff;
+}
+
+.evidence-back-btn svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+.evidence-ruler-slot {
+  margin: 4px 0 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.evidence-ruler-slot .fxdream-ruler {
+  width: 100%;
+  height: 38px;
+  display: block;
+}
+
+.side-fxdream[data-fxdream-view="trades"] .fxdream-rail {
   display: grid;
   min-width: 0;
   min-height: 0;
-  flex: 1 1 46%;
+  flex: 1 1 100%;
   grid-template-rows: auto minmax(0, 1fr) auto auto;
 }
 
-.side-evidence {
+.side-fxdream[data-fxdream-view="trades"] .side-evidence {
+  display: none !important;
+}
+
+.side-fxdream[data-fxdream-view="evidence"] .fxdream-rail,
+.side-fxdream[data-fxdream-view="keyjudge"] .fxdream-rail {
+  display: none !important;
+}
+
+.side-fxdream[data-fxdream-view="evidence"] .side-evidence,
+.side-fxdream[data-fxdream-view="keyjudge"] .side-evidence {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  flex: 1 1 54%;
+  flex: 1 1 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 10px 12px 14px;
-  border-top: 4px solid var(--canvas);
+  border-top: none;
+}
+
+.side-fxdream[data-fxdream-view="evidence"] .keyjudge-card {
+  display: none !important;
+}
+
+.side-fxdream[data-fxdream-view="evidence"] .evidence-card {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.side-fxdream[data-fxdream-view="keyjudge"] .evidence-card {
+  display: none !important;
+}
+
+.side-fxdream[data-fxdream-view="keyjudge"] .keyjudge-card {
+  display: flex;
+  flex: 1 1 auto;
 }
 
 .side-detail {

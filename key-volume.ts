@@ -357,6 +357,17 @@ export interface KeyVolumeParams {
    * quét. 16 nến = 4 giờ. Giá vượt qua râu quét trước đó thì cú quét chết luôn.
    */
   sweepObWaitBars: number;
+  /**
+   * Bội số volume tối thiểu tại cây nến quét thanh khoản (nhánh sweep-reclaim).
+   * Cú quét phải có nến thủng/cực trị có volume >= multiplier × trung vị volume trước đó.
+   * Đặt 0 để không đòi volume spike (luật cũ).
+   */
+  sweepVolumeSpikeMult: number;
+  /**
+   * Bội số volume tối thiểu tại nến retest / order block xác nhận lần 2 (nhánh sweep-reclaim).
+   * Đặt 0 để không đòi volume spike khi retest.
+   */
+  sweepRetestVolumeMult: number;
   /** `order-block`: lệnh chờ ở mép order block sống bấy nhiêu nến rồi huỷ. */
   obLimitBars: number;
   /** Số nến M15 NHÁNH 2 được phép chờ từ lúc chạm key tới mô hình nến. */
@@ -501,6 +512,8 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   // lại mức bị quét trong 4 giờ, rồi vào ở mép order block.
   sweepEntry: "order-block",
   sweepObWaitBars: 16,
+  sweepVolumeSpikeMult: 0,
+  sweepRetestVolumeMult: 0,
   obLimitBars: 16,
   sweepWaitBars: 4,
   // Cụm đảo chiều chỉ tính khi đường key chạy XUYÊN thân hộp của nó.
@@ -546,11 +559,20 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
 };
 
 /**
- * Tham số theo mã. Vàng (XAUUSDT, XAUUSD) tạm CHƯA áp cận dưới SL 0,2% — user
- * 08/10/26 sẽ xem xét sau, vì ở vàng các lệnh SL hẹp mang R thuần dương.
+ * Tham số theo mã. Vàng (XAUUSDT, XAUUSD):
+ * 1. Tạm CHƯA áp cận dưới SL 0,2% — user 08/10/26 vì ở vàng các lệnh SL hẹp mang R thuần dương.
+ * 2. Bật lọc Double Volume Spike cho nhánh sweep-reclaim (Vol quét >= 2.5x, Vol retest >= 1.5x)
+ *    theo case study FX Dream 06/10/26 để lọc nhiễu và loại bỏ các cú quét yếu.
  */
 export function keyVolumeParamsFor(symbol: string, base: KeyVolumeParams = KEY_VOLUME_CONFIG): KeyVolumeParams {
-  return /^XAU/i.test(symbol) ? { ...base, minStopPct: 0 } : base;
+  return /^XAU/i.test(symbol)
+    ? {
+        ...base,
+        minStopPct: 0,
+        sweepVolumeSpikeMult: 2.5,
+        sweepRetestVolumeMult: 1.5,
+      }
+    : base;
 }
 
 export interface KeyVolumeLevel {
@@ -1779,9 +1801,23 @@ function buildEntryPlans(
       const sweep = sweptLow ?? sweptHigh;
       // Nến đóng lại vào trong CẢ HAI mức một lúc không nói được chiều nào.
       if (sweep && !(sweptLow && sweptHigh) && sweepCluster) {
-        pendingSweeps.push({ direction: sweptLow ? "long" : "short", sweep });
+        const sweepVol = Math.max(
+          volumeRatioAt(sweep.breakIndex),
+          volumeRatioAt(sweep.extremeIndex),
+          volumeRatioAt(sweep.reclaimIndex),
+        );
+        if (!(params.sweepVolumeSpikeMult > 0) || sweepVol >= params.sweepVolumeSpikeMult) {
+          pendingSweeps.push({ direction: sweptLow ? "long" : "short", sweep });
+        }
       } else if (sweep && !(sweptLow && sweptHigh)) {
-        if (!passesSession(trigger, params)) diagnostics.rejectedSession++;
+        const sweepVol = Math.max(
+          volumeRatioAt(sweep.breakIndex),
+          volumeRatioAt(sweep.extremeIndex),
+          volumeRatioAt(sweep.reclaimIndex),
+        );
+        if (params.sweepVolumeSpikeMult > 0 && sweepVol < params.sweepVolumeSpikeMult) {
+          // Bỏ qua vì volume quét không đủ đột biến
+        } else if (!passesSession(trigger, params)) diagnostics.rejectedSession++;
         else {
           const direction: KeyVolumeDirection = sweptLow ? "long" : "short";
           // SL bám điểm XA NHẤT giá đi được ngoài mức: chính cái râu ở kiểu rút
@@ -1848,6 +1884,10 @@ function buildEntryPlans(
           continue;
         }
         const triggerVolumeRatio = volumeRatioAt(i);
+        const retestVolRatio = Math.max(triggerVolumeRatio, volumeRatioAt(cluster.tipIndex));
+        if (params.sweepRetestVolumeMult > 0 && retestVolRatio < params.sweepRetestVolumeMult) {
+          continue;
+        }
         plans.push({
           id: `sweep:${direction}:${trigger.openTime}`,
           branch: "sweep-reclaim",
