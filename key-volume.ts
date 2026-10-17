@@ -327,6 +327,12 @@ export interface KeyVolumeParams {
    */
   lowerHighMaxKeyAtr: number;
   /**
+   * Đề xuất 2 + Giải pháp 2 (user 10/10/26): chuỗi chỉ MỘT nhịp xác nhận, nhắm cụm
+   * thanh khoản đối diện `sweepLookback` nến, sàn dư địa min(1R, minRR). `false` =
+   * luật 04/10/26: chuỗi nối tiếp các đỉnh thấp dần, nhắm key đối diện, không sàn dư địa.
+   */
+  lowerHighSingleStep: boolean;
+  /**
    * Cửa sổ M15 của NHÁNH 1, dùng cho cả hai đầu: đỉnh/đáy bị quét, và cụm
    * thanh khoản đối diện làm mục tiêu. 480 nến = NĂM ngày.
    */
@@ -460,7 +466,10 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   // TUỲ Ý cũng "có key ở gần". ×4 kéo về 2,28 key/ngày và sàn nhiễu 59,2%.
   volumeSpikeMult: 4,
   // Đề xuất 1 (user 10/10/26): nến đối kháng có volume >= 75% trong 4 nến sau thì huỷ key.
-  opposingLookbackBars: 4,
+  // 17/10/26 TẮT cho BTC (cùng lowerHighMaxKeyAtr/lowerHighSingleStep): bộ luật 10/10
+  // làm BTC xấu đi — 365 ngày R thuần +15,9 → −25,4R, toàn kỳ net −320 → −376R; BTC về
+  // đúng a1632c9. Vàng vẫn bật qua keyVolumeParamsFor.
+  opposingLookbackBars: 0,
   opposingVolumeRatio: 0.75,
   // Luật "chín" của user: rời 1 ATR -> chạm lại -> đóng bật 1 ATR trong 6 nến,
   // đúng bộ số đã đo ở scripts/exp-key-reaction.ts.
@@ -514,7 +523,8 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   enableLowerHighBranch: true,
   lowerHighPivotBars: 1,
   lowerHighTouchBars: 4,
-  lowerHighMaxKeyAtr: 2.5,
+  lowerHighMaxKeyAtr: Infinity,
+  lowerHighSingleStep: false,
   // 5 ngày M15 = 480 nến; mức bị quét phải sạch 1 ngày (96 nến) về phía trước.
   sweepLookback: 480,
   sweepProminenceBars: 96,
@@ -589,6 +599,9 @@ export function keyVolumeParamsFor(symbol: string, base: KeyVolumeParams = KEY_V
         sweepRetestVolumeMult: 1.5,
         sweepObAnchor: "spike-close",
         sweepProminenceBars: 0,
+        opposingLookbackBars: 4,
+        lowerHighMaxKeyAtr: 2.5,
+        lowerHighSingleStep: true,
       }
     : base;
 }
@@ -2120,7 +2133,7 @@ function buildEntryPlans(
                   obEntryEdge: edge,
                   structuralStop: chain.price,
                   patternStop: chain.price,
-                  sweepTarget: direction === "long"
+                  sweepTarget: !params.lowerHighSingleStep ? null : direction === "long"
                     ? rangeMax(confirm, Math.max(0, i - params.sweepLookback), i, "high")
                     : rangeMin(confirm, Math.max(0, i - params.sweepLookback), i, "low"),
                   sweepBreakTime: null,
@@ -2134,7 +2147,7 @@ function buildEntryPlans(
             // Đề xuất 2: Phản ứng tại key chỉ tạo duy nhất 1 nhịp xác nhận (Pivot 1 -> Pivot 2).
             // Tiêu thụ chuỗi để không nối tiếp sang Pivot 3, 4, 5... khi giá đã đi xa.
             // Để có lệnh mới, giá phải quay lại chạm Key.
-            chains[direction] = undefined;
+            chains[direction] = params.lowerHighSingleStep ? undefined : { price: extreme, index: pivot };
           } else {
             let touched = false;
             for (let j = Math.max(0, pivot - params.lowerHighTouchBars); j <= pivot && !touched; j++) {
@@ -2522,7 +2535,9 @@ export function resolveEntryLevels(
   const opposing = planTarget(plan, levels, time, entry, risk);
   const opposingR = opposing == null ? Infinity : Math.abs(opposing - entry) / risk;
   // Giải pháp 2 (user 10/10/26): nhánh 4 nhắm cụm thanh khoản đối diện, sàn an toàn phí 1R (hoặc theo params.minRR nếu được cấu hình nhỏ hơn).
-  const minRR = plan.branch === "key-lower-high" ? Math.min(1.0, params.minRR) : params.minRR;
+  // Luật 04/10/26 (lowerHighSingleStep tắt): nhánh 4 không đòi dư địa tối thiểu.
+  const minRR = plan.branch !== "key-lower-high" ? params.minRR
+    : params.lowerHighSingleStep ? Math.min(1.0, params.minRR) : 0;
   if ((opposing == null && params.requireStructuralTarget) || opposingR < minRR) return { ok: false, reason: "room" };
   const targetR = resolveTargetR(opposing == null ? null : opposingR, params);
   return { ok: true, stop, target: dir === "long" ? entry + targetR * risk : entry - targetR * risk, risk };

@@ -2180,8 +2180,8 @@ function testLowerHighNeedsARealLimit(): void {
 /** Đề xuất 1: Đỉnh/đáy swing hoặc mép OB quá xa key (> lowerHighMaxKeyAtr) thì không vào lệnh. */
 function testLowerHighMaxKeyAtrDistanceLimit(): void {
   const bars = buildLowerHighFixture(99.15);
-  // Với cấu hình mặc định (2.5 ATR), khoảng cách 0.7 giá hợp lệ -> sinh kế hoạch.
-  const normal = runKeyVolume("synthetic", bars, LOWER_HIGH_OVERRIDES);
+  // Ở 2.5 ATR (giá trị của vàng), khoảng cách 0.7 giá hợp lệ -> sinh kế hoạch.
+  const normal = runKeyVolume("synthetic", bars, { ...LOWER_HIGH_OVERRIDES, lowerHighMaxKeyAtr: 2.5 });
   assert.equal(normal.diagnostics.lowerHighPlans, 1);
 
   // Khi siết khoảng cách tối đa rất nhỏ (0.1 ATR ~ 0.07 giá), khoảng cách 0.7 giá bị loại.
@@ -2192,14 +2192,34 @@ function testLowerHighMaxKeyAtrDistanceLimit(): void {
 /** Đề xuất 2: Chỉ nhận duy nhất 1 lần xác nhận (Pivot 1 -> Pivot 2), không daisy-chain sang Pivot 3, 4. */
 function testLowerHighSingleConfirmationNoDaisyChain(): void {
   const bars = buildLowerHighFixture(99.15);
-  // Thêm một đỉnh thứ 3 (Pivot 3) thấp hơn nữa:
-  pushM15(bars, { open: 98.5, high: 98.8, low: 98.4, close: 98.7, volume: 100 }); // OB nến xanh thứ 2
+  // Thêm một đỉnh thứ 3 (Pivot 3) thấp hơn nữa, có hai nến rơi trước để 98.8 là pivot thật:
+  pushM15(bars, { open: 99.4, high: 99.45, low: 98.3, close: 98.4, volume: 100 });
+  pushM15(bars, { open: 98.4, high: 98.5, low: 98.2, close: 98.3, volume: 100 });
+  pushM15(bars, { open: 98.3, high: 98.8, low: 98.25, close: 98.7, volume: 100 }); // OB nến xanh thứ 2
   pushM15(bars, { open: 98.7, high: 98.75, low: 98.0, close: 98.1, volume: 100 }); // xác nhận đỉnh 3 (98.8 < 99.75)
   pushM15(bars, { open: 98.1, high: 98.2, low: 98.0, close: 98.15, volume: 100 });
 
-  const result = runKeyVolume("synthetic", bars, LOWER_HIGH_OVERRIDES);
+  const result = runKeyVolume("synthetic", bars, { ...LOWER_HIGH_OVERRIDES, lowerHighSingleStep: true });
   // Chỉ có 1 kế hoạch duy nhất ở Pivot 2, Pivot 3 không được nối dây:
   assert.equal(result.diagnostics.lowerHighPlans, 1, "chỉ 1 kế hoạch duy nhất, không nối chuỗi vô hạn sang Pivot 3");
+  assert.ok(result.plans.find((p) => p.branch === "key-lower-high")?.sweepTarget != null, "nhắm cụm thanh khoản 5 ngày");
+
+  // Luật 04/10/26 (BTC từ 17/10/26): chuỗi nối tiếp sang Pivot 3, mục tiêu là key đối diện.
+  const chained = runKeyVolume("synthetic", bars, { ...LOWER_HIGH_OVERRIDES, lowerHighSingleStep: false });
+  assert.equal(chained.diagnostics.lowerHighPlans, 2, "đỉnh thấp hơn thứ hai cũng sinh kế hoạch");
+  assert.ok(chained.plans.every((p) => p.sweepTarget == null));
+}
+
+/** 17/10/26: bộ luật 10/10/26 của nhánh 4 + nến đối kháng chỉ còn ở vàng; BTC về luật a1632c9. */
+function testLowerHighRevisionGoldOnly(): void {
+  const btc = keyVolumeParamsFor("BTCUSDT");
+  assert.equal(btc.lowerHighSingleStep, false);
+  assert.equal(btc.lowerHighMaxKeyAtr, Infinity);
+  assert.equal(btc.opposingLookbackBars, 0);
+  const xau = keyVolumeParamsFor("XAUUSDT");
+  assert.equal(xau.lowerHighSingleStep, true);
+  assert.equal(xau.lowerHighMaxKeyAtr, 2.5);
+  assert.equal(xau.opposingLookbackBars, 4);
 }
 
 function testKeyTrapMirrorsToLong(): void {
@@ -2318,6 +2338,7 @@ testLowerHighAfterKeyReaction();
 testLowerHighNeedsARealLimit();
 testLowerHighMaxKeyAtrDistanceLimit();
 testLowerHighSingleConfirmationNoDaisyChain();
+testLowerHighRevisionGoldOnly();
 testOpposingVolumeSpikeCancelsKey();
 testSweepSpikeCloseAnchor();
 console.log("Key Volume tests: OK");
