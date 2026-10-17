@@ -224,6 +224,7 @@ export type KeyVolumeEntryBranch = "sweep-reclaim" | "volume-reversal" | "key-tr
  */
 export type KeyVolumeApproach = "bounce" | "breakout";
 export type KeyVolumeSweepEntry = "reclaim-close" | "box-retest" | "order-block";
+export type KeyVolumeSweepObAnchor = "swept-level" | "spike-close";
 
 export interface KeyVolumeParams {
   /** Khung DUY NHẤT: key, hướng, quét, mô hình nến, entry, stop và mô phỏng. */
@@ -368,6 +369,17 @@ export interface KeyVolumeParams {
    * Đặt 0 để không đòi volume spike khi retest.
    */
   sweepRetestVolumeMult: number;
+  /**
+   * `order-block`: order block sau cú quét neo vào đâu.
+   *   · `swept-level` (luật 03/10/26): mũi nhọn phải chạm lại MỨC bị quét; SL ngoài
+   *     râu quét; lệnh chờ ở mép hộp; TP là cực trị cửa sổ `sweepLookback` bên kia.
+   *   · `spike-close` (video vàng 06/10/26): thân hộp phải CHỨA giá đóng của cây
+   *     volume lớn nhất trong cú quét — "2 lần tiền lớn vào cùng 1 mức giá"; SL
+   *     ngoài mũi nhọn của order block; nến bóp cò đã đóng ở/trong mép hộp thì vào
+   *     ngay ở giá đóng, không thì lệnh chờ ở mép; TP là đỉnh/đáy swing gần nhất
+   *     trước cú quét (chân của nhịp vừa quét), thiếu thì quay về cực trị cửa sổ.
+   */
+  sweepObAnchor: KeyVolumeSweepObAnchor;
   /** `order-block`: lệnh chờ ở mép order block sống bấy nhiêu nến rồi huỷ. */
   obLimitBars: number;
   /** Số nến M15 NHÁNH 2 được phép chờ từ lúc chạm key tới mô hình nến. */
@@ -514,6 +526,7 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
   sweepObWaitBars: 16,
   sweepVolumeSpikeMult: 0,
   sweepRetestVolumeMult: 0,
+  sweepObAnchor: "swept-level",
   obLimitBars: 16,
   sweepWaitBars: 4,
   // Cụm đảo chiều chỉ tính khi đường key chạy XUYÊN thân hộp của nó.
@@ -563,6 +576,9 @@ export const KEY_VOLUME_CONFIG: KeyVolumeParams = {
  * 1. Tạm CHƯA áp cận dưới SL 0,2% — user 08/10/26 vì ở vàng các lệnh SL hẹp mang R thuần dương.
  * 2. Bật lọc Double Volume Spike cho nhánh sweep-reclaim (Vol quét >= 2.5x, Vol retest >= 1.5x)
  *    theo case study FX Dream 06/10/26 để lọc nhiễu và loại bỏ các cú quét yếu.
+ * 3. Order block sau cú quét theo đúng video 06/10/26 (`sweepObAnchor: "spike-close"`), và
+ *    bỏ luật "mức bị quét nổi bật": đáy 5 ngày bị quét sáng 06/10 có một đáy thấp hơn
+ *    ngay trước cửa sổ nên luật đó gạt mất chính ví dụ của video.
  */
 export function keyVolumeParamsFor(symbol: string, base: KeyVolumeParams = KEY_VOLUME_CONFIG): KeyVolumeParams {
   return /^XAU/i.test(symbol)
@@ -571,6 +587,8 @@ export function keyVolumeParamsFor(symbol: string, base: KeyVolumeParams = KEY_V
         minStopPct: 0,
         sweepVolumeSpikeMult: 2.5,
         sweepRetestVolumeMult: 1.5,
+        sweepObAnchor: "spike-close",
+        sweepProminenceBars: 0,
       }
     : base;
 }
@@ -665,6 +683,16 @@ export interface KeyVolumeEntryPlan {
   sweepBreakTime: number | null;
   /** Nhánh 4: `openTime` của đỉnh (đáy) liền trước — gốc của SL. */
   priorExtremeTime?: number;
+  /**
+   * Nhánh quét `spike-close`: giá đóng của cây volume lớn nhất trong cú quét — mức
+   * thân hộp order block phải chứa. `undefined` ở mọi luật khác.
+   */
+  sweepAnchorPrice?: number;
+  /**
+   * Nhánh quét `spike-close`: nến bóp cò đã đóng ở/trong mép hộp nên vào ngay ở
+   * giá ĐÓNG của nó (`readyIndex` = chính nến đó) thay vì treo lệnh chờ ở mép.
+   */
+  fillAtClose?: boolean;
   triggerVolumeRatio: number;
   score: number;
 }
@@ -1877,7 +1905,13 @@ function buildEntryPlans(
         const cluster = reversalOrderBlock(confirm, i, direction, atr15[i], params);
         if (!cluster || cluster.tipIndex <= sweep.reclaimIndex) continue;
         const tip = direction === "long" ? confirm[cluster.tipIndex].low : confirm[cluster.tipIndex].high;
-        if (direction === "long" ? tip > sweep.level : tip < sweep.level) continue;
+        const spikeClose = params.sweepObAnchor === "spike-close"
+          ? confirm[[sweep.breakIndex, sweep.extremeIndex, sweep.reclaimIndex]
+            .reduce((best, j) => (volumeRatioAt(j) > volumeRatioAt(best) ? j : best))].close
+          : undefined;
+        if (spikeClose != null) {
+          if (spikeClose < cluster.obLow || spikeClose > cluster.obHigh) continue;
+        } else if (direction === "long" ? tip > sweep.level : tip < sweep.level) continue;
         // Cửa phiên hỏng thì GIỮ cú quét: cụm sau vẫn được xét, giống `setup` của nhánh key.
         if (!passesSession(trigger, params)) {
           diagnostics.rejectedSession++;
@@ -1888,11 +1922,25 @@ function buildEntryPlans(
         if (params.sweepRetestVolumeMult > 0 && retestVolRatio < params.sweepRetestVolumeMult) {
           continue;
         }
+        const edge = orderBlockEntry(cluster, direction);
+        // `spike-close`: giá đã ở/trong mép lúc nến bóp cò đóng thì lệnh chờ ở mép
+        // chỉ còn là may rủi khớp — vào luôn ở giá đóng.
+        const fillAtClose = spikeClose != null
+          && (direction === "long" ? trigger.close <= edge : trigger.close >= edge);
+        // `spike-close`: TP là swing đối diện GẦN NHẤT trước nến thủng — chân của nhịp vừa quét.
+        let nearSwing: Swing | undefined;
+        if (spikeClose != null) {
+          for (const swing of swings) {
+            if (swing.index >= sweep.breakIndex) break;
+            if (swing.type === (direction === "long" ? "high" : "low")
+              && (direction === "long" ? swing.price > edge : swing.price < edge)) nearSwing = swing;
+          }
+        }
         plans.push({
           id: `sweep:${direction}:${trigger.openTime}`,
           branch: "sweep-reclaim",
           direction,
-          readyIndex: i + 1,
+          readyIndex: fillAtClose ? i : i + 1,
           triggerTime: trigger.openTime,
           key: null,
           approach: null,
@@ -1902,14 +1950,16 @@ function buildEntryPlans(
           divergence: null,
           obLow: cluster.obLow,
           obHigh: cluster.obHigh,
-          obEntryEdge: orderBlockEntry(cluster, direction),
-          // SL vẫn ngay ngoài râu quét, không ở mép thân hộp.
-          structuralStop: sweep.extreme,
-          patternStop: sweep.extreme,
-          sweepTarget: sweepTargetOf(confirm, sweep, direction, params.sweepLookback),
+          obEntryEdge: edge,
+          // `swept-level`: SL ngay ngoài râu quét, không ở mép thân hộp.
+          // `spike-close`: SL ngay ngoài mũi nhọn của order block (video 06/10/26).
+          structuralStop: spikeClose != null ? tip : sweep.extreme,
+          patternStop: spikeClose != null ? tip : sweep.extreme,
+          sweepTarget: nearSwing?.price ?? sweepTargetOf(confirm, sweep, direction, params.sweepLookback),
           sweepBreakTime: confirm[sweep.breakIndex].openTime,
           triggerVolumeRatio,
           score: triggerVolumeRatio,
+          ...(spikeClose != null ? { sweepAnchorPrice: spikeClose, fillAtClose } : {}),
         });
         diagnostics.sweepBranchPlans++;
         pendingSweeps.splice(k, 1);
@@ -2656,7 +2706,7 @@ function simulatePlans(
       consumed.add(plan.id);
       if (
         plan.branch === "key-trap"
-        || (plan.branch === "sweep-reclaim" && params.sweepEntry === "reclaim-close")
+        || (plan.branch === "sweep-reclaim" && (params.sweepEntry === "reclaim-close" || plan.fillAtClose))
       ) {
         enterNow.push(plan);
         continue;

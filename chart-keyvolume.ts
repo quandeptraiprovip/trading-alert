@@ -578,7 +578,11 @@ function buildStages(
         : `Phải lùi ${swept.prominence} nến mới có cây vượt qua mức này — không phải mút của một đoạn đang trôi.`,
       barsZone(m15, swept.at - params.sweepProminenceBars, swept.at),
     ));
-    const wick = plan?.structuralStop ?? swept.level;
+    // `spike-close` neo SL vào mũi nhọn order block, nên râu quét phải đọc lại từ nến.
+    const sweepBars = m15.slice(breakIndex, reclaimIndex + 1);
+    const wick = plan?.sweepAnchorPrice != null
+      ? (long ? Math.min(...sweepBars.map((bar) => bar.low)) : Math.max(...sweepBars.map((bar) => bar.high)))
+      : plan?.structuralStop ?? swept.level;
     signals.push(makeCo(
       slow ? "Thủng rồi chạy từ từ lại" : "Thủng rồi rút râu lại",
       "pass",
@@ -592,7 +596,9 @@ function buildStages(
       signals.push(makeCo(
         "Order block sau cú quét",
         "pass",
-        `${clusterNote} Mũi nhọn ${tip == null ? "" : `${fmtPrice(tip)} `}chạm lại mức bị quét ${fmtPrice(swept.level)} mà không vượt râu ${fmtPrice(wick)}; cụm xong ${triggerIndex - reclaimIndex} nến sau cú quét (hạn ${params.sweepObWaitBars}). Chính cây râu quét không tính là order block.`,
+        plan.sweepAnchorPrice != null
+          ? `${clusterNote} Thân hộp chứa giá đóng ${fmtPrice(plan.sweepAnchorPrice)} của cây volume lớn nhất trong cú quét — tiền lớn vào lần hai cùng một mức; không vượt râu ${fmtPrice(wick)}; cụm xong ${triggerIndex - reclaimIndex} nến sau cú quét (hạn ${params.sweepObWaitBars}).`
+          : `${clusterNote} Mũi nhọn ${tip == null ? "" : `${fmtPrice(tip)} `}chạm lại mức bị quét ${fmtPrice(swept.level)} mà không vượt râu ${fmtPrice(wick)}; cụm xong ${triggerIndex - reclaimIndex} nến sau cú quét (hạn ${params.sweepObWaitBars}). Chính cây râu quét không tính là order block.`,
         clusterZone,
       ));
     }
@@ -628,17 +634,26 @@ function buildStages(
     steps.push(makeCo(
       "Hộp order block",
       "pass",
-      `${fmtPrice(obLow)} – ${fmtPrice(obHigh)}, chỉ tính thân nến, bỏ râu. Đặt lệnh chờ ${long ? "mua" : "bán"} ở mép ${long ? "trên" : "dưới"} ${fmtPrice(edge)}, SL ngay ngoài râu quét ${fmtPrice(plan?.structuralStop ?? trade.initialSL)}.`,
+      `${fmtPrice(obLow)} – ${fmtPrice(obHigh)}, chỉ tính thân nến, bỏ râu. `
+        + (plan?.fillAtClose ? "" : `Đặt lệnh chờ ${long ? "mua" : "bán"} ở mép ${long ? "trên" : "dưới"} ${fmtPrice(edge)}, `)
+        + `SL ngay ngoài ${plan?.sweepAnchorPrice != null ? "mũi nhọn order block" : "râu quét"} ${fmtPrice(plan?.structuralStop ?? trade.initialSL)}.`,
       obZone,
     ));
-    steps.push(makeCo(
-      "Lệnh chờ khớp ở mép",
-      "pass",
-      `${entryIndex - triggerIndex} nến sau khi cụm đóng, giá ${long ? "lùi xuống" : "hồi lên"} chạm mép → khớp ở ${fmtPrice(trade.entryPrice)}`
-        + (trade.entryPrice !== edge ? " (nến mở cửa đã vượt qua mép nên khớp ở giá mở)" : "")
-        + `. Lệnh chờ sống tối đa ${params.obLimitBars} nến.`,
-      entryCandle,
-    ));
+    steps.push(plan?.fillAtClose
+      ? makeCo(
+        "Vào ngay ở giá đóng",
+        "pass",
+        `Nến bóp cò đóng ở ${fmtPrice(trade.entryPrice)}, ${long ? "không cao hơn" : "không thấp hơn"} mép ${fmtPrice(edge)} — giá đã ở chỗ vào nên vào luôn, không treo lệnh chờ.`,
+        entryCandle,
+      )
+      : makeCo(
+        "Lệnh chờ khớp ở mép",
+        "pass",
+        `${entryIndex - triggerIndex} nến sau khi cụm đóng, giá ${long ? "lùi xuống" : "hồi lên"} chạm mép → khớp ở ${fmtPrice(trade.entryPrice)}`
+          + (trade.entryPrice !== edge ? " (nến mở cửa đã vượt qua mép nên khớp ở giá mở)" : "")
+          + `. Lệnh chờ sống tối đa ${params.obLimitBars} nến.`,
+        entryCandle,
+      ));
   } else if (lowerHighLimit) {
     const edge = plan?.obEntryEdge ?? trade.entryPrice;
     steps.push(makeCo(
@@ -793,7 +808,7 @@ function buildStages(
     { n: "1", title: "Dấu hiệu", items: signals },
     {
       n: "2",
-      title: sweepDirect || trap ? "Vào lệnh" : sweepLimit || lowerHighLimit ? "Order block và lệnh chờ" : "Hộp và ba bước",
+      title: sweepDirect || trap ? "Vào lệnh" : sweepLimit && plan?.fillAtClose ? "Order block và vào lệnh" : sweepLimit || lowerHighLimit ? "Order block và lệnh chờ" : "Hộp và ba bước",
       items: steps,
     },
     { n: "3", title: "Hai cửa cuối", items: gates },
@@ -807,6 +822,9 @@ function verdictOf(trade: KeyVolumeTrade, plan: KeyVolumeEntryPlan | null, param
   if (!key) {
     const what = trade.dir === "long" ? "đáy" : "đỉnh";
     const daysWindow = num(params.sweepLookback / 96, 0);
+    if (plan?.clusterShape && plan.sweepAnchorPrice != null) {
+      return `Giá quét ${what} ${daysWindow} ngày kèm volume lớn, rồi một order block có volume lần hai đúng giá đóng cây quét — tiền lớn giữ cùng một mức.`;
+    }
     if (plan?.clusterShape) {
       return `Giá quét ${what} ${daysWindow} ngày, rồi một order block chạm lại mức bị quét — lệnh chờ ở mép order block khớp.`;
     }
@@ -852,8 +870,10 @@ function summarize(trade: KeyVolumeTrade, plan: KeyVolumeEntryPlan | null): stri
   if (!key) {
     const swept = trade.dir === "long" ? "ĐÁY" : "ĐỈNH";
     return `${side} sau khi giá quét ${swept} một ngày rồi đóng lại trong biên;`
-      + (plan?.clusterShape ? " vào bằng lệnh chờ ở mép order block chạm lại mức bị quét;" : "")
-      + ` không dùng key ở bất kỳ khâu nào; SL ngoài râu vừa quét.${tail}`;
+      + (plan?.sweepAnchorPrice != null
+        ? " vào ở order block chứa giá đóng cây volume quét;"
+        : plan?.clusterShape ? " vào bằng lệnh chờ ở mép order block chạm lại mức bị quét;" : "")
+      + ` không dùng key ở bất kỳ khâu nào; SL ngoài ${plan?.sweepAnchorPrice != null ? "mũi nhọn order block" : "râu vừa quét"}.${tail}`;
   }
   const position = trade.dir === "long" ? "giá đứng TRÊN key" : "giá nằm DƯỚI key";
   return `${side} tại key ${key.sourceTf} @ ${fmtPrice(key.price)}`
@@ -934,7 +954,7 @@ export function buildKeyVolumeView(
         // Chart cần THỜI ĐIỂM khớp thật: lúc nến vào lệnh đóng. Riêng lệnh chờ ở
         // mép order block khớp TRONG nến, nên hộp lệnh bắt đầu từ lúc nến mở.
         entryTime: trade.entryTime
-          + ((!key && params.sweepEntry === "order-block") || trade.branch === "key-lower-high" ? 0 : confirmMs),
+          + ((!key && params.sweepEntry === "order-block" && !plan?.fillAtClose) || trade.branch === "key-lower-high" ? 0 : confirmMs),
         entryPrice: trade.entryPrice,
         initialSL: trade.initialSL,
         target: trade.target,

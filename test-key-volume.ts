@@ -1095,6 +1095,51 @@ function testKeyMaturation(): void {
   assert.equal(matureKeyLevels([...head, ...rally, bounceBar], [lateKnown], P)[0].maturedAt, 30 * m15);
 }
 
+/**
+ * `spike-close` (video vàng 06/10/26): order block phải CHỨA giá đóng 100,4 của cây
+ * volume quét, không cần chạm lại mức 99,5. SL ngoài mũi nhọn 99,55 thay vì râu quét
+ * 98,0; nến bóp cò đóng đúng mép nên vào luôn ở giá đóng; TP là đỉnh swing GẦN NHẤT
+ * trước cú quét (101,5), không phải đỉnh cửa sổ 5 ngày (102).
+ */
+function testSweepSpikeCloseAnchor(): void {
+  const bars: Candle[] = [];
+  for (let i = 0; i < SWEEP_BAR; i++) {
+    pushM15(bars, i === 300 ? { ...BAND, high: 102 } : i === 590 ? { ...BAND, high: 101.5 } : BAND);
+  }
+  const after: M15Bar[] = [
+    { ...PIN_SWEEP, volume: 500 },
+    { open: 100.4, high: 100.95, low: 100.35, close: 100.9, volume: 100 },
+    // Đáy 99,55 vẫn trên mức 99,5 — luật cũ đòi chạm lại mức nên bỏ cụm này.
+    { open: 100.9, high: 100.95, low: 99.55, close: 99.6, volume: 100 },
+    { open: 99.6, high: 100.95, low: 99.58, close: 100.9, volume: 100 },
+    { open: 100.9, high: 101.6, low: 100.85, close: 101.5, volume: 100 },
+    BAND,
+  ];
+  for (const bar of after) pushM15(bars, bar);
+  const P = { ...KEY_VOLUME_CONFIG, minRR: 0, requireStructuralTarget: false };
+
+  assert.equal(runKeyVolume("synthetic", bars, P).plans.length, 0, "swept-level: mũi nhọn phải chạm lại mức");
+
+  const result = runKeyVolume("synthetic", bars, { ...P, sweepObAnchor: "spike-close" });
+  assert.equal(result.plans.length, 1);
+  const plan = result.plans[0];
+  assert.equal(plan.sweepAnchorPrice, 100.4, "neo vào giá đóng cây volume quét");
+  assert.equal(plan.structuralStop, 99.55, "SL ngoài mũi nhọn order block, không ngoài râu quét");
+  assert.equal(plan.fillAtClose, true);
+  assert.equal(plan.readyIndex, SWEEP_BAR + 3, "vào ngay ở nến bóp cò");
+  assert.equal(plan.sweepTarget, 101.5, "TP là đỉnh swing gần nhất trước cú quét");
+  const trade = result.trades[0];
+  assert.ok(trade);
+  assert.equal(trade.entryTime, bars[SWEEP_BAR + 3].openTime);
+  assert.equal(trade.entryPrice, 100.9, "giá đóng nến bóp cò");
+  assert.equal(trade.target, 101.5);
+
+  assert.equal(keyVolumeParamsFor("XAUUSDT").sweepObAnchor, "spike-close");
+  assert.equal(keyVolumeParamsFor("XAUUSDT").sweepProminenceBars, 0);
+  assert.equal(keyVolumeParamsFor("BTCUSDT").sweepObAnchor, "swept-level", "BTC giữ luật 03/10/26");
+  assert.equal(keyVolumeParamsFor("BTCUSDT").sweepProminenceBars, 96);
+}
+
 /** User 08/10/26: SL gần hơn 0,2% giá vào thì không vào — cùng cửa rủi ro với trần 3%. */
 function testMinStopPct(): void {
   const plan = { branch: "sweep-reclaim", direction: "long", key: null, sweepTarget: 110 } as unknown as KeyVolumeEntryPlan;
@@ -2274,4 +2319,5 @@ testLowerHighNeedsARealLimit();
 testLowerHighMaxKeyAtrDistanceLimit();
 testLowerHighSingleConfirmationNoDaisyChain();
 testOpposingVolumeSpikeCancelsKey();
+testSweepSpikeCloseAnchor();
 console.log("Key Volume tests: OK");
