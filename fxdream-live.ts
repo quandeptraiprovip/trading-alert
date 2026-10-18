@@ -14,6 +14,8 @@
  *      00:00–06:00 (giờ VN, tính theo lúc nến tín hiệu đóng): TỰ VÀO, không hỏi, rồi báo.
  *   3. Khớp xong: SL (STOP_MARKET closePosition), TP ở mục tiêu (closePosition), chốt 33% ở +1R
  *      (reduceOnly) nếu mục tiêu xa hơn 1R. Chốt 33% khớp thì dời SL về giá vào.
+ *      Sau đó mỗi lần dời SL trailing theo swing M15 đều HỎI Ý (✅/✏️/❌), 15 phút không trả lời
+ *      thì tự dời; 00:00–06:00 dời ngay không hỏi (user 18/10/26).
  *   4. Rủi ro cố định `riskUsd` mỗi lệnh bạn duyệt; lệnh TỰ VÀO ban đêm chỉ một nửa. Một lệnh mỗi lúc: đang có vị thế hoặc lệnh chờ thì tín
  *      hiệu mới chỉ báo chữ.
  *
@@ -49,7 +51,9 @@ import {
   TelegramConfig,
   answerTelegramCallback,
   editTelegramCaption,
+  editTelegramText,
   sendTelegram,
+  sendTelegramButtons,
   sendTelegramPhoto,
 } from "./telegram";
 import { buildProposalSvg, renderPng, ProposalMark } from "./fxdream-image";
@@ -137,6 +141,22 @@ interface FxPosition {
   openedAt: number;
   riskUsd: number;
   branch: KeyVolumeEntryPlan["branch"];
+  /** Đề nghị dời SL trailing đang chờ bạn trả lời. */
+  trailAsk?: FxTrailAsk | null;
+  /** Lúc mở nến swing trailing gần nhất đã xét — mỗi swing chỉ hỏi một lần, như backtest. */
+  trailSwingTime?: number;
+}
+
+/**
+ * Dời SL trailing phải hỏi ý (user 18/10/26): ✅ dời / ✏️ gõ SL khác / ❌ giữ SL cũ;
+ * tới `expiresAt` chưa trả lời thì bot tự dời. 00:00–06:00 thì dời ngay, không hỏi.
+ */
+interface FxTrailAsk {
+  id: string;
+  price: number;
+  swingPrice: number;
+  expiresAt: number;
+  messageId: number | null;
 }
 
 interface FxState {
@@ -170,6 +190,8 @@ export interface FxDreamLiveOptions {
 const M15 = TF_MS["15m"];
 const WINDOW_BARS = 45 * 96 + 600;
 const MARKET_APPROVAL_MS = 15 * 60_000;
+/** Chờ bạn trả lời đề nghị dời SL trailing; hết giờ thì bot tự dời. Bấm ✏️ Sửa thì tính lại từ lúc bấm. */
+const TRAIL_CONFIRM_MS = 15 * 60_000;
 /** Giá sửa tay lệch quá mức này so với giá hiện tại thì coi là gõ nhầm (vd thừa/thiếu một chữ số). */
 const MAX_EDIT_DEVIATION = 0.2;
 /** Sau khi thị trường mở lại, tín hiệu trong khoảng này luôn hỏi ý (không tự vào ban đêm). */
@@ -490,13 +512,16 @@ export class FxDreamLive {
     const closeTime = bars[L].openTime + M15;
     const atr = atrSeriesForward(bars);
 
-    // Trailing stop theo Swing M15 cho runner sau khi đã chốt một phần
+    // Trailing stop theo Swing M15 cho runner sau khi đã chốt một phần — hỏi ý trước khi dời (askTrail).
     if (this.state.position?.partialDone && params.trailMode === "swing") {
       const pos = this.state.position;
       const swings = findSwings(bars, params.swingPivotLeft, params.swingPivotRight);
       const long = pos.dir === "long";
+      // Đang chờ bạn trả lời thì mức mới phải tốt hơn mức đang hỏi mới thay.
+      const ref = pos.trailAsk?.price ?? pos.slNow;
+      let best: { price: number; swingPrice: number; swingTime: number } | null = null;
       for (const s of swings) {
-        if (s.confirmIndex < L - 2) continue;
+        if (s.confirmIndex < L - 2 || bars[s.index].openTime <= (pos.trailSwingTime ?? 0)) continue;
         const favorable = long
           ? s.type === "low" && s.price > pos.slNow && s.price < bars[L].close
           : s.type === "high" && s.price < pos.slNow && s.price > bars[L].close;
@@ -505,19 +530,13 @@ export class FxDreamLive {
           ? s.price - params.stopBufferAtr * atr[L]
           : s.price + params.stopBufferAtr * atr[L];
         const valid = long
-          ? candidate > pos.slNow && candidate < bars[L].close
-          : candidate < pos.slNow && candidate > bars[L].close;
-        if (valid) {
-          const moved = await this.moveStop(candidate);
-          if (moved) {
-            await sendTelegram(
-              this.o.telegram,
-              `🛡 Trailing SL phần còn lại theo Swing M15 (${fmt(s.price)}) → SL mới ${fmt(candidate)}.`,
-              undefined,
-            );
-          }
+          ? candidate > ref && candidate < bars[L].close
+          : candidate < ref && candidate > bars[L].close;
+        if (valid && (!best || (long ? candidate > best.price : candidate < best.price))) {
+          best = { price: candidate, swingPrice: s.price, swingTime: bars[s.index].openTime };
         }
       }
+      if (best) await this.askTrail(best.price, best.swingPrice, best.swingTime, closeTime);
     }
 
     type Signal = { plan: KeyVolumeEntryPlan; kind: Kind; entry: number; stop: number; target: number; expiresAt: number };
@@ -715,6 +734,7 @@ export class FxDreamLive {
 
   /** Bấm ✏️ Sửa: chờ bạn gõ giá mới cho đề nghị này. */
   startEdit(id: string, callbackId?: string): Promise<void> {
+    if (this.isTrailId(id)) return this.startTrailEdit(id, callbackId);
     return this.serial(async () => {
       const p = this.state.proposals.find((x) => x.id === id);
       const answer = (text: string) => (callbackId ? answerTelegramCallback(this.o.telegram, callbackId, text) : Promise.resolve());
@@ -750,6 +770,7 @@ export class FxDreamLive {
     return this.serial(async () => {
       const id = this.state.editingId;
       if (!id) return false;
+      if (this.isTrailId(id)) return this.handleTrailText(id, text);
       const p = this.state.proposals.find((x) => x.id === id);
       if (!p || p.status !== "pending" || this.o.now() > p.expiresAt) {
         this.state.editingId = null;
@@ -829,6 +850,7 @@ export class FxDreamLive {
 
   /** Dùng chung cho nút bấm và lệnh chữ /yes_<id> /no_<id>. */
   decide(id: string, approve: boolean, callbackId?: string): Promise<void> {
+    if (this.isTrailId(id)) return this.decideTrail(id, approve, callbackId);
     return this.serial(async () => {
       const p = this.state.proposals.find((x) => x.id === id);
       const answer = (text: string) => (callbackId ? answerTelegramCallback(this.o.telegram, callbackId, text) : sendTelegram(this.o.telegram, text, undefined));
@@ -869,6 +891,150 @@ export class FxDreamLive {
 
   private retryHint(p: FxProposal): string {
     return this.retryButtons(p) ? `\nGõ /yes_${p.id} để thử lại (tới ${vnTime(p.expiresAt)}) hoặc /no_${p.id} để bỏ.` : "";
+  }
+
+  // ── dời SL trailing (hỏi ý) ────────────────────────────────────────────
+  private isTrailId(id: string): boolean {
+    return id.startsWith(`${this.idPrefix}_sl`);
+  }
+
+  private trailText(pos: FxPosition, ask: FxTrailAsk): string {
+    const lockedR = (pos.dir === "long" ? ask.price - pos.entry : pos.entry - ask.price) / Math.abs(pos.entry - pos.stop);
+    return [
+      `🛡 Dời SL trailing? ${pos.dir === "long" ? "LONG" : "SHORT"} ${this.o.symbol.toUpperCase()} (phần còn lại sau khi chốt)`,
+      `Swing M15 ${fmt(ask.swingPrice)} → SL mới ${fmt(ask.price)} (đang ${fmt(pos.slNow)})`,
+      `Vào ${fmt(pos.entry)} · SL mới khoá ${lockedR >= 0 ? "+" : ""}${lockedR.toFixed(2)}R phần còn lại`,
+    ].join("\n");
+  }
+
+  /** Có mức trailing mới: 00:00–06:00 dời ngay; còn lại hỏi ý, mức mới thay đề nghị đang chờ. */
+  private async askTrail(price: number, swingPrice: number, swingTime: number, closeTime: number): Promise<void> {
+    const pos = this.state.position!;
+    const prev = pos.trailAsk;
+    const ask: FxTrailAsk = {
+      id: `${this.idPrefix}_sl${closeTime.toString(36)}`, price, swingPrice,
+      expiresAt: this.o.now() + TRAIL_CONFIRM_MS, messageId: null,
+    };
+    pos.trailSwingTime = swingTime;
+    pos.trailAsk = ask;
+    if (prev && this.state.editingId === prev.id) this.state.editingId = null;
+    this.save();
+    if (prev?.messageId) {
+      await editTelegramText(this.o.telegram, prev.messageId, `${this.trailText(pos, prev)}\n\n↪️ Đã có mức mới ${fmt(price)} — xem tin bên dưới.`);
+    }
+    if (isNightVn(closeTime)) {
+      await this.applyTrail("🌙 00:00–06:00 — tự dời, không hỏi");
+      return;
+    }
+    const text = `${this.trailText(pos, ask)}\n\nBấm trong 15 phút (tới ${vnTime(ask.expiresAt)}); không bấm thì bot tự dời.`;
+    ask.messageId = await sendTelegramButtons(this.o.telegram, text, [
+      { text: "✅ Dời SL", data: `fx:y:${ask.id}` },
+      { text: "✏️ Sửa", data: `fx:e:${ask.id}` },
+      { text: "❌ Giữ SL cũ", data: `fx:n:${ask.id}` },
+    ]);
+    if (ask.messageId == null) {
+      await sendTelegram(this.o.telegram, `${text}\n\n(Không gửi được nút. Gõ /yes_${ask.id}, /edit_${ask.id} hoặc /no_${ask.id})`, undefined);
+    }
+    this.save();
+  }
+
+  /**
+   * Dời SL về mức của đề nghị đang chờ (hoặc `price` bạn gõ) rồi đóng đề nghị. Giá đã qua mức đó
+   * thì không dời — đặt STOP ở đó sẽ khớp ngay. `notify` gửi thêm tin mới (sửa tin cũ không kêu).
+   */
+  private async applyTrail(how: string, price?: number, notify = true): Promise<void> {
+    const pos = this.state.position!;
+    const ask = pos.trailAsk!;
+    const level = price ?? ask.price;
+    const mark = (await this.o.venue!.getPosition(this.o.symbol)).markPrice;
+    pos.trailAsk = null;
+    if (this.state.editingId === ask.id) this.state.editingId = null;
+    this.save();
+    const old = pos.slNow;
+    let line: string;
+    if (pos.dir === "long" ? level >= mark : level <= mark) {
+      line = `⚠️ Không dời SL: giá ${fmt(mark)} đã qua mức ${fmt(level)} — giữ SL ${fmt(old)}.`;
+    } else if (await this.moveStop(level)) {
+      line = `🛡 ${how} — SL ${fmt(old)} → ${fmt(level)}.`;
+    } else {
+      line = "⚠️ Dời SL lỗi — kiểm tra sàn!";
+    }
+    if (ask.messageId) await editTelegramText(this.o.telegram, ask.messageId, `${this.trailText(pos, ask)}\n\n${line}`);
+    if (notify || !ask.messageId) await sendTelegram(this.o.telegram, line, undefined);
+  }
+
+  private decideTrail(id: string, approve: boolean, callbackId?: string): Promise<void> {
+    return this.serial(async () => {
+      const answer = (text: string) => (callbackId ? answerTelegramCallback(this.o.telegram, callbackId, text) : sendTelegram(this.o.telegram, text, undefined));
+      const pos = this.state.position;
+      const ask = pos?.trailAsk;
+      if (!pos || !ask || ask.id !== id) return void (await answer("Đề nghị dời SL không còn hiệu lực."));
+      if (approve) {
+        await answer("Đang dời SL…");
+        await this.applyTrail("✅ Bạn đồng ý", undefined, callbackId == null);
+        return;
+      }
+      pos.trailAsk = null;
+      if (this.state.editingId === id) this.state.editingId = null;
+      this.save();
+      await answer(`Giữ SL ${fmt(pos.slNow)}.`);
+      if (ask.messageId) await editTelegramText(this.o.telegram, ask.messageId, `${this.trailText(pos, ask)}\n\n❌ Bạn giữ SL cũ ${fmt(pos.slNow)}.`);
+    });
+  }
+
+  private startTrailEdit(id: string, callbackId?: string): Promise<void> {
+    return this.serial(async () => {
+      const answer = (text: string) => (callbackId ? answerTelegramCallback(this.o.telegram, callbackId, text) : Promise.resolve());
+      const pos = this.state.position;
+      const ask = pos?.trailAsk;
+      if (!pos || !ask || ask.id !== id) return void (await answer("Đề nghị dời SL không còn hiệu lực."));
+      // Đang gõ thì bot không tự dời giữa chừng: tính lại 15 phút từ lúc bấm.
+      ask.expiresAt = this.o.now() + TRAIL_CONFIRM_MS;
+      this.state.editingId = id;
+      this.save();
+      await answer("Gõ giá SL mới vào khung chat.");
+      await sendTelegram(this.o.telegram, [
+        `✏️ Sửa SL trailing — đề xuất ${fmt(ask.price)}, SL đang ${fmt(pos.slNow)}`,
+        `Gõ giá SL mới, ví dụ: sl ${plain(ask.price)}`,
+        `Gõ huỷ để thôi sửa. Tới ${vnTime(ask.expiresAt)} chưa gõ thì bot tự dời về ${fmt(ask.price)}.`,
+      ].join("\n"), undefined);
+    });
+  }
+
+  /** Giá SL bạn gõ sau khi bấm ✏️ ở đề nghị dời SL. Gọi trong serial. */
+  private async handleTrailText(id: string, text: string): Promise<boolean> {
+    const pos = this.state.position;
+    const ask = pos?.trailAsk;
+    if (!pos || !ask || ask.id !== id) {
+      this.state.editingId = null;
+      this.save();
+      await sendTelegram(this.o.telegram, "Đề nghị dời SL không còn hiệu lực — không sửa nữa.", undefined);
+      return true;
+    }
+    if (/^\s*(huỷ|hủy|huy|cancel)\s*$/iu.test(text)) {
+      this.state.editingId = null;
+      this.save();
+      await sendTelegram(this.o.telegram, `Đã thôi sửa. Các nút vẫn dùng được; tới ${vnTime(ask.expiresAt)} không bấm thì bot tự dời về ${fmt(ask.price)}.`, undefined);
+      return true;
+    }
+    const price = parseEditText(text)?.stop ?? parsePrice(text);
+    if (price == null) {
+      await sendTelegram(this.o.telegram, `Không đọc được giá. Ví dụ: sl ${plain(ask.price)} — hoặc gõ huỷ.`, undefined);
+      return true;
+    }
+    const ref = this.candles.at(-1)?.close ?? ask.price;
+    const long = pos.dir === "long";
+    const why = Math.abs(price - ref) / ref > MAX_EDIT_DEVIATION
+      ? `SL ${fmt(price)} lệch ${((Math.abs(price - ref) / ref) * 100).toFixed(0)}% so với giá hiện tại ${fmt(ref)} — gõ nhầm?`
+      : (long ? price >= ref : price <= ref)
+        ? `SL của ${long ? "LONG phải dưới" : "SHORT phải trên"} giá hiện tại ${fmt(ref)}`
+        : null;
+    if (why) {
+      await sendTelegram(this.o.telegram, `⚠️ Không sửa: ${why}\nGõ lại, hoặc gõ huỷ.`, undefined);
+      return true;
+    }
+    await this.applyTrail("✏️ Bạn sửa", price);
+    return true;
   }
 
   // ── đặt lệnh ───────────────────────────────────────────────────────────
@@ -1087,6 +1253,8 @@ export class FxDreamLive {
       return;
     }
     await this.ensureStop();
+    const ask = this.state.position?.trailAsk;
+    if (ask && this.o.now() >= ask.expiresAt) await this.applyTrail("⏱ 15 phút không trả lời — bot tự dời");
   }
 
   /** Còn vị thế mà mất SL trên sàn (bị huỷ tay, lỗi) → đặt lại. */
@@ -1164,6 +1332,12 @@ export class FxDreamLive {
           : pos.partialDone
             ? `Trailing SL sau khi chốt ${Math.round((this.o.params.partialFraction ?? 0.5) * 100)}%`
             : "chạm SL";
+    if (pos.trailAsk) {
+      if (this.state.editingId === pos.trailAsk.id) this.state.editingId = null;
+      if (pos.trailAsk.messageId) {
+        await editTelegramText(this.o.telegram, pos.trailAsk.messageId, `${this.trailText(pos, pos.trailAsk)}\n\n🏁 Vị thế đã đóng — không dời nữa.`);
+      }
+    }
     this.state.position = null;
     this.save();
     this.journal({ event: "closed", proposal: pos.proposalId, pnl, fee, grossR, exitPrice, reason, note });
@@ -1183,7 +1357,8 @@ export class FxDreamLive {
   private async expireProposals(): Promise<void> {
     const now = this.o.now();
     const editing = this.state.proposals.find((x) => x.id === this.state.editingId);
-    if (this.state.editingId && (!editing || editing.status !== "pending" || now > editing.expiresAt)) {
+    const editingTrail = this.state.editingId != null && this.state.editingId === this.state.position?.trailAsk?.id;
+    if (this.state.editingId && !editingTrail && (!editing || editing.status !== "pending" || now > editing.expiresAt)) {
       this.state.editingId = null;
       this.save();
     }
@@ -1241,6 +1416,7 @@ export class FxDreamLive {
       const p = st.position;
       const partialPct = Math.round((this.o.params.partialFraction ?? 0.5) * 100);
       lines.push(`Vị thế: ${p.dir.toUpperCase()} ${p.qty} @ ${fmt(p.entry)} · SL ${fmt(p.slNow)} · TP ${fmt(p.target)}${p.partialDone ? ` · đã chốt ${partialPct}%` : ""}`);
+      if (p.trailAsk) lines.push(`Chờ bạn duyệt dời SL → ${fmt(p.trailAsk.price)} (tự dời lúc ${vnTime(p.trailAsk.expiresAt)})`);
     } else if (st.working) {
       lines.push(`Lệnh chờ: ${st.working.dir.toUpperCase()} ${st.working.qty} @ ${fmt(st.working.edge)} · hết hạn ${vnTime(st.working.expiresAt)}`);
     } else {

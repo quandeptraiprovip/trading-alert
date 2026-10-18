@@ -222,6 +222,51 @@ export async function editTelegramCaption(cfg: TelegramConfig, messageId: number
   }
 }
 
+/** Gửi tin chữ thường (không Markdown) kèm hàng nút bấm. Trả message_id, hoặc null khi chưa cấu hình / lỗi. */
+export async function sendTelegramButtons(cfg: TelegramConfig, text: string, buttons: InlineButton[]): Promise<number | null> {
+  if (!cfg.enabled) {
+    console.log("\n[Telegram — chưa cấu hình, tin có nút]\n" + text + "\n");
+    return null;
+  }
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await axios.post(`https://api.telegram.org/bot${cfg.botToken}/sendMessage`, {
+        chat_id: cfg.chatId,
+        text,
+        disable_web_page_preview: true,
+        reply_markup: { inline_keyboard: [buttons.map((b) => ({ text: b.text, callback_data: b.data }))] },
+      }, { timeout: 15000, httpsAgent });
+      return Number(res.data?.result?.message_id ?? 0) || null;
+    } catch (err: unknown) {
+      lastErr = err;
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+      if (status && status >= 400 && status < 500) break;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+    }
+  }
+  const data = axios.isAxiosError(lastErr) ? lastErr.response?.data : undefined;
+  console.error("[Telegram] sendMessage (nút) lỗi:", data ?? (lastErr instanceof Error ? lastErr.message : String(lastErr)));
+  return null;
+}
+
+/** Thay nội dung tin chữ đã gửi và gỡ hàng nút — như `editTelegramCaption` nhưng cho tin không có ảnh. */
+export async function editTelegramText(cfg: TelegramConfig, messageId: number, text: string): Promise<void> {
+  if (!cfg.enabled || !messageId) return;
+  try {
+    await axios.post(`https://api.telegram.org/bot${cfg.botToken}/editMessageText`, {
+      chat_id: cfg.chatId,
+      message_id: messageId,
+      text,
+      disable_web_page_preview: true,
+      reply_markup: { inline_keyboard: [] },
+    }, { timeout: 15000, httpsAgent });
+  } catch (err: unknown) {
+    const data = axios.isAxiosError(err) ? err.response?.data : undefined;
+    console.error("[Telegram] editMessageText lỗi:", data ?? (err instanceof Error ? err.message : String(err)));
+  }
+}
+
 /** Trả lời lượt bấm nút (tắt vòng xoay trên app, hiện một dòng ngắn). */
 export async function answerTelegramCallback(cfg: TelegramConfig, callbackId: string, text: string): Promise<void> {
   if (!cfg.enabled) return;

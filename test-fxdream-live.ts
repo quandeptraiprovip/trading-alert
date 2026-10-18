@@ -84,6 +84,8 @@ async function replay(
       clock = candles[idx].openTime + M15 + 5000;
       await fx.tick();
       for (const p of fx.snapshot().proposals.filter((x) => x.status === "pending")) await onPending(fx, p.id);
+      const trail = fx.snapshot().position?.trailAsk;
+      if (trail) await onPending(fx, trail.id);
     }
   } finally {
     console.log = log;
@@ -132,18 +134,28 @@ async function testApproveFillPartialBreakeven(): Promise<void> {
   assert.equal(fx.snapshot().position, null);
 }
 
+/** Khớp, chốt 50% ở 2R, rồi swing đỉnh 98,0 xác nhận ở nến cuối → đề nghị dời SL về ~98,08. */
+const TRAIL_SETUP: Bar[] = [
+  { open: 99.15, high: 99.35, low: 99.1, close: 99.2 }, // khớp LIMIT 99.3
+  { open: 99.2, high: 97.5, low: 97.0, close: 97.3 }, // chạm 2R -> chốt 50%
+  { open: 97.3, high: 97.6, low: 97.1, close: 97.2 },
+  { open: 97.2, high: 98.0, low: 97.1, close: 97.5 }, // đỉnh swing 98.0 (> 97.6 và > 97.5)
+  { open: 97.5, high: 97.7, low: 97.2, close: 97.3 }, // nến phải 1
+  { open: 97.3, high: 97.5, low: 97.0, close: 97.1 }, // nến phải 2 -> xác nhận đỉnh -> đề nghị dời SL ~98.08
+];
+const TRAIL_TAIL: Bar[] = [
+  ...TRAIL_SETUP,
+  { open: 97.1, high: 98.5, low: 97.0, close: 98.4 }, // chạm trailing stop
+  BELOW,
+];
+const isTrail = (id: string) => id.includes("_sl");
+/** 1R của lệnh SHORT trong fixture (SL ~100,36 − vào 99,3) và kết quả khi runner thoát ở ~98,08. */
+const RISK = 1.0645;
+const TRAIL_R = 1 + 0.5 * (99.3 - 98.079) / RISK;
+
+/** ✅ Dời SL ngay khi được hỏi: SL dời trước nến kế tiếp. */
 async function testLiveSwingTrailingStop(): Promise<void> {
-  const tail: Bar[] = [
-    { open: 99.15, high: 99.35, low: 99.1, close: 99.2 }, // khớp LIMIT 99.3
-    { open: 99.2, high: 97.5, low: 97.0, close: 97.3 }, // chạm 2R -> chốt 50%
-    { open: 97.3, high: 97.6, low: 97.1, close: 97.2 },
-    { open: 97.2, high: 98.0, low: 97.1, close: 97.5 }, // đỉnh swing 98.0 (> 97.6 và > 97.5)
-    { open: 97.5, high: 97.7, low: 97.2, close: 97.3 }, // nến phải 1
-    { open: 97.3, high: 97.5, low: 97.0, close: 97.1 }, // nến phải 2 -> xác nhận đỉnh -> dời SL về ~98.08
-    { open: 97.1, high: 98.5, low: 97.0, close: 98.4 }, // chạm trailing stop
-    BELOW,
-  ];
-  const candles = fixture(DAY, tail);
+  const candles = fixture(DAY, TRAIL_TAIL);
   const { fx, venue, journal } = await replay(candles, CONFIRM - 1, (f, id) => f.decide(id, true));
   const closed = journal.find((e) => e.event === "closed");
   assert.ok(closed, "vị thế phải đóng ở trailing stop");
@@ -151,6 +163,76 @@ async function testLiveSwingTrailingStop(): Promise<void> {
   assert.ok(closed.grossR > 1.3, `ăn 50% ở 2R và runner thoát ở ~98.08 (> entry 99.3) -> grossR = ${closed.grossR} > 1.3R`);
   assert.equal(venue.pos, 0);
   assert.equal(fx.snapshot().position, null);
+}
+
+/** User 18/10/26: ban ngày hỏi trước khi dời; 15 phút không trả lời thì bot tự dời. */
+async function testTrailAutoMovesAfter15Min(): Promise<void> {
+  const tail: Bar[] = [
+    ...TRAIL_SETUP,
+    { open: 97.1, high: 97.6, low: 97.0, close: 97.3 }, // chưa chạm 98.08, chưa chạm SL cũ 99.3
+    { open: 97.3, high: 98.5, low: 97.2, close: 98.4 }, // chạm SL đã tự dời
+    BELOW,
+  ];
+  const slWhileAsking: number[] = [];
+  const { fx, journal } = await replay(fixture(DAY, tail), CONFIRM - 1, async (f, id) => {
+    if (isTrail(id)) slWhileAsking.push(f.snapshot().position!.slNow);
+    else await f.decide(id, true);
+  });
+  assert.deepEqual(slWhileAsking, [99.3], "hỏi đúng một lần, SL chưa dời trong lúc chờ");
+  const closed = journal.find((e) => e.event === "closed");
+  assert.ok(closed, "vị thế phải đóng ở SL đã tự dời");
+  assert.equal(closed.reason, "Trailing SL sau khi chốt 50%");
+  assert.ok(Math.abs(closed.grossR - TRAIL_R) < 0.02, `50% ở 2R + 50% thoát ở ~98,08 ≈ ${TRAIL_R.toFixed(2)}R, được ${closed.grossR}`);
+  assert.equal(fx.snapshot().position, null);
+}
+
+/** ❌ Giữ SL cũ: không dời, cùng swing đó không hỏi lại ở nến sau. */
+async function testTrailRejectKeepsStop(): Promise<void> {
+  let asks = 0;
+  const { journal } = await replay(fixture(DAY, TRAIL_TAIL), CONFIRM - 1, async (f, id) => {
+    if (!isTrail(id)) return f.decide(id, true);
+    asks++;
+    await f.decide(id, false);
+    assert.equal(f.snapshot().position!.slNow, 99.3);
+    assert.equal(f.snapshot().position!.trailAsk, null);
+  });
+  assert.equal(asks, 1, "swing đã bị từ chối không được hỏi lại");
+  const closed = journal.find((e) => e.event === "closed");
+  assert.equal(closed.reason, "SL về giá vào sau khi chốt 50%", "giữ SL ở giá vào");
+}
+
+/** ✏️ Sửa: gõ SL khác thì dời đúng giá đó; SL sai phía giá bị từ chối. */
+async function testTrailEdit(): Promise<void> {
+  const { fx, journal } = await replay(fixture(DAY, TRAIL_TAIL), CONFIRM - 1, async (f, id) => {
+    if (!isTrail(id)) return f.decide(id, true);
+    await f.startEdit(id);
+    assert.equal(f.snapshot().editingId, id);
+    assert.equal(await f.handleText("sl 96"), true);
+    assert.equal(f.snapshot().position!.slNow, 99.3, "SL của SHORT dưới giá hiện tại bị từ chối");
+    assert.equal(f.snapshot().editingId, id, "vẫn đang sửa");
+    assert.equal(await f.handleText("sl 98,3"), true);
+    assert.equal(f.snapshot().position!.slNow, 98.3);
+    assert.equal(f.snapshot().position!.trailAsk, null);
+    assert.equal(f.snapshot().editingId, null);
+  });
+  const closed = journal.find((e) => e.event === "closed");
+  assert.equal(closed.reason, "Trailing SL sau khi chốt 50%");
+  const r = 1 + 0.5 * (99.3 - 98.3) / RISK;
+  assert.ok(Math.abs(closed.grossR - r) < 0.02, `50% ở 2R + 50% thoát ở 98,3 ≈ ${r.toFixed(2)}R, được ${closed.grossR}`);
+  assert.equal(fx.snapshot().position, null);
+}
+
+/** User 18/10/26: 00:00–06:00 dời SL trailing ngay, không hỏi. */
+async function testTrailNightMovesWithoutAsking(): Promise<void> {
+  let asks = 0;
+  const { journal } = await replay(fixture(NIGHT, TRAIL_TAIL), CONFIRM - 1, async (f, id) => {
+    if (isTrail(id)) asks++;
+    else await f.decide(id, true);
+  });
+  assert.equal(asks, 0, "ban đêm không hỏi");
+  const closed = journal.find((e) => e.event === "closed");
+  assert.equal(closed.reason, "Trailing SL sau khi chốt 50%");
+  assert.ok(Math.abs(closed.grossR - TRAIL_R) < 0.02, `50% ở 2R + 50% thoát ở ~98,08 ≈ ${TRAIL_R.toFixed(2)}R, được ${closed.grossR}`);
 }
 
 async function testRejectPlacesNothing(): Promise<void> {
@@ -479,6 +561,10 @@ function testImageRenders(): void {
 (async () => {
   await testApproveFillPartialBreakeven();
   await testLiveSwingTrailingStop();
+  await testTrailAutoMovesAfter15Min();
+  await testTrailRejectKeepsStop();
+  await testTrailEdit();
+  await testTrailNightMovesWithoutAsking();
   await testRejectPlacesNothing();
   await testNightAutoEnters();
   await testNightThinTargetAsks();
